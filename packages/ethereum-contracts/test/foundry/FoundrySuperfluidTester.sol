@@ -10,6 +10,10 @@ import { SuperfluidFrameworkDeployer } from "../../contracts/utils/SuperfluidFra
 import { Superfluid } from "../../contracts/superfluid/Superfluid.sol";
 import { ISuperfluidPool, SuperfluidPool } from "../../contracts/agreements/gdav1/SuperfluidPool.sol";
 import { IFlowNFTBase } from "../../contracts/interfaces/superfluid/IFlowNFTBase.sol";
+import {
+    IGeneralDistributionAgreementV1,
+    PoolConfig
+} from "../../contracts/interfaces/agreements/gdav1/IGeneralDistributionAgreementV1.sol";
 import { IPoolNFTBase } from "../../contracts/interfaces/agreements/gdav1/IPoolNFTBase.sol";
 import { IPoolAdminNFT } from "../../contracts/interfaces/agreements/gdav1/IPoolAdminNFT.sol";
 import { IPoolMemberNFT } from "../../contracts/interfaces/agreements/gdav1/IPoolMemberNFT.sol";
@@ -19,7 +23,6 @@ import { ISuperfluidToken } from "../../contracts/interfaces/superfluid/ISuperfl
 import { ISETH } from "../../contracts/interfaces/tokens/ISETH.sol";
 import { UUPSProxy } from "../../contracts/upgradability/UUPSProxy.sol";
 import { ConstantFlowAgreementV1 } from "../../contracts/agreements/ConstantFlowAgreementV1.sol";
-import { IGeneralDistributionAgreementV1 } from "../../contracts/agreements/gdav1/GeneralDistributionAgreementV1.sol";
 import { SuperTokenV1Library } from "../../contracts/apps/SuperTokenV1Library.sol";
 import { IERC20, ISuperToken, SuperToken } from "../../contracts/superfluid/SuperToken.sol";
 import { SuperfluidLoader } from "../../contracts/utils/SuperfluidLoader.sol";
@@ -165,7 +168,7 @@ contract FoundrySuperfluidTester is Test {
         _poolToExpectedMemberData;
 
     /// @notice The default poolConfig (true, true)
-    IGeneralDistributionAgreementV1.PoolConfig public poolConfig;
+    PoolConfig public poolConfig;
 
     constructor(uint8 nTesters) {
         // deploy ERC1820 registry
@@ -199,10 +202,7 @@ contract FoundrySuperfluidTester is Test {
 
         _addAccount(address(sf.toga));
 
-        poolConfig = IGeneralDistributionAgreementV1.PoolConfig({
-            transferabilityForUnitsOwner: true,
-            distributionFromAnyAddress: true
-        });
+        poolConfig = PoolConfig({ transferabilityForUnitsOwner: true, distributionFromAnyAddress: true });
 
         // @note we must use a ternary expression because immutable variables cannot be initialized
         // in an if statement
@@ -1503,7 +1503,7 @@ contract FoundrySuperfluidTester is Test {
         address _caller,
         address _poolAdmin,
         bool _useForwarder,
-        IGeneralDistributionAgreementV1.PoolConfig memory _poolConfig
+        PoolConfig memory _poolConfig
     ) internal returns (ISuperfluidPool) {
         ISuperfluidPool localPool;
 

@@ -157,7 +157,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         assertEq(isPatricianPeriod, false, "false patrician period");
     }
 
-    function testCreatePool(bool useForwarder, IGeneralDistributionAgreementV1.PoolConfig memory config) public {
+    function testCreatePool(bool useForwarder, PoolConfig memory config) public {
         _helperCreatePool(superToken, alice, alice, useForwarder, config);
     }
 
@@ -196,7 +196,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
     }
 
     function testRevertDistributeFromAnyAddressWhenNotAllowed(bool useForwarder) public {
-        IGeneralDistributionAgreementV1.PoolConfig memory config = IGeneralDistributionAgreementV1.PoolConfig({
+        PoolConfig memory config = PoolConfig({
             transferabilityForUnitsOwner: true,
             distributionFromAnyAddress: false
         });
@@ -209,7 +209,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
     }
 
     function testRevertDistributeFlowFromAnyAddressWhenNotAllowed(bool useForwarder) public {
-        IGeneralDistributionAgreementV1.PoolConfig memory config = IGeneralDistributionAgreementV1.PoolConfig({
+        PoolConfig memory config = PoolConfig({
             transferabilityForUnitsOwner: true,
             distributionFromAnyAddress: false
         });
@@ -668,7 +668,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
     }
 
     function testRevertIfTransferNotAllowed(bool useForwarder) public {
-        IGeneralDistributionAgreementV1.PoolConfig memory config = IGeneralDistributionAgreementV1.PoolConfig({
+        PoolConfig memory config = PoolConfig({
             transferabilityForUnitsOwner: false,
             distributionFromAnyAddress: true
         });
@@ -683,7 +683,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
     }
 
     function testRevertIfTransferFromNotAllowed(bool useForwarder) public {
-        IGeneralDistributionAgreementV1.PoolConfig memory config = IGeneralDistributionAgreementV1.PoolConfig({
+        PoolConfig memory config = PoolConfig({
             transferabilityForUnitsOwner: false,
             distributionFromAnyAddress: true
         });

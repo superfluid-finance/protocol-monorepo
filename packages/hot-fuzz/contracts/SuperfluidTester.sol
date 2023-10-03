@@ -5,6 +5,8 @@ import "@superfluid-finance/ethereum-contracts/contracts/superfluid/Superfluid.s
 import "@superfluid-finance/ethereum-contracts/contracts/superfluid/SuperToken.sol";
 import {ISuperfluidPool} from
     "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/gdav1/ISuperfluidPool.sol";
+import {PoolConfig} from
+    "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/gdav1/IGeneralDistributionAgreementV1.sol";
 import "@superfluid-finance/ethereum-contracts/contracts/agreements/ConstantFlowAgreementV1.sol";
 import "@superfluid-finance/ethereum-contracts/contracts/agreements/InstantDistributionAgreementV1.sol";
 import "@superfluid-finance/ethereum-contracts/contracts/apps/CFAv1Library.sol";
@@ -151,8 +153,8 @@ contract SuperfluidTester {
     }
 
     // GDA functions
-    function createPool(address admin) public returns (ISuperfluidPool pool) {
-        pool = superToken.createPool(admin);
+    function createPool(address admin, PoolConfig memory config) public returns (ISuperfluidPool pool) {
+        pool = superToken.createPool(admin, config);
     }
 
     function connectPool(ISuperfluidPool pool) public {

@@ -5,6 +5,15 @@ import { ISuperAgreement } from "../../superfluid/ISuperAgreement.sol";
 import { ISuperfluidToken } from "../../superfluid/ISuperfluidToken.sol";
 import { ISuperfluidPool } from "../../agreements/gdav1/ISuperfluidPool.sol";
 
+struct PoolConfig {
+    /// @dev if true, the pool members can transfer their owned units
+    /// else, only the pool admin can manipulate the units for pool members
+    bool transferabilityForUnitsOwner;
+    /// @dev if true, anyone can execute distributions via the pool
+    /// else, only the pool admin can execute distributions via the pool
+    bool distributionFromAnyAddress;
+}
+
 /**
  * @title General Distribution Agreement interface
  * @author Superfluid
@@ -22,14 +31,6 @@ abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
     error GDA_NO_ZERO_ADDRESS_ADMIN();                      // 0x82c5d837
     error GDA_ONLY_SUPER_TOKEN_POOL();                      // 0x90028c37
 
-    struct PoolConfig {
-        /// @dev if true, the pool members can transfer their owned units
-        /// else, only the pool admin can manipulate the units for pool members
-        bool transferabilityForUnitsOwner;
-        /// @dev if true, anyone can execute distributions via the pool
-        /// else, only the pool admin can execute distributions via the pool
-        bool distributionFromAnyAddress;
-    }
 
     // Events
     event InstantDistributionUpdated(

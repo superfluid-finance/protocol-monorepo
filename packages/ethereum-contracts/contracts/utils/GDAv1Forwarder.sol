@@ -3,7 +3,10 @@ pragma solidity 0.8.19;
 
 import { ISuperfluid, ISuperfluidToken } from "../interfaces/superfluid/ISuperfluid.sol";
 import { ISuperfluidPool } from "../agreements/gdav1/SuperfluidPool.sol";
-import { IGeneralDistributionAgreementV1 } from "../interfaces/agreements/gdav1/IGeneralDistributionAgreementV1.sol";
+import {
+    IGeneralDistributionAgreementV1,
+    PoolConfig
+} from "../interfaces/agreements/gdav1/IGeneralDistributionAgreementV1.sol";
 import { ForwarderBase } from "./ForwarderBase.sol";
 
 /**
@@ -34,7 +37,7 @@ contract GDAv1Forwarder is ForwarderBase {
      * @return success A boolean value indicating whether the pool was created successfully.
      * @return pool The address of the deployed Superfluid Pool
      */
-    function createPool(ISuperfluidToken token, address admin, IGeneralDistributionAgreementV1.PoolConfig memory config)
+    function createPool(ISuperfluidToken token, address admin, PoolConfig memory config)
         external
         returns (bool success, ISuperfluidPool pool)
     {

@@ -10,7 +10,8 @@ import {
 
 import {
     IGeneralDistributionAgreementV1,
-    ISuperfluidPool
+    ISuperfluidPool,
+    PoolConfig
 } from "../interfaces/agreements/gdav1/IGeneralDistributionAgreementV1.sol";
 
 /**
@@ -1707,7 +1708,7 @@ library SuperTokenV1Library {
 
     /** GDA BASE FUNCTIONS ************************************* */
 
-    function createPool(ISuperToken token, address admin, IGeneralDistributionAgreementV1.PoolConfig memory poolConfig)
+    function createPool(ISuperToken token, address admin, PoolConfig memory poolConfig)
         internal
         returns (ISuperfluidPool pool)
     {

@@ -4,7 +4,7 @@ pragma solidity 0.8.19;
 import { ISuperfluid, ISuperToken } from "../interfaces/superfluid/ISuperfluid.sol";
 import { SuperAppDefinitions } from "../interfaces/superfluid/ISuperfluid.sol";
 import { ISuperfluidPool } from "../interfaces/agreements/gdav1/ISuperfluidPool.sol";
-import { IGeneralDistributionAgreementV1 } from "../interfaces/agreements/gdav1/IGeneralDistributionAgreementV1.sol";
+import { PoolConfig } from "../interfaces/agreements/gdav1/IGeneralDistributionAgreementV1.sol";
 import { SuperAppBase } from "../apps/SuperAppBase.sol";
 import { SuperTokenV1Library } from "../apps/SuperTokenV1Library.sol";
 
@@ -532,7 +532,7 @@ contract SuperTokenLibraryGDAMock {
 
     //// Admin/Distributor Operations ////
 
-    function createPoolTest(ISuperToken token, address admin, IGeneralDistributionAgreementV1.PoolConfig memory config)
+    function createPoolTest(ISuperToken token, address admin, PoolConfig memory config)
         external
     {
         token.createPool(admin, config);

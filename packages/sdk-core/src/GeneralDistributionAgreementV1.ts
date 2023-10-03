@@ -324,7 +324,7 @@ export default class GeneralDistributionAgreementV1 extends SuperfluidAgreement 
         try {
             const createPoolTxn = await this.contract
                 .connect(params.signer)
-                .createPool(normalizedToken, normalizedAdmin);
+                .createPool(normalizedToken, normalizedAdmin, params.config);
             const txnReceipt = await createPoolTxn.wait();
             const poolCreatedEvent = txnReceipt.events?.find(
                 (x) => x.event === "PoolCreated"

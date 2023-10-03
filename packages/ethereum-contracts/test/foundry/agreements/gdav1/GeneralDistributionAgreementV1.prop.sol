@@ -17,10 +17,13 @@ import { ISuperToken, SuperToken } from "../../../../contracts/superfluid/SuperT
 import { ISuperAgreement } from "../../../../contracts/interfaces/superfluid/ISuperAgreement.sol";
 import {
     GeneralDistributionAgreementV1,
-    IGeneralDistributionAgreementV1,
     ISuperfluid,
     ISuperfluidPool
 } from "../../../../contracts/agreements/gdav1/GeneralDistributionAgreementV1.sol";
+import {
+    IGeneralDistributionAgreementV1,
+    PoolConfig
+} from "../../../../contracts/interfaces/agreements/gdav1/IGeneralDistributionAgreementV1.sol";
 import { ISuperfluidPool, SuperfluidPool } from "../../../../contracts/agreements/gdav1/SuperfluidPool.sol";
 import { SuperTokenV1Library } from "../../../../contracts/apps/SuperTokenV1Library.sol";
 
@@ -66,10 +69,8 @@ contract GeneralDistributionAgreementV1Properties is GeneralDistributionAgreemen
         //     ProxyDeployerLibrary.deploySuperfluidUpgradeableBeacon(address(superfluidPoolLogic));
         // this.initialize(superfluidPoolBeacon);
 
-        IGeneralDistributionAgreementV1.PoolConfig memory poolConfig = IGeneralDistributionAgreementV1.PoolConfig({
-            transferabilityForUnitsOwner: true,
-            distributionFromAnyAddress: true
-        });
+        PoolConfig memory poolConfig =
+            PoolConfig({ transferabilityForUnitsOwner: true, distributionFromAnyAddress: true });
 
         vm.startPrank(alice);
         currentPool = SuperfluidPool(address(sf.gda.createPool(superToken, alice, poolConfig)));

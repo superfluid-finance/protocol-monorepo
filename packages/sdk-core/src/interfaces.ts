@@ -8,6 +8,7 @@ import {
     Superfluid,
     SuperfluidGovernanceII,
 } from "./typechain-types";
+import { PoolConfigStruct } from "./typechain-types/contracts/utils/GDAv1Forwarder";
 
 // TODO (0xdavinchee): reorganize this
 // Maybe moving these into categorical files
@@ -699,6 +700,7 @@ export interface SuperTokenCreatePoolParams {
 }
 export interface CreatePoolParams extends SuperTokenCreatePoolParams {
     readonly token: string;
+    readonly config: PoolConfigStruct;
 }
 
 export interface ConnectPoolParams

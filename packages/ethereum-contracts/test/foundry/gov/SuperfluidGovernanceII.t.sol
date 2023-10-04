@@ -21,7 +21,7 @@ contract SuperfluidGovernanceIntegrationTest is FoundrySuperfluidTester {
         sf.governance.changeSuperTokenAdmin(sf.host, superToken, newAdmin);
         vm.stopPrank();
 
-        assertEq(superToken.getAdminOverride().admin, newAdmin, "Superfluid.t: super token admin not changed");
+        assertEq(superToken.getAdmin(), newAdmin, "Superfluid.t: super token admin not changed");
     }
 
     function testRevertChangeSuperTokenAdminWhenCallerIsNotNotGovOwner(address newAdmin) public {
@@ -64,7 +64,7 @@ contract SuperfluidGovernanceIntegrationTest is FoundrySuperfluidTester {
         sf.governance.batchChangeSuperTokenAdmin(sf.host, superTokens, newAdmins);
         vm.stopPrank();
 
-        assertEq(superToken.getAdminOverride().admin, newAdmin, "Superfluid.t: super token admin not changed");
+        assertEq(superToken.getAdmin(), newAdmin, "Superfluid.t: super token admin not changed");
     }
 
     function testRevertBatchChangeSuperTokenAdminWhenHostNotAdmin(address newAdmin) public {

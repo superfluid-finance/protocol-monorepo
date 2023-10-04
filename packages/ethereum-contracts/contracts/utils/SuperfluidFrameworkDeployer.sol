@@ -161,21 +161,21 @@ contract SuperfluidFrameworkDeployer is SuperfluidFrameworkDeploymentSteps {
     /// @param _underlyingSymbol The token symbol
     /// @param _decimals The token decimals
     /// @param _mintLimit The mint limit of the underlying token
-    /// @param adminOverride The admin override address for the Super Token
+    /// @param _admin The admin address for the Super Token
     /// @return underlyingToken and superToken
     function deployWrapperSuperToken(
         string calldata _underlyingName,
         string calldata _underlyingSymbol,
         uint8 _decimals,
         uint256 _mintLimit,
-        address adminOverride
+        address _admin
     )
         external
         requiresSuperTokenFactory
         deploySuperTokenRequires1820
         returns (TestToken underlyingToken, SuperToken superToken)
     {
-        return _deployWrapperSuperToken(_underlyingName, _underlyingSymbol, _decimals, _mintLimit, adminOverride);
+        return _deployWrapperSuperToken(_underlyingName, _underlyingSymbol, _decimals, _mintLimit, _admin);
     }
 
     /// @notice Deploys an ERC20 and a Wrapper Super Token for the ERC20 and lists both in the resolver
@@ -257,7 +257,7 @@ contract SuperfluidFrameworkDeployer is SuperfluidFrameworkDeploymentSteps {
         string calldata _underlyingSymbol,
         uint8 _decimals,
         uint256 _mintLimit,
-        address _adminOverride
+        address _admin
     ) internal returns (TestToken underlyingToken, SuperToken superToken) {
         underlyingToken =
             TokenDeployerLibrary.deployTestToken(_underlyingName, _underlyingSymbol, _decimals, _mintLimit);
@@ -272,7 +272,7 @@ contract SuperfluidFrameworkDeployer is SuperfluidFrameworkDeploymentSteps {
                     ISuperTokenFactory.Upgradability.SEMI_UPGRADABLE,
                     string.concat("Super ", _underlyingSymbol),
                     superTokenSymbol,
-                    _adminOverride
+                    _admin
                 )
             )
         );

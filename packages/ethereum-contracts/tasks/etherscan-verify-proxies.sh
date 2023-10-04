@@ -29,9 +29,6 @@ if [ -n "${IS_TESTNET}" ];then
     echo fUSDCx
     $TRUFFLE_RUN_VERIFY --verify-proxy UUPSProxy@"${SUPER_TOKEN_FUSDCX}"
 
-    echo fTUSDx
-    $TRUFFLE_RUN_VERIFY --verify-proxy UUPSProxy@"${SUPER_TOKEN_FTUSDX}"
-
     echo ETHx
     $TRUFFLE_RUN_VERIFY --verify-proxy SETHProxy@"${SUPER_TOKEN_NATIVE_COIN}"
 fi

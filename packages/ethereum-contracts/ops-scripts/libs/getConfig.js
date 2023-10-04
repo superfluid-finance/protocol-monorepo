@@ -40,7 +40,7 @@ module.exports = function getConfig(chainId) {
         // mainnets don't use the TestGovernance contract
         disableTestGovernance: process.env.DISABLE_TEST_GOVERNANCE || !sfNw || sfNw.isTestnet ? false : true,
         // default token list for the test deployments (empty for mainnets)
-        tokenList: !sfNw || sfNw.isTestnet ? ["fDAIx", "fUSDCx", "fTUSDx"] : [],
+        tokenList: !sfNw || sfNw.isTestnet ? ["fDAIx", "fUSDCx"] : [],
         data: {
             initialBlockNumber: sfNw?.startBlockV1 || 0,
             getLogsRange: sfNw?.logsQueryRange || 5000,

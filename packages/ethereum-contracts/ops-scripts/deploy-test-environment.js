@@ -59,7 +59,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     if (args.length >= 1) {
         tokens = args.pop().split(",");
     } else {
-        tokens = ["fDAI", "fUSDC", "fTUSD", config.nativeTokenSymbol];
+        tokens = ["fDAI", "fUSDC", config.nativeTokenSymbol];
     }
     console.log("Tokens to be deployed", tokens);
 

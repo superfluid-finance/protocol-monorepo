@@ -27,6 +27,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Changed
 - Reuse config keys from `SuperfluidGovernanceConfigs` instead of duplicating them in `ConstantFlowAgreementV1`.
+- fTUSD and fTUSDx are removed from the list of test tokens, won't be by defaut deployed in test environments anymore.
 
 ## [v1.8.1] - 2023-08-28
 

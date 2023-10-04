@@ -38,6 +38,7 @@ contract SuperToken is
     using ERC777Helper for ERC777Helper.Operators;
     using SafeERC20 for IERC20;
 
+    // See: https://eips.ethereum.org/EIPS/eip-1967#admin-address
     bytes32 constant private _ADMIN_SLOT = 0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103;
 
     uint8 constant private _STANDARD_DECIMALS = 18;

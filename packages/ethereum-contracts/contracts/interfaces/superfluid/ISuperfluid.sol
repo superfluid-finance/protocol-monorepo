@@ -245,22 +245,24 @@ interface ISuperfluid {
      *************************************************************************/
 
     /**
-     * @dev Message sender (must be a contract) declares itself as a super app.
+     * @dev Message sender (must be a contract) registers itself as a super app.
      * @param configWord The super app manifest configuration, flags are defined in
      * `SuperAppDefinitions`
+     * @notice On some mainnet deployments, pre-authorization by governance may be needed for this to succeed.
+     * See https://github.com/superfluid-finance/protocol-monorepo/wiki/Super-App-White-listing-Guide
      */
     function registerApp(uint256 configWord) external;
 
     /**
-     * @dev Message sender (must be a contract) declares itself as a super app.
-     * because app registration is currently governance permissioned on mainnets.
+     * @dev Registers an app (must be a contract) as a super app.
      * @param app The super app address
      * @param configWord The super app manifest configuration, flags are defined in
      * `SuperAppDefinitions`
-     * @notice On mainnet deployments, only factory contracts pre-authorized by governance can use this.
+     * @notice On some mainnet deployments, pre-authorization by governance may be needed for this to succeed.
      * See https://github.com/superfluid-finance/protocol-monorepo/wiki/Super-App-White-listing-Guide
      */
     function registerApp(ISuperApp app, uint256 configWord) external;
+
     /**
      * @dev App registered event
      * @param app Address of jailed app
@@ -268,24 +270,14 @@ interface ISuperfluid {
     event AppRegistered(ISuperApp indexed app);
 
     /**
-     * @dev Message sender declares itself as a super app.
-     * @custom:deprecated you should use `registerApp(uint256 configWord) instead,
-     * because we've switched to an expire date based logic instead of one-time keys.
-     * @param configWord The super app manifest configuration, flags are defined in `SuperAppDefinitions`
-     * @param registrationKey The registration key issued by the governance, needed to register on a mainnet.
-     * @notice See https://github.com/superfluid-finance/protocol-monorepo/wiki/Super-App-White-listing-Guide
-     * On testnets or in dev environment, a placeholder (e.g. empty string) can be used.
-     * While the message sender must be the super app itself, the transaction sender (tx.origin)
-     * must be the deployer account the registration key was issued for.
+     * @dev DO NOT USE for new deployments
+     * @custom:deprecated you should use `registerApp(uint256 configWord) instead.
      */
     function registerAppWithKey(uint256 configWord, string calldata registrationKey) external;
 
     /**
-     * @dev Message sender (must be a contract) declares app as a super app
+     * @dev DO NOT USE for new deployments
      * @custom:deprecated you should use `registerApp(ISuperApp app, uint256 configWord) instead.
-     * @param configWord The super app manifest configuration, flags are defined in `SuperAppDefinitions`
-     * @notice On mainnet deployments, only factory contracts pre-authorized by governance can use this.
-     * See https://github.com/superfluid-finance/protocol-monorepo/wiki/Super-App-White-listing-Guide
      */
     function registerAppByFactory(ISuperApp app, uint256 configWord) external;
 

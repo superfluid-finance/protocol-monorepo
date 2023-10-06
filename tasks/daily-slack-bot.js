@@ -95,7 +95,7 @@ const networkSpecificData = {
     },
     "polygon-zkevm-testnet": {
         url: "https://api-testnet-zkevm.polygonscan.com/api",
-        key: process.env.POLYGONSCAN_ZKEVM_API_KEY,
+        key: process.env.ZKEVM_POLYGONSCAN_API_KEY,
     }
 };
 

@@ -316,6 +316,7 @@ contract Superfluid is
     function registerApp(uint256 configWord) external override {
         if (APP_WHITE_LISTING_ENABLED) {
             // for historical reasons, we internal use "k1" as default registration key
+            // solhint-disable-next-line avoid-tx-origin
             _enforceAppRegistrationPermissioning("k1", tx.origin);
         }
         _registerApp(ISuperApp(msg.sender), configWord);
@@ -334,6 +335,7 @@ contract Superfluid is
         external override
     {
         if (APP_WHITE_LISTING_ENABLED) {
+            // solhint-disable-next-line avoid-tx-origin
             _enforceAppRegistrationPermissioning(registrationKey, tx.origin);
         }
         _registerApp(ISuperApp(msg.sender), configWord);

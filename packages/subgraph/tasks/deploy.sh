@@ -13,7 +13,7 @@ SUPPORTED_VENDORS=( "graph" "satsuma" "superfluid" )
 # shellcheck disable=SC2034,SC2207
 GRAPH_NETWORKS=( $($JQ -r .[] ./hosted-service-networks.json) ) || exit 1
 # shellcheck disable=SC2034
-SATSUMA_NETWORKS=( "matic" "xdai" "eth-mainnet" "eth-sepolia" "optimism-mainnet" "base-mainnet")
+SATSUMA_NETWORKS=( "polygon-mainnet" "xdai-mainnet" "eth-mainnet" "eth-sepolia" "optimism-mainnet" "base-mainnet")
 # shellcheck disable=SC2034
 SUPERFLUID_NETWORKS=( "polygon-zkevm-testnet" "polygon-mainnet" "eth-sepolia" "base-goerli" "eth-mainnet" "xdai-mainnet" "base-mainnet" "optimism-mainnet" "arbitrum-one")
 

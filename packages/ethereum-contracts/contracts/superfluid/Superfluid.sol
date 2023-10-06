@@ -324,6 +324,8 @@ contract Superfluid is
 
     /// @inheritdoc ISuperfluid
     function registerApp(ISuperApp app, uint256 configWord) external override {
+        // Cannot register an EOA as SuperApp
+        if ((address(app)).code.length == 0) revert HOST_MUST_BE_CONTRACT();
         if (APP_WHITE_LISTING_ENABLED) {
             _enforceAppRegistrationPermissioning("k1", msg.sender);
         }
@@ -363,6 +365,8 @@ contract Superfluid is
 
     /// @custom:deprecated
     function registerAppByFactory(ISuperApp app, uint256 configWord) external override {
+        // Cannot register an EOA as SuperApp
+        if ((address(app)).code.length == 0) revert HOST_MUST_BE_CONTRACT();
         if (APP_WHITE_LISTING_ENABLED) {
             // enforce permissiniong with legacy gov config key for app factory
             bytes32 configKey = SuperfluidGovernanceConfigs.getAppFactoryConfigKey(msg.sender);
@@ -374,9 +378,6 @@ contract Superfluid is
     }
 
     function _registerApp(ISuperApp app, uint256 configWord) private {
-        // Cannot register an EOA as SuperApp
-        if ((address(app)).code.length == 0) revert HOST_MUST_BE_CONTRACT();
-
         // validate configWord
         if (
             !SuperAppDefinitions.isConfigWordClean(configWord) ||

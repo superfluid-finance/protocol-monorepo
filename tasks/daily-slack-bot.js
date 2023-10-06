@@ -229,7 +229,7 @@ async function checkNetworkContractVerification(network) {
 async function getNetworkTokenAddressList(network) {
     return new Promise((resolve, reject) => {
         let response = '';
-        const hostName = `https://${network.name}.subgraph.x.superfluid.dev`;
+        const hostName = `${network.name}.subgraph.x.superfluid.dev`;
         let options = {
             headers: {
                 "Content-Type": "application/json",

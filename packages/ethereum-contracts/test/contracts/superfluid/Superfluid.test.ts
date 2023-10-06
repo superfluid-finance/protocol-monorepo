@@ -519,16 +519,9 @@ describe("Superfluid Host Contract", function () {
 
             it("#4.2 app registration rules", async () => {
                 await expectCustomError(
-                    superfluid["registerApp(uint256)"](1, {from: admin}),
-                    superfluid,
-                    "APP_RULE",
-                    t.customErrorCode.APP_RULE_NO_REGISTRATION_FOR_EOA
-                );
-                await expectCustomError(
                     superAppMock.tryRegisterApp(0),
                     superfluid,
-                    "APP_RULE",
-                    t.customErrorCode.APP_RULE_REGISTRATION_ONLY_IN_CONSTRUCTOR
+                    "HOST_INVALID_CONFIG_WORD"
                 );
             });
 
@@ -2736,7 +2729,7 @@ describe("Superfluid Host Contract", function () {
                         false
                     ),
                     superfluid,
-                    "HOST_INVALID_OR_EXPIRED_SUPER_APP_REGISTRATION_KEY"
+                    "HOST_NO_APP_REGISTRATION_PERMISSION"
                 );
             });
 
@@ -2748,7 +2741,7 @@ describe("Superfluid Host Contract", function () {
                         "bad microsoft registration key"
                     ),
                     superfluid,
-                    "HOST_INVALID_OR_EXPIRED_SUPER_APP_REGISTRATION_KEY"
+                    "HOST_NO_APP_REGISTRATION_PERMISSION"
                 );
             });
 
@@ -2790,7 +2783,7 @@ describe("Superfluid Host Contract", function () {
                         "hello world"
                     ),
                     superfluid,
-                    "HOST_INVALID_OR_EXPIRED_SUPER_APP_REGISTRATION_KEY"
+                    "HOST_NO_APP_REGISTRATION_PERMISSION"
                 );
             });
 
@@ -2810,7 +2803,7 @@ describe("Superfluid Host Contract", function () {
                         "hello world again"
                     ),
                     superfluid,
-                    "HOST_INVALID_OR_EXPIRED_SUPER_APP_REGISTRATION_KEY"
+                    "HOST_NO_APP_REGISTRATION_PERMISSION"
                 );
             });
         });

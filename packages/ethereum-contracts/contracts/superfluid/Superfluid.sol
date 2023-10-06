@@ -357,7 +357,7 @@ contract Superfluid is
             // solhint-disable-next-line not-rely-on-time
             ) < block.timestamp)
         {
-            revert HOST_INVALID_OR_EXPIRED_SUPER_APP_REGISTRATION_KEY();
+            revert HOST_NO_APP_REGISTRATION_PERMISSION();
         }
     }
 
@@ -367,7 +367,7 @@ contract Superfluid is
             // enforce permissiniong with legacy gov config key for app factory
             bytes32 configKey = SuperfluidGovernanceConfigs.getAppFactoryConfigKey(msg.sender);
             bool isAuthorizedAppFactory = _gov.getConfigAsUint256(this, ISuperfluidToken(address(0)), configKey) == 1;
-            if (!isAuthorizedAppFactory) revert HOST_UNAUTHORIZED_SUPER_APP_FACTORY();
+            if (!isAuthorizedAppFactory) revert HOST_NO_APP_REGISTRATION_PERMISSION();
             // We do not enforce any assumptions about what a "factory" is. It is whatever gov decided to.
         }
         _registerApp(app, configWord);

@@ -609,7 +609,7 @@ contract SuperAppMockWithRegistrationKey {
 }
 
 // An Super App that uses registerAppWithKey
-contract SuperAppMockUsingDeprecatedRegisterApp {
+contract SuperAppMockUsingRegisterApp {
     constructor(ISuperfluid host, uint256 configWord) {
         // @note this is deprecated keeping this here for testing/coverage
         host.registerApp(configWord);

@@ -73,15 +73,13 @@ interface ISuperfluid {
     // uses SuperAppDefinitions' App Jail Reasons as _code
     error APP_RULE(uint256 _code);                              // 0xa85ba64f
 
-    error HOST_INVALID_OR_EXPIRED_SUPER_APP_REGISTRATION_KEY(); // 0x19ab84d1
     error HOST_NOT_A_SUPER_APP();                               // 0x163cbe43
-    error HOST_NO_APP_REGISTRATION_PERMISSIONS();               // 0x5b93ebf0
+    error HOST_NO_APP_REGISTRATION_PERMISSION();                // 0x5b93ebf0
     error HOST_RECEIVER_IS_NOT_SUPER_APP();                     // 0x96aa315e
     error HOST_SENDER_IS_NOT_SUPER_APP();                       // 0xbacfdc40
     error HOST_SOURCE_APP_NEEDS_HIGHER_APP_LEVEL();             // 0x44725270
     error HOST_SUPER_APP_IS_JAILED();                           // 0x02384b64
     error HOST_SUPER_APP_ALREADY_REGISTERED();                  // 0x01b0a935
-    error HOST_UNAUTHORIZED_SUPER_APP_FACTORY();                // 0x289533c5
 
     /**************************************************************************
      * Time

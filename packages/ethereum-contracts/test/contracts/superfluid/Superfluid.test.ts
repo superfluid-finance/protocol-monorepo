@@ -603,9 +603,9 @@ describe("Superfluid Host Contract", function () {
                 );
             });
 
-            it("#4.6 deprecated register app should continues to work", async () => {
+            it("#4.6 register app should work", async () => {
                 const app2Factory = await ethers.getContractFactory(
-                    "SuperAppMockUsingDeprecatedRegisterApp"
+                    "SuperAppMockUsingRegisterApp"
                 );
                 const app2 = await app2Factory.deploy(
                     superfluid.address,
@@ -2728,7 +2728,7 @@ describe("Superfluid Host Contract", function () {
         });
 
         context("#40.x register app with key", () => {
-            it("#40.1 app registration without key should fail", async () => {
+            it("#40.1 app registration without key should succeed", async () => {
                 await expectCustomError(
                     superAppMockFactory.deploy(
                         superfluid.address,
@@ -2834,7 +2834,7 @@ describe("Superfluid Host Contract", function () {
                         1 /* APP_TYPE_FINAL_LEVEL */
                     ),
                     superfluid,
-                    "HOST_UNAUTHORIZED_SUPER_APP_FACTORY"
+                    "HOST_NO_APP_REGISTRATION_PERMISSION"
                 );
             });
 
@@ -2880,24 +2880,7 @@ describe("Superfluid Host Contract", function () {
                         1 /* APP_TYPE_FINAL_LEVEL */
                     ),
                     superfluid,
-                    "HOST_UNAUTHORIZED_SUPER_APP_FACTORY"
-                );
-            });
-        });
-
-        context("#42.x (deprecated) register app", () => {
-            it("#42.1 app registration without key should fail", async () => {
-                const superAppMockUsingDeprecatedRegisterAppFactory =
-                    await ethers.getContractFactory(
-                        "SuperAppMockUsingDeprecatedRegisterApp"
-                    );
-                await expectCustomError(
-                    superAppMockUsingDeprecatedRegisterAppFactory.deploy(
-                        superfluid.address,
-                        1 /* APP_TYPE_FINAL_LEVEL */
-                    ),
-                    superfluid,
-                    "HOST_NO_APP_REGISTRATION_PERMISSIONS"
+                    "HOST_NO_APP_REGISTRATION_PERMISSION"
                 );
             });
         });

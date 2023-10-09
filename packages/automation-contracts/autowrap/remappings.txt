@@ -1,4 +1,0 @@
-@openzeppelin/=node_modules/@openzeppelin/
-@superfluid-finance/ethereum-contracts/contracts/=packages/ethereum-contracts/contracts/
-ds-test/=lib/forge-std/lib/ds-test/src/
-forge-std/=lib/forge-std/src/

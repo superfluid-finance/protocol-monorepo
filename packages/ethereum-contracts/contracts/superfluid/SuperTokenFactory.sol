@@ -238,7 +238,7 @@ abstract contract SuperTokenFactoryBase is
         Upgradability upgradability,
         string calldata name,
         string calldata symbol,
-        address adminOverride
+        address admin
     ) public override returns (ISuperToken superToken) {
         if (address(underlyingToken) == address(0)) {
             revert SUPER_TOKEN_FACTORY_ZERO_ADDRESS();
@@ -258,12 +258,12 @@ abstract contract SuperTokenFactoryBase is
         }
 
         // initialize the token
-        superToken.initializeWithAdminOverride(
+        superToken.initializeWithAdmin(
             underlyingToken,
             underlyingDecimals,
             name,
             symbol,
-            adminOverride
+            admin
         );
 
         emit SuperTokenCreated(superToken);
@@ -296,7 +296,7 @@ abstract contract SuperTokenFactoryBase is
         Upgradability upgradability,
         string calldata name,
         string calldata symbol,
-        address adminOverride
+        address admin
     )
         external override
         returns (ISuperToken superToken)
@@ -307,7 +307,7 @@ abstract contract SuperTokenFactoryBase is
             upgradability,
             name,
             symbol,
-            adminOverride
+            admin
         );
     }
 

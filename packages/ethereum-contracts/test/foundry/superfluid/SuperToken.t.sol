@@ -142,68 +142,68 @@ contract SuperTokenIntegrationTest is FoundrySuperfluidTester {
         UUPSProxiable(address(superToken)).updateCode(address(superTokenLogic));
     }
 
-    function testInitializeSuperTokenWithAndWithoutAdminOverride(address adminOverride) public {
+    function testInitializeSuperTokenWithAndWithoutAdmin(address _admin) public {
         (, ISuperToken localSuperToken) =
-            sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max, adminOverride);
+            sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max, _admin);
 
         assertEq(
-            localSuperToken.getAdminOverride().admin,
-            adminOverride,
-            "testInitializeSuperTokenWithAndWithoutAdminOverride: admin override not set correctly"
+            localSuperToken.getAdmin(),
+            _admin,
+            "testInitializeSuperTokenWithAndWithoutAdmin: _admin address not set correctly"
         );
     }
 
-    function testOnlyHostCanChangeAdminWhenNoAdminOverride(address adminOverride) public {
+    function testOnlyHostCanChangeAdminWhenNoAdmin(address _admin) public {
         (, ISuperToken localSuperToken) =
             sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max, address(0));
 
         vm.startPrank(address(sf.host));
-        localSuperToken.changeAdmin(adminOverride);
+        localSuperToken.changeAdmin(_admin);
         vm.stopPrank();
 
         assertEq(
-            localSuperToken.getAdminOverride().admin,
-            adminOverride,
-            "testOnlyHostCanChangeAdminWhenNoAdminOverride: admin override not set correctly"
+            localSuperToken.getAdmin(),
+            _admin,
+            "testOnlyHostCanChangeAdminWhenNoAdmin: admin address not set correctly"
         );
     }
 
-    function testOnlyAdminOverrideCanChangeAdmin(address adminOverride, address newAdminOverride) public {
-        if (adminOverride == address(0)) {
-            adminOverride = address(sf.host);
+    function testOnlyAdminCanChangeAdmin(address _admin, address newAdmin) public {
+        if (_admin == address(0)) {
+            _admin = address(sf.host);
         }
 
         (, ISuperToken localSuperToken) =
-            sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max, adminOverride);
+            sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max, _admin);
 
-        vm.startPrank(adminOverride);
-        localSuperToken.changeAdmin(newAdminOverride);
+        vm.startPrank(_admin);
+        localSuperToken.changeAdmin(newAdmin);
         vm.stopPrank();
 
         assertEq(
-            localSuperToken.getAdminOverride().admin,
-            newAdminOverride,
-            "testOnlyAdminOverrideCanChangeAdmin: admin override not set correctly"
+            localSuperToken.getAdmin(),
+            newAdmin,
+            "testOnlyAdminCanChangeAdmin: admin address not set correctly"
         );
     }
 
-    function testRevertWhenNonAdminTriesToChangeAdmin(address adminOverride, address nonAdminOverride) public {
-        vm.assume(adminOverride != nonAdminOverride);
-        vm.assume(nonAdminOverride != address(0));
-        if (adminOverride == address(0)) {
-            adminOverride = address(sf.host);
+    function testRevertWhenNonAdminTriesToChangeAdmin(address _admin, address nonAdmin) public {
+        vm.assume(_admin != nonAdmin);
+        vm.assume(nonAdmin != address(0));
+        if (_admin == address(0)) {
+            _admin = address(sf.host);
         }
 
         (, ISuperToken localSuperToken) =
-            sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max, adminOverride);
+            sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max, _admin);
 
-        vm.startPrank(nonAdminOverride);
+        vm.startPrank(nonAdmin);
         vm.expectRevert(ISuperToken.SUPER_TOKEN_ONLY_ADMIN.selector);
-        localSuperToken.changeAdmin(nonAdminOverride);
+        localSuperToken.changeAdmin(nonAdmin);
         vm.stopPrank();
     }
 
-    function testOnlyHostCanUpdateCodeWhenNoAdminOverride() public {
+    function testOnlyHostCanUpdateCodeWhenNoAdmin() public {
         (TestToken localTestToken, ISuperToken localSuperToken) =
             sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max, address(0));
 
@@ -217,42 +217,42 @@ contract SuperTokenIntegrationTest is FoundrySuperfluidTester {
         assertEq(
             UUPSProxiable(address(localSuperToken)).getCodeAddress(),
             address(newSuperTokenLogic),
-            "testOnlyHostCanUpdateCodeWhenNoAdminOverride: super token logic not updated correctly"
+            "testOnlyHostCanUpdateCodeWhenNoAdmin: super token logic not updated correctly"
         );
     }
 
-    function testOnlyAdminOverrideCanUpdateCode(address adminOverride) public {
-        if (adminOverride == address(0)) {
-            adminOverride = address(sf.host);
+    function testOnlyAdminCanUpdateCode(address _admin) public {
+        if (_admin == address(0)) {
+            _admin = address(sf.host);
         }
 
         (TestToken localTestToken, ISuperToken localSuperToken) =
-            sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max, adminOverride);
+            sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max, _admin);
 
         SuperToken newSuperTokenLogic =
-            _helperDeploySuperTokenAndInitialize(localSuperToken, localTestToken, 18, "FTT", "FTT", adminOverride);
+            _helperDeploySuperTokenAndInitialize(localSuperToken, localTestToken, 18, "FTT", "FTT", _admin);
 
-        vm.startPrank(adminOverride);
+        vm.startPrank(_admin);
         UUPSProxiable(address(localSuperToken)).updateCode(address(newSuperTokenLogic));
         vm.stopPrank();
 
         assertEq(
             UUPSProxiable(address(localSuperToken)).getCodeAddress(),
             address(newSuperTokenLogic),
-            "testOnlyHostCanUpdateCodeWhenNoAdminOverride: super token logic not updated correctly"
+            "testOnlyHostCanUpdateCodeWhenNoAdmin: super token logic not updated correctly"
         );
     }
 
-    function testRevertWhenNonAdminTriesToUpdateCode(address adminOverride, address nonAdminOverride) public {
-        vm.assume(adminOverride != address(sf.host));
+    function testRevertWhenNonAdminTriesToUpdateCode(address _admin, address nonAdmin) public {
+        vm.assume(_admin != address(sf.host));
 
         (TestToken localTestToken, ISuperToken localSuperToken) =
             sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max, address(0));
 
         SuperToken newSuperTokenLogic =
-            _helperDeploySuperTokenAndInitialize(localSuperToken, localTestToken, 18, "FTT", "FTT", adminOverride);
+            _helperDeploySuperTokenAndInitialize(localSuperToken, localTestToken, 18, "FTT", "FTT", _admin);
 
-        vm.startPrank(nonAdminOverride);
+        vm.startPrank(nonAdmin);
         vm.expectRevert(ISuperToken.SUPER_TOKEN_ONLY_ADMIN.selector);
         UUPSProxiable(address(localSuperToken)).updateCode(address(newSuperTokenLogic));
         vm.stopPrank();

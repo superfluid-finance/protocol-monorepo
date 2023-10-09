@@ -48,9 +48,6 @@ library SuperAppDefinitions {
     /**************************************************************************
     / App Jail Reasons
     /**************************************************************************/
-
-    uint256 constant internal APP_RULE_REGISTRATION_ONLY_IN_CONSTRUCTOR = 1;
-    uint256 constant internal APP_RULE_NO_REGISTRATION_FOR_EOA = 2;
     uint256 constant internal APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK = 10;
     uint256 constant internal APP_RULE_NO_CRITICAL_SENDER_ACCOUNT = 11;
     uint256 constant internal APP_RULE_NO_CRITICAL_RECEIVER_ACCOUNT = 12;

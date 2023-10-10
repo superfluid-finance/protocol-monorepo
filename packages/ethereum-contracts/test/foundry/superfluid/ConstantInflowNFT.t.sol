@@ -232,10 +232,10 @@ contract ConstantInflowNFTTest is FlowNFTBaseTest {
         vm.assume(_tokenOwner != address(0));
         vm.assume(_tokenOwner != _operator);
 
+        vm.startPrank(_tokenOwner);
         _assertEventApprovalForAll(address(constantInflowNFTProxy), _tokenOwner, _operator, _approved);
-
-        vm.prank(_tokenOwner);
         constantInflowNFTProxy.setApprovalForAll(_operator, _approved);
+        vm.stopPrank();
 
         _assertOperatorApprovalIsExpected(constantInflowNFTProxy, _tokenOwner, _operator, _approved);
     }

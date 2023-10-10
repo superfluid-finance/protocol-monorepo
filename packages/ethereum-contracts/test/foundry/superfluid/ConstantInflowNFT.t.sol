@@ -126,4 +126,16 @@ contract ConstantInflowNFTTest is FlowNFTBaseTest {
 
         assertEq(constantInflowNFT.mockGetApproved(nftId), address(0));
     }
+
+    function testSetApprovalForAll(address _tokenOwner, address _operator, bool _approved) public {
+        vm.assume(_tokenOwner != address(0));
+        vm.assume(_tokenOwner != _operator);
+
+        vm.startPrank(_tokenOwner);
+        _assertEventApprovalForAll(address(constantInflowNFT), _tokenOwner, _operator, _approved);
+        constantInflowNFT.setApprovalForAll(_operator, _approved);
+        vm.stopPrank();
+
+        _assertOperatorApprovalIsExpected(constantInflowNFT, _tokenOwner, _operator, _approved);
+    }
 }

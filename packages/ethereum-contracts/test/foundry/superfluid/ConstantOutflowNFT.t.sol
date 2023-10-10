@@ -169,6 +169,19 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
         assertEq(constantOutflowNFT.mockGetApproved(nftId), address(0));
     }
 
+    function testSetApprovalForAll(address _tokenOwner, address _operator, bool _approved) public {
+        vm.assume(_tokenOwner != address(0));
+        vm.assume(_tokenOwner != _operator);
+
+
+        vm.startPrank(_tokenOwner);
+        _assertEventApprovalForAll(address(constantOutflowNFT), _tokenOwner, _operator, _approved);
+        constantOutflowNFT.setApprovalForAll(_operator, _approved);
+        vm.stopPrank();
+
+        _assertOperatorApprovalIsExpected(constantOutflowNFT, _tokenOwner, _operator, _approved);
+    }
+
     function testCreateFlowMintsOutflowAndInflowNFTsAndEmitsTransferEvents() public {
         int96 flowRate = 42069;
         address flowSender = alice;

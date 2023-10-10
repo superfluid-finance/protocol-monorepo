@@ -7,6 +7,7 @@ import { ISuperToken } from "../../../contracts/superfluid/SuperToken.sol";
 import { TOGA } from "../../../contracts/utils/TOGA.sol";
 import { IERC1820Registry } from "@openzeppelin/contracts/interfaces/IERC1820Registry.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { TestToken } from "../../../contracts/utils/TestToken.sol";
 
 /**
  * @title TOGAIntegrationTest
@@ -51,6 +52,24 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
     function _assertNetFlow(ISuperToken superToken_, address account, int96 expectedNetFlow) internal {
         int96 flowRate = sf.cfa.getNetFlow(superToken_, account);
         assertEq(flowRate, expectedNetFlow, "_assertNetFlow: net flow not equal");
+    }
+
+    /**
+     * @dev Admin sends `amount` `superToken_` to the `target` address.
+     * @param superToken_ The Super Token representing the asset.
+     * @param target The address of the target.
+     * @param amount The amount to send.
+     */
+    function _helperDeal(ISuperToken superToken_, address target, uint256 amount) internal {
+        TestToken underlyingToken = TestToken(superToken_.getUnderlyingToken());
+        uint256 maxAmount = uint256(type(int256).max);
+        vm.startPrank(admin);
+        underlyingToken.mint(admin, maxAmount);
+        underlyingToken.approve(address(superToken_), maxAmount);
+        superToken_.transferAll(address(1));
+        superToken_.upgrade(maxAmount);
+        superToken_.transfer(target, amount);
+        vm.stopPrank();
     }
 
     /**
@@ -260,7 +279,7 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
         prevReward = bound(prevReward, 1, bond - 1); // make sure the bond exceeds it
 
         // simulate pre-existing accumulation of rewards
-        deal(address(superToken), address(toga), prevReward);
+        _helperDeal(superToken, address(toga), prevReward);
 
         _helperSendPICBid(alice, superToken, bond, 0);
         (, uint256 aliceBond,) = toga.getCurrentPICInfo(superToken);
@@ -364,7 +383,7 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
         assertEq(bond, 0);
 
         // accumulate some new rewards...
-        deal(address(superToken), address(toga), 1e15);
+        _helperDeal(superToken, address(toga), 1e15);
 
         (, uint256 bond2,) = toga.getCurrentPICInfo(superToken);
         assertGe(bond2, 1e12);
@@ -400,7 +419,11 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
 
         exitRate = int96(bound(exitRate, 0, maxExitRate));
 
-        deal(address(superToken), alice, uint256(type(int256).max));
+        vm.startPrank(alice);
+        superToken.transferAll(address(1));
+        vm.stopPrank();
+
+        _helperDeal(superToken, alice, uint256(type(int256).max));
 
         _helperSendPICBid(alice, superToken, bond, exitRate);
     }
@@ -411,8 +434,8 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
         (, ISuperToken superToken2) =
             sfDeployer.deployWrapperSuperToken("TEST2", "TEST2", 18, type(uint256).max, address(0));
 
-        deal(address(superToken2), alice, INIT_SUPER_TOKEN_BALANCE);
-        deal(address(superToken2), bob, INIT_SUPER_TOKEN_BALANCE);
+        _helperDeal(superToken2, alice, INIT_SUPER_TOKEN_BALANCE);
+        _helperDeal(superToken2, bob, INIT_SUPER_TOKEN_BALANCE);
 
         _helperSendPICBid(alice, superToken, bond, toga.getDefaultExitRateFor(superToken, bond));
         _helperSendPICBid(bob, superToken2, bond, toga.getDefaultExitRateFor(superToken, bond));

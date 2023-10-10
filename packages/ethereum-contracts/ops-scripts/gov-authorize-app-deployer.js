@@ -7,33 +7,32 @@ const {
 } = require("./libs/common");
 
 /**
- * @dev Create a new super app registration key.
+ * @dev Authorizes an account to get Super Apps registered.
+ * For more details, see https://github.com/superfluid-finance/protocol-monorepo/wiki/Super-App-White-listing-Guide
  * @param {Array} argv Overriding command line arguments
  * @param {boolean} options.isTruffle Whether the script is used within native truffle framework
  * @param {Web3} options.web3  Injected web3 instance
  * @param {Address} options.from Address to deploy contracts from
  * @param {string} options.protocolReleaseVersion Specify the protocol release version to be used
  *
- * Note: the key itself doesn't have much meaning, it could be "stolen" from a broadcast tx anyway.
- * But since it's bound to a deployer address, that doesn't really matter.
- *
  * Usage:
- * npx truffle exec ops-scripts/gov-create-new-app-registration-key.js : {DEPLOYER} {REGISTRATION_KEY} [EXPIRATION_TS]
- *        EXPIRATION_TS is a Unix timestamp in seconds for when the key should expire.
- *        If not set, we default to 90 days in the future.
+ * npx truffle exec ops-scripts/gov-authorize-app-deployer.js : {DEPLOYER} [EXPIRATION_TS]
+ *        EXPIRATION_TS is a Unix timestamp in seconds for when the authorization should expire.
+ *        If not set, we default to (for practical purposed) no expiration.
  *        Hint: you may use https://www.unixtimestamp.com/ to calculate a timestamp
  */
 module.exports = eval(`(${S.toString()})({
     doNotPrintColonArgs: true
 })`)(async function (args, options = {}) {
-    console.log("======== Creating new app registration key ========");
+    console.log("======== Authorizing Super App Deployer ========");
     let {protocolReleaseVersion} = options;
 
     if (args.length > 3 || args.length < 2) {
         throw new Error("Wrong number of arguments");
     }
 
-    let expirationTs = Math.floor(Date.now() / 1000) + 3600 * 24 * 90; // 90 days from now
+    // default: 2^64 - 1 (far in the future - for practical purposes, never expiring)
+    let expirationTs = (BigInt(2) ** BigInt(64) - BigInt(1)).toString();
     if (args.length === 3) {
         const expTsStr = args.pop();
         const parsedExpTs = parseInt(expTsStr);
@@ -41,12 +40,13 @@ module.exports = eval(`(${S.toString()})({
             throw new Error("EXPIRATON_TS not an integer");
         }
         expirationTs = parsedExpTs;
+        console.log("Expiration timestamp", expirationTs);
+        console.log("Expiration date", new Date(expirationTs * 1000)); // print human readable
     }
-    const registrationKey = args.pop();
+    // for historical reasons, we have "registration keys" and now hardcode those to "k1"
+    const registrationKey = "k1";
     const deployer = args.pop();
     console.log("Deployer", deployer);
-    console.log("Registration key", registrationKey);
-    console.log("Expiration timestamp", expirationTs);
 
     console.log("protocol release version:", protocolReleaseVersion);
 
@@ -62,8 +62,6 @@ module.exports = eval(`(${S.toString()})({
         contractLoader: builtTruffleContractLoader,
     });
     await sf.initialize();
-
-    console.log("Expiration date", new Date(expirationTs * 1000)); // print human readable
 
     await sendGovernanceAction(sf, (gov) =>
         gov.setAppRegistrationKey(

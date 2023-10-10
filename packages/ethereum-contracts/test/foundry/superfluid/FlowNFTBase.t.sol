@@ -252,19 +252,6 @@ abstract contract FlowNFTBaseTest is ERC721IntegrationTest {
         _assertApprovalIsExpected(flowNFTBaseMock, nftId, _approvedAccount);
     }
 
-    function testSetApprovalForAll(address _tokenOwner, address _operator, bool _approved) public {
-        vm.assume(_tokenOwner != address(0));
-        vm.assume(_tokenOwner != _operator);
-
-        _assertEventApprovalForAll(address(constantInflowNFT), _tokenOwner, _operator, _approved);
-
-        vm.startPrank(_tokenOwner);
-        constantInflowNFT.setApprovalForAll(_operator, _approved);
-        vm.stopPrank();
-
-        _assertOperatorApprovalIsExpected(constantInflowNFT, _tokenOwner, _operator, _approved);
-    }
-
     /*//////////////////////////////////////////////////////////////////////////
                                     Assertion Helpers
     //////////////////////////////////////////////////////////////////////////*/

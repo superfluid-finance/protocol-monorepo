@@ -11,7 +11,7 @@ import { Handler } from "./handlers/Handler.sol";
 // app to be tested
 import { FlowSplitter } from "./FlowSplitter.sol";
 
-contract SuperAppInvariants is Test {
+abstract contract SuperAppInvariants is Test {
     ISuperfluid public host;
     ISuperApp public superApp;
     Handler public handler; // Focus test to a set of operations

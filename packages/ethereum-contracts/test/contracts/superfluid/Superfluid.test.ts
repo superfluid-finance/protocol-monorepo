@@ -519,16 +519,9 @@ describe("Superfluid Host Contract", function () {
 
             it("#4.2 app registration rules", async () => {
                 await expectCustomError(
-                    superfluid.registerApp(1, {from: admin}),
-                    superfluid,
-                    "APP_RULE",
-                    t.customErrorCode.APP_RULE_NO_REGISTRATION_FOR_EOA
-                );
-                await expectCustomError(
                     superAppMock.tryRegisterApp(0),
                     superfluid,
-                    "APP_RULE",
-                    t.customErrorCode.APP_RULE_REGISTRATION_ONLY_IN_CONSTRUCTOR
+                    "HOST_INVALID_CONFIG_WORD"
                 );
             });
 
@@ -603,9 +596,9 @@ describe("Superfluid Host Contract", function () {
                 );
             });
 
-            it("#4.6 deprecated register app should continues to work", async () => {
+            it("#4.6 register app should work", async () => {
                 const app2Factory = await ethers.getContractFactory(
-                    "SuperAppMockUsingDeprecatedRegisterApp"
+                    "SuperAppMockUsingRegisterApp"
                 );
                 const app2 = await app2Factory.deploy(
                     superfluid.address,
@@ -617,6 +610,11 @@ describe("Superfluid Host Contract", function () {
             it("#4.7 app registration as factory by EOA should fail", async () => {
                 await expectCustomError(
                     superfluid.registerAppByFactory(ZERO_ADDRESS, 1),
+                    superfluid,
+                    "HOST_MUST_BE_CONTRACT"
+                );
+                await expectCustomError(
+                    superfluid["registerApp(address,uint256)"](ZERO_ADDRESS, 1),
                     superfluid,
                     "HOST_MUST_BE_CONTRACT"
                 );
@@ -2723,7 +2721,7 @@ describe("Superfluid Host Contract", function () {
         });
 
         context("#40.x register app with key", () => {
-            it("#40.1 app registration without key should fail", async () => {
+            it("#40.1 app registration without key should succeed", async () => {
                 await expectCustomError(
                     superAppMockFactory.deploy(
                         superfluid.address,
@@ -2731,7 +2729,7 @@ describe("Superfluid Host Contract", function () {
                         false
                     ),
                     superfluid,
-                    "HOST_INVALID_OR_EXPIRED_SUPER_APP_REGISTRATION_KEY"
+                    "HOST_NO_APP_REGISTRATION_PERMISSION"
                 );
             });
 
@@ -2743,7 +2741,7 @@ describe("Superfluid Host Contract", function () {
                         "bad microsoft registration key"
                     ),
                     superfluid,
-                    "HOST_INVALID_OR_EXPIRED_SUPER_APP_REGISTRATION_KEY"
+                    "HOST_NO_APP_REGISTRATION_PERMISSION"
                 );
             });
 
@@ -2785,7 +2783,7 @@ describe("Superfluid Host Contract", function () {
                         "hello world"
                     ),
                     superfluid,
-                    "HOST_INVALID_OR_EXPIRED_SUPER_APP_REGISTRATION_KEY"
+                    "HOST_NO_APP_REGISTRATION_PERMISSION"
                 );
             });
 
@@ -2805,7 +2803,7 @@ describe("Superfluid Host Contract", function () {
                         "hello world again"
                     ),
                     superfluid,
-                    "HOST_INVALID_OR_EXPIRED_SUPER_APP_REGISTRATION_KEY"
+                    "HOST_NO_APP_REGISTRATION_PERMISSION"
                 );
             });
         });
@@ -2829,7 +2827,7 @@ describe("Superfluid Host Contract", function () {
                         1 /* APP_TYPE_FINAL_LEVEL */
                     ),
                     superfluid,
-                    "HOST_UNAUTHORIZED_SUPER_APP_FACTORY"
+                    "HOST_NO_APP_REGISTRATION_PERMISSION"
                 );
             });
 
@@ -2875,24 +2873,7 @@ describe("Superfluid Host Contract", function () {
                         1 /* APP_TYPE_FINAL_LEVEL */
                     ),
                     superfluid,
-                    "HOST_UNAUTHORIZED_SUPER_APP_FACTORY"
-                );
-            });
-        });
-
-        context("#42.x (deprecated) register app", () => {
-            it("#42.1 app registration without key should fail", async () => {
-                const superAppMockUsingDeprecatedRegisterAppFactory =
-                    await ethers.getContractFactory(
-                        "SuperAppMockUsingDeprecatedRegisterApp"
-                    );
-                await expectCustomError(
-                    superAppMockUsingDeprecatedRegisterAppFactory.deploy(
-                        superfluid.address,
-                        1 /* APP_TYPE_FINAL_LEVEL */
-                    ),
-                    superfluid,
-                    "HOST_NO_APP_REGISTRATION_PERMISSIONS"
+                    "HOST_NO_APP_REGISTRATION_PERMISSION"
                 );
             });
         });

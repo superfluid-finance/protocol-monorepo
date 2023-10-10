@@ -8,7 +8,7 @@
 
 set -x
 
-CONTRACTS_DIR=build/truffle/contracts
+CONTRACTS_DIR=build/truffle
 
 TRUFFLE_NETWORK=$1
 ADDRESSES_VARS=$2

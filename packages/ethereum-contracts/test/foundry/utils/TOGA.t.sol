@@ -7,6 +7,7 @@ import { ISuperToken } from "../../../contracts/superfluid/SuperToken.sol";
 import { TOGA } from "../../../contracts/utils/TOGA.sol";
 import { IERC1820Registry } from "@openzeppelin/contracts/interfaces/IERC1820Registry.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { TestToken } from "../../../contracts/utils/TestToken.sol";
 
 /**
  * @title TOGAIntegrationTest
@@ -18,7 +19,7 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
     TOGA internal toga;
 
     uint256 internal immutable MIN_BOND_DURATION;
-    uint256 internal constant DEFAULT_BOND_AMOUNT = 1E18;
+    uint256 internal constant DEFAULT_BOND_AMOUNT = 1e18;
     IERC1820Registry internal constant _ERC1820_REG = IERC1820Registry(0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24);
 
     constructor() FoundrySuperfluidTester(5) {
@@ -51,6 +52,24 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
     function _assertNetFlow(ISuperToken superToken_, address account, int96 expectedNetFlow) internal {
         int96 flowRate = sf.cfa.getNetFlow(superToken_, account);
         assertEq(flowRate, expectedNetFlow, "_assertNetFlow: net flow not equal");
+    }
+
+    /**
+     * @dev Admin sends `amount` `superToken_` to the `target` address.
+     * @param superToken_ The Super Token representing the asset.
+     * @param target The address of the target.
+     * @param amount The amount to send.
+     */
+    function _helperDeal(ISuperToken superToken_, address target, uint256 amount) internal {
+        TestToken underlyingToken = TestToken(superToken_.getUnderlyingToken());
+        uint256 maxAmount = uint256(type(int256).max);
+        vm.startPrank(admin);
+        underlyingToken.mint(admin, maxAmount);
+        underlyingToken.approve(address(superToken_), maxAmount);
+        superToken_.transferAll(address(1));
+        superToken_.upgrade(maxAmount);
+        superToken_.transfer(target, amount);
+        vm.stopPrank();
     }
 
     /**
@@ -131,7 +150,7 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
         // setting the lower bound > 1 in order to avoid
         // failures due to the exit stream not having enough min deposit
         // (clipping related)
-        bond = bound(bond_, 1E12, INIT_SUPER_TOKEN_BALANCE);
+        bond = bound(bond_, 1e12, INIT_SUPER_TOKEN_BALANCE);
         // before allowing higher limits, also consider that
         // the values returned by toga.getMaxExitRateFor() may not be achievable in practice
         // because of the flowrate data type restriction
@@ -260,7 +279,7 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
         prevReward = bound(prevReward, 1, bond - 1); // make sure the bond exceeds it
 
         // simulate pre-existing accumulation of rewards
-        deal(address(superToken), address(toga), prevReward);
+        _helperDeal(superToken, address(toga), prevReward);
 
         _helperSendPICBid(alice, superToken, bond, 0);
         (, uint256 aliceBond,) = toga.getCurrentPICInfo(superToken);
@@ -309,7 +328,7 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
     function testPICClosesStream(uint256 bond) public {
         bond = _boundBondValue(bond);
 
-        _helperSendPICBid(alice, superToken, bond, 1E3);
+        _helperSendPICBid(alice, superToken, bond, 1e3);
 
         vm.warp(block.timestamp + 1000);
         _helperDeleteFlow(superToken, alice, address(toga), alice);
@@ -324,7 +343,7 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
         _assertNetFlow(superToken, alice, 0);
 
         // bob sends a bid too
-        _helperSendPICBid(bob, superToken, bond, 1E3);
+        _helperSendPICBid(bob, superToken, bond, 1e3);
         _assertNetFlow(superToken, alice, 0);
     }
 
@@ -364,7 +383,7 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
         assertEq(bond, 0);
 
         // accumulate some new rewards...
-        deal(address(superToken), address(toga), 1e15);
+        _helperDeal(superToken, address(toga), 1e15);
 
         (, uint256 bond2,) = toga.getCurrentPICInfo(superToken);
         assertGe(bond2, 1e12);
@@ -386,7 +405,8 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
     function testBondAndExitRateLimits(uint256 bond, int96 exitRate) public {
         bond = bound(
             bond,
-            exitRate == 0 ? 1 : 1 << 32, // with small bonds, opening the stream can fail due to CFA deposit having a flow of 1<<32 due to clipping
+            exitRate == 0 ? 1 : 1 << 32, // with small bonds, opening the stream can fail due to CFA deposit having a
+                // flow of 1<<32 due to clipping
             uint256(type(int256).max) // SuperToken doesn't support the full uint256 range
         );
 
@@ -399,7 +419,11 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
 
         exitRate = int96(bound(exitRate, 0, maxExitRate));
 
-        deal(address(superToken), alice, uint256(type(int256).max));
+        vm.startPrank(alice);
+        superToken.transferAll(address(1));
+        vm.stopPrank();
+
+        _helperDeal(superToken, alice, uint256(type(int256).max));
 
         _helperSendPICBid(alice, superToken, bond, exitRate);
     }
@@ -409,8 +433,8 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
 
         (, ISuperToken superToken2) = sfDeployer.deployWrapperSuperToken("TEST2", "TEST2", 18, type(uint256).max);
 
-        deal(address(superToken2), alice, INIT_SUPER_TOKEN_BALANCE);
-        deal(address(superToken2), bob, INIT_SUPER_TOKEN_BALANCE);
+        _helperDeal(superToken2, alice, INIT_SUPER_TOKEN_BALANCE);
+        _helperDeal(superToken2, bob, INIT_SUPER_TOKEN_BALANCE);
 
         _helperSendPICBid(alice, superToken, bond, toga.getDefaultExitRateFor(superToken, bond));
         _helperSendPICBid(bob, superToken2, bond, toga.getDefaultExitRateFor(superToken, bond));

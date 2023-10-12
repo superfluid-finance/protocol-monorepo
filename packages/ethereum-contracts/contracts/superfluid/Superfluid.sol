@@ -312,89 +312,81 @@ contract Superfluid is
     // App Registry
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    /// @custom:deprecated
-    function registerApp(
-        uint256 configWord
-    )
-        external override
-    {
-        // check if whitelisting required
+    /// @inheritdoc ISuperfluid
+    function registerApp(uint256 configWord) external override {
         if (APP_WHITE_LISTING_ENABLED) {
-            revert HOST_NO_APP_REGISTRATION_PERMISSIONS();
+            // for historical reasons, we internal use "k1" as default registration key
+            // solhint-disable-next-line avoid-tx-origin
+            _enforceAppRegistrationPermissioning("k1", tx.origin);
         }
-        _registerApp(configWord, ISuperApp(msg.sender), true);
+        _registerApp(ISuperApp(msg.sender), configWord);
     }
 
+    /// @inheritdoc ISuperfluid
+    function registerApp(ISuperApp app, uint256 configWord) external override {
+        // Cannot register an EOA as SuperApp
+        if ((address(app)).code.length == 0) revert HOST_MUST_BE_CONTRACT();
+        if (APP_WHITE_LISTING_ENABLED) {
+            _enforceAppRegistrationPermissioning("k1", msg.sender);
+        }
+        _registerApp(app, configWord);
+    }
+
+    /// @custom:deprecated
     function registerAppWithKey(uint256 configWord, string calldata registrationKey)
         external override
     {
         if (APP_WHITE_LISTING_ENABLED) {
-            bytes32 configKey = SuperfluidGovernanceConfigs.getAppRegistrationConfigKey(
-                // solhint-disable-next-line avoid-tx-origin
-                tx.origin,
-                registrationKey
-            );
-            // check if the key is valid and not expired
-            if (
-                _gov.getConfigAsUint256(
-                    this,
-                    ISuperfluidToken(address(0)),
-                    configKey
-                // solhint-disable-next-line not-rely-on-time
-                ) < block.timestamp) revert HOST_INVALID_OR_EXPIRED_SUPER_APP_REGISTRATION_KEY();
+            // solhint-disable-next-line avoid-tx-origin
+            _enforceAppRegistrationPermissioning(registrationKey, tx.origin);
         }
-        _registerApp(configWord, ISuperApp(msg.sender), true);
+        _registerApp(ISuperApp(msg.sender), configWord);
     }
 
-    function registerAppByFactory(
-        ISuperApp app,
-        uint256 configWord
-    )
-        external override
-    {
-        // msg sender must be a contract
-        {
-            uint256 cs;
-            // solhint-disable-next-line no-inline-assembly
-            assembly { cs := extcodesize(caller()) }
-            if (cs == 0) revert HOST_MUST_BE_CONTRACT();
-        }
-
-        if (APP_WHITE_LISTING_ENABLED) {
-            // check if msg sender is authorized to register
-            bytes32 configKey = SuperfluidGovernanceConfigs.getAppFactoryConfigKey(msg.sender);
-            bool isAuthorizedAppFactory = _gov.getConfigAsUint256(
+    // internally we keep using the gov config method with key
+    function _enforceAppRegistrationPermissioning(string memory registrationKey, address deployer) internal view {
+        bytes32 configKey = SuperfluidGovernanceConfigs.getAppRegistrationConfigKey(
+            // solhint-disable-next-line avoid-tx-origin
+            deployer,
+            registrationKey
+        );
+        // check if the key is valid and not expired
+        if (
+            _gov.getConfigAsUint256(
                 this,
                 ISuperfluidToken(address(0)),
-                configKey) == 1;
-
-            if (!isAuthorizedAppFactory) revert HOST_UNAUTHORIZED_SUPER_APP_FACTORY();
+                configKey
+            // solhint-disable-next-line not-rely-on-time
+            ) < block.timestamp)
+        {
+            revert HOST_NO_APP_REGISTRATION_PERMISSION();
         }
-        _registerApp(configWord, app, false);
     }
 
-    function _registerApp(uint256 configWord, ISuperApp app, bool checkIfInAppConstructor) private
-    {
-        // solhint-disable-next-line avoid-tx-origin
-        if (msg.sender == tx.origin) {
-            revert APP_RULE(SuperAppDefinitions.APP_RULE_NO_REGISTRATION_FOR_EOA);
+    /// @custom:deprecated
+    function registerAppByFactory(ISuperApp app, uint256 configWord) external override {
+        // Cannot register an EOA as SuperApp
+        if ((address(app)).code.length == 0) revert HOST_MUST_BE_CONTRACT();
+        if (APP_WHITE_LISTING_ENABLED) {
+            // enforce permissiniong with legacy gov config key for app factory
+            bytes32 configKey = SuperfluidGovernanceConfigs.getAppFactoryConfigKey(msg.sender);
+            bool isAuthorizedAppFactory = _gov.getConfigAsUint256(this, ISuperfluidToken(address(0)), configKey) == 1;
+            if (!isAuthorizedAppFactory) revert HOST_NO_APP_REGISTRATION_PERMISSION();
+            // We do not enforce any assumptions about what a "factory" is. It is whatever gov decided to.
         }
+        _registerApp(app, configWord);
+    }
 
-        if (checkIfInAppConstructor) {
-            uint256 cs;
-            // solhint-disable-next-line no-inline-assembly
-            assembly { cs := extcodesize(app) }
-            if (cs != 0) {
-                revert APP_RULE(SuperAppDefinitions.APP_RULE_REGISTRATION_ONLY_IN_CONSTRUCTOR);
-            }
-        }
+    function _registerApp(ISuperApp app, uint256 configWord) private {
+        // validate configWord
         if (
             !SuperAppDefinitions.isConfigWordClean(configWord) ||
             SuperAppDefinitions.getAppCallbackLevel(configWord) == 0 ||
             (configWord & SuperAppDefinitions.APP_JAIL_BIT) != 0
-            ) {
-                revert HOST_INVALID_CONFIG_WORD();
-            }
+        ) {
+            revert HOST_INVALID_CONFIG_WORD();
+        }
+
         if (_appManifests[ISuperApp(app)].configWord != 0) revert HOST_SUPER_APP_ALREADY_REGISTERED();
         _appManifests[ISuperApp(app)] = AppManifest(configWord);
         emit AppRegistered(app);

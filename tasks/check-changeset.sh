@@ -34,22 +34,22 @@ function setBuildAll() {
 # (dependency graph implied below)
 if [ -n "$GITHUB_ENV" ];then
     # if ci workflows changed
-    if grep -E "^.github/workflows/ci.*.yml$" changed-files.list;then
+    if grep -E "^.github/workflows/ci\..*\.yml$" changed-files.list;then
         echo "CI workflows changed."
         setBuildAll
     fi
     # if call (reusable) workflows changed
-    if grep -E "^.github/workflows/call.*.yml$" changed-files.list;then
+    if grep -E "^.github/workflows/call\..*\.yml$" changed-files.list;then
         echo "Call workflows changed."
         setBuildAll
     fi
     # if root package.json changed, rebuild everything
-    if grep -E "^(package.json|yarn.lock)$" changed-files.list;then
+    if grep -E "^(flake\.nix|flake\.lock|package\.json|yarn\.lock)$" changed-files.list;then
         echo "Root package.json changed."
         setBuildAll
     fi
     # if specified ethereum-contracts folders and files changed
-    if grep -E "^packages/ethereum-contracts/(contracts/|scripts/|test/|truffle-config.js|package.json)" changed-files.list;then
+    if grep -E "^packages/ethereum-contracts/(contracts/|scripts/|test/|truffle-config\.js|package\.json)" changed-files.list;then
         BUILD_ETHEREUM_CONTRACTS=1
         BUILD_SUBGRAPH=1
         BUILD_HOT_FUZZ=1
@@ -57,44 +57,44 @@ if [ -n "$GITHUB_ENV" ];then
         echo Ethereum contracts, HotFuzz and Subgraph will be tested.
     fi
     # if specified hot-fuzz folders and files changed
-    if grep -E "^packages/hot-fuzz/(contracts/|scripts/|.+.js|.+.yaml|hot-fuzz|package.json)" changed-files.list;then
+    if grep -E "^packages/hot-fuzz/(contracts/|scripts/|.+\.js|.+\.yaml|hot-fuzz|package\.json)" changed-files.list;then
         BUILD_HOT_FUZZ=1
         echo HotFuzz will be tested.
     fi
     # if specified sdk-core folders and files changed
-    if grep -E "^packages/sdk-core/(src/|test/|package.json|tsconfig.*)" changed-files.list;then
+    if grep -E "^packages/sdk-core/(src/|test/|package\.json|tsconfig\.*)" changed-files.list;then
         BUILD_SDK_CORE=1
         BUILD_SDK_REDUX=1
         BUILD_SUBGRAPH=1
         echo SDK-CORE, SDK-REDUX and SUBGRAPH will be tested.
     fi
     # if specified sdk-redux folders and files changed
-    if grep -E "^packages/sdk-redux/(src/|test/|package.json)" changed-files.list;then
+    if grep -E "^packages/sdk-redux/(src/|test/|package\.json)" changed-files.list;then
         BUILD_SDK_REDUX=1
         echo SDK-REDUX will be tested.
     fi
     # if specified subgraph folders and files changed
-    if grep -E "^packages/subgraph/(subgraph.template.yaml|schema.graphql|config|scripts|src|tasks|test|hardhat.config.ts|package.json|docker-compose.yml)" changed-files.list;then
+    if grep -E "^packages/subgraph/(subgraph\.template\.yaml|schema\.graphql|config|scripts|src|tasks|test|hardhat\.config\.ts|package\.json|docker-compose\.yml)" changed-files.list;then
         BUILD_SUBGRAPH=1
         echo Subgraph will be tested.
     fi
     # if specified haskell folders and files changed
-    if grep -E "^packages/spec-haskell/(packages/|cabal.project)" changed-files.list;then
+    if grep -E "^packages/spec-haskell/(packages/|cabal\.project)" changed-files.list;then
         BUILD_SPEC_HASKELL=1
         echo SPEC-HASKELL will be tested.
     fi
     # if specified automation-contracts/scheduler folders and files changed
-    if grep -E "^packages/automation-contracts/scheduler/(contracts/|scripts/|test/|truffle-config.js|package.json)" changed-files.list;then
+    if grep -E "^packages/automation-contracts/scheduler/(contracts/|scripts/|test/|truffle-config\.js|package\.json)" changed-files.list;then
         BUILD_AUTOMATION_CONTRACTS=1
         echo Automation Contracts will be tested.
     fi
     # if specified automation-contracts/autowrap folders and files changed
-    if grep -E "^packages/automation-contracts/autowrap/(contracts/|scripts/|test/|truffle-config.js|package.json)" changed-files.list;then
+    if grep -E "^packages/automation-contracts/autowrap/(contracts/|scripts/|test/|truffle-config\.js|package\.json)" changed-files.list;then
         BUILD_AUTOMATION_CONTRACTS=1
         echo Automation Contracts will be tested.
     fi
     # if specified solidity-semantic-money folders and files changed
-    if grep -E "^packages/solidity-semantic-money/(src/|test/|foundry.toml|Makefile|package.json)" changed-files.list;then
+    if grep -E "^packages/solidity-semantic-money/(src/|test/|foundry\.toml|Makefile|package\.json)" changed-files.list;then
         BUILD_SOLIDITY_SEMANTIC_MONEY=1
         echo Solidity semantic money will be tested.
     fi

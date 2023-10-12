@@ -73,15 +73,13 @@ interface ISuperfluid {
     // uses SuperAppDefinitions' App Jail Reasons as _code
     error APP_RULE(uint256 _code);                              // 0xa85ba64f
 
-    error HOST_INVALID_OR_EXPIRED_SUPER_APP_REGISTRATION_KEY(); // 0x19ab84d1
     error HOST_NOT_A_SUPER_APP();                               // 0x163cbe43
-    error HOST_NO_APP_REGISTRATION_PERMISSIONS();               // 0x5b93ebf0
+    error HOST_NO_APP_REGISTRATION_PERMISSION();                // 0xb56455f0
     error HOST_RECEIVER_IS_NOT_SUPER_APP();                     // 0x96aa315e
     error HOST_SENDER_IS_NOT_SUPER_APP();                       // 0xbacfdc40
     error HOST_SOURCE_APP_NEEDS_HIGHER_APP_LEVEL();             // 0x44725270
     error HOST_SUPER_APP_IS_JAILED();                           // 0x02384b64
     error HOST_SUPER_APP_ALREADY_REGISTERED();                  // 0x01b0a935
-    error HOST_UNAUTHORIZED_SUPER_APP_FACTORY();                // 0x289533c5
 
     /**************************************************************************
      * Time
@@ -234,8 +232,8 @@ interface ISuperfluid {
     event SuperTokenLogicUpdated(ISuperToken indexed token, address code);
 
     /**
-     * @notice Change the SuperToken admin override
-     * @dev The admin override is the only account allowed to update the token logic
+     * @notice Change the SuperToken admin address
+     * @dev The admin is the only account allowed to update the token logic
      * For backward compatibility, the "host" is the default "admin" if unset (address(0)).
      */
     function changeSuperTokenAdmin(ISuperToken token, address newAdmin) external;
@@ -245,13 +243,24 @@ interface ISuperfluid {
      *************************************************************************/
 
     /**
-     * @dev Message sender (must be a contract) declares itself as a super app.
-     * @custom:deprecated you should use `registerAppWithKey` or `registerAppByFactory` instead,
-     * because app registration is currently governance permissioned on mainnets.
+     * @dev Message sender (must be a contract) registers itself as a super app.
      * @param configWord The super app manifest configuration, flags are defined in
      * `SuperAppDefinitions`
+     * @notice On some mainnet deployments, pre-authorization by governance may be needed for this to succeed.
+     * See https://github.com/superfluid-finance/protocol-monorepo/wiki/Super-App-White-listing-Guide
      */
     function registerApp(uint256 configWord) external;
+
+    /**
+     * @dev Registers an app (must be a contract) as a super app.
+     * @param app The super app address
+     * @param configWord The super app manifest configuration, flags are defined in
+     * `SuperAppDefinitions`
+     * @notice On some mainnet deployments, pre-authorization by governance may be needed for this to succeed.
+     * See https://github.com/superfluid-finance/protocol-monorepo/wiki/Super-App-White-listing-Guide
+     */
+    function registerApp(ISuperApp app, uint256 configWord) external;
+
     /**
      * @dev App registered event
      * @param app Address of jailed app
@@ -259,21 +268,14 @@ interface ISuperfluid {
     event AppRegistered(ISuperApp indexed app);
 
     /**
-     * @dev Message sender declares itself as a super app.
-     * @param configWord The super app manifest configuration, flags are defined in `SuperAppDefinitions`
-     * @param registrationKey The registration key issued by the governance, needed to register on a mainnet.
-     * @notice See https://github.com/superfluid-finance/protocol-monorepo/wiki/Super-App-White-listing-Guide
-     * On testnets or in dev environment, a placeholder (e.g. empty string) can be used.
-     * While the message sender must be the super app itself, the transaction sender (tx.origin)
-     * must be the deployer account the registration key was issued for.
+     * @dev DO NOT USE for new deployments
+     * @custom:deprecated you should use `registerApp(uint256 configWord) instead.
      */
     function registerAppWithKey(uint256 configWord, string calldata registrationKey) external;
 
     /**
-     * @dev Message sender (must be a contract) declares app as a super app
-     * @param configWord The super app manifest configuration, flags are defined in `SuperAppDefinitions`
-     * @notice On mainnet deployments, only factory contracts pre-authorized by governance can use this.
-     * See https://github.com/superfluid-finance/protocol-monorepo/wiki/Super-App-White-listing-Guide
+     * @dev DO NOT USE for new deployments
+     * @custom:deprecated you should use `registerApp(ISuperApp app, uint256 configWord) instead.
      */
     function registerAppByFactory(ISuperApp app, uint256 configWord) external;
 

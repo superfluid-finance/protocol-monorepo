@@ -5,8 +5,14 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+
+## [0.6.10] - 2023-10-16
+
 ### Added
 - Support for `ConstantOutflowNFT` and `ConstantInflowNFT` functions
+
+### Fixed
+- Support for `CustomSuperToken` contracts without `getUnderlyingToken()` function implemented
 
 ## [0.6.9] - 2023-09-11
 

@@ -324,7 +324,11 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         newCtx = ctx;
         if (doConnect) {
             if (!isMemberConnected(token, address(pool), msgSender)) {
-                assert(SuperfluidPool(address(pool)).operatorConnectMember(msgSender, true, uint32(block.timestamp)));
+                assert(
+                    SuperfluidPool(address(pool)).operatorConnectMember(
+                        msgSender, true, uint32(currentContext.timestamp)
+                    )
+                );
 
                 uint32 poolSlotID =
                     _findAndFillPoolConnectionsBitmap(token, msgSender, bytes32(uint256(uint160(address(pool)))));
@@ -339,7 +343,11 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
             }
         } else {
             if (isMemberConnected(token, address(pool), msgSender)) {
-                assert(SuperfluidPool(address(pool)).operatorConnectMember(msgSender, false, uint32(block.timestamp)));
+                assert(
+                    SuperfluidPool(address(pool)).operatorConnectMember(
+                        msgSender, false, uint32(currentContext.timestamp)
+                    )
+                );
                 (, PoolMemberData memory poolMemberData) = _getPoolMemberData(token, msgSender, pool);
                 token.terminateAgreement(_getPoolMemberHash(msgSender, pool), 1);
 
@@ -479,7 +487,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
             address(pool),
             flowVars.distributionFlowHash,
             FlowRate.wrap(requestedFlowRate),
-            Time.wrap(uint32(block.timestamp))
+            Time.wrap(uint32(flowVars.currentContext.timestamp))
         );
 
         // handle distribute flow on behalf of someone else

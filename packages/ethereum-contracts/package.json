@@ -103,6 +103,8 @@
         "truffle-plugin-verify": "0.6.5"
     },
     "peerDependencies": {
-        "ethers": "^5.7.2"
+        "ethers": "^5.7.2",
+        "hardhat": "^2.17.3",
+        "@nomiclabs/hardhat-ethers": "^2.2.3"
     }
 }

@@ -69,6 +69,7 @@ import {
     getSanitizedTimestamp,
     getStringCurrentTimeInSeconds,
     normalizeAddress,
+    tryGet,
 } from "./utils";
 
 export interface NFTAddresses {
@@ -156,9 +157,13 @@ export default abstract class SuperToken extends ERC20Token {
                 options.address,
                 options.provider
             );
-            const underlyingTokenAddress = await superToken
+            const getUnderlyingTokenPromise = superToken
                 .connect(options.provider)
                 .getUnderlyingToken();
+            const underlyingTokenAddress = await tryGet(
+                getUnderlyingTokenPromise,
+                ethers.constants.AddressZero
+            );
             const settings: ITokenSettings = {
                 address: options.address,
                 config: options.config,

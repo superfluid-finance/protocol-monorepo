@@ -1,3 +1,4 @@
+import hre from "hardhat";
 import { expect } from "chai";
 import { NativeAssetSuperToken, SuperToken, toBN } from "../src";
 import { ethers } from "ethers";
@@ -123,6 +124,17 @@ makeSuite("SuperToken Tests", (testEnv: TestEnvironment) => {
                 );
                 expect(err.cause).to.be.instanceOf(Error);
             }
+        });
+
+        it("Should support SuperToken without getUnderlyingToken() function implemented",async () => {
+            const noGetUnderlyingTokenFactory = await hre.ethers.getContractFactory("NoGetUnderlyingToken");
+            const noGetUnderlyingToken = await noGetUnderlyingTokenFactory.deploy();
+            await SuperToken.create({
+                address: noGetUnderlyingToken.address,
+                provider: testEnv.alice.provider!,
+                config: testEnv.sdkFramework.settings.config,
+                networkName: "custom",
+            });
         });
 
         it("Should properly return totalSupply", async () => {

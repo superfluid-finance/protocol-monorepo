@@ -302,7 +302,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
         override
         returns (int256 claimableBalance, uint256 timestamp)
     {
-        uint256 timestamp = GDA.getHost().getTimestamp();
+        uint256 timestamp = ISuperfluid(superToken.getHost()).getNow();
         return (getClaimable(memberAddr, uint32(timestamp)), timestamp);
     }
 
@@ -443,7 +443,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
     /// @inheritdoc ISuperfluidPool
     function claimAll(address memberAddr) public returns (bool) {
         bool isConnected = GDA.isMemberConnected(superToken, address(this), memberAddr);
-        uint32 time = uint32(GDA.getHost().getTimestamp());
+        uint32 time = uint32(ISuperfluid(superToken.getHost()).getNow());
         int256 claimedAmount = _claimAll(memberAddr, time);
         if (!isConnected) {
             _shiftDisconnectedUnits(Unit.wrap(0), Value.wrap(claimedAmount), Time.wrap(time));

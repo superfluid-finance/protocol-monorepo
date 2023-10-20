@@ -26,6 +26,7 @@ contract SuperfluidGovernanceIntegrationTest is FoundrySuperfluidTester {
 
     function testRevertChangeSuperTokenAdminWhenCallerIsNotNotGovOwner(address newAdmin) public {
         vm.assume(newAdmin != address(0));
+        vm.assume(newAdmin != sf.governance.owner());
 
         vm.startPrank(newAdmin);
         vm.expectRevert();

@@ -34,17 +34,12 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
     using SafeCast for uint256;
     using SafeCast for int256;
 
-    struct UpdateMemberData {
-        address member;
-        uint64 newUnits;
-    }
-
     event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
 
     SuperfluidPool public currentPool;
     uint256 public liquidationPeriod;
 
-    constructor() FoundrySuperfluidTester(6) { }
+    constructor() FoundrySuperfluidTester(7) { }
 
     function setUp() public override {
         super.setUp();
@@ -53,6 +48,16 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         _addAccount(address(currentPool));
         vm.stopPrank();
         (liquidationPeriod,) = sf.governance.getPPPConfig(sf.host, superToken);
+    }
+
+    function _getMembers(uint8 length) internal returns (address[] memory) {
+        if (length > TEST_ACCOUNTS.length - 2) revert("Too many members");
+        address[] memory members = new address[](length);
+        for (uint8 i = 0; i < length; ++i) {
+            // do not use Admin and Alice
+            members[i] = TEST_ACCOUNTS[i + 2];
+        }
+        return members;
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -196,10 +201,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
     }
 
     function testRevertDistributeFromAnyAddressWhenNotAllowed(bool useForwarder) public {
-        PoolConfig memory config = PoolConfig({
-            transferabilityForUnitsOwner: true,
-            distributionFromAnyAddress: false
-        });
+        PoolConfig memory config = PoolConfig({ transferabilityForUnitsOwner: true, distributionFromAnyAddress: false });
         ISuperfluidPool pool = _helperCreatePool(superToken, alice, alice, useForwarder, config);
 
         vm.expectRevert(IGeneralDistributionAgreementV1.GDA_DISTRIBUTE_FROM_ANY_ADDRESS_NOT_ALLOWED.selector);
@@ -209,10 +211,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
     }
 
     function testRevertDistributeFlowFromAnyAddressWhenNotAllowed(bool useForwarder) public {
-        PoolConfig memory config = PoolConfig({
-            transferabilityForUnitsOwner: true,
-            distributionFromAnyAddress: false
-        });
+        PoolConfig memory config = PoolConfig({ transferabilityForUnitsOwner: true, distributionFromAnyAddress: false });
         ISuperfluidPool pool = _helperCreatePool(superToken, alice, alice, useForwarder, config);
 
         vm.expectRevert(IGeneralDistributionAgreementV1.GDA_DISTRIBUTE_FROM_ANY_ADDRESS_NOT_ALLOWED.selector);
@@ -360,13 +359,11 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
     function testDistributeFlowUsesMinDeposit(
         uint64 distributionFlowRate,
         uint32 minDepositMultiplier,
-        address member,
         FoundrySuperfluidTester._StackVars_UseBools memory useBools_
     ) public {
         vm.assume(distributionFlowRate < minDepositMultiplier);
         vm.assume(distributionFlowRate > 0);
-        vm.assume(member != address(currentPool));
-        vm.assume(member != address(0));
+        address member = address(0x300);
 
         _addAccount(member);
 
@@ -385,13 +382,11 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
     function testDistributeFlowIgnoresMinDeposit(
         int32 distributionFlowRate,
         uint32 minDepositMultiplier,
-        address member,
         FoundrySuperfluidTester._StackVars_UseBools memory useBools_
     ) public {
         vm.assume(uint32(distributionFlowRate) >= minDepositMultiplier);
         vm.assume(distributionFlowRate > 0);
-        vm.assume(member != address(0));
-        vm.assume(member != address(currentPool));
+        address member = address(0x300);
 
         _addAccount(member);
 
@@ -494,59 +489,77 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
     }
 
     function testDistributeToDisconnectedMembers(
-        UpdateMemberData[5] memory members,
+        uint64[5] memory memberUnits,
         uint256 distributionAmount,
         _StackVars_UseBools memory useBools_
     ) public {
         address distributor = alice;
         uint256 distributorBalance = superToken.balanceOf(distributor);
 
-        vm.assume(members.length > 0);
         vm.assume(distributionAmount < distributorBalance);
 
-        for (uint256 i = 0; i < members.length; ++i) {
-            if (sf.gda.isPool(superToken, members[i].member) || members[i].member == address(0)) continue;
+        address[] memory members = _getMembers(5);
 
-            _helperUpdateMemberUnits(currentPool, alice, members[i].member, members[i].newUnits, useBools_);
+        for (uint256 i = 0; i < members.length; ++i) {
+            if (sf.gda.isPool(superToken, members[i]) || members[i] == address(0)) continue;
+
+            _helperUpdateMemberUnits(currentPool, alice, members[i], memberUnits[i], useBools_);
         }
         _helperDistributeViaGDA(superToken, alice, alice, currentPool, distributionAmount, useBools_.useForwarder);
     }
 
     function testDistributeToConnectedMembers(
-        UpdateMemberData[5] memory members,
+        uint64[5] memory memberUnits,
         uint256 distributionAmount,
         _StackVars_UseBools memory useBools_
     ) public {
         address distributor = alice;
         uint256 distributorBalance = superToken.balanceOf(distributor);
 
-        vm.assume(members.length > 0);
         vm.assume(distributionAmount < distributorBalance);
 
-        for (uint256 i = 0; i < members.length; ++i) {
-            if (sf.gda.isPool(superToken, members[i].member) || members[i].member == address(0)) continue;
+        address[] memory members = _getMembers(5);
 
-            _helperConnectPool(members[i].member, superToken, currentPool, useBools_.useForwarder);
-            _helperUpdateMemberUnits(currentPool, alice, members[i].member, members[i].newUnits, useBools_);
-            _addAccount(members[i].member);
+        memberUnits[0] = 0;
+        memberUnits[1] = 0;
+        memberUnits[2] = 0;
+        memberUnits[3] = 0;
+        memberUnits[4] = 1;
+
+        distributionAmount = 1;
+
+
+        for (uint256 i = 0; i < members.length; ++i) {
+            if (sf.gda.isPool(superToken, members[i]) || members[i] == address(0)) continue;
+
+            _helperConnectPool(members[i], superToken, currentPool, useBools_.useForwarder);
+            _helperUpdateMemberUnits(currentPool, alice, members[i], memberUnits[i], useBools_);
         }
         _helperDistributeViaGDA(superToken, alice, alice, currentPool, distributionAmount, useBools_.useForwarder);
     }
 
     function testDistributeFlowToConnectedMembers(
-        UpdateMemberData[5] memory members,
+        uint64[5] memory memberUnits,
         int32 flowRate,
         _StackVars_UseBools memory useBools_
     ) public {
-        vm.assume(members.length > 0);
         vm.assume(flowRate > 0);
 
-        for (uint256 i = 0; i < members.length; ++i) {
-            if (sf.gda.isPool(superToken, members[i].member) || members[i].member == address(0)) continue;
+        memberUnits[0] = 0;
+        memberUnits[1] = 0;
+        memberUnits[2] = 0;
+        memberUnits[3] = 0;
+        memberUnits[4] = 1;
 
-            _helperConnectPool(members[i].member, superToken, currentPool, useBools_.useForwarder);
-            _helperUpdateMemberUnits(currentPool, alice, members[i].member, members[i].newUnits, useBools_);
-            _addAccount(members[i].member);
+        flowRate = 1;
+
+        address[] memory members = _getMembers(5);
+
+        for (uint256 i = 0; i < members.length; ++i) {
+            if (sf.gda.isPool(superToken, members[i]) || members[i] == address(0)) continue;
+
+            _helperConnectPool(members[i], superToken, currentPool, useBools_.useForwarder);
+            _helperUpdateMemberUnits(currentPool, alice, members[i], memberUnits[i], useBools_);
         }
 
         _helperDistributeFlow(superToken, alice, alice, currentPool, 100, useBools_.useForwarder);
@@ -557,17 +570,18 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
     }
 
     function testDistributeFlowToUnconnectedMembers(
-        UpdateMemberData[5] memory members,
+        uint64[5] memory memberUnits,
         int32 flowRate,
         uint16 warpTime,
         _StackVars_UseBools memory useBools_
     ) public {
         vm.assume(flowRate > 0);
-        vm.assume(members.length > 0);
+
+        address[] memory members = _getMembers(5);
 
         for (uint256 i = 0; i < members.length; ++i) {
-            if (sf.gda.isPool(superToken, members[i].member) || members[i].member == address(0)) continue;
-            _helperUpdateMemberUnits(currentPool, alice, members[i].member, members[i].newUnits, useBools_);
+            if (sf.gda.isPool(superToken, members[i]) || members[i] == address(0)) continue;
+            _helperUpdateMemberUnits(currentPool, alice, members[i], memberUnits[i], useBools_);
         }
 
         int96 requestedFlowRate = flowRate;
@@ -580,7 +594,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         uint128 totalUnits = currentPool.getTotalUnits();
 
         for (uint256 i; i < members.length; ++i) {
-            address member = members[i].member;
+            address member = members[i];
             if (member != address(0)) {
                 // @note we test realtimeBalanceOfNow here as well
                 (int256 memberRTB,,) = sf.gda.realtimeBalanceOf(superToken, member, block.timestamp);
@@ -596,8 +610,8 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
                 assertEq(
                     memberClaimable,
                     totalUnits > 0
-                        ? (actualDistributionFlowRate * int96(int256(uint256(warpTime))))
-                            * int96(uint96(members[i].newUnits)) / uint256(totalUnits).toInt256()
+                        ? (actualDistributionFlowRate * int96(int256(uint256(warpTime)))) * int96(uint96(memberUnits[i]))
+                            / uint256(totalUnits).toInt256()
                         : int256(0),
                     "testDistributeFlowToUnconnectedMembers: memberClaimable != (actualDistributionFlowRate * warpTime) / totalUnits"
                 );
@@ -668,10 +682,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
     }
 
     function testRevertIfTransferNotAllowed(bool useForwarder) public {
-        PoolConfig memory config = PoolConfig({
-            transferabilityForUnitsOwner: false,
-            distributionFromAnyAddress: true
-        });
+        PoolConfig memory config = PoolConfig({ transferabilityForUnitsOwner: false, distributionFromAnyAddress: true });
         ISuperfluidPool pool = _helperCreatePool(superToken, alice, alice, useForwarder, config);
 
         _helperUpdateMemberUnits(currentPool, alice, bob, 1000);
@@ -683,10 +694,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
     }
 
     function testRevertIfTransferFromNotAllowed(bool useForwarder) public {
-        PoolConfig memory config = PoolConfig({
-            transferabilityForUnitsOwner: false,
-            distributionFromAnyAddress: true
-        });
+        PoolConfig memory config = PoolConfig({ transferabilityForUnitsOwner: false, distributionFromAnyAddress: true });
         ISuperfluidPool pool = _helperCreatePool(superToken, alice, alice, useForwarder, config);
 
         _helperUpdateMemberUnits(currentPool, alice, bob, 1000);

@@ -46,12 +46,12 @@ contract PoolMemberNFTIntegrationTest is PoolNFTBaseIntegrationTest {
         poolMemberNFT.mockMint(address(pool), _member);
     }
 
-    function testRevertIfMintingForZeroUnitMember(address _admin, address _member) public {
-        vm.assume(_admin != address(0));
-        vm.assume(_member != address(0));
-        ISuperfluidPool pool = sf.gda.createPool(superTokenMock, _admin, poolConfig);
+    function testRevertIfMintingForZeroUnitMember() public {
+        address admin_ = alice;
+        address member = bob;
+        ISuperfluidPool pool = sf.gda.createPool(superTokenMock, admin_, poolConfig);
         vm.expectRevert(IPoolMemberNFT.POOL_MEMBER_NFT_NO_UNITS.selector);
-        poolMemberNFT.mockMint(address(pool), _member);
+        poolMemberNFT.mockMint(address(pool), member);
     }
 
     function testRevertIfBurningNFTOfMemberWithUnits(address _admin, address _member) public {

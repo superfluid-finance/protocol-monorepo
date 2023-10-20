@@ -32,6 +32,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   - Simplification of Super App registration: use `registerApp` in all cases going forward.
   - Use `registerApp(uint256 configWord)` to be called by the super app in the constructor or `registerApp(ISuperApp app, uint256 configWord)` to be called by any address with a valid app registration config key
 
+### Fixes
+- [`dev-scripts/deploy-test-framework.js`](dev-scripts/deploy-test-framework.js) compatible with both ethers-v5 and ethers-v6 now
+
 ## [v1.8.1] - 2023-08-28
 
 ### Fixed

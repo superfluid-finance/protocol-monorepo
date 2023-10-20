@@ -51,6 +51,17 @@ async function deployERC1820(provider) {
     }
 }
 
+/**
+ * Gets the address of the deployed contract.
+ * This is for handling the different contract objects in ethers v5 (contract.address)
+ * vs ethers v6 (contract.target), that is, v6 does not have contract.address and vice versa.
+ * @param {ethers.Contract} contract
+ * @returns
+ */
+const getContractAddress = (contract) => {
+    return contract.address || contract.target;
+};
+
 const _getFactoryAndReturnDeployedContract = async (
     contractName,
     artifact,
@@ -65,21 +76,36 @@ const _getFactoryAndReturnDeployedContract = async (
         signerOrOptions
     );
     const contract = await ContractFactory.deploy(...args);
-    await contract.deployed();
+
+    // ethers v5
+    if (contract.deployed) {
+        await contract.deployed();
+    } else if (!contract.deployed) {
+        // ethers v6
+        await contract.waitForDeployment();
+    }
+
     if (process.env.DEBUG_CONSOLE === true) {
-        console.log(`${contractName} Deployed At:`, contract.address);
+        console.log(
+            `${contractName} Deployed At:`,
+            getContractAddress(contract)
+        );
     }
     return contract;
 };
 
 /**
  * Deploys Superfluid Framework in local testing environments.
- * NOTE: This only works with Hardhat.
+ * NOTE: This only works with Hardhat + ethers v5/ethers v6 currently.
+ * @param privateKey NEVER USE A PRIVATE KEY WITH REAL FUNDS - a test account private key
+ * @param provider an ethers provider
+ * @param ethersV5Signer an ethers v5 signer
  * @returns
  */
-const deployTestFramework = async () => {
-    const signer = (await ethers.getSigners())[0];
-    await deployERC1820(ethers.provider);
+const deployTestFramework = async (privateKey, provider, ethersV5Signer) => {
+    // use a passed signer OR create one on the spot
+    const signer = ethersV5Signer || new ethers.Wallet(privateKey, provider);
+    await deployERC1820(provider);
     const SlotsBitmapLibrary = await _getFactoryAndReturnDeployedContract(
         "SlotsBitmapLibrary",
         SlotsBitmapLibraryArtifact,
@@ -110,7 +136,7 @@ const deployTestFramework = async () => {
             {
                 signer,
                 libraries: {
-                    SlotsBitmapLibrary: SlotsBitmapLibrary.address,
+                    SlotsBitmapLibrary: getContractAddress(SlotsBitmapLibrary),
                 },
             }
         );
@@ -170,27 +196,38 @@ const deployTestFramework = async () => {
         {
             signer,
             libraries: {
-                SuperfluidGovDeployerLibrary:
-                    SuperfluidGovDeployerLibrary.address,
-                SuperfluidHostDeployerLibrary:
-                    SuperfluidHostDeployerLibrary.address,
-                SuperfluidCFAv1DeployerLibrary:
-                    SuperfluidCFAv1DeployerLibrary.address,
-                SuperfluidIDAv1DeployerLibrary:
-                    SuperfluidIDAv1DeployerLibrary.address,
-                SuperfluidPeripheryDeployerLibrary:
-                    SuperfluidPeripheryDeployerLibrary.address,
-                SuperTokenDeployerLibrary: SuperTokenDeployerLibrary.address,
-                SuperfluidNFTLogicDeployerLibrary:
-                    SuperfluidNFTLogicDeployerLibrary.address,
-                ProxyDeployerLibrary: ProxyDeployerLibrary.address,
-                CFAv1ForwarderDeployerLibrary:
-                    CFAv1ForwarderDeployerLibrary.address,
-                IDAv1ForwarderDeployerLibrary:
-                    IDAv1ForwarderDeployerLibrary.address,
-                SuperfluidLoaderDeployerLibrary:
-                    SuperfluidLoaderDeployerLibrary.address,
-                TokenDeployerLibrary: TokenDeployerLibrary.address,
+                SuperfluidGovDeployerLibrary: getContractAddress(
+                    SuperfluidGovDeployerLibrary
+                ),
+                SuperfluidHostDeployerLibrary: getContractAddress(
+                    SuperfluidHostDeployerLibrary
+                ),
+                SuperfluidCFAv1DeployerLibrary: getContractAddress(
+                    SuperfluidCFAv1DeployerLibrary
+                ),
+                SuperfluidIDAv1DeployerLibrary: getContractAddress(
+                    SuperfluidIDAv1DeployerLibrary
+                ),
+                SuperfluidPeripheryDeployerLibrary: getContractAddress(
+                    SuperfluidPeripheryDeployerLibrary
+                ),
+                SuperTokenDeployerLibrary: getContractAddress(
+                    SuperTokenDeployerLibrary
+                ),
+                SuperfluidNFTLogicDeployerLibrary: getContractAddress(
+                    SuperfluidNFTLogicDeployerLibrary
+                ),
+                ProxyDeployerLibrary: getContractAddress(ProxyDeployerLibrary),
+                CFAv1ForwarderDeployerLibrary: getContractAddress(
+                    CFAv1ForwarderDeployerLibrary
+                ),
+                IDAv1ForwarderDeployerLibrary: getContractAddress(
+                    IDAv1ForwarderDeployerLibrary
+                ),
+                SuperfluidLoaderDeployerLibrary: getContractAddress(
+                    SuperfluidLoaderDeployerLibrary
+                ),
+                TokenDeployerLibrary: getContractAddress(TokenDeployerLibrary),
             },
         }
     );

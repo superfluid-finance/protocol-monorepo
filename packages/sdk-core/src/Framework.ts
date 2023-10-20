@@ -180,6 +180,15 @@ export default class Framework {
                 networkData != null &&
                 baseSettings.protocolReleaseVersion === V1
             ) {
+                let governanceAddress = ethers.constants.AddressZero;
+
+                if (networkData.addresses.governance == null) {
+                    governanceAddress = await Superfluid__factory.connect(
+                        networkData.addresses.host,
+                        provider
+                    ).getGovernance();
+                }
+
                 const settings: IFrameworkSettings = {
                     ...baseSettings,
                     config: {
@@ -187,7 +196,7 @@ export default class Framework {
                         hostAddress: networkData.addresses.host,
                         cfaV1Address: networkData.addresses.cfaV1,
                         idaV1Address: networkData.addresses.idaV1,
-                        governanceAddress: networkData.addresses.governance,
+                        governanceAddress,
                         cfaV1ForwarderAddress:
                             networkData.addresses.cfaV1Forwarder,
                     },

@@ -5,6 +5,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [0.6.11] - 2023-10-20
+
+### Fixed
+- Handle the case when `networkData.addresses.governance` is null. This was due to a removal of the `governance` address from the metadata for test networks in `metadata@v1.1.17`.
 
 ## [0.6.10] - 2023-10-16
 

@@ -193,7 +193,7 @@ export default abstract class SuperToken extends ERC20Token {
                 );
             }
             if (constantInflowNFTProxy === ethers.constants.AddressZero) {
-                constantOutflowNFTProxy = await tryGet(
+                constantInflowNFTProxy = await tryGet(
                     goodDollarSpecificToken.constantInflowNFT(),
                     ethers.constants.AddressZero
                 );

@@ -96,13 +96,16 @@ const _getFactoryAndReturnDeployedContract = async (
 
 /**
  * Deploys Superfluid Framework in local testing environments.
+ * 
  * NOTE: This only works with Hardhat + ethers v5/ethers v6 currently.
- * @param privateKey NEVER USE A PRIVATE KEY WITH REAL FUNDS - a test account private key
+ * 
+ * You must pass either a `privateKey` string OR an `ethersV5Signer` object
  * @param provider an ethers provider
- * @param ethersV5Signer an ethers v5 signer
+ * @param {string} [privateKey] NEVER USE A PRIVATE KEY WITH REAL FUNDS - a test account private key
+ * @param {ethers.providers.Provider} [ethersV5Signer] an ethers v5 signer
  * @returns
  */
-const deployTestFramework = async (privateKey, provider, ethersV5Signer) => {
+const deployTestFramework = async (provider, privateKey, ethersV5Signer) => {
     // use a passed signer OR create one on the spot
     const signer = ethersV5Signer || new ethers.Wallet(privateKey, provider);
     await deployERC1820(provider);
@@ -235,7 +238,6 @@ const deployTestFramework = async (privateKey, provider, ethersV5Signer) => {
     for (let i = 0; i < numSteps; i++) {
         await sfDeployer.executeStep(i);
     }
-    const sf = await sfDeployer.getFramework();
     return {frameworkDeployer: sfDeployer};
 };
 

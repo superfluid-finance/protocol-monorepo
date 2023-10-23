@@ -8,7 +8,7 @@ const {
 async function deployContractsAndToken() {
     const [Deployer] = await ethers.getSigners();
 
-    const {frameworkDeployer: deployer} = await deployTestFramework(null, ethers.provider, Deployer);
+    const {frameworkDeployer: deployer} = await deployTestFramework(ethers.provider, null, Deployer);
     const framework = await deployer.getFramework();
 
     const resolver = await ethers.getContractAt(

@@ -162,10 +162,43 @@ export default abstract class SuperToken extends ERC20Token {
             const nativeTokenSymbol = resolverData.nativeTokenSymbol || "ETH";
             const nativeSuperTokenSymbol = nativeTokenSymbol + "x";
 
-            const constantOutflowNFTProxy =
-                await superToken.CONSTANT_OUTFLOW_NFT();
-            const constantInflowNFTProxy =
-                await superToken.CONSTANT_INFLOW_NFT();
+            // @note This is tech debt and should be reverted once GoodDollar upgrades their token contract
+            // @note We are using tryGet here just to handle GoodDollar not having
+            // CONSTANT_OUTFLOW_NFT in its SuperToken implementation.
+            let constantOutflowNFTProxy = await tryGet(
+                superToken.CONSTANT_OUTFLOW_NFT(),
+                ethers.constants.AddressZero
+            );
+            let constantInflowNFTProxy = await tryGet(
+                superToken.CONSTANT_INFLOW_NFT(),
+                ethers.constants.AddressZero
+            );
+
+            // @note we need to create a new interface for the old GoodDollar SuperToken
+            // which contains the functions for constantInflowNFT and constantOutflowNFT
+            const oldSuperTokenInterface = new ethers.utils.Interface([
+                "function constantInflowNFT() view returns (address)",
+                "function constantOutflowNFT() view returns (address)",
+            ]);
+            const goodDollarSpecificToken = new ethers.Contract(
+                superToken.address,
+                oldSuperTokenInterface
+            );
+
+            // @note we attempt to get the constantInflowNFT and constantOutflowNFT
+            if (constantOutflowNFTProxy === ethers.constants.AddressZero) {
+                constantOutflowNFTProxy = await tryGet(
+                    goodDollarSpecificToken.constantOutflowNFT(),
+                    ethers.constants.AddressZero
+                );
+            }
+            if (constantInflowNFTProxy === ethers.constants.AddressZero) {
+                constantOutflowNFTProxy = await tryGet(
+                    goodDollarSpecificToken.constantInflowNFT(),
+                    ethers.constants.AddressZero
+                );
+            }
+
             const nftAddresses: NFTAddresses = {
                 constantOutflowNFTProxy,
                 constantInflowNFTProxy,

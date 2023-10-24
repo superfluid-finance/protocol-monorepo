@@ -174,29 +174,34 @@ export default abstract class SuperToken extends ERC20Token {
                 ethers.constants.AddressZero
             );
 
-            // @note we need to create a new interface for the old GoodDollar SuperToken
-            // which contains the functions for constantInflowNFT and constantOutflowNFT
-            const oldSuperTokenInterface = new ethers.utils.Interface([
-                "function constantInflowNFT() view returns (address)",
-                "function constantOutflowNFT() view returns (address)",
-            ]);
-            const goodDollarSpecificToken = new ethers.Contract(
-                superToken.address,
-                oldSuperTokenInterface
-            );
+            // @note We only want to run this bit of code for GoodDollar SuperTokens
+            // (dev and mainnet)
+            const GOOD_DOLLAR_SYMBOL = "G$";
+            if (tokenSymbol === GOOD_DOLLAR_SYMBOL) {
+                // @note we need to create a new interface for the old GoodDollar SuperToken
+                // which contains the functions for constantInflowNFT and constantOutflowNFT
+                const oldSuperTokenInterface = new ethers.utils.Interface([
+                    "function constantInflowNFT() view returns (address)",
+                    "function constantOutflowNFT() view returns (address)",
+                ]);
+                const goodDollarSpecificToken = new ethers.Contract(
+                    superToken.address,
+                    oldSuperTokenInterface
+                );
 
-            // @note we attempt to get the constantInflowNFT and constantOutflowNFT
-            if (constantOutflowNFTProxy === ethers.constants.AddressZero) {
-                constantOutflowNFTProxy = await tryGet(
-                    goodDollarSpecificToken.constantOutflowNFT(),
-                    ethers.constants.AddressZero
-                );
-            }
-            if (constantInflowNFTProxy === ethers.constants.AddressZero) {
-                constantInflowNFTProxy = await tryGet(
-                    goodDollarSpecificToken.constantInflowNFT(),
-                    ethers.constants.AddressZero
-                );
+                // @note we attempt to get the constantInflowNFT and constantOutflowNFT
+                if (constantOutflowNFTProxy === ethers.constants.AddressZero) {
+                    constantOutflowNFTProxy = await tryGet(
+                        goodDollarSpecificToken.constantOutflowNFT(),
+                        ethers.constants.AddressZero
+                    );
+                }
+                if (constantInflowNFTProxy === ethers.constants.AddressZero) {
+                    constantInflowNFTProxy = await tryGet(
+                        goodDollarSpecificToken.constantInflowNFT(),
+                        ethers.constants.AddressZero
+                    );
+                }
             }
 
             const nftAddresses: NFTAddresses = {

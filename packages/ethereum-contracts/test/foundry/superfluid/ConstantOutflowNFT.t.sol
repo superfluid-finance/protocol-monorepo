@@ -272,10 +272,11 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
         vm.assume(_tokenOwner != address(0));
         vm.assume(_tokenOwner != _operator);
 
-        _assertEventApprovalForAll(address(constantOutflowNFTProxy), _tokenOwner, _operator, _approved);
 
-        vm.prank(_tokenOwner);
+        vm.startPrank(_tokenOwner);
+        _assertEventApprovalForAll(address(constantOutflowNFTProxy), _tokenOwner, _operator, _approved);
         constantOutflowNFTProxy.setApprovalForAll(_operator, _approved);
+        vm.stopPrank();
 
         _assertOperatorApprovalIsExpected(constantOutflowNFTProxy, _tokenOwner, _operator, _approved);
     }

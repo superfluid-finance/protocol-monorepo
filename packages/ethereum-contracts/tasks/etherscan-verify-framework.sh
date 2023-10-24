@@ -8,7 +8,7 @@
 
 set -x
 
-CONTRACTS_DIR=build/truffle/contracts
+CONTRACTS_DIR=build/truffle
 
 TRUFFLE_NETWORK=$1
 ADDRESSES_VARS=$2
@@ -75,6 +75,10 @@ if [ -n "$SUPERFLUID_GOVERNANCE" ]; then
         fi
         try_verify SuperfluidGovernanceII@"${SUPERFLUID_GOVERNANCE}" --custom-proxy SuperfluidGovernanceIIProxy
     fi
+fi
+
+if [ -n "$SUPERFLUID_LOADER" ]; then
+    try_verify SuperfluidLoader@"${SUPERFLUID_LOADER}"
 fi
 
 if [ -n "$SUPERFLUID_SUPER_TOKEN_FACTORY_LOGIC" ]; then

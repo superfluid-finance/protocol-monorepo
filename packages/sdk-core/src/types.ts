@@ -11,12 +11,12 @@ export type NetworkData = {
     addresses: {
         resolver: string;
         host: string;
-        governance: string;
+        governance?: string;
         cfaV1: string;
         cfaV1Forwarder: string;
         idaV1: string;
         superTokenFactory: string;
         superfluidLoader: string;
-        toga: string;
+        toga?: string;
     };
 };

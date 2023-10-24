@@ -110,8 +110,6 @@ abstract contract FlowNFTBaseTest is FoundrySuperfluidTester {
         for (uint256 i = 0; i < N_TESTERS; i++) {
             superTokenMock.mintInternal(TEST_ACCOUNTS[i], INIT_SUPER_TOKEN_BALANCE, "0x", "0x");
         }
-
-        vm.prank(sf.governance.owner());
     }
 
     /*//////////////////////////////////////////////////////////////////////////

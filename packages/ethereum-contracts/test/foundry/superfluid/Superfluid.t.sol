@@ -57,10 +57,10 @@ contract SuperfluidIntegrationTest is FoundrySuperfluidTester {
         sf.host.changeSuperTokenAdmin(superToken, newAdmin);
         vm.stopPrank();
 
-        assertEq(superToken.getAdminOverride().admin, newAdmin, "Superfluid.t: super token admin not changed");
+        assertEq(superToken.getAdmin(), newAdmin, "Superfluid.t: super token admin not changed");
     }
 
-    function testRevertChangeSuperTokenAdminWhenHostIsNotAdminOverride(address initialAdmin, address newAdmin) public {
+    function testRevertChangeSuperTokenAdminWhenHostIsNotAdmin(address initialAdmin, address newAdmin) public {
         vm.assume(initialAdmin != address(0));
         vm.assume(newAdmin != address(0));
         vm.assume(initialAdmin != address(sf.host));

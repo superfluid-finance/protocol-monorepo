@@ -176,10 +176,14 @@ export default class Framework {
             };
 
             // supported networks scenario
-            if (
-                networkData != null &&
-                baseSettings.protocolReleaseVersion === V1
-            ) {
+            if (networkData && baseSettings.protocolReleaseVersion === V1) {
+                const governanceAddress = networkData.addresses.governance
+                    ? networkData.addresses.governance
+                    : await Superfluid__factory.connect(
+                          networkData.addresses.host,
+                          provider
+                      ).getGovernance();
+
                 const settings: IFrameworkSettings = {
                     ...baseSettings,
                     config: {
@@ -187,7 +191,7 @@ export default class Framework {
                         hostAddress: networkData.addresses.host,
                         cfaV1Address: networkData.addresses.cfaV1,
                         idaV1Address: networkData.addresses.idaV1,
-                        governanceAddress: networkData.addresses.governance,
+                        governanceAddress,
                         cfaV1ForwarderAddress:
                             networkData.addresses.cfaV1Forwarder,
                     },

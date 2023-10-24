@@ -314,3 +314,14 @@ export const clipDepositNumber = (deposit: BigNumber, roundingDown = false) => {
         : 1;
     return deposit.shr(32).add(toBN(rounding)).shl(32);
 };
+
+export async function tryGet<T>(
+    somePromise: Promise<T>,
+    defaultReturnValue: T
+): Promise<T> {
+    try {
+        return await somePromise;
+    } catch {
+        return defaultReturnValue;
+    }
+}

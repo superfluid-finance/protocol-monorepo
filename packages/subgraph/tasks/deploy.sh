@@ -13,9 +13,9 @@ SUPPORTED_VENDORS=( "graph" "satsuma" "superfluid" )
 # shellcheck disable=SC2034,SC2207
 GRAPH_NETWORKS=( $($JQ -r .[] ./hosted-service-networks.json) ) || exit 1
 # shellcheck disable=SC2034
-SATSUMA_NETWORKS=( "matic" "xdai" "eth-mainnet" "eth-sepolia" "optimism-mainnet" )
+SATSUMA_NETWORKS=( "polygon-mainnet" "xdai-mainnet" "eth-mainnet" "eth-sepolia" "optimism-mainnet" "base-mainnet")
 # shellcheck disable=SC2034
-SUPERFLUID_NETWORKS=( "polygon-zkevm-testnet" "polygon-mainnet" "eth-sepolia" "base-goerli" )
+SUPERFLUID_NETWORKS=( "polygon-zkevm-testnet" "polygon-mainnet" "eth-sepolia" "base-goerli" "eth-mainnet" "xdai-mainnet" "base-mainnet" "optimism-mainnet" "arbitrum-one")
 
 VENDOR=""
 NETWORK=""
@@ -111,7 +111,9 @@ deploy_to_superfluid() {
 }
 
 # Vendor specific function dispatcher
-# Expected arguments: vendor, canonical network name
+# Expected arguments: 
+# $1 - vendor
+# $2 - canonical network name
 deploy_to() {
     local vendor="$1"
     local network="$2"
@@ -124,6 +126,8 @@ deploy_to() {
         echo "The network, $network, is currently not on the list of networks supported by $vendor."
         exit 1
     fi
+
+    npx ts-node ./scripts/buildNetworkConfig.ts "$network"
 
     # prepare the manifest prior to deployment
     # this generates the subgraph.yaml and

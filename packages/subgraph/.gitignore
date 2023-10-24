@@ -9,3 +9,4 @@ src/addresses.ts
 **/*.wasm
 **/*.latest.json
 tests/.bin
+hosted-service-networks.json

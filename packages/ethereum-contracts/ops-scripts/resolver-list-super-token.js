@@ -15,7 +15,8 @@ const {
  * @param {Address} options.from Address to deploy contracts from
  * @param {string} options.protocolReleaseVersion Specify the protocol release version to be used
  *
- * Usage: npx truffle exec ops-scripts/resolver-list-super-token.js : {SUPER_TOKEN_ADDRESS}
+ * Usage: npx truffle exec ops-scripts/resolver-list-super-token.js : {SUPER_TOKEN_ADDRESS} [SYMBOL]
+ *        If the optional argument SYMBOL is provided, it's used instead of the on-chain symbol.
  */
 module.exports = eval(`(${S.toString()})()`)(async function (
     args,
@@ -24,9 +25,16 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     console.log("======== List new super token ========");
     let {resetToken, protocolReleaseVersion} = options;
 
-    if (args.length !== 1) {
+    if (args.length < 1 || args.length > 2) {
         throw new Error("Wrong number of arguments");
     }
+
+    let symbolOverride = undefined;
+    if (args.length === 2) {
+        symbolOverride = args.pop();
+        console.log("Symbol override", symbolOverride);
+    }
+
     const superTokenAddress = args.pop();
     console.log("Super Token Address", superTokenAddress);
 
@@ -58,7 +66,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     ) {
         throw new Error("Not a super token");
     }
-    const tokenSymbol = await superToken.symbol.call();
+    const tokenSymbol = symbolOverride !== undefined ? symbolOverride : await superToken.symbol.call();
     const superTokenKey = `supertokens.${protocolReleaseVersion}.${tokenSymbol}`;
     console.log("Super token key", superTokenKey);
 
@@ -67,8 +75,9 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         (await resolver.get.call(superTokenKey)) !== ZERO_ADDRESS &&
         !resetToken
     ) {
-        console.error("Super token already listed!");
+        console.error("### Super token already listed, you can force overwrite with reset flag!");
         console.error("A Transfer event may be needed for indexers to notice.");
+    } else {
+        await setResolver(sf, superTokenKey, superTokenAddress);
     }
-    await setResolver(sf, superTokenKey, superTokenAddress);
 });

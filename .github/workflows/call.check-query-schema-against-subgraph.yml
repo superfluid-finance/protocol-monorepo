@@ -34,6 +34,14 @@ jobs:
         run: yarn build
         working-directory: ./packages/ethereum-contracts
 
+      - name: "Build SDK-Core"
+        run: yarn build
+        working-directory: ${{ env.sdk-core-working-directory }}
+
+      - name: Get Hosted Service Networks from metadata
+        run: npx ts-node ./scripts/getHostedServiceNetworks.ts
+        working-directory: ./packages/subgraph
+
       - name: Run schema check
         run: |
           ./tasks/setupTestEnvironment.sh

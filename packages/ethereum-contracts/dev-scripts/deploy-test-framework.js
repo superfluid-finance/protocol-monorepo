@@ -1,4 +1,5 @@
 const {ethers} = require("hardhat");
+const {JsonRpcProvider} = require("@ethersproject/providers");
 
 const SuperfluidGovDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/SuperfluidGovDeployerLibrary.json");
 const SuperfluidHostDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/SuperfluidHostDeployerLibrary.json");
@@ -76,7 +77,6 @@ const _getFactoryAndReturnDeployedContract = async (
         signerOrOptions
     );
     const contract = await ContractFactory.deploy(...args);
-
     // ethers v5
     if (contract.deployed) {
         await contract.deployed();
@@ -94,20 +94,22 @@ const _getFactoryAndReturnDeployedContract = async (
     return contract;
 };
 
-/**
- * Deploys Superfluid Framework in local testing environments.
- * 
- * NOTE: This only works with Hardhat + ethers v5/ethers v6 currently.
- * 
- * You must pass either a `privateKey` string OR an `ethersV5Signer` object
- * @param provider an ethers provider
- * @param {string} [privateKey] NEVER USE A PRIVATE KEY WITH REAL FUNDS - a test account private key
- * @param {ethers.providers.Provider} [ethersV5Signer] an ethers v5 signer
- * @returns
- */
-const deployTestFramework = async (provider, privateKey, ethersV5Signer) => {
-    // use a passed signer OR create one on the spot
-    const signer = ethersV5Signer || new ethers.Wallet(privateKey, provider);
+const deployTestFrameworkWithEthersV6 = async (privateKey, provider) => {
+    if (!privateKey) throw new Error("You must pass a private key.");
+    if (!provider) throw new Error("You must pass a provider.");
+
+    const signer = new ethers.Wallet(privateKey, provider);
+
+    return await _deployTestFramework(provider, signer);
+};
+
+const deployTestFrameworkWithEthersV5 = async (ethersV5Signer) => {
+    if (!ethersV5Signer.provider)
+        throw new Error("Your signer must have a provider.");
+    return await _deployTestFramework(ethersV5Signer.provider, ethersV5Signer);
+};
+
+const _deployTestFramework = async (provider, signer) => {
     await deployERC1820(provider);
     const SlotsBitmapLibrary = await _getFactoryAndReturnDeployedContract(
         "SlotsBitmapLibrary",
@@ -143,7 +145,6 @@ const deployTestFramework = async (provider, privateKey, ethersV5Signer) => {
                 },
             }
         );
-
     const SuperTokenDeployerLibrary =
         await _getFactoryAndReturnDeployedContract(
             "SuperTokenDeployerLibrary",
@@ -241,6 +242,41 @@ const deployTestFramework = async (provider, privateKey, ethersV5Signer) => {
     return {frameworkDeployer: sfDeployer};
 };
 
+const printProtocolFrameworkAddresses = (framework) => {
+    const output = {
+        Host: framework.host,
+        CFAv1: framework.cfa,
+        IDAv1: framework.ida,
+        SuperTokenFactory: framework.superTokenFactory,
+        SuperTokenLogic: framework.superTokenLogic,
+        ConstantOutflowNFT: framework.constantOutflowNFT,
+        ConstantInflowNFT: framework.constantInflowNFT,
+        Resolver: framework.resolver,
+        SuperfluidLoader: framework.superfluidLoader,
+        CFAv1Forwarder: framework.cfaV1Forwarder,
+        IDAv1Forwarder: framework.idaV1Forwarder,
+    };
+
+    console.log(JSON.stringify(output, null, 2));
+
+    return output;
+};
+
+/**
+ * {DEPRECATED}
+ * Deploys Superfluid Framework in local testing environments.
+ *
+ * NOTE: This only works with Hardhat + ethers v5.
+ * @returns SuperfluidFrameworkDeployer Contract object
+ */
+const deployTestFramework = async () => {
+    const signer = (await ethers.getSigners())[0];
+    return await deployTestFrameworkWithEthersV5(signer);
+};
+
 module.exports = {
     deployTestFramework,
+    deployTestFrameworkWithEthersV5,
+    deployTestFrameworkWithEthersV6,
+    printProtocolFrameworkAddresses,
 };

@@ -2,13 +2,14 @@ const {ethers} = require("hardhat");
 const testResolverArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/utils/TestResolver.sol/TestResolver.json");
 
 const {
-    deployTestFramework,
+    deployTestFrameworkWithEthersV5,
 } = require("@superfluid-finance/ethereum-contracts/dev-scripts/deploy-test-framework");
 
 async function deployContractsAndToken() {
     const [Deployer] = await ethers.getSigners();
 
-    const {frameworkDeployer: deployer} = await deployTestFramework(ethers.provider, null, Deployer);
+    const {frameworkDeployer: deployer} =
+        await deployTestFrameworkWithEthersV5(Deployer);
     const framework = await deployer.getFramework();
 
     const resolver = await ethers.getContractAt(

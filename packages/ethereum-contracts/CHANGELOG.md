@@ -6,6 +6,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## Unreleased
 
 ### Breaking
+
 - `TokenInfo` and `ERC20WithTokenInfo` interface/abstract contract are removed from the codebase, including the bundled ABI contracts
   - Migration: Use `IERC20Metadata` instead, as this replaces the previous contracts
 - `build/typechain-ethers-v5` is removed from the npm package
@@ -25,8 +26,11 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Note that the admin is stored in the EIP-1967 admin storage slot (`0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103`)
 - `SuperToken.getAdmin()` added to retrieve the admin address
 - `SuperTokenFactory.createERC20Wrapper()` overloads added to create a SuperToken AND explicitly initialize a SuperToken with an admin
+- New explicit functions: `deployTestFrameworkWithEthersV5` and `deployTestFrameworkWithEthersV6` in `deploy-test-framework.js`
+  - `deployTestFramework` is still there, but it is considered deprecated now
 
 ### Changed
+
 - Reuse config keys from `SuperfluidGovernanceConfigs` instead of duplicating them in `ConstantFlowAgreementV1`.
 - Deprecating `registerAppWithKey` and `registerAppByFactory`: DO NOT USE for new deployments
   - Simplification of Super App registration: use `registerApp` in all cases going forward.

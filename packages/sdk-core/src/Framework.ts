@@ -176,18 +176,13 @@ export default class Framework {
             };
 
             // supported networks scenario
-            if (
-                networkData != null &&
-                baseSettings.protocolReleaseVersion === V1
-            ) {
-                let governanceAddress = ethers.constants.AddressZero;
-
-                if (networkData.addresses.governance == null) {
-                    governanceAddress = await Superfluid__factory.connect(
-                        networkData.addresses.host,
-                        provider
-                    ).getGovernance();
-                }
+            if (networkData && baseSettings.protocolReleaseVersion === V1) {
+                const governanceAddress = networkData.addresses.governance
+                    ? networkData.addresses.governance
+                    : await Superfluid__factory.connect(
+                          networkData.addresses.host,
+                          provider
+                      ).getGovernance();
 
                 const settings: IFrameworkSettings = {
                     ...baseSettings,

@@ -79,10 +79,12 @@
     },
     "dependencies": {
         "@decentral.ee/web3-helpers": "0.5.3",
+        "@nomiclabs/hardhat-ethers": "^2.2.3",
         "@openzeppelin/contracts": "4.9.3",
         "@truffle/contract": "4.6.29",
         "ethereumjs-tx": "2.1.2",
-        "ethereumjs-util": "7.1.5"
+        "ethereumjs-util": "7.1.5",
+        "hardhat": "^2.17.3"
     },
     "devDependencies": {
         "@nomiclabs/hardhat-truffle5": "^2.0.7",

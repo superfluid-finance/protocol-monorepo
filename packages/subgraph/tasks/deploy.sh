@@ -90,7 +90,7 @@ deploy_to_satsuma() {
     echo "********* Deploying $network subgraph to Satsuma. **********"
     $GRAPH_CLI deploy "$satsumaNetwork" \
         --version-label "$VERSION_LABEL" \
-        --node https://app.satsuma.xyz/api/subgraphs/deploy \
+        --node https://subgraphs.alchemy.com/api/subgraphs/deploy \
         --deploy-key "$SATSUMA_DEPLOY_KEY" \
         --ipfs https://ipfs.satsuma.xyz
 }

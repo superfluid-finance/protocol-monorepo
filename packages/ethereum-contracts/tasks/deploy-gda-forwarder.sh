@@ -26,7 +26,7 @@ source .env
 set -x
 
 network=$1
-expectedContractAddr="0x6dA170169d5Fca20F902b7E5755346a97c94B07c"
+expectedContractAddr="0x6DA13Bde224A05a288748d857b9e7DDEffd1dE08"
 deployerPk=$GDAFWD_DEPLOYER_PK
 
 tmpfile="/tmp/deploy-gda-forwarder.sh"

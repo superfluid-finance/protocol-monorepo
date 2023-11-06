@@ -8,7 +8,7 @@ library SafeGasLibrary {
     error OUT_OF_GAS(); // 0x20afada5
 
     function _isOutOfGas(uint256 gasLeftBefore) internal view returns (bool) {
-        return gasleft() <= gasLeftBefore / 63;
+        return gasleft() <= gasLeftBefore / 64;
     }
 
     /// @dev A function used in the catch block to handle true out of gas errors

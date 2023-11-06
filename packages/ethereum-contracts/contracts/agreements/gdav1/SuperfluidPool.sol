@@ -302,7 +302,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
         override
         returns (int256 claimableBalance, uint256 timestamp)
     {
-        uint256 timestamp = ISuperfluid(superToken.getHost()).getNow();
+        timestamp = ISuperfluid(superToken.getHost()).getNow();
         return (getClaimable(memberAddr, uint32(timestamp)), timestamp);
     }
 

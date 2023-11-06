@@ -56,7 +56,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         (liquidationPeriod,) = sf.governance.getPPPConfig(sf.host, superToken);
     }
 
-    function _getMembers(uint8 length) internal returns (address[] memory) {
+    function _getMembers(uint8 length) internal view returns (address[] memory) {
         if (length > TEST_ACCOUNTS.length - 2) revert("Too many members");
         address[] memory members = new address[](length);
         for (uint8 i = 0; i < length; ++i) {
@@ -432,9 +432,9 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         sf.governance.setSuperTokenMinimumDeposit(sf.host, superToken, minimumDeposit);
         vm.stopPrank();
 
-        _helperConnectPool(member, superToken, freePool);
-        _helperUpdateMemberUnits(freePool, alice, member, 1, useBools_);
-        _helperDistributeFlow(superToken, alice, alice, freePool, int96(distributionFlowRate));
+        _helperConnectPool(member, superToken, pool);
+        _helperUpdateMemberUnits(pool, alice, member, 1, useBools_);
+        _helperDistributeFlow(superToken, alice, alice, pool, int96(distributionFlowRate));
         (, uint256 buffer,,) = superToken.realtimeBalanceOfNow(alice);
         assertTrue(buffer >= minimumDeposit, "GDAv1.t: Buffer should be >= minDeposit");
     }
@@ -475,13 +475,15 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
     }
 
     function testDistributeToEmptyPool(uint64 distributionAmount, bool useForwarder, PoolConfig memory config) public {
-        _helperDistributeViaGDA(superToken, alice, alice, freePool, distributionAmount, useForwarder);
+        ISuperfluidPool pool = _helperCreatePool(superToken, alice, alice, useForwarder, config);
+        _helperDistributeViaGDA(superToken, alice, alice, pool, distributionAmount, useForwarder);
     }
 
     function testDistributeFlowToEmptyPool(int32 flowRate, bool useForwarder, PoolConfig memory config) public {
         vm.assume(flowRate >= 0);
-        _helperDistributeFlow(superToken, alice, alice, freePool, flowRate, useForwarder);
-        assertEq(sf.gda.getFlowRate(superToken, alice, freePool), 0, "GDAv1.t: distributionFlowRate should be 0");
+        ISuperfluidPool pool = _helperCreatePool(superToken, alice, alice, useForwarder, config);
+        _helperDistributeFlow(superToken, alice, alice, pool, flowRate, useForwarder);
+        assertEq(sf.gda.getFlowRate(superToken, alice, pool), 0, "GDAv1.t: distributionFlowRate should be 0");
     }
 
     function testDistributeFlowCriticalLiquidation(
@@ -659,7 +661,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
                     "testDistributeFlowToUnconnectedMembers: pendingDistributionFlowRate != actualDistributionFlowRate"
                 );
                 (int256 memberClaimable,) = pool.getClaimableNow(members[i]);
-                
+
                 assertEq(
                     memberClaimable,
                     totalUnits > 0
@@ -696,7 +698,9 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         vm.assume(owner != address(0));
         vm.assume(spender != address(0));
 
-        _helperSuperfluidPoolApprove(freePool, owner, spender, amount);
+        ISuperfluidPool pool = _helperCreatePool(superToken, alice, alice, false, config);
+
+        _helperSuperfluidPoolApprove(pool, owner, spender, amount);
     }
 
     function testIncreaseAllowance(address owner, address spender, uint256 addedValue, PoolConfig memory config)
@@ -705,27 +709,31 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         vm.assume(owner != address(0));
         vm.assume(spender != address(0));
 
-        _helperSuperfluidPoolIncreaseAllowance(freePool, owner, spender, addedValue);
+        ISuperfluidPool pool = _helperCreatePool(superToken, alice, alice, false, config);
+
+        _helperSuperfluidPoolIncreaseAllowance(pool, owner, spender, addedValue);
     }
 
-    function testDecreaseAllowance(address owner, address spender, uint256 addedValue, uint256 subtractedValue)
-        public
-    {
+    function testDecreaseAllowance(
+        address owner,
+        address spender,
+        uint256 addedValue,
+        uint256 subtractedValue,
+        PoolConfig memory config
+    ) public {
         vm.assume(owner != address(0));
         vm.assume(spender != address(0));
         vm.assume(addedValue >= subtractedValue);
 
-        _helperSuperfluidPoolIncreaseAllowance(freePool, owner, spender, addedValue);
-        _helperSuperfluidPoolDecreaseAllowance(freePool, owner, spender, subtractedValue);
+        ISuperfluidPool pool = _helperCreatePool(superToken, alice, alice, false, config);
+
+        _helperSuperfluidPoolIncreaseAllowance(pool, owner, spender, addedValue);
+        _helperSuperfluidPoolDecreaseAllowance(pool, owner, spender, subtractedValue);
     }
 
-    function testRevertIfUnitsTransferReceiverIsPool(
-        address from,
-        address to,
-        int96 unitsAmount,
-        int128 transferAmount,
-        PoolConfig memory config
-    ) public {
+    function testRevertIfUnitsTransferReceiverIsPool(address from, address to, int96 unitsAmount, int128 transferAmount)
+        public
+    {
         // @note we use int96 because overflow will happen otherwise
         vm.assume(unitsAmount >= 0);
         vm.assume(transferAmount > 0);

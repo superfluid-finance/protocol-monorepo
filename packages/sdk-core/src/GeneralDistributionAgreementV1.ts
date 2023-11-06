@@ -265,10 +265,7 @@ export default class GeneralDistributionAgreementV1 extends SuperfluidAgreement 
         try {
             return await this.contract
                 .connect(params.providerOrSigner)
-                .isMemberConnected(
-                    normalizedPool,
-                    normalizedMember
-                );
+                .isMemberConnected(normalizedPool, normalizedMember);
         } catch (err) {
             throw new SFError({
                 type: "GDAV1_READ",

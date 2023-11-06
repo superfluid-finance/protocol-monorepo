@@ -349,11 +349,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         }
     }
 
-    function _isMemberConnected(ISuperfluidToken token, address pool, address member)
-        internal
-        view
-        returns (bool)
-    {
+    function _isMemberConnected(ISuperfluidToken token, address pool, address member) internal view returns (bool) {
         (bool exist,) = _getPoolMemberData(token, member, ISuperfluidPool(pool));
         return exist;
     }
@@ -518,13 +514,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         }
 
         {
-            _adjustBuffer(
-                token,
-                address(pool),
-                from,
-                flowVars.distributionFlowHash,
-                actualFlowRate
-            );
+            _adjustBuffer(token, address(pool), from, flowVars.distributionFlowHash, actualFlowRate);
         }
 
         // ensure sender has enough balance to execute transaction
@@ -677,13 +667,9 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         }
     }
 
-    function _adjustBuffer(
-        ISuperfluidToken token,
-        address pool,
-        address from,
-        bytes32 flowHash,
-        FlowRate newFlowRate
-    ) internal {
+    function _adjustBuffer(ISuperfluidToken token, address pool, address from, bytes32 flowHash, FlowRate newFlowRate)
+        internal
+    {
         // not using oldFlowRate in this model
         // surprising effect: reducing flow rate may require more buffer when liquidation_period adjusted upward
         ISuperfluidGovernance gov = ISuperfluidGovernance(ISuperfluid(_host).getGovernance());

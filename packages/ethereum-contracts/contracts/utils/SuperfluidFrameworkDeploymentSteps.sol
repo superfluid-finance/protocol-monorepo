@@ -118,10 +118,6 @@ contract SuperfluidFrameworkDeploymentSteps {
     error DEPLOY_SUPER_TOKEN_REQUIRES_DEPLOY_SUPER_TOKEN_CONTRACTS();
     error RESOLVER_LIST_REQUIRES_DEPLOY_PERIPHERALS();
 
-    function _deploySuperTokenLogicAndSuperTokenFactoryAndUpdateContracts() internal { }
-
-    function _deployTestResolverAndSuperfluidLoaderAndSet(address resolverAdmin) internal { }
-
     /// @notice Fetches the framework contracts
     function getFramework() external view returns (Framework memory sf) {
         sf = Framework({

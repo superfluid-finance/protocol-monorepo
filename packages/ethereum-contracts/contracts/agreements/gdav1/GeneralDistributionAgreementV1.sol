@@ -340,6 +340,8 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
                     _getPoolMemberHash(msgSender, pool),
                     _encodePoolMemberData(PoolMemberData({ poolID: poolSlotID, pool: address(pool) }))
                 );
+
+                emit PoolConnectionUpdated(token, pool, msgSender, doConnect, currentContext.userData);
             }
         } else {
             if (isMemberConnected(token, address(pool), msgSender)) {
@@ -352,10 +354,10 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
                 token.terminateAgreement(_getPoolMemberHash(msgSender, pool), 1);
 
                 _clearPoolConnectionsBitmap(token, msgSender, poolMemberData.poolID);
+
+                emit PoolConnectionUpdated(token, pool, msgSender, doConnect, currentContext.userData);
             }
         }
-
-        emit PoolConnectionUpdated(token, pool, msgSender, doConnect, currentContext.userData);
     }
 
     /// @inheritdoc IGeneralDistributionAgreementV1

@@ -792,7 +792,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         data = new bytes32[](2);
         data[0] = bytes32(
             (uint256(int256(FlowRate.unwrap(p.flow_rate()))) << 160) | (uint256(Time.unwrap(p.settled_at())) << 128)
-                | (buffer.toUint96() << 32) | (isPool_ ? 1 : 0)
+                | (uint256(buffer.toUint96()) << 32) | (isPool_ ? 1 : 0)
         );
         data[1] = bytes32(uint256(Value.unwrap(p._settled_value)));
     }
@@ -805,7 +805,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         data = new bytes32[](2);
         data[0] = bytes32(
             (uint256(int256(uIndexData.flowRate)) << 160) | (uint256(uIndexData.settledAt) << 128)
-                | (uIndexData.totalBuffer.toUint96() << 32) | (uIndexData.isPool ? 1 : 0)
+                | (uint256(uIndexData.totalBuffer.toUint96()) << 32) | (uIndexData.isPool ? 1 : 0)
         );
         data[1] = bytes32(uint256(uIndexData.settledValue));
     }

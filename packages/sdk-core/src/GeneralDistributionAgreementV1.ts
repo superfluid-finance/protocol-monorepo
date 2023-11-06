@@ -265,7 +265,7 @@ export default class GeneralDistributionAgreementV1 extends SuperfluidAgreement 
         try {
             return await this.contract
                 .connect(params.providerOrSigner)
-                ["isMemberConnected(address,address)"](
+                .isMemberConnected(
                     normalizedPool,
                     normalizedMember
                 );

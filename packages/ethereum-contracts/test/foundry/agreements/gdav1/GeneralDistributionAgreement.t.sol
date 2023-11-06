@@ -880,15 +880,15 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
             }
 
             {
-                (int256 own, int256 fromPools, int256 buffer) =
-                    sf.gda.realtimeBalanceVectorAt(superToken, address(freePool), block.timestamp);
+                (int256 rtb, uint256 buffer, uint256 owedBuffer) =
+                    sf.gda.realtimeBalanceOf(superToken, address(freePool), block.timestamp);
                 int96 nr = useBools_.useForwarder
                     ? sf.gdaV1Forwarder.getNetFlow(superToken, address(freePool))
                     : sf.gda.getNetFlow(superToken, address(freePool));
                 emit log_string("> freePool before time warp");
-                emit log_named_int("own", own);
-                emit log_named_int("fromPoolsBalance", fromPools);
-                emit log_named_int("buffer", buffer);
+                emit log_named_int("rtb", rtb);
+                emit log_named_uint("buffer", buffer);
+                emit log_named_uint("owedBuffer", owedBuffer);
                 emit log_named_int("freePool net flow rate", nr);
             }
 
@@ -896,15 +896,15 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
             vm.warp(block.timestamp + s.dt);
 
             {
-                (int256 own, int256 fromPools, int256 buffer) =
-                    sf.gda.realtimeBalanceVectorAt(superToken, address(freePool), block.timestamp);
+                (int256 rtb, uint256 buffer, uint256 owedBuffer) =
+                    sf.gda.realtimeBalanceOf(superToken, address(freePool), block.timestamp);
                 int96 nr = useBools_.useForwarder
                     ? sf.gdaV1Forwarder.getNetFlow(superToken, address(freePool))
                     : sf.gda.getNetFlow(superToken, address(freePool));
                 emit log_string("> freePool before time warp");
-                emit log_named_int("own", own);
-                emit log_named_int("fromPoolsBalance", fromPools);
-                emit log_named_int("buffer", buffer);
+                emit log_named_int("rtb", rtb);
+                emit log_named_uint("buffer", buffer);
+                emit log_named_uint("owedBuffer", owedBuffer);
                 emit log_named_int("freePool net flow rate", nr);
             }
         }

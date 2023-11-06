@@ -1700,7 +1700,7 @@ contract FoundrySuperfluidTester is Test {
 
         bool isMemberConnected = useForwarder_
             ? sf.gdaV1Forwarder.isMemberConnected(pool_, caller_)
-            : sf.gda.isMemberConnected(superToken_, address(pool_), caller_);
+            : sf.gda.isMemberConnected(pool_, caller_);
         assertEq(isMemberConnected, true, "GDAv1.t: Member not connected");
 
         // Assert connected units delta for the pool
@@ -1758,7 +1758,7 @@ contract FoundrySuperfluidTester is Test {
         }
 
         assertEq(
-            sf.gda.isMemberConnected(superToken_, address(pool_), caller_),
+            sf.gda.isMemberConnected(pool_, caller_),
             false,
             "GDAv1.t D/C: Member not disconnected"
         );
@@ -1839,7 +1839,7 @@ contract FoundrySuperfluidTester is Test {
             (int256 fromRTBAfter,,,) = superToken.realtimeBalanceOfNow(from_);
             // If the distributor is a connected member themselves, they will receive the units
             // they have just distributed
-            uint256 amountReceivedInitial = sf.gda.isMemberConnected(superToken, address(pool_), from_)
+            uint256 amountReceivedInitial = sf.gda.isMemberConnected(pool_, from_)
                 ? uint256(pool_.getUnits(from_)) * amountPerUnit
                 : 0;
             assertEq(
@@ -1854,7 +1854,7 @@ contract FoundrySuperfluidTester is Test {
         // Assert Members RTB
         for (uint256 i; i < members.length; ++i) {
             (int256 memberRTB,,,) = superToken.realtimeBalanceOfNow(members[i]);
-            bool memberConnected = sf.gda.isMemberConnected(superToken, address(pool_), members[i]);
+            bool memberConnected = sf.gda.isMemberConnected(pool_, members[i]);
 
             uint256 amountReceived = uint256(pool_.getUnits(members[i])) * amountPerUnit;
             if (memberConnected) {

@@ -90,10 +90,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
     uint256 private constant _POOL_SUBS_BITMAP_STATE_SLOT_ID = 1;
     /// @dev Pool member state slot id starting point for pool connections
     uint256 private constant _POOL_CONNECTIONS_DATA_STATE_SLOT_ID_START = 1 << 128;
-    /// @dev CFAv1 PPP Config Key
-    bytes32 private constant CFAV1_PPP_CONFIG_KEY =
-        keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1.PPPConfiguration");
-
+    /// @dev SuperToken minimum deposit key
     bytes32 private constant SUPERTOKEN_MINIMUM_DEPOSIT_KEY =
         keccak256("org.superfluid-finance.superfluid.superTokenMinimumDeposit");
 
@@ -105,19 +102,21 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         superfluidPoolBeacon = superfluidPoolBeacon_;
     }
 
-    function realtimeBalanceVectorAt(ISuperfluidToken token, address account, uint256 time)
+    function realtimeBalanceOf(ISuperfluidToken token, address account, uint256 time)
         public
         view
-        returns (int256 available, int256 fromPools, int256 buffer)
+        override
+        returns (int256 rtb, uint256 buf, uint256 owedBuffer)
     {
         UniversalIndexData memory universalIndexData = _getUIndexData(abi.encode(token), account);
 
         if (_isPool(token, account)) {
-            available = ISuperfluidPool(account).getDisconnectedBalance(uint32(time));
+            rtb = ISuperfluidPool(account).getDisconnectedBalance(uint32(time));
         } else {
-            available = Value.unwrap(_getBasicParticleFromUIndex(universalIndexData).rtb(Time.wrap(uint32(time))));
+            rtb = Value.unwrap(_getBasicParticleFromUIndex(universalIndexData).rtb(Time.wrap(uint32(time))));
         }
 
+        int256 fromPools;
         {
             (uint32[] memory slotIds, bytes32[] memory pidList) = _listPoolConnectionIds(token, account);
             for (uint256 i = 0; i < slotIds.length; ++i) {
@@ -126,24 +125,12 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
                     _getPoolMemberData(token, account, ISuperfluidPool(pool));
                 assert(exist);
                 assert(poolMemberData.pool == pool);
-                fromPools = fromPools + ISuperfluidPool(pool).getClaimable(account, uint32(time));
+                fromPools += ISuperfluidPool(pool).getClaimable(account, uint32(time));
             }
         }
+        rtb += fromPools;
 
-        buffer = universalIndexData.totalBuffer.toInt256();
-    }
-
-    function realtimeBalanceOf(ISuperfluidToken token, address account, uint256 time)
-        public
-        view
-        override
-        returns (int256 rtb, uint256 buf, uint256 owedBuffer)
-    {
-        (int256 available, int256 fromPools, int256 buffer) = realtimeBalanceVectorAt(token, account, time);
-        rtb = available + fromPools;
-
-        buf = uint256(buffer); // upcasting to uint256 is safe
-        owedBuffer = 0;
+        buf = uint256(universalIndexData.totalBuffer.toInt256()); // upcasting to uint256 is safe
     }
 
     /// @dev ISuperAgreement.realtimeBalanceOf implementation
@@ -322,8 +309,9 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         ISuperfluid.Context memory currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
         address msgSender = currentContext.msgSender;
         newCtx = ctx;
+        bool isConnected = _isMemberConnected(token, address(pool), msgSender);
         if (doConnect) {
-            if (!isMemberConnected(token, address(pool), msgSender)) {
+            if (!isConnected) {
                 assert(
                     SuperfluidPool(address(pool)).operatorConnectMember(
                         msgSender, true, uint32(currentContext.timestamp)
@@ -340,11 +328,9 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
                     _getPoolMemberHash(msgSender, pool),
                     _encodePoolMemberData(PoolMemberData({ poolID: poolSlotID, pool: address(pool) }))
                 );
-
-                emit PoolConnectionUpdated(token, pool, msgSender, doConnect, currentContext.userData);
             }
         } else {
-            if (isMemberConnected(token, address(pool), msgSender)) {
+            if (isConnected) {
                 assert(
                     SuperfluidPool(address(pool)).operatorConnectMember(
                         msgSender, false, uint32(currentContext.timestamp)
@@ -354,25 +340,26 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
                 token.terminateAgreement(_getPoolMemberHash(msgSender, pool), 1);
 
                 _clearPoolConnectionsBitmap(token, msgSender, poolMemberData.poolID);
-
-                emit PoolConnectionUpdated(token, pool, msgSender, doConnect, currentContext.userData);
             }
+        }
+
+        // we only emit PoolConnectionUpdated if the connection state has changed
+        if (doConnect && !isConnected || !doConnect && isConnected) {
+            emit PoolConnectionUpdated(token, pool, msgSender, doConnect, currentContext.userData);
         }
     }
 
-    /// @inheritdoc IGeneralDistributionAgreementV1
-    function isMemberConnected(ISuperfluidToken token, address pool, address member)
-        public
+    function _isMemberConnected(ISuperfluidToken token, address pool, address member)
+        internal
         view
-        override
         returns (bool)
     {
         (bool exist,) = _getPoolMemberData(token, member, ISuperfluidPool(pool));
         return exist;
     }
 
-    function isMemberConnected(ISuperfluidPool pool, address member) public view override returns (bool) {
-        return isMemberConnected(pool.superToken(), address(pool), member);
+    function isMemberConnected(ISuperfluidPool pool, address member) external view override returns (bool) {
+        return _isMemberConnected(pool.superToken(), address(pool), member);
     }
 
     function appendIndexUpdateByPool(ISuperfluidToken token, BasicParticle memory p, Time t) external returns (bool) {
@@ -414,12 +401,15 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
             revert GDA_ONLY_SUPER_TOKEN_POOL();
         }
 
+        // you cannot distribute if admin is not equal to the ctx.msgSender
         if (!pool.distributionFromAnyAddress()) {
             if (pool.admin() != currentContext.msgSender) {
                 revert GDA_DISTRIBUTE_FROM_ANY_ADDRESS_NOT_ALLOWED();
             }
         }
 
+        // the from address must be the same as the ctx.msgSender
+        // there is no ACL support
         if (from != currentContext.msgSender) {
             revert GDA_DISTRIBUTE_FOR_OTHERS_NOT_ALLOWED();
         }
@@ -529,11 +519,10 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
 
         {
             _adjustBuffer(
-                abi.encode(token),
+                token,
                 address(pool),
                 from,
                 flowVars.distributionFlowHash,
-                flowVars.oldFlowRate,
                 actualFlowRate
             );
         }
@@ -649,7 +638,6 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
             _getFlowDistributionData(ISuperfluidToken(data.token), data.distributionFlowHash);
         int256 signedSingleDeposit = flowDistributionData.buffer.toInt256();
 
-        bytes memory liquidationTypeData;
         bool isCurrentlyPatricianPeriod;
 
         {
@@ -665,10 +653,9 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         // critical case
         if (totalRewardLeft >= 0) {
             int256 rewardAmount = (signedSingleDeposit * totalRewardLeft) / data.signedTotalGDADeposit;
-            liquidationTypeData = abi.encode(2, isCurrentlyPatricianPeriod ? 0 : 1);
             data.token.makeLiquidationPayoutsV2(
                 data.distributionFlowHash,
-                liquidationTypeData,
+                abi.encode(2, isCurrentlyPatricianPeriod ? 0 : 1),
                 data.liquidator,
                 isCurrentlyPatricianPeriod,
                 data.sender,
@@ -691,14 +678,12 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
     }
 
     function _adjustBuffer(
-        bytes memory eff,
+        ISuperfluidToken token,
         address pool,
         address from,
         bytes32 flowHash,
-        FlowRate, // oldFlowRate,
         FlowRate newFlowRate
-    ) internal returns (bytes memory) {
-        address token = abi.decode(eff, (address));
+    ) internal {
         // not using oldFlowRate in this model
         // surprising effect: reducing flow rate may require more buffer when liquidation_period adjusted upward
         ISuperfluidGovernance gov = ISuperfluidGovernance(ISuperfluid(_host).getGovernance());
@@ -731,7 +716,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
             ISuperfluidToken(token).updateAgreementData(flowHash, data);
         }
 
-        UniversalIndexData memory universalIndexData = _getUIndexData(eff, from);
+        UniversalIndexData memory universalIndexData = _getUIndexData(abi.encode(token), from);
         universalIndexData.totalBuffer =
         // new buffer
          (universalIndexData.totalBuffer.toInt256() + Value.unwrap(bufferDelta)).toUint256();
@@ -749,8 +734,6 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
                 universalIndexData.totalBuffer
             );
         }
-
-        return eff;
     }
 
     // Solvency Related Getters
@@ -823,7 +806,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         data = new bytes32[](2);
         data[0] = bytes32(
             (uint256(int256(FlowRate.unwrap(p.flow_rate()))) << 160) | (uint256(Time.unwrap(p.settled_at())) << 128)
-                | (uint96(buffer.toInt256().toInt96()) << 32) | (isPool_ ? 1 : 0)
+                | (buffer.toUint96() << 32) | (isPool_ ? 1 : 0)
         );
         data[1] = bytes32(uint256(Value.unwrap(p._settled_value)));
     }
@@ -836,7 +819,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         data = new bytes32[](2);
         data[0] = bytes32(
             (uint256(int256(uIndexData.flowRate)) << 160) | (uint256(uIndexData.settledAt) << 128)
-                | (uint96(uIndexData.totalBuffer.toInt256().toInt96()) << 32) | (uIndexData.isPool ? 1 : 0)
+                | (uIndexData.totalBuffer.toUint96() << 32) | (uIndexData.isPool ? 1 : 0)
         );
         data[1] = bytes32(uint256(uIndexData.settledValue));
     }

@@ -402,7 +402,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
         PDPoolMemberMU memory mu = PDPoolMemberMU(pdPoolIndex, pdPoolMember);
 
         // update pool's disconnected units
-        if (!GDA.isMemberConnected(superToken, address(this), memberAddr)) {
+        if (!GDA.isMemberConnected(ISuperfluidPool(address(this)), memberAddr)) {
             // trigger the side effect of claiming all if not connected
             // @note claiming is a bit surprising here given the function name
             int256 claimedAmount = _claimAll(memberAddr, time);
@@ -442,7 +442,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
 
     /// @inheritdoc ISuperfluidPool
     function claimAll(address memberAddr) public returns (bool) {
-        bool isConnected = GDA.isMemberConnected(superToken, address(this), memberAddr);
+        bool isConnected = GDA.isMemberConnected(ISuperfluidPool(address(this)), memberAddr);
         uint32 time = uint32(ISuperfluid(superToken.getHost()).getNow());
         int256 claimedAmount = _claimAll(memberAddr, time);
         if (!isConnected) {

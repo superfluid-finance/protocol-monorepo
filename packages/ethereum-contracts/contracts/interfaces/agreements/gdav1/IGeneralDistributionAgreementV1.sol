@@ -215,13 +215,6 @@ abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
     /// Check if an address is connected to the pool
     function isMemberConnected(ISuperfluidPool pool, address memberAddr) external view virtual returns (bool);
 
-    /// Check if an address is connected to the pool
-    function isMemberConnected(ISuperfluidToken token, address pool, address memberAddr)
-        external
-        view
-        virtual
-        returns (bool);
-
     /// Get pool adjustment flow information: (recipient, flowHash, flowRate)
     function getPoolAdjustmentFlowInfo(ISuperfluidPool pool) external view virtual returns (address, bytes32, int96);
 

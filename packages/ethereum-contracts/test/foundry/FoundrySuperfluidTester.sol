@@ -264,10 +264,6 @@ contract FoundrySuperfluidTester is Test {
     function _definitionLiquiditySumInvariant() internal view returns (bool) {
         int256 liquiditySum = _helperGetSuperTokenLiquiditySum(superToken);
 
-        console.log("_expectedTotalSupply");
-        console.log(_expectedTotalSupply);
-        console.log("liquiditySum");
-        console.logInt(liquiditySum);
         return int256(_expectedTotalSupply) == liquiditySum;
     }
 

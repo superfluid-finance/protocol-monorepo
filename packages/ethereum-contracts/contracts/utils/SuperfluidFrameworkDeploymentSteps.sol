@@ -244,6 +244,8 @@ contract SuperfluidFrameworkDeploymentSteps {
             SuperfluidUpgradeableBeacon superfluidPoolBeacon =
                 ProxyDeployerLibrary.deploySuperfluidUpgradeableBeacon(address(superfluidPoolLogic));
             gdaV1.initialize(superfluidPoolBeacon);
+            
+            superfluidPoolBeacon.transferOwnership(address(host));
         } else if (step == 5) {
             // PERIPHERAL CONTRACTS: NFT Proxy and Logic
             // Deploy Superfluid NFTs (Proxy and Logic contracts)

@@ -1298,7 +1298,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         output += `SUPERFLUID_POOL_BEACON=${superfluidPoolBeaconContract.address}\n`;
 
         console.log("Transferring ownership of beacon contract to Superfluid Host...");
-        await superfluidPoolBeaconAddress.transferOwnership(superfluid.address);
+        await superfluidPoolBeaconContract.transferOwnership(superfluid.address);
 
         console.log("Initializing GDA w/ beacon contract...");
         await gdaV1Contract.initialize(superfluidPoolBeaconContract.address);

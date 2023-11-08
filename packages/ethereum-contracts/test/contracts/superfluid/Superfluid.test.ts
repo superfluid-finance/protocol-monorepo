@@ -122,6 +122,7 @@ describe("Superfluid Host Contract", function () {
                     superfluid.address,
                     mock1.address,
                     [],
+                    ZERO_ADDRESS,
                     ZERO_ADDRESS
                 );
 
@@ -137,6 +138,7 @@ describe("Superfluid Host Contract", function () {
                         superfluid.address,
                         mock2.address,
                         [],
+                        ZERO_ADDRESS,
                         ZERO_ADDRESS
                     ),
                     superfluid,
@@ -240,6 +242,7 @@ describe("Superfluid Host Contract", function () {
                     superfluid.address,
                     ZERO_ADDRESS,
                     [mockA2.address],
+                    ZERO_ADDRESS,
                     ZERO_ADDRESS
                 );
                 console.debug(
@@ -349,6 +352,7 @@ describe("Superfluid Host Contract", function () {
                         superfluid.address,
                         ZERO_ADDRESS,
                         [mockA.address],
+                        ZERO_ADDRESS,
                         ZERO_ADDRESS
                     ),
                     superfluid,
@@ -430,7 +434,8 @@ describe("Superfluid Host Contract", function () {
                     superfluid.address,
                     ZERO_ADDRESS,
                     [],
-                    factory2Logic.address
+                    factory2Logic.address,
+                    ZERO_ADDRESS
                 );
                 assert.equal(
                     await superfluid.getSuperTokenFactory(),
@@ -479,7 +484,8 @@ describe("Superfluid Host Contract", function () {
                     superfluid.address,
                     ZERO_ADDRESS,
                     [],
-                    factory2Logic.address
+                    factory2Logic.address,
+                    ZERO_ADDRESS
                 );
                 assert.equal(
                     await superfluid.getSuperTokenFactory(),
@@ -2633,6 +2639,7 @@ describe("Superfluid Host Contract", function () {
                         superfluid.address,
                         ZERO_ADDRESS,
                         [t.contracts.ida.address],
+                        ZERO_ADDRESS,
                         ZERO_ADDRESS
                     ),
                     superfluid,
@@ -2677,7 +2684,8 @@ describe("Superfluid Host Contract", function () {
                         superfluid.address,
                         ZERO_ADDRESS,
                         [],
-                        factory2Logic.address
+                        factory2Logic.address,
+                        ZERO_ADDRESS
                     ),
                     superfluid,
                     "HOST_NON_UPGRADEABLE"
@@ -2696,6 +2704,7 @@ describe("Superfluid Host Contract", function () {
                         superfluid.address,
                         mock1.address,
                         [],
+                        ZERO_ADDRESS,
                         ZERO_ADDRESS
                     ),
                     superfluid,

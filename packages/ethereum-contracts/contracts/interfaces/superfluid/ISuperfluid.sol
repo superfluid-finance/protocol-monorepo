@@ -240,6 +240,19 @@ interface ISuperfluid {
      */
     function changeSuperTokenAdmin(ISuperToken token, address newAdmin) external;
 
+    /**
+     * @notice Change the implementation address the pool beacon points to
+     * @dev Updating the logic the beacon points to will update the logic of all the Pool BeaconProxy instances
+     */
+    function updatePoolBeaconLogic(address newBeaconLogic) external;
+
+    /**
+     * @dev Pool Beacon logic updated event
+     * @param beaconProxy addrss of the beacon proxy
+     * @param newBeaconLogic address of the new beacon logic
+     */
+    event PoolBeaconLogicUpdated(address indexed beaconProxy, address newBeaconLogic);
+
     /**************************************************************************
      * App Registry
      *************************************************************************/

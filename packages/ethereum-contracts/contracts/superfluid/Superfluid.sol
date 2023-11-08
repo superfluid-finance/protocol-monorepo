@@ -19,7 +19,8 @@ import {
     ISuperToken,
     ISuperTokenFactory
 } from "../interfaces/superfluid/ISuperfluid.sol";
-
+import { GeneralDistributionAgreementV1 } from "../agreements/gdav1/GeneralDistributionAgreementV1.sol";
+import { SuperfluidUpgradeableBeacon } from "../upgradability/SuperfluidUpgradeableBeacon.sol";
 import { CallUtils } from "../libs/CallUtils.sol";
 import { BaseRelayRecipient } from "../libs/BaseRelayRecipient.sol";
 
@@ -306,6 +307,23 @@ contract Superfluid is
 
     function changeSuperTokenAdmin(ISuperToken token, address newAdmin) external onlyGovernance {
         token.changeAdmin(newAdmin);
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Superfluid Upgradeable Beacon
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    /// @inheritdoc ISuperfluid
+    function updatePoolBeaconLogic(address newLogic) external override onlyGovernance {
+        GeneralDistributionAgreementV1 gda = GeneralDistributionAgreementV1(
+            address(
+                this.getAgreementClass(keccak256("org.superfluid-finance.agreements.GeneralDistributionAgreement.v1"))
+            )
+        );
+        SuperfluidUpgradeableBeacon beacon = SuperfluidUpgradeableBeacon(address(gda.superfluidPoolBeacon()));
+        beacon.upgradeTo(newLogic);
+
+        emit PoolBeaconLogicUpdated(address(beacon), newLogic);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -346,7 +346,9 @@ contract SuperfluidFrameworkDeploymentSteps {
 
             // _setSuperTokenFactoryInHost();
             // 'Update' code with Governance and register SuperTokenFactory with Superfluid
-            testGovernance.updateContracts(host, address(0), new address[](0), address(superTokenFactoryLogic));
+            testGovernance.updateContracts(
+                host, address(0), new address[](0), address(superTokenFactoryLogic), address(0)
+            );
 
             // we set the canonical address based on host.getSuperTokenFactory() because
             // in the upgradeable case, we create a new proxy contract in the function

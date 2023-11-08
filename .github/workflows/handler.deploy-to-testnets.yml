@@ -26,6 +26,10 @@ jobs:
       DEFAULT_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC }}
       PROVIDER_URL_TEMPLATE: ${{ secrets.PROVIDER_URL_TEMPLATE }}
 
+    defaults:
+      run:
+        shell: nix develop -c bash -xe {0}
+  
     strategy:
       fail-fast: false
       matrix:
@@ -39,12 +43,10 @@ jobs:
         if: ${{ github.event.inputs.only_network != '' && github.event.inputs.only_network != matrix.network }}
         run: echo "DO_SKIP=1" >> "$GITHUB_ENV"
 
-      - name: Use Node.js 18.x
+      - uses: cachix/install-nix-action@v19
         if: env.DO_SKIP != 1
-        uses: actions/setup-node@v3
         with:
-          node-version: 18.x
-          cache: "yarn"
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build
         if: env.DO_SKIP != 1

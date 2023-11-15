@@ -6,7 +6,10 @@ import {
     ISuperfluid,
     ISuperToken,
     IConstantOutflowNFT,
-    IConstantInflowNFT
+    IConstantInflowNFT,
+    IPoolAdminNFT,
+    IPoolMemberNFT,
+    SuperToken
 } from "../../../contracts/superfluid/SuperToken.sol";
 import { ISuperfluidPool } from "../../../contracts/interfaces/agreements/gdav1/ISuperfluidPool.sol";
 import { BatchLiquidator } from "../../../contracts/utils/BatchLiquidator.sol";
@@ -15,7 +18,13 @@ import "forge-std/Test.sol";
 contract NonTransferableST is SuperToken {
     // transferFrom will always revert
     constructor(ISuperfluid host)
-        SuperToken(host, IConstantOutflowNFT(address(0)), IConstantInflowNFT(address(0))) // solhint-disable-next-line
+        SuperToken(
+            host,
+            IConstantOutflowNFT(address(0)),
+            IConstantInflowNFT(address(0)),
+            IPoolAdminNFT(address(0)),
+            IPoolMemberNFT(address(0))
+        ) // solhint-disable-next-line
             // no-empty-blocks
     { }
 
@@ -210,18 +219,9 @@ contract BatchLiquidatorTest is FoundrySuperfluidTester {
         uint256 balanceBefore = superToken.balanceOf(liquidator);
         vm.warp(4 hours); // jump 4 hours
         BatchLiquidator.FlowLiquidationData[] memory data = new BatchLiquidator.FlowLiquidationData[](3);
-
-        data[0].agreementOperation = BatchLiquidator.FlowType.ConstantFlowAgreement;
-        data[0].sender = alice;
-        data[0].receiver = bob;
-
-        data[1].agreementOperation = BatchLiquidator.FlowType.ConstantFlowAgreement;
-        data[1].sender = carol;
-        data[1].receiver = bob;
-
-        data[2].agreementOperation = BatchLiquidator.FlowType.ConstantFlowAgreement;
-        data[2].sender = dan;
-        data[2].receiver = bob;
+        data[0] = _createCFAFlowLiquidationData(alice, bob);
+        data[1] = _createCFAFlowLiquidationData(carol, bob);
+        data[2] = _createCFAFlowLiquidationData(dan, bob);
 
         batchLiquidator.deleteFlows(address(superToken), data);
         _assertNoCFAFlow(alice, bob);
@@ -247,17 +247,9 @@ contract BatchLiquidatorTest is FoundrySuperfluidTester {
         uint256 balanceBefore = superToken.balanceOf(liquidator);
         vm.warp(4 hours); // jump 4 hours
         BatchLiquidator.FlowLiquidationData[] memory data = new BatchLiquidator.FlowLiquidationData[](3);
-        data[0].agreementOperation = BatchLiquidator.FlowType.GeneralDistributionAgreement;
-        data[0].sender = alice;
-        data[0].receiver = address(pool);
-
-        data[1].agreementOperation = BatchLiquidator.FlowType.GeneralDistributionAgreement;
-        data[1].sender = carol;
-        data[1].receiver = address(pool);
-
-        data[2].agreementOperation = BatchLiquidator.FlowType.GeneralDistributionAgreement;
-        data[2].sender = dan;
-        data[2].receiver = address(pool);
+        data[0] = _createGDAFlowLiquidationData(alice, pool);
+        data[1] = _createGDAFlowLiquidationData(carol, pool);
+        data[2] = _createGDAFlowLiquidationData(dan, pool);
 
         batchLiquidator.deleteFlows(address(superToken), data);
 
@@ -287,18 +279,9 @@ contract BatchLiquidatorTest is FoundrySuperfluidTester {
         uint256 balanceBefore = superToken.balanceOf(liquidator);
         vm.warp(4 hours); // jump 4 hours
         BatchLiquidator.FlowLiquidationData[] memory data = new BatchLiquidator.FlowLiquidationData[](4);
-
-        data[0].agreementOperation = BatchLiquidator.FlowType.GeneralDistributionAgreement;
-        data[0].sender = alice;
-        data[0].receiver = address(pool);
-
-        data[1].agreementOperation = BatchLiquidator.FlowType.ConstantFlowAgreement;
-        data[1].sender = carol;
-        data[1].receiver = bob;
-
-        data[2].agreementOperation = BatchLiquidator.FlowType.ConstantFlowAgreement;
-        data[2].sender = dan;
-        data[2].receiver = bob;
+        data[0] = _createGDAFlowLiquidationData(alice, pool);
+        data[1] = _createCFAFlowLiquidationData(carol, bob);
+        data[2] = _createCFAFlowLiquidationData(dan, bob);
 
         batchLiquidator.deleteFlows(address(superToken), data);
 
@@ -325,17 +308,9 @@ contract BatchLiquidatorTest is FoundrySuperfluidTester {
         vm.warp(4 hours); // jump 4 hours
         BatchLiquidator.FlowLiquidationData[] memory data = new BatchLiquidator.FlowLiquidationData[](4);
 
-        data[0].agreementOperation = BatchLiquidator.FlowType.GeneralDistributionAgreement;
-        data[0].sender = alice;
-        data[0].receiver = address(pool);
-
-        data[1].agreementOperation = BatchLiquidator.FlowType.ConstantFlowAgreement;
-        data[1].sender = carol;
-        data[1].receiver = bob;
-
-        data[2].agreementOperation = BatchLiquidator.FlowType.ConstantFlowAgreement;
-        data[2].sender = dan;
-        data[2].receiver = bob;
+        data[0] = _createGDAFlowLiquidationData(alice, pool);
+        data[1] = _createCFAFlowLiquidationData(carol, bob);
+        data[2] = _createCFAFlowLiquidationData(dan, bob);
 
         batchLiquidator.deleteFlows(address(superToken), data);
 
@@ -347,7 +322,7 @@ contract BatchLiquidatorTest is FoundrySuperfluidTester {
         vm.stopPrank();
     }
 
-    function testLiquidationWithCustomTokenRevert() public {
+    function testCFALiquidationWithCustomTokenRevert() public {
         NonTransferableST(address(badToken)).mintInternal(alice, 10 ether);
 
         vm.startPrank(alice);
@@ -357,14 +332,16 @@ contract BatchLiquidatorTest is FoundrySuperfluidTester {
         vm.stopPrank();
         vm.startPrank(liquidator);
 
-        batchLiquidator.deleteFlow(address(badToken), alice, bob);
-        _assertNoFlow(alice, bob);
+        BatchLiquidator.FlowLiquidationData memory data = _createCFAFlowLiquidationData(alice, bob);
+
+        batchLiquidator.deleteFlow(address(badToken), data);
+        _assertNoCFAFlow(alice, bob);
 
         assertTrue(superToken.balanceOf(liquidator) == 0, "BatchLiquidator: SL - Balance should be 0 because of revert");
         vm.stopPrank();
     }
 
-    function testBatchLiquidationWithCustomTokenRevert() public {
+    function testCFABatchLiquidationWithCustomTokenRevert() public {
         NonTransferableST(address(badToken)).mintInternal(alice, 10 ether);
         NonTransferableST(address(badToken)).mintInternal(bob, 10 ether);
 
@@ -382,15 +359,12 @@ contract BatchLiquidatorTest is FoundrySuperfluidTester {
 
         vm.startPrank(liquidator);
 
-        address[] memory senders = new address[](2);
-        address[] memory receivers = new address[](2);
-        senders[0] = alice;
-        senders[1] = bob;
-        receivers[0] = bob;
-        receivers[1] = carol;
+        BatchLiquidator.FlowLiquidationData[] memory data = new BatchLiquidator.FlowLiquidationData[](2);
+        data[0] = _createCFAFlowLiquidationData(alice, bob);
+        data[1] = _createCFAFlowLiquidationData(bob, carol);
 
-        batchLiquidator.deleteFlows(address(superToken), senders, receivers);
-        _assertNoFlow(alice, bob);
-        _assertNoFlow(bob, carol);
+        batchLiquidator.deleteFlows(address(superToken), data);
+        _assertNoCFAFlow(alice, bob);
+        _assertNoCFAFlow(bob, carol);
     }
 }

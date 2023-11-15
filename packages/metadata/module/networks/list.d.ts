@@ -24,6 +24,7 @@ interface ContractAddresses {
 }
 interface SubgraphData {
     readonly name: string;
+    readonly cliName?: string;
     readonly hostedEndpoint?: string;
     readonly satsumaEndpoint?: string;
 }

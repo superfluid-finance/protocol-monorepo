@@ -75,6 +75,10 @@ contract SuperfluidTester {
         }
     }
 
+    function cfaLiquidate(address sender, address receiver) public {
+        superToken.deleteFlow(sender, receiver);
+    }
+
     function setFlowPermissions(
         address flowOperator,
         bool allowCreate,
@@ -171,6 +175,10 @@ contract SuperfluidTester {
 
     function distributeFlow(ISuperfluidPool pool, address from, int96 flowRate) public {
         superToken.distributeFlow(from, pool, flowRate);
+    }
+
+    function gdaLiquidate(address sender, address receiver) public {
+        superToken.deleteFlow(sender, receiver);
     }
 
     // SuperfluidPool

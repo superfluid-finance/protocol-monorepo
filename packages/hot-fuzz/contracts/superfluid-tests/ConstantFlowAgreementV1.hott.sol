@@ -18,6 +18,13 @@ abstract contract CFAHotFuzzMixin is HotFuzzBase {
         testerA.flow(address(testerB), 0);
     }
 
+    function liquidateFlow(uint8 a, uint8 b) public {
+        (SuperfluidTester testerA, SuperfluidTester testerB) = _getTwoTesters(a, b);
+
+        bool success = testerA.flow(address(testerB));
+        assert(success);
+    }
+
     function setFlowPermissions(
         uint8 a,
         uint8 b,
@@ -63,11 +70,7 @@ abstract contract CFAHotFuzzMixin is HotFuzzBase {
     ) public {
         (SuperfluidTester testerA, SuperfluidTester testerB) = _getTwoTesters(a, b);
 
-        testerA.increaseFlowRateAllowanceWithPermissions(
-            address(testerB),
-            permissionsToAdd,
-            addedFlowRateAllowance
-        );
+        testerA.increaseFlowRateAllowanceWithPermissions(address(testerB), permissionsToAdd, addedFlowRateAllowance);
     }
 
     function decreaseFlowRateAllowanceWithPermissions(
@@ -79,9 +82,7 @@ abstract contract CFAHotFuzzMixin is HotFuzzBase {
         (SuperfluidTester testerA, SuperfluidTester testerB) = _getTwoTesters(a, b);
 
         testerA.decreaseFlowRateAllowanceWithPermissions(
-            address(testerB),
-            permissionsToRemove,
-            subtractedFlowRateAllowance
+            address(testerB), permissionsToRemove, subtractedFlowRateAllowance
         );
     }
 }

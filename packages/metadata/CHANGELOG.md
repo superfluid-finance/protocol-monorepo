@@ -3,6 +3,10 @@ All notable changes to the metadata will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.1.19]
+### Added
+- `cliName` property under "subgraphV1" for the canonical subgraph network names, see [here](https://thegraph.com/docs/en/developing/supported-networks/#hosted-service)
+
 ## [v1.1.18]
 ### Fixed
 - Changed the `module/networks/list.d.ts` file to correctly reflect the `contractsV1` object in our `networks.json` file.

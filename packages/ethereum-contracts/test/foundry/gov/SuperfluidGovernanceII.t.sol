@@ -61,6 +61,12 @@ contract SuperfluidGovernanceIntegrationTest is FoundrySuperfluidTester {
         vm.startPrank(sf.governance.owner());
         sf.governance.updateContracts(sf.host, address(0), new address[](0), address(0), address(newPoolLogic));
         vm.stopPrank();
+
+        assertEq(
+            sf.gda.superfluidPoolBeacon().implementation(),
+            address(newPoolLogic),
+            "testUpdateContractsToUpgradePoolBeaconLogic: pool beacon logic not upgraded"
+        );
     }
     
     function testRevertUpgradePoolBeaconLogicWhenNotGovernance() public {

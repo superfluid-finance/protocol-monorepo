@@ -37,6 +37,7 @@ abstract contract CFAHotFuzzMixin is HotFuzzBase {
         // if both conditions are met, a liquidation should occur without fail
         bool isLiquidationValid = flowExists && isSenderCritical;
         if (isLiquidationValid) {
+            // solhint-disable-next-line no-empty-blocks
             try liquidator.cfaLiquidate(address(sender), address(recipient)) {}
             catch {
                 assert(false);

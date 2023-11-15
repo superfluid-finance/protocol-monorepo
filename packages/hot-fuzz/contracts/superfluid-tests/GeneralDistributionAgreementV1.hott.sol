@@ -67,6 +67,7 @@ abstract contract GDAHotFuzzMixin is HotFuzzBase {
         // if both conditions are met, a liquidation should occur without fail
         bool isLiquidationValid = flowExists && isDistributorCritical;
         if (isLiquidationValid) {
+            // solhint-disable-next-line no-empty-blocks
             try liquidator.gdaLiquidate(address(distributor), pool) {}
             catch {
                 assert(false);

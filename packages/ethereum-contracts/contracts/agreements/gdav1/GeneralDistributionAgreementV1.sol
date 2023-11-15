@@ -310,14 +310,14 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         address msgSender = currentContext.msgSender;
         newCtx = ctx;
         bool isConnected = _isMemberConnected(token, address(pool), msgSender);
-        if (doConnect) {
-            if (!isConnected) {
-                assert(
-                    SuperfluidPool(address(pool)).operatorConnectMember(
-                        msgSender, true, uint32(currentContext.timestamp)
-                    )
-                );
+        if (doConnect != isConnected) {
+            assert(
+                SuperfluidPool(address(pool)).operatorConnectMember(
+                    msgSender, doConnect, uint32(currentContext.timestamp)
+                )
+            );
 
+            if (doConnect) {
                 uint32 poolSlotID =
                     _findAndFillPoolConnectionsBitmap(token, msgSender, bytes32(uint256(uint160(address(pool)))));
 
@@ -328,23 +328,13 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
                     _getPoolMemberHash(msgSender, pool),
                     _encodePoolMemberData(PoolMemberData({ poolID: poolSlotID, pool: address(pool) }))
                 );
-            }
-        } else {
-            if (isConnected) {
-                assert(
-                    SuperfluidPool(address(pool)).operatorConnectMember(
-                        msgSender, false, uint32(currentContext.timestamp)
-                    )
-                );
+            } else {
                 (, PoolMemberData memory poolMemberData) = _getPoolMemberData(token, msgSender, pool);
                 token.terminateAgreement(_getPoolMemberHash(msgSender, pool), 1);
 
                 _clearPoolConnectionsBitmap(token, msgSender, poolMemberData.poolID);
             }
-        }
-
-        // we only emit PoolConnectionUpdated if the connection state has changed
-        if (doConnect && !isConnected || !doConnect && isConnected) {
+            
             emit PoolConnectionUpdated(token, pool, msgSender, doConnect, currentContext.userData);
         }
     }

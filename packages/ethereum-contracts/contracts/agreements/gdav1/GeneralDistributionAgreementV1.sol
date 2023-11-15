@@ -456,7 +456,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         // we must check if the requestedFlowRate is greater than 0 here
         // otherwise we will block liquidators from closing streams in pools
         // where the pool config has distributionFromAnyAddress set to false
-        if (!pool.distributionFromAnyAddress()) {
+        if (requestedFlowRate > 0 && !pool.distributionFromAnyAddress()) {
             if (pool.admin() != flowVars.currentContext.msgSender) {
                 revert GDA_DISTRIBUTE_FROM_ANY_ADDRESS_NOT_ALLOWED();
             }

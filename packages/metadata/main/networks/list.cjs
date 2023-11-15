@@ -37,6 +37,7 @@ module.exports =
         "logsQueryRange": 10000,
         "explorer": "https://goerli.etherscan.io",
         "subgraphV1": {
+            "cliName": "goerli",
             "name": "protocol-v1-goerli",
             "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-goerli"
         },
@@ -98,6 +99,7 @@ module.exports =
         "logsQueryRange": 10000,
         "explorer": "https://mumbai.polygonscan.com",
         "subgraphV1": {
+            "cliName": "mumbai",
             "name": "protocol-v1-mumbai",
             "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-mumbai"
         },
@@ -152,6 +154,7 @@ module.exports =
         "logsQueryRange": 50000,
         "explorer": "https://goerli-optimism.etherscan.io",
         "subgraphV1": {
+            "cliName": "optimism-goerli",
             "name": "protocol-v1-optimism-goerli",
             "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-optimism-goerli"
         },
@@ -193,6 +196,7 @@ module.exports =
         "logsQueryRange": 50000,
         "explorer": "https://goerli.arbiscan.io",
         "subgraphV1": {
+            "cliName": "arbitrum-goerli",
             "name": "protocol-v1-arbitrum-goerli",
             "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-arbitrum-goerli"
         },
@@ -237,6 +241,7 @@ module.exports =
         "logsQueryRange": 50000,
         "explorer": "https://testnet.snowtrace.io",
         "subgraphV1": {
+            "cliName": "fuji",
             "name": "protocol-v1-avalanche-fuji",
             "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-avalanche-fuji"
         },
@@ -277,6 +282,7 @@ module.exports =
         "logsQueryRange": 10000,
         "explorer": "https://sepolia.etherscan.io",
         "subgraphV1": {
+            "cliName": "sepolia",
             "name": "protocol-v1-eth-sepolia",
             "satsumaEndpoint": "https://subgraph.satsuma-prod.com/c5br3jaVlJI6/superfluid/eth-sepolia/api"
         },
@@ -350,6 +356,7 @@ module.exports =
         "logsQueryRange": 20000,
         "explorer": "https://testnet-zkevm.polygonscan.org/",
         "subgraphV1": {
+            "cliName": "polygon-zkevm-testnet",
             "name": "protocol-v1-polygon-zkevm-testnet"
         },
         "publicRPCs": ["https://rpc.public.zkevm-test.net"],
@@ -396,6 +403,7 @@ module.exports =
         "logsQueryRange": 20000,
         "explorer": "https://gnosisscan.io",
         "subgraphV1": {
+            "cliName": "gnosis",
             "name": "protocol-v1-xdai",
             "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-xdai",
             "satsumaEndpoint": "https://subgraph.satsuma-prod.com/c5br3jaVlJI6/superfluid/xdai/api"
@@ -454,6 +462,7 @@ module.exports =
         "logsQueryRange": 10000,
         "explorer": "https://polygonscan.com",
         "subgraphV1": {
+            "cliName": "matic",
             "name": "protocol-v1-matic",
             "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-matic",
             "satsumaEndpoint": "https://subgraph.satsuma-prod.com/c5br3jaVlJI6/superfluid/matic/api"
@@ -512,6 +521,7 @@ module.exports =
         "logsQueryRange": 50000,
         "explorer": "https://optimistic.etherscan.io",
         "subgraphV1": {
+            "cliName": "optimism",
             "name": "protocol-v1-optimism-mainnet",
             "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-optimism-mainnet"
         },
@@ -569,6 +579,7 @@ module.exports =
         "logsQueryRange": 50000,
         "explorer": "https://arbiscan.io",
         "subgraphV1": {
+            "cliName": "arbitrum-one",
             "name": "protocol-v1-arbitrum-one",
             "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-arbitrum-one"
         },
@@ -626,6 +637,7 @@ module.exports =
         "logsQueryRange": 50000,
         "explorer": "https://snowtrace.io",
         "subgraphV1": {
+            "cliName": "avalanche",
             "name": "protocol-v1-avalanche-c",
             "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-avalanche-c"
         },
@@ -683,6 +695,7 @@ module.exports =
         "logsQueryRange": 5000,
         "explorer": "https://bscscan.com",
         "subgraphV1": {
+            "cliName": "bsc",
             "name": "protocol-v1-bsc-mainnet",
             "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-bsc-mainnet"
         },
@@ -737,6 +750,7 @@ module.exports =
         "logsQueryRange": 10000,
         "explorer": "https://etherscan.io",
         "subgraphV1": {
+            "cliName": "mainnet",
             "name": "protocol-v1-eth-mainnet",
             "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-eth-mainnet",
             "satsumaEndpoint": "https://subgraph.satsuma-prod.com/c5br3jaVlJI6/superfluid/eth-mainnet/api"
@@ -789,6 +803,7 @@ module.exports =
         "logsQueryRange": 20000,
         "explorer": "https://celoscan.io",
         "subgraphV1": {
+            "cliName": "celo",
             "name": "protocol-v1-celo-mainnet",
             "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-celo-mainnet"
         },
@@ -825,6 +840,7 @@ module.exports =
         "logsQueryRange": 20000,
         "explorer": "https://basescan.org",
         "subgraphV1": {
+            "cliName": "base",
             "name": "protocol-v1-base-mainnet"
         },
         "publicRPCs": ["https://developer-access-mainnet.base.org"],

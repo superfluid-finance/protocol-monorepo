@@ -2,9 +2,31 @@
 pragma solidity 0.8.19;
 
 import { FoundrySuperfluidTester, SuperTokenV1Library } from "../FoundrySuperfluidTester.sol";
-import { ISuperToken } from "../../../contracts/superfluid/SuperToken.sol";
+import {
+    ISuperfluid,
+    ISuperToken,
+    IConstantOutflowNFT,
+    IConstantInflowNFT
+} from "../../../contracts/superfluid/SuperToken.sol";
 import { ISuperfluidPool } from "../../../contracts/interfaces/agreements/gdav1/ISuperfluidPool.sol";
 import { BatchLiquidator } from "../../../contracts/utils/BatchLiquidator.sol";
+import "forge-std/Test.sol";
+
+contract NonTransferableST is SuperToken {
+    // transferFrom will always revert
+    constructor(ISuperfluid host)
+        SuperToken(host, IConstantOutflowNFT(address(0)), IConstantInflowNFT(address(0))) // solhint-disable-next-line
+            // no-empty-blocks
+    { }
+
+    function transferFrom(address holder, address recipient, uint256 amount) public override returns (bool) {
+        revert();
+    }
+
+    function mintInternal(address to, uint256 amount) external {
+        _mint(msg.sender, to, amount, false, /* invokeHook */ false, /* requireReceptionAck */ "", "");
+    }
+}
 
 contract BatchLiquidatorTest is FoundrySuperfluidTester {
     using SuperTokenV1Library for ISuperToken;
@@ -14,11 +36,14 @@ contract BatchLiquidatorTest is FoundrySuperfluidTester {
 
     int96 internal constant FLOW_RATE = 10000000000;
 
+    ISuperToken badToken;
+
     constructor() FoundrySuperfluidTester(5) { }
 
     function setUp() public override {
         super.setUp();
         batchLiquidator = new BatchLiquidator(address(sf.host));
+        badToken = new NonTransferableST(sf.host);
     }
 
     // Helpers
@@ -251,7 +276,6 @@ contract BatchLiquidatorTest is FoundrySuperfluidTester {
         _helperUpdateMemberUnits(pool, alice, bob, 1);
         _helperDistributeFlow(superToken, alice, alice, pool, FLOW_RATE);
 
-
         _helperCreateFlow(superToken, carol, bob, FLOW_RATE);
         _helperCreateFlow(superToken, dan, bob, FLOW_RATE);
 
@@ -321,5 +345,52 @@ contract BatchLiquidatorTest is FoundrySuperfluidTester {
 
         _assertLiquidatorBalanceGreater(liquidator, balanceBefore);
         vm.stopPrank();
+    }
+
+    function testLiquidationWithCustomTokenRevert() public {
+        NonTransferableST(address(badToken)).mintInternal(alice, 10 ether);
+
+        vm.startPrank(alice);
+        badToken.createFlow(bob, FLOW_RATE);
+        badToken.transferAll(admin);
+        vm.warp(4 hours); // jump 4 hours
+        vm.stopPrank();
+        vm.startPrank(liquidator);
+
+        batchLiquidator.deleteFlow(address(badToken), alice, bob);
+        _assertNoFlow(alice, bob);
+
+        assertTrue(superToken.balanceOf(liquidator) == 0, "BatchLiquidator: SL - Balance should be 0 because of revert");
+        vm.stopPrank();
+    }
+
+    function testBatchLiquidationWithCustomTokenRevert() public {
+        NonTransferableST(address(badToken)).mintInternal(alice, 10 ether);
+        NonTransferableST(address(badToken)).mintInternal(bob, 10 ether);
+
+        vm.startPrank(alice);
+        badToken.createFlow(bob, FLOW_RATE);
+        badToken.transferAll(admin);
+        vm.stopPrank();
+
+        vm.startPrank(bob);
+        badToken.createFlow(carol, FLOW_RATE);
+        badToken.transferAll(admin);
+        vm.stopPrank();
+
+        vm.warp(4 hours); // jump 4 hours
+
+        vm.startPrank(liquidator);
+
+        address[] memory senders = new address[](2);
+        address[] memory receivers = new address[](2);
+        senders[0] = alice;
+        senders[1] = bob;
+        receivers[0] = bob;
+        receivers[1] = carol;
+
+        batchLiquidator.deleteFlows(address(superToken), senders, receivers);
+        _assertNoFlow(alice, bob);
+        _assertNoFlow(bob, carol);
     }
 }

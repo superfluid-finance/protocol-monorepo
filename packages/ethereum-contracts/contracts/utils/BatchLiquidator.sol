@@ -64,7 +64,10 @@ contract BatchLiquidator {
         {
             uint256 balance = ERC20(superToken).balanceOf(address(this));
             if (balance > 0) {
-                ERC20(superToken).transferFrom(address(this), msg.sender, balance);
+                // don't fail for non-transferrable tokens
+                try ERC20(superToken).transferFrom(address(this), msg.sender, balance)
+                // solhint-disable-next-line no-empty-blocks
+                {} catch {}
             }
         }
     }
@@ -91,7 +94,9 @@ contract BatchLiquidator {
         {
             uint256 balance = ERC20(superToken).balanceOf(address(this));
             if (balance > 0) {
-                ERC20(superToken).transferFrom(address(this), msg.sender, balance);
+                try ERC20(superToken).transferFrom(address(this), msg.sender, balance)
+                // solhint-disable-next-line no-empty-blocks
+                {} catch {}
             }
         }
     }

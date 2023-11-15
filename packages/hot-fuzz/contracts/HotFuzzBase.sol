@@ -109,13 +109,23 @@ contract HotFuzzBase {
         tester = testers[a % _numAccounts()];
     }
 
-    /// @dev The testers returned will never be the same
+    /// @dev The testers returned may be the same
     function _getTwoTesters(uint8 a, uint8 b)
         internal view
         returns (SuperfluidTester testerA, SuperfluidTester testerB)
     {
         testerA = _getOneTester(a);
         testerB = _getOneTester(b);
+    }
+
+    /// @dev The testers returned may be the same
+    function _getThreeTesters(uint8 a, uint8 b, uint8 c)
+        internal view
+        returns (SuperfluidTester testerA, SuperfluidTester testerB, SuperfluidTester testerC)
+    {
+        testerA = _getOneTester(a);
+        testerB = _getOneTester(b);
+        testerC = _getOneTester(c);
     }
 
     function _superTokenBalanceOfNow(address a) internal view returns (int256 avb) {

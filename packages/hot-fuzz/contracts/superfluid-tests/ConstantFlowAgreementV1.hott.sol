@@ -2,9 +2,13 @@
 // solhint-disable reason-string
 pragma solidity >= 0.8.0;
 
+import {SuperToken} from "@superfluid-finance/ethereum-contracts/contracts/superfluid/SuperToken.sol";
+import {SuperTokenV1Library} from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperTokenV1Library.sol";
 import "../HotFuzzBase.sol";
 
 abstract contract CFAHotFuzzMixin is HotFuzzBase {
+    using SuperTokenV1Library for SuperToken;
+
     function createFlow(uint8 a, uint8 b, int64 flowRate) public {
         require(flowRate > 0);
         (SuperfluidTester testerA, SuperfluidTester testerB) = _getTwoTesters(a, b);
@@ -18,11 +22,26 @@ abstract contract CFAHotFuzzMixin is HotFuzzBase {
         testerA.flow(address(testerB), 0);
     }
 
-    function liquidateFlow(uint8 a, uint8 b) public {
-        (SuperfluidTester testerA, SuperfluidTester testerB) = _getTwoTesters(a, b);
+    /// @notice testerA liquidates a flow from testerB to testerC
+    /// @dev testerA can be the same as testerB or testerC
+    function cfaLiquidateFlow(uint8 a, uint8 b, uint8 c) public {
+        (SuperfluidTester liquidator, SuperfluidTester sender, SuperfluidTester recipient) = _getThreeTesters(a, b, c);
 
-        bool success = testerA.flow(address(testerB));
-        assert(success);
+        // we first check the condition for whether a flow exists
+        bool flowExists = superToken.getFlowRate(address(sender), address(recipient)) > 0;
+
+        // then we ensure that the sender has a critical balance
+        (int256 availableBalance,,,) = superToken.realtimeBalanceOfNow(address(sender));
+        bool isSenderCritical = availableBalance < 0;
+
+        // if both conditions are met, a liquidation should occur without fail
+        bool isLiquidationValid = flowExists && isSenderCritical;
+        if (isLiquidationValid) {
+            try liquidator.cfaLiquidate(address(sender), address(recipient)) {}
+            catch {
+                assert(false);
+            }
+        }
     }
 
     function setFlowPermissions(

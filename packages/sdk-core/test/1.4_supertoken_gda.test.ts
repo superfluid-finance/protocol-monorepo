@@ -768,11 +768,11 @@ const shouldCreatePool = async (
 
     expect(
         await superToken.isPool({
-            account: data.poolAddress,
+            account: data.pool.contract.address,
             providerOrSigner: signer,
         })
     ).to.be.true;
-    const pool = new SuperfluidPool(data.poolAddress);
+    const pool = new SuperfluidPool(data.pool.contract.address);
 
     expect(await pool.getPoolAdmin(signer)).to.be.equal(signer.address);
     expect(await pool.getSuperToken(signer)).to.be.equal(superToken.address);

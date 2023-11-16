@@ -227,7 +227,7 @@ describe("GeneralDistributionAgreementV1 Event Entity Unit Tests", () => {
             BIG_INT_ZERO
         );
 
-        const poolMemberId = getPoolMemberID(Address.fromString(superfluidPool), Address.fromString(poolMember));
+        const poolMemberId = getPoolMemberID(distributionClaimedEvent.address, Address.fromString(poolMember));
 
         handleDistributionClaimed(distributionClaimedEvent);
 
@@ -243,14 +243,14 @@ describe("GeneralDistributionAgreementV1 Event Entity Unit Tests", () => {
         const newUnits = BigInt.fromI32(69);
         const poolMember = bob;
 
-        const poolMemberId = getPoolMemberID(Address.fromString(superfluidPool), Address.fromString(poolMember));
-
         const memberUnitsUpdatedEvent = updateMemberUnitsAndReturnMemberUnitsUpdatedEvent(
             superToken,
             poolMember,
             oldUnits,
             newUnits
         );
+
+        const poolMemberId = getPoolMemberID(memberUnitsUpdatedEvent.address, Address.fromString(poolMember));
 
         const id = assertEventBaseProperties(memberUnitsUpdatedEvent, "MemberUnitsUpdated");
         assert.fieldEquals("MemberUnitsUpdatedEvent", id, "token", superToken);

@@ -5,6 +5,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Added
+- Support for `GeneralDistributionAgreementV1.sol` and `SuperfluidPool.sol` functionality
+
 ## [0.6.12] - 2023-10-23
 
 ### Fixed

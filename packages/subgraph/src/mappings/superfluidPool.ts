@@ -1,4 +1,3 @@
-import { log } from "@graphprotocol/graph-ts";
 import {
     DistributionClaimed,
     MemberUnitsUpdated,
@@ -41,7 +40,7 @@ export function handleDistributionClaimed(event: DistributionClaimed): void {
     _createAccountTokenSnapshotLogEntity(event, event.params.member, token, eventName);
 
     // Create Event Entity
-    _createDistributionClaimedEntity(event);
+    _createDistributionClaimedEntity(event, poolMember.id);
 }
 
 export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
@@ -125,10 +124,10 @@ export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
     }
 
     // Create Event Entity
-    _createMemberUnitsUpdatedEntity(event);
+    _createMemberUnitsUpdatedEntity(event, poolMember.id);
 }
 
-function _createDistributionClaimedEntity(event: DistributionClaimed): DistributionClaimedEvent {
+function _createDistributionClaimedEntity(event: DistributionClaimed, poolMemberId: string): DistributionClaimedEvent {
     const ev = new DistributionClaimedEvent(createEventID("DistributionClaimed", event));
     initializeEventEntity(ev, event, [event.params.token, event.address, event.params.member]);
 
@@ -136,13 +135,13 @@ function _createDistributionClaimedEntity(event: DistributionClaimed): Distribut
     ev.claimedAmount = event.params.claimedAmount;
     ev.totalClaimed = event.params.totalClaimed;
     ev.pool = event.address.toHex();
-    ev.poolMember = event.params.member.toHex();
+    ev.poolMember = poolMemberId;
     ev.save();
 
     return ev;
 }
 
-function _createMemberUnitsUpdatedEntity(event: MemberUnitsUpdated): MemberUnitsUpdatedEvent {
+function _createMemberUnitsUpdatedEntity(event: MemberUnitsUpdated, poolMemberId: string): MemberUnitsUpdatedEvent {
     const ev = new MemberUnitsUpdatedEvent(createEventID("MemberUnitsUpdated", event));
     initializeEventEntity(ev, event, [event.params.token, event.address, event.params.member]);
 
@@ -150,7 +149,7 @@ function _createMemberUnitsUpdatedEntity(event: MemberUnitsUpdated): MemberUnits
     ev.oldUnits = event.params.oldUnits;
     ev.units = event.params.newUnits;
     ev.pool = event.address.toHex();
-    ev.poolMember = event.params.member.toHex();
+    ev.poolMember = poolMemberId;
     ev.save();
 
     return ev;

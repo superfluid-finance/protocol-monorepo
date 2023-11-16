@@ -971,8 +971,8 @@ export default abstract class SuperToken extends ERC20Token {
      * @param overrides The transaction overrides.
      * @returns The call agreement operation result.
      */
-    connectPool = async (params: ConnectPoolParams): Promise<Operation> => {
-        return await this.gdaV1.connectPool({
+    connectPool = (params: ConnectPoolParams): Operation => {
+        return this.gdaV1.connectPool({
             ...params,
         });
     };
@@ -985,10 +985,8 @@ export default abstract class SuperToken extends ERC20Token {
      * @param overrides The transaction overrides.
      * @returns The call agreement operation result.
      */
-    disconnectPool = async (
-        params: DisconnectPoolParams
-    ): Promise<Operation> => {
-        return await this.gdaV1.disconnectPool({
+    disconnectPool = (params: DisconnectPoolParams): Operation => {
+        return this.gdaV1.disconnectPool({
             ...params,
         });
     };
@@ -1003,10 +1001,8 @@ export default abstract class SuperToken extends ERC20Token {
      * @param overrides The transaction overrides.
      * @returns The call agreement operation result.
      */
-    distributeWithGDA = async (
-        params: SuperTokenDistributeParams
-    ): Promise<Operation> => {
-        return await this.gdaV1.distribute({
+    distributeWithGDA = (params: SuperTokenDistributeParams): Operation => {
+        return this.gdaV1.distribute({
             token: this.settings.address,
             ...params,
         });
@@ -1022,10 +1018,8 @@ export default abstract class SuperToken extends ERC20Token {
      * @param overrides The transaction overrides.
      * @returns The call agreement operation result.
      */
-    distributeFlow = async (
-        params: SuperTokenDistributeFlowParams
-    ): Promise<Operation> => {
-        return await this.gdaV1.distributeFlow({
+    distributeFlow = (params: SuperTokenDistributeFlowParams): Operation => {
+        return this.gdaV1.distributeFlow({
             token: this.settings.address,
             ...params,
         });

@@ -167,7 +167,7 @@ export function handlePoolConnectionUpdated(
     _createTokenStatisticLogEntity(event, event.params.token, eventName);
 
     // Create Event Entity
-    _createPoolConnectionUpdatedEntity(event);
+    _createPoolConnectionUpdatedEntity(event, poolMember.id);
 }
 
 export function handleBufferAdjusted(event: BufferAdjusted): void {
@@ -201,7 +201,7 @@ export function handleBufferAdjusted(event: BufferAdjusted): void {
     tokenStatistic.save();
 
     // Create Event Entity
-    _createBufferAdjustedEntity(event);
+    _createBufferAdjustedEntity(event, poolDistributor.id);
 }
 
 export function handleFlowDistributionUpdated(
@@ -266,7 +266,7 @@ export function handleFlowDistributionUpdated(
     );
 
     // Create Event Entity
-    _createFlowDistributionUpdatedEntity(event);
+    _createFlowDistributionUpdatedEntity(event, poolDistributor.id);
 }
 
 export function handleInstantDistributionUpdated(
@@ -344,7 +344,7 @@ export function handleInstantDistributionUpdated(
     );
 
     // Create Event Entity
-    _createInstantDistributionUpdatedEntity(event);
+    _createInstantDistributionUpdatedEntity(event, poolDistributor.id);
 }
 
 // Event Entity Creation Functions
@@ -369,7 +369,8 @@ function _createPoolCreatedEntity(event: PoolCreated): PoolCreatedEvent {
 }
 
 function _createPoolConnectionUpdatedEntity(
-    event: PoolConnectionUpdated
+    event: PoolConnectionUpdated,
+    poolMemberId: string
 ): PoolConnectionUpdatedEvent {
     const ev = new PoolConnectionUpdatedEvent(
         createEventID("PoolConnectionUpdated", event)
@@ -383,7 +384,7 @@ function _createPoolConnectionUpdatedEntity(
     ev.token = event.params.token;
     ev.connected = event.params.connected;
     ev.pool = event.params.pool.toHex();
-    ev.poolMember = event.params.account.toHex();
+    ev.poolMember = poolMemberId;
     ev.userData = event.params.userData;
 
     ev.save();
@@ -392,7 +393,8 @@ function _createPoolConnectionUpdatedEntity(
 }
 
 function _createBufferAdjustedEntity(
-    event: BufferAdjusted
+    event: BufferAdjusted,
+    poolDistributorId: string
 ): BufferAdjustedEvent {
     const ev = new BufferAdjustedEvent(createEventID("BufferAdjusted", event));
     initializeEventEntity(ev, event, [
@@ -406,7 +408,7 @@ function _createBufferAdjustedEntity(
     ev.newBufferAmount = event.params.newBufferAmount;
     ev.totalBufferAmount = event.params.totalBufferAmount;
     ev.pool = event.params.pool.toHex();
-    ev.poolDistributor = event.params.from.toHex();
+    ev.poolDistributor = poolDistributorId;
 
     ev.save();
 
@@ -414,7 +416,8 @@ function _createBufferAdjustedEntity(
 }
 
 function _createInstantDistributionUpdatedEntity(
-    event: InstantDistributionUpdated
+    event: InstantDistributionUpdated,
+    poolDistributorId: string
 ): InstantDistributionUpdatedEvent {
     const ev = new InstantDistributionUpdatedEvent(
         createEventID("InstantDistributionUpdated", event)
@@ -431,7 +434,7 @@ function _createInstantDistributionUpdatedEntity(
     ev.requestedAmount = event.params.requestedAmount;
     ev.actualAmount = event.params.actualAmount;
     ev.pool = event.params.pool.toHex();
-    ev.poolDistributor = event.params.distributor.toHex();
+    ev.poolDistributor = poolDistributorId;
     ev.userData = event.params.userData;
 
     ev.save();
@@ -440,7 +443,8 @@ function _createInstantDistributionUpdatedEntity(
 }
 
 function _createFlowDistributionUpdatedEntity(
-    event: FlowDistributionUpdated
+    event: FlowDistributionUpdated,
+    poolDistributorId: string
 ): FlowDistributionUpdatedEvent {
     const ev = new FlowDistributionUpdatedEvent(
         createEventID("FlowDistributionUpdated", event)
@@ -460,7 +464,7 @@ function _createFlowDistributionUpdatedEntity(
     ev.adjustmentFlowRecipient = event.params.adjustmentFlowRecipient;
     ev.adjustmentFlowRate = event.params.adjustmentFlowRate;
     ev.pool = event.params.pool.toHex();
-    ev.poolDistributor = event.params.distributor.toHex();
+    ev.poolDistributor = poolDistributorId;
     ev.userData = event.params.userData;
 
     ev.save();

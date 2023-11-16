@@ -2630,7 +2630,7 @@
     "@nomicfoundation/solidity-analyzer-win32-ia32-msvc" "0.1.1"
     "@nomicfoundation/solidity-analyzer-win32-x64-msvc" "0.1.1"
 
-"@nomiclabs/hardhat-ethers@^2.2.1", "@nomiclabs/hardhat-ethers@^2.2.3":
+"@nomiclabs/hardhat-ethers@^2.2.3":
   version "2.2.3"
   resolved "https://registry.yarnpkg.com/@nomiclabs/hardhat-ethers/-/hardhat-ethers-2.2.3.tgz#b41053e360c31a32c2640c9a45ee981a7e603fe0"
   integrity sha512-YhzPdzb612X591FOe68q+qXVXGG2ANZRvDo0RRUtimev85rCrAlv/TLMEZw5c+kq9AbzocLTVX/h2jVIFPL9Xg==
@@ -3026,11 +3026,6 @@
   dependencies:
     find-up "^4.1.0"
     fs-extra "^8.1.0"
-
-"@openzeppelin/contracts@4.8.2":
-  version "4.8.2"
-  resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-4.8.2.tgz#d815ade0027b50beb9bcca67143c6bcc3e3923d6"
-  integrity sha512-kEUOgPQszC0fSYWpbh2kT94ltOJwj1qfT2DWo+zVttmGmf97JZ99LspePNaeeaLhCImaHVeBbjaQFZQn7+Zc5g==
 
 "@openzeppelin/contracts@4.9.3":
   version "4.9.3"
@@ -3524,37 +3519,6 @@
   dependencies:
     antlr4ts "^0.5.0-alpha.4"
 
-"@superfluid-finance/ethereum-contracts@1.7.1":
-  version "1.7.1"
-  resolved "https://registry.yarnpkg.com/@superfluid-finance/ethereum-contracts/-/ethereum-contracts-1.7.1.tgz#e2f08bed42694e94980199607ed9d3222faeb477"
-  integrity sha512-MPimKMSbvJOUkbMzGA2oNdGZrKpJnja3OGS4NdsRO+OxBya2XOTvoy55nb3H/u63IFagoKt6L7eSoJapKtjDrA==
-  dependencies:
-    "@decentral.ee/web3-helpers" "0.5.3"
-    "@openzeppelin/contracts" "4.8.2"
-    "@superfluid-finance/js-sdk" "0.6.3"
-    "@truffle/contract" "4.6.18"
-    ethereumjs-tx "2.1.2"
-    ethereumjs-util "7.1.5"
-    stack-trace "0.0.10"
-
-"@superfluid-finance/metadata@1.1.10":
-  version "1.1.10"
-  resolved "https://registry.yarnpkg.com/@superfluid-finance/metadata/-/metadata-1.1.10.tgz#980991d60066f21646d29eb01a9080c7fae1493d"
-  integrity sha512-IbcpfB/pOwjl/Vam0d1WXNJaeA0bUW/CkQEZlEhUpL+DQh01d6TnxneEjw3VsT9alqamtycKoi6+2uPHAzyvFA==
-
-"@superfluid-finance/sdk-core@0.6.8":
-  version "0.6.8"
-  resolved "https://registry.yarnpkg.com/@superfluid-finance/sdk-core/-/sdk-core-0.6.8.tgz#9ca45546cab97de47eb7e8f4ea190bd7a62fc440"
-  integrity sha512-OoID1Hmu3OJxXmU7P8+VFsU1sFw587Bak27pzwltm64Te7v0lY7HutcOUL4LaHFmqWhaxKoKqwDPNodxU4hVHA==
-  dependencies:
-    "@nomiclabs/hardhat-ethers" "^2.2.1"
-    "@superfluid-finance/ethereum-contracts" "1.7.1"
-    "@superfluid-finance/metadata" "1.1.10"
-    browserify "^17.0.0"
-    graphql-request "^4.3.0"
-    lodash "^4.17.21"
-    tsify "^5.0.4"
-
 "@szmarczak/http-timer@^4.0.5":
   version "4.0.6"
   resolved "https://registry.yarnpkg.com/@szmarczak/http-timer/-/http-timer-4.0.6.tgz#b4a914bb62e7c272d4e5989fe4440f812ab1d807"
@@ -3764,26 +3728,6 @@
     debug "^4.3.1"
     glob "^7.1.6"
 
-"@truffle/contract@4.6.18", "@truffle/contract@^4.0.35", "@truffle/contract@^4.6.18":
-  version "4.6.18"
-  resolved "https://registry.yarnpkg.com/@truffle/contract/-/contract-4.6.18.tgz#096f82dbc05060acc9ed0bd8bb5811f497b8e3ad"
-  integrity sha512-x49EWZI16VMdYV8pH2LYM1AMFM3xAZ6ZFT2dG9Y71nIDZHdh+HKdlPSL40CqFtzpeoEk9UQoSJL99D/DXtpaog==
-  dependencies:
-    "@ensdomains/ensjs" "^2.1.0"
-    "@truffle/blockchain-utils" "^0.1.7"
-    "@truffle/contract-schema" "^3.4.13"
-    "@truffle/debug-utils" "^6.0.47"
-    "@truffle/error" "^0.2.0"
-    "@truffle/interface-adapter" "^0.5.31"
-    bignumber.js "^7.2.1"
-    debug "^4.3.1"
-    ethers "^4.0.32"
-    web3 "1.8.2"
-    web3-core-helpers "1.8.2"
-    web3-core-promievent "1.8.2"
-    web3-eth-abi "1.8.2"
-    web3-utils "1.8.2"
-
 "@truffle/contract@4.6.29":
   version "4.6.29"
   resolved "https://registry.yarnpkg.com/@truffle/contract/-/contract-4.6.29.tgz#c1f0b9f65985ba5d8f35626a612dd31205cfcd6b"
@@ -3803,6 +3747,26 @@
     web3-core-promievent "1.10.0"
     web3-eth-abi "1.10.0"
     web3-utils "1.10.0"
+
+"@truffle/contract@^4.0.35", "@truffle/contract@^4.6.18":
+  version "4.6.18"
+  resolved "https://registry.yarnpkg.com/@truffle/contract/-/contract-4.6.18.tgz#096f82dbc05060acc9ed0bd8bb5811f497b8e3ad"
+  integrity sha512-x49EWZI16VMdYV8pH2LYM1AMFM3xAZ6ZFT2dG9Y71nIDZHdh+HKdlPSL40CqFtzpeoEk9UQoSJL99D/DXtpaog==
+  dependencies:
+    "@ensdomains/ensjs" "^2.1.0"
+    "@truffle/blockchain-utils" "^0.1.7"
+    "@truffle/contract-schema" "^3.4.13"
+    "@truffle/debug-utils" "^6.0.47"
+    "@truffle/error" "^0.2.0"
+    "@truffle/interface-adapter" "^0.5.31"
+    bignumber.js "^7.2.1"
+    debug "^4.3.1"
+    ethers "^4.0.32"
+    web3 "1.8.2"
+    web3-core-helpers "1.8.2"
+    web3-core-promievent "1.8.2"
+    web3-eth-abi "1.8.2"
+    web3-utils "1.8.2"
 
 "@truffle/dashboard-message-bus-client@^0.1.10":
   version "0.1.10"
@@ -10603,15 +10567,6 @@ graphql-import-node@^0.0.5:
   version "0.0.5"
   resolved "https://registry.yarnpkg.com/graphql-import-node/-/graphql-import-node-0.0.5.tgz#caf76a6cece10858b14f27cce935655398fc1bf0"
   integrity sha512-OXbou9fqh9/Lm7vwXT0XoRN9J5+WCYKnbiTalgFDvkQERITRmcfncZs6aVABedd5B85yQU5EULS4a5pnbpuI0Q==
-
-graphql-request@^4.3.0:
-  version "4.3.0"
-  resolved "https://registry.yarnpkg.com/graphql-request/-/graphql-request-4.3.0.tgz#b934e08fcae764aa2cdc697d3c821f046cb5dbf2"
-  integrity sha512-2v6hQViJvSsifK606AliqiNiijb1uwWp6Re7o0RTyH+uRTv/u7Uqm2g4Fjq/LgZIzARB38RZEvVBFOQOVdlBow==
-  dependencies:
-    cross-fetch "^3.1.5"
-    extract-files "^9.0.0"
-    form-data "^3.0.0"
 
 graphql-request@^5.2.0:
   version "5.2.0"

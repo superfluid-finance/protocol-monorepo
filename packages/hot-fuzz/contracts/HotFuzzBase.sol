@@ -47,6 +47,7 @@ contract HotFuzzBase {
     SuperfluidTester[] internal testers;
     address[] internal otherAccounts;
     uint256 internal expectedTotalSupply = 0;
+    bool internal liquidationFails;
 
     constructor(uint nTesters_) {
         _sfDeployer = new SuperfluidFrameworkDeployer();
@@ -163,5 +164,11 @@ contract HotFuzzBase {
         }
         assert(netFlowRateSum == 0);
         return netFlowRateSum == 0;
+    }
+
+    function echidna_check_validLiquidationNeverRevertsInvariant() public view returns (bool) {
+        bool liquidationNeverFails = !liquidationFails;
+        assert(liquidationNeverFails);
+        return liquidationNeverFails;
     }
 }

@@ -40,7 +40,7 @@ abstract contract CFAHotFuzzMixin is HotFuzzBase {
             // solhint-disable-next-line no-empty-blocks
             try liquidator.cfaLiquidate(address(sender), address(recipient)) {}
             catch {
-                assert(false);
+                liquidationFails = true;
             }
         }
     }

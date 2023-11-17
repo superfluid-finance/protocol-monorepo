@@ -70,7 +70,7 @@ abstract contract GDAHotFuzzMixin is HotFuzzBase {
             // solhint-disable-next-line no-empty-blocks
             try liquidator.gdaLiquidate(address(distributor), pool) {}
             catch {
-                assert(false);
+                liquidationFails = true;
             }
         }
     }

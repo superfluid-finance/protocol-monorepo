@@ -388,7 +388,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         }
 
         // you cannot distribute if admin is not equal to the ctx.msgSender
-        if (requestedFlowRate > 0 && !pool.distributionFromAnyAddress()) {
+        if (requestedAmount > 0 && !pool.distributionFromAnyAddress()) {
             if (pool.admin() != currentContext.msgSender) {
                 revert GDA_DISTRIBUTE_FROM_ANY_ADDRESS_NOT_ALLOWED();
             }

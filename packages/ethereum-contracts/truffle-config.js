@@ -207,7 +207,7 @@ const E = (module.exports = {
             ...createNetworkDefaultConfiguration("polygon-mainnet"),
             network_id: 137,
             maxPriorityFeePerGas: 31e9,
-            maxFeePerGas: 500e9,
+            maxFeePerGas: 1500e9,
         },
 
         "polygon-mumbai": {

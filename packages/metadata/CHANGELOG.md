@@ -3,6 +3,10 @@ All notable changes to the metadata will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.1.20]
+### Changed
+- New contract addresses for Resolver and SuperfluidLoader on eth-goerli and polygon-mumbai
+
 ## [v1.1.19]
 ### Added
 - `cliName` property under "subgraphV1" for the canonical subgraph network names, see [here](https://thegraph.com/docs/en/developing/supported-networks/#hosted-service)

@@ -9,9 +9,11 @@ import {
     Value,
 } from "@graphprotocol/graph-ts";
 import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
-import { Resolver } from "../generated/ResolverV1/Resolver";
-import { IndexSubscription, PoolMember, Token, TokenStatistic } from "../generated/schema";
-import { getIsLocalIntegrationTesting } from "./addresses";
+import {
+    IndexSubscription,
+    Token,
+    TokenStatistic,
+} from "../generated/schema";
 
 /**************************************************************************
  * Constants
@@ -114,9 +116,6 @@ export function handleTokenRPCCalls(
     if (token.name.length == 0 || token.symbol.length == 0) {
         token = getTokenInfoAndReturn(token);
     }
-
-    // we do getIsListedToken after getTokenInfoAndReturn because it requires the token symbol
-    token = getIsListedToken(token, resolverAddress);
     return token;
 }
 
@@ -133,22 +132,6 @@ export function getTokenInfoAndReturn(token: Token): Token {
     token.name = nameResult.reverted ? "" : nameResult.value;
     token.symbol = symbolResult.reverted ? "" : symbolResult.value;
     token.decimals = decimalsResult.reverted ? 0 : decimalsResult.value;
-
-    return token;
-}
-
-export function getIsListedToken(
-    token: Token,
-    resolverAddress: Address
-): Token {
-    const resolverContract = Resolver.bind(resolverAddress);
-    const isLocalIntegrationTesting = getIsLocalIntegrationTesting();
-    const version = isLocalIntegrationTesting ? "test" : "v1";
-    const result = resolverContract.try_get(
-        "supertokens." + version + "." + token.symbol
-    );
-    const superTokenAddress = result.reverted ? ZERO_ADDRESS : result.value;
-    token.isListed = token.id == superTokenAddress.toHex();
 
     return token;
 }

@@ -55,8 +55,7 @@ describe("SuperTokenFactory Mapper Unit Tests", () => {
                 DEFAULT_DECIMALS,
                 ZERO_ADDRESS,
                 maticXName,
-                maticXSymbol,
-                false
+                maticXSymbol
             );
 
             handleSuperTokenCreated(SuperTokenCreatedEvent);
@@ -83,8 +82,7 @@ describe("SuperTokenFactory Mapper Unit Tests", () => {
                 DEFAULT_DECIMALS,
                 ZERO_ADDRESS,
                 maticXName,
-                maticXSymbol,
-                false
+                maticXSymbol
             );
 
             handleCustomSuperTokenCreated(CustomSuperTokenCreatedEvent);
@@ -138,8 +136,7 @@ describe("SuperTokenFactory Mapper Unit Tests", () => {
                 DEFAULT_DECIMALS,
                 ZERO_ADDRESS,
                 maticXName,
-                maticXSymbol,
-                false // isListed
+                maticXSymbol
             );
 
             handleSuperTokenCreated(SuperTokenCreatedEvent);
@@ -168,8 +165,7 @@ describe("SuperTokenFactory Mapper Unit Tests", () => {
                 DEFAULT_DECIMALS,
                 Address.fromString(daiAddress),
                 daiXName,
-                daiXSymbol,
-                false
+                daiXSymbol
             );
             // for getOrInitToken ((PoS) Dai Stablecoin (DAI))
             mockedHandleSuperTokenInitRPCCalls(
@@ -177,8 +173,7 @@ describe("SuperTokenFactory Mapper Unit Tests", () => {
                 DEFAULT_DECIMALS,
                 ZERO_ADDRESS,
                 daiName,
-                daiSymbol,
-                false
+                daiSymbol
             );
 
             handleSuperTokenCreated(SuperTokenCreatedEvent);
@@ -226,8 +221,7 @@ describe("SuperTokenFactory Mapper Unit Tests", () => {
                 DEFAULT_DECIMALS,
                 ZERO_ADDRESS,
                 maticXName,
-                maticXSymbol,
-                false // isListed
+                maticXSymbol
             );
 
             handleSuperTokenCreated(SuperTokenCreatedEvent);

@@ -64,7 +64,8 @@ module.exports = eval(`(${S.toString()})()`)(async function (
             "org.superfluid-finance.contracts.SuperToken.implementation"
         )
     ) {
-        throw new Error("Not a super token");
+        // This may be ok, but may also point to a mistake in address handling (e.g. not a SuperToken).
+        console.warn('!!! proxiableUUID is not keccak("org.superfluid-finance.contracts.SuperToken.implementation")');
     }
     const tokenSymbol = symbolOverride !== undefined ? symbolOverride : await superToken.symbol.call();
     const superTokenKey = `supertokens.${protocolReleaseVersion}.${tokenSymbol}`;

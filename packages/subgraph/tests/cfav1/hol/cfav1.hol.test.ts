@@ -27,19 +27,18 @@ describe("ConstantFlowAgreementV1 Higher Order Level Entity Unit Tests", () => {
     test("handleFlowUpdated() - Should create a new Stream entity (create)", () => {
         // create flow
         const flowUpdatedEvent = modifyFlowAndAssertFlowUpdatedEventProperties(
-            maticXAddress, // superToken
-            maticXName, // tokenName
-            maticXSymbol, // tokenSymbol
-            alice, // sender
-            bob, // receiver
-            ZERO_ADDRESS, // underlyingToken
-            "0", // expectedType
-            BIG_INT_ZERO, // expectedOwedDeposit
-            initialFlowRate, // flowRate
-            BIG_INT_ZERO, // previousSenderFlowRate
-            BIG_INT_ZERO, // previousReceiverFlowRate
-            true, // isListed,
-            "henlo" // userData
+            maticXAddress,      // superToken
+            maticXName,         // tokenName
+            maticXSymbol,       // tokenSymbol
+            alice,              // sender
+            bob,                // receiver
+            ZERO_ADDRESS,       // underlyingToken
+            "0",                // expectedType
+            BIG_INT_ZERO,       // expectedOwedDeposit
+            initialFlowRate,    // flowRate
+            BIG_INT_ZERO,       // previousSenderFlowRate
+            BIG_INT_ZERO,       // previousReceiverFlowRate
+            "henlo"             // userData
         );
 
         const id = getStreamID(

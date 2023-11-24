@@ -99,8 +99,7 @@ describe("SuperToken Mapper Unit Tests", () => {
                 DEFAULT_DECIMALS,
                 ZERO_ADDRESS,
                 maticXName,
-                maticXSymbol,
-                false
+                maticXSymbol
             );
 
             mockedRealtimeBalanceOf(
@@ -214,8 +213,7 @@ describe("SuperToken Mapper Unit Tests", () => {
                 DEFAULT_DECIMALS,
                 ZERO_ADDRESS,
                 maticXName,
-                maticXSymbol,
-                false
+                maticXSymbol
             );
 
             mockedRealtimeBalanceOf(

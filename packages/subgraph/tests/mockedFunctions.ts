@@ -1,12 +1,11 @@
 import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
 import { createMockedFunction } from "matchstick-as/assembly/index";
 import { FlowUpdated } from "../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
-import { BIG_INT_ZERO, ZERO_ADDRESS } from "../src/utils";
+import { BIG_INT_ZERO } from "../src/utils";
 import {
     FAKE_INITIAL_BALANCE,
     FAKE_SUPER_TOKEN_TOTAL_SUPPLY,
     hostAddress,
-    resolverAddress,
 } from "./constants";
 import {
     getETHAddress,
@@ -28,15 +27,13 @@ import {
  * @param underlyingAddress
  * @param tokenName
  * @param tokenSymbol
- * @param isListed
  */
 export function mockedHandleSuperTokenInitRPCCalls(
     superToken: string,
     decimals: i32,
     underlyingAddress: Address,
     tokenName: string,
-    tokenSymbol: string,
-    isListed: boolean
+    tokenSymbol: string
 ): void {
     // [START] getTokenInfoAndReturn =>
     // token.try_getUnderlyingToken()
@@ -48,13 +45,6 @@ export function mockedHandleSuperTokenInitRPCCalls(
     // token.try_decimals()
     mockedTokenDecimals(superToken, decimals);
     // [END] getTokenInfoAndReturn
-
-    // getIsListedToken(token, resolver) => resolver.try_get(key)
-    mockedResolverGet(
-        resolverAddress,
-        "supertokens.v1." + tokenSymbol,
-        isListed ? superToken : ZERO_ADDRESS.toHexString()
-    );
 
     // updateTotalSupplyForNativeSuperToken(token, tokenStatistic, tokenAddress)
     mockedTokenTotalSupply(superToken, FAKE_SUPER_TOKEN_TOTAL_SUPPLY);
@@ -70,7 +60,6 @@ export function mockedHandleSuperTokenInitRPCCalls(
  * @param underlyingAddress
  * @param expectedDeposit
  * @param expectedOwedDeposit
- * @param isListed
  */
 export function mockedHandleFlowUpdatedRPCCalls(
     flowUpdatedEvent: FlowUpdated,
@@ -80,8 +69,7 @@ export function mockedHandleFlowUpdatedRPCCalls(
     tokenSymbol: string,
     underlyingAddress: Address,
     expectedDeposit: BigInt,
-    expectedOwedDeposit: BigInt,
-    isListed: boolean
+    expectedOwedDeposit: BigInt
 ): void {
     const sender = flowUpdatedEvent.params.sender.toHex();
     const receiver = flowUpdatedEvent.params.receiver.toHex();
@@ -113,8 +101,7 @@ export function mockedHandleFlowUpdatedRPCCalls(
         decimals,
         underlyingAddress,
         tokenName,
-        tokenSymbol,
-        isListed
+        tokenSymbol
     );
     // [END] getOrInitStream(event) => getOrInitSuperToken(token, block) => handleTokenRPCCalls(token, resolverAddress)
 

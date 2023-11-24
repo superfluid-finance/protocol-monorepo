@@ -5,8 +5,6 @@ import { getStreamID } from "../src/utils";
 
 /**
  * Creates a SuperToken entity
- * Note: this is needed otherwise we get a null error when we try
- *       run getIsListedToken and it tries to access token.symbol
  * @param tokenAddress the address of the token
  * @param block transaction block object
  * @param decimals number of decimals

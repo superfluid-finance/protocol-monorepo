@@ -89,7 +89,7 @@ export function createFlowOperatorUpdatedEvent(
  * @param flowRate
  * @param previousSenderFlowRate
  * @param previousReceiverFlowRate
- * @param isListed
+ * @param stringUserData
  * @returns FlowUpdated event
  */
  export function modifyFlowAndAssertFlowUpdatedEventProperties(
@@ -104,7 +104,6 @@ export function createFlowOperatorUpdatedEvent(
     flowRate: BigInt,
     previousSenderFlowRate: BigInt,
     previousReceiverFlowRate: BigInt,
-    isListed: boolean,
     stringUserData: string
 ): FlowUpdated {
     const oldFlowRate = previousSenderFlowRate.abs();
@@ -133,8 +132,7 @@ export function createFlowOperatorUpdatedEvent(
         tokenSymbol,
         underlyingToken,
         deposit,
-        expectedOwedDeposit,
-        isListed
+        expectedOwedDeposit
     );
 
     handleFlowUpdated(flowUpdatedEvent);

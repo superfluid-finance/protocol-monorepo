@@ -40,7 +40,6 @@ describe("ConstantFlowAgreementV1 Higher Order Level Entity Unit Tests", () => {
             initialFlowRate,    // flowRate
             BIG_INT_ZERO,       // previousSenderFlowRate
             BIG_INT_ZERO,       // previousReceiverFlowRate
-            true,               // isListed,
             "henlo"             // userData
         );
 

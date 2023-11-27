@@ -57,8 +57,7 @@ describe("InstantDistributionV1 Event Entity Unit Tests", () => {
             DEFAULT_DECIMALS,
             ZERO_ADDRESS,
             maticXName,
-            maticXSymbol,
-            true
+            maticXSymbol
         );
 
         // getOrInitIndex(event) => getOrInitAccount(publisher) => host.try_getAppManifest(sender)

@@ -18,6 +18,7 @@
         "pretest": "yarn testenv:start",
         "test": "npx hardhat test",
         "matchstick": "run-s matchstick:*",
+        "matchstick:build-network-config": "npx ts-node scripts/buildNetworkConfig.ts polygon-mainnet",
         "matchstick:prepare-manifest": "mustache config/polygon-mainnet.json subgraph.template.yaml > subgraph.yaml",
         "matchstick:prepare-addresses": "mustache config/polygon-mainnet.json src/addresses.template.ts > src/addresses.ts",
         "matchstick:prepare-generated": "yarn getAbi && yarn codegen && yarn generate-sf-meta-local",

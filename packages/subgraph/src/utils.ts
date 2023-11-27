@@ -13,6 +13,7 @@ import {
     IndexSubscription,
     Token,
     TokenStatistic,
+    PoolMember,
 } from "../generated/schema";
 
 /**************************************************************************

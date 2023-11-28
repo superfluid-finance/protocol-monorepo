@@ -358,12 +358,6 @@ templates:
         - event: Approval(indexed address,indexed address,uint256)
           handler: handleApproval
           receipt: true
-        - event: ConstantOutflowNFTCreated(indexed address)
-          handler: handleConstantOutflowNFTCreated
-          receipt: true
-        - event: ConstantInflowNFTCreated(indexed address)
-          handler: handleConstantInflowNFTCreated
-          receipt: true
   - kind: ethereum/contract
     name: SuperfluidGovernance
     network: {{ network }}

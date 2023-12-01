@@ -674,18 +674,20 @@ export const mapGetAllEventsQueryEvents = (
                     additionalBond: x.additionalBond,
                 });
             default:
+                // eslint-disable-next-line no-case-declarations
+                const eventBase = x as events.EventBase;
                 console.warn(
-                    "An unknown event was detected which couldn't be mapped. Please update to the latest version of @superfluid-finance/sdk-core."
+                    `An unknown event [${eventBase.name}] was detected which couldn't be properly mapped. Please update to the latest version of @superfluid-finance/sdk-core.`
                 );
                 return typeGuard<events.UnknownEvent>({
-                    name: "_Unknown",
-                    id: (x as events.EventBase).id,
-                    blockNumber: (x as events.EventBase).blockNumber,
-                    transactionHash: (x as events.EventBase).transactionHash,
-                    gasPrice: (x as events.EventBase).gasPrice,
-                    order: (x as events.EventBase).order,
-                    timestamp: (x as events.EventBase).timestamp,
-                    logIndex: (x as events.EventBase).logIndex,
+                    name: eventBase.name,
+                    id: eventBase.id,
+                    blockNumber: eventBase.blockNumber,
+                    transactionHash: eventBase.transactionHash,
+                    gasPrice: eventBase.gasPrice,
+                    order: eventBase.order,
+                    timestamp: eventBase.timestamp,
+                    logIndex: eventBase.logIndex,
                 });
         }
     });

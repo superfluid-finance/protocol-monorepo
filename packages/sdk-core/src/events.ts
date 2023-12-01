@@ -6,6 +6,7 @@ export type EventBase = {
     order: number;
     timestamp: number;
     logIndex: number;
+    name: string;
 };
 
 export interface IEventFilter {
@@ -435,5 +436,5 @@ export interface BondIncreasedEvent extends EventBase {
 }
 
 export interface UnknownEvent extends EventBase {
-    name: "_Unknown";
+    name: string;
 }

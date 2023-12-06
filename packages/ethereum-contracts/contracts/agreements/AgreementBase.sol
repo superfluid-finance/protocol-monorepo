@@ -14,7 +14,6 @@ abstract contract AgreementBase is
 {
     address immutable internal _host;
 
-    // Custom Erorrs
     error AGREEMENT_BASE_ONLY_HOST(); // 0x1601d91e
 
     constructor(address host)

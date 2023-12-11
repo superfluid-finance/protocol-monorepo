@@ -124,7 +124,7 @@ export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
     }
 
     // Create Event Entity
-    _createMemberUnitsUpdatedEntity(event, poolMember.id);
+    _createMemberUnitsUpdatedEntity(event, poolMember.id, pool.totalUnits);
 }
 
 function _createDistributionClaimedEntity(event: DistributionClaimed, poolMemberId: string): DistributionClaimedEvent {
@@ -141,13 +141,18 @@ function _createDistributionClaimedEntity(event: DistributionClaimed, poolMember
     return ev;
 }
 
-function _createMemberUnitsUpdatedEntity(event: MemberUnitsUpdated, poolMemberId: string): MemberUnitsUpdatedEvent {
+function _createMemberUnitsUpdatedEntity(
+    event: MemberUnitsUpdated,
+    poolMemberId: string,
+    totalUnits: BigInt
+): MemberUnitsUpdatedEvent {
     const ev = new MemberUnitsUpdatedEvent(createEventID("MemberUnitsUpdated", event));
     initializeEventEntity(ev, event, [event.params.token, event.address, event.params.member]);
 
     ev.token = event.params.token;
     ev.oldUnits = event.params.oldUnits;
     ev.units = event.params.newUnits;
+    ev.totalUnits = totalUnits;
     ev.pool = event.address.toHex();
     ev.poolMember = poolMemberId;
     ev.save();

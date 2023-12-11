@@ -266,7 +266,7 @@ export function handleFlowDistributionUpdated(
     );
 
     // Create Event Entity
-    _createFlowDistributionUpdatedEntity(event, poolDistributor.id);
+    _createFlowDistributionUpdatedEntity(event, poolDistributor.id, pool.totalUnits);
 }
 
 export function handleInstantDistributionUpdated(
@@ -344,7 +344,7 @@ export function handleInstantDistributionUpdated(
     );
 
     // Create Event Entity
-    _createInstantDistributionUpdatedEntity(event, poolDistributor.id);
+    _createInstantDistributionUpdatedEntity(event, poolDistributor.id, pool.totalUnits);
 }
 
 // Event Entity Creation Functions
@@ -417,7 +417,8 @@ function _createBufferAdjustedEntity(
 
 function _createInstantDistributionUpdatedEntity(
     event: InstantDistributionUpdated,
-    poolDistributorId: string
+    poolDistributorId: string,
+    totalUnits: BigInt
 ): InstantDistributionUpdatedEvent {
     const ev = new InstantDistributionUpdatedEvent(
         createEventID("InstantDistributionUpdated", event)
@@ -435,6 +436,7 @@ function _createInstantDistributionUpdatedEntity(
     ev.actualAmount = event.params.actualAmount;
     ev.pool = event.params.pool.toHex();
     ev.poolDistributor = poolDistributorId;
+    ev.totalUnits = totalUnits;
     ev.userData = event.params.userData;
 
     ev.save();
@@ -444,7 +446,8 @@ function _createInstantDistributionUpdatedEntity(
 
 function _createFlowDistributionUpdatedEntity(
     event: FlowDistributionUpdated,
-    poolDistributorId: string
+    poolDistributorId: string,
+    totalUnits: BigInt
 ): FlowDistributionUpdatedEvent {
     const ev = new FlowDistributionUpdatedEvent(
         createEventID("FlowDistributionUpdated", event)
@@ -465,6 +468,7 @@ function _createFlowDistributionUpdatedEntity(
     ev.adjustmentFlowRate = event.params.adjustmentFlowRate;
     ev.pool = event.params.pool.toHex();
     ev.poolDistributor = poolDistributorId;
+    ev.totalUnits = totalUnits;
     ev.userData = event.params.userData;
 
     ev.save();

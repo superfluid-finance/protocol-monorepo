@@ -1,3 +1,4 @@
+import { BigInt } from "@graphprotocol/graph-ts";
 import {
     BufferAdjusted,
     FlowDistributionUpdated,

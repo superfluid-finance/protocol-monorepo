@@ -17,7 +17,7 @@ SATSUMA_NETWORKS=( "polygon-mainnet" "xdai-mainnet" "eth-mainnet" "eth-sepolia" 
 # shellcheck disable=SC2034
 SUPERFLUID_NETWORKS=( "polygon-zkevm-testnet" "polygon-mainnet" "eth-sepolia" "base-goerli" "eth-mainnet" "xdai-mainnet" "base-mainnet" "optimism-mainnet" "arbitrum-one")
 
-VENDOR_NETWORKS=(
+declare -A VENDOR_NETWORKS=(
     ["graph"]="${GRAPH_NETWORKS[@]}"
     ["satsuma"]="${SATSUMA_NETWORKS[@]}"
     ["superfluid"]="${SUPERFLUID_NETWORKS[@]}"

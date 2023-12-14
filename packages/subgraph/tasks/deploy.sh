@@ -17,6 +17,12 @@ SATSUMA_NETWORKS=( "polygon-mainnet" "xdai-mainnet" "eth-mainnet" "eth-sepolia" 
 # shellcheck disable=SC2034
 SUPERFLUID_NETWORKS=( "polygon-zkevm-testnet" "polygon-mainnet" "eth-sepolia" "base-goerli" "eth-mainnet" "xdai-mainnet" "base-mainnet" "optimism-mainnet" "arbitrum-one")
 
+declare -A VENDOR_NETWORKS=(
+    ["graph"]="${GRAPH_NETWORKS[@]}"
+    ["satsuma"]="${SATSUMA_NETWORKS[@]}"
+    ["superfluid"]="${SUPERFLUID_NETWORKS[@]}"
+)
+
 VENDOR=""
 NETWORK=""
 DEPLOYMENT_ENV=""
@@ -163,7 +169,7 @@ fi
 
 # Handle all vs specific network
 if [ "$NETWORK" == "all" ]; then
-    for network in "${NETWORKS_REF[@]}"; do
+    for network in ${VENDOR_NETWORKS[$VENDOR]}; do
         deploy_to "$VENDOR" "$network"
     done
 else

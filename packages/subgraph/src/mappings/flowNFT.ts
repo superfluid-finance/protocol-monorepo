@@ -15,6 +15,7 @@ import { createEventID, initializeEventEntity } from "../utils";
 export function handleApproval(event: Approval): void {
     const eventId = createEventID("Approval", event);
     const ev = new ApprovalEvent(eventId);
+    initializeEventEntity(ev, event, []);
     ev.owner = event.params.owner.toHex();
     ev.to = event.params.approved.toHex();
     ev.tokenId = event.params.tokenId;

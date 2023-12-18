@@ -15,7 +15,7 @@ GRAPH_NETWORKS=( $($JQ -r .[] ./hosted-service-networks.json) ) || exit 1
 # shellcheck disable=SC2034
 SATSUMA_NETWORKS=( "polygon-mainnet" "xdai-mainnet" "eth-mainnet" "eth-sepolia" "optimism-mainnet" "base-mainnet")
 # shellcheck disable=SC2034
-SUPERFLUID_NETWORKS=( "polygon-zkevm-testnet" "polygon-mainnet" "eth-sepolia" "base-goerli" "eth-mainnet" "xdai-mainnet" "base-mainnet" "optimism-mainnet" "arbitrum-one")
+SUPERFLUID_NETWORKS=( "polygon-zkevm-testnet" "polygon-mainnet" "eth-sepolia" "base-goerli" "eth-mainnet" "xdai-mainnet" "base-mainnet" "optimism-mainnet" "arbitrum-one" "celo-mainnet" "bsc-mainnet" "avalanche-c")
 
 declare -A VENDOR_NETWORKS=(
     ["graph"]="${GRAPH_NETWORKS[@]}"

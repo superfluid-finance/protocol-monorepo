@@ -19,7 +19,7 @@
         "lint:workspaces": "yarn workspaces run lint",
         "lint:actionlint": "actionlint .github/workflows/*.yml",
         "build": "yarn build-essentials #synonym of build-essentials",
-        "build-essentials": "set -ex;for i in metadata ethereum-contracts js-sdk sdk-core sdk-redux;do yarn workspace @superfluid-finance/$i build;done",
+        "build-essentials": "set -ex;for i in metadata ethereum-contracts js-sdk sdk-core;do yarn workspace @superfluid-finance/$i build;done",
         "build-for-contracts-dev": "set -ex;for i in metadata ethereum-contracts js-sdk;do yarn workspace @superfluid-finance/$i build;done",
         "clean": "rm -rf node_modules; rm -rf packages/*/node_modules; yarn workspace @superfluid-finance/ethereum-contracts clean",
         "test": "set -ex;for i in ethereum-contracts;do yarn workspace @superfluid-finance/$i test;done",

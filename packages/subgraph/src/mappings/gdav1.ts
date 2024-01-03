@@ -25,6 +25,7 @@ import {
     updateAggregateDistributionAgreementData,
     updatePoolDistributorTotalAmountFlowedAndDistributed,
     updatePoolTotalAmountFlowedAndDistributed,
+    updateSenderATSStreamData,
     updateTokenStatisticStreamData,
     updateTokenStatsStreamedUntilUpdatedAt,
 } from "../mappingHelpers";
@@ -253,6 +254,17 @@ export function handleFlowDistributionUpdated(
     _createTokenStatisticLogEntity(event, event.params.token, eventName);
 
     // Update ATS
+    updateSenderATSStreamData(
+        event.params.distributor,
+        event.params.token,
+        event.params.newDistributorToPoolFlowRate,
+        flowRateDelta,
+        BIG_INT_ZERO,
+        isCreate,
+        isDelete,
+        false,
+        event.block
+    );
     updateATSStreamedAndBalanceUntilUpdatedAt(
         event.params.distributor,
         event.params.token,

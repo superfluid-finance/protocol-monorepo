@@ -56,14 +56,6 @@ EOF
         ) > "$CONTRACTS_DIR/${contract_name}.json"
 }
 
-if [ -n "$CONSTANT_OUTFLOW_NFT_LOGIC" ]; then
-    try_verify ConstantOutflowNFT@"${CONSTANT_OUTFLOW_NFT_LOGIC}"
-fi
-
-if [ -n "$CONSTANT_INFLOW_NFT_LOGIC" ]; then
-    try_verify ConstantInflowNFT@"${CONSTANT_INFLOW_NFT_LOGIC}"
-fi
-
 if [ -n "$RESOLVER" ]; then
     try_verify Resolver@"${RESOLVER}"
 fi

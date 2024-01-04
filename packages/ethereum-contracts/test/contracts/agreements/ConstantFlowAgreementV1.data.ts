@@ -509,8 +509,8 @@ export default class CFADataModel {
         const rounding = roundingDown
             ? 0
             : deposit.and(toBN(0xffffffff)).isZero()
-            ? 0
-            : 1;
+              ? 0
+              : 1;
         return deposit.shr(32).add(rounding).shl(32);
     }
 

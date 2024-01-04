@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.19;
+pragma solidity 0.8.20;
 
-import { AccessControlEnumerable } from "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
+import { AccessControlEnumerable } from "@openzeppelin/contracts/access/extensions/AccessControlEnumerable.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {
     ISuperToken,
@@ -29,10 +29,10 @@ contract SuperUpgrader is AccessControlEnumerable {
 
     constructor(address adminRole, address[] memory backendAddr) {
         require(adminRole != address(0), "adminRole is empty");
-        _setupRole(DEFAULT_ADMIN_ROLE, adminRole);
+        _grantRole(DEFAULT_ADMIN_ROLE, adminRole);
         for (uint256 i = 0; i < backendAddr.length; ++i) {
             require(backendAddr[i] != address(0), "backend can't be zero");
-            _setupRole(BACKEND_ROLE, backendAddr[i]);
+            _grantRole(BACKEND_ROLE, backendAddr[i]);
         }
     }
 

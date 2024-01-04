@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.19;
+pragma solidity 0.8.20;
 
 // Interface to define expected behavior of a stream handler.
 // We are defining a stream operation as a create, update, or delete flow.

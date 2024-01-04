@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.11;
 
-import { AccessControlEnumerable } from "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
+import { AccessControlEnumerable } from "@openzeppelin/contracts/access/extensions/AccessControlEnumerable.sol";
 import { IResolver } from "../interfaces/utils/IResolver.sol";
-
 
 /**
  * @title Resolver contract
@@ -16,11 +15,10 @@ import { IResolver } from "../interfaces/utils/IResolver.sol";
  * - IResolver event `Set`: resolver name updates
  */
 contract Resolver is IResolver, AccessControlEnumerable {
-
     mapping(string => address) private _registry;
 
     constructor() {
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
     function set(string calldata name, address target) external override {
@@ -32,5 +30,4 @@ contract Resolver is IResolver, AccessControlEnumerable {
     function get(string calldata name) external view override returns (address) {
         return _registry[name];
     }
-
 }

@@ -1,18 +1,16 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.19;
+pragma solidity 0.8.20;
 
 import { Context } from "@openzeppelin/contracts/utils/Context.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { IERC777 } from "@openzeppelin/contracts/token/ERC777/IERC777.sol";
-import { IERC777Sender } from "@openzeppelin/contracts/token/ERC777/IERC777Sender.sol";
-import { IERC777Recipient } from "@openzeppelin/contracts/token/ERC777/IERC777Recipient.sol";
-import { IERC1820Registry } from "@openzeppelin/contracts/utils/introspection/IERC1820Registry.sol";
-import {
-    ERC1820Implementer, IERC1820Implementer
-} from "@openzeppelin/contracts/utils/introspection/ERC1820Implementer.sol";
+import { IERC777 } from "../interfaces/deprecated/IERC777.sol";
+import { IERC777Sender } from "../interfaces/deprecated/IERC777Sender.sol";
+import { IERC777Recipient } from "../interfaces/deprecated/IERC777Recipient.sol";
+import { IERC1820Registry } from "@openzeppelin/contracts/interfaces/IERC1820Registry.sol";
+import { IERC1820Implementer } from "@openzeppelin/contracts/interfaces/IERC1820Implementer.sol";
+import { ERC1820Implementer } from "../interfaces/deprecated/ERC1820Implementer.sol";
 
 import { ISuperToken } from "../superfluid/SuperToken.sol";
-
 
 contract ERC777SenderRecipientMock is Context, IERC777Sender, IERC777Recipient, ERC1820Implementer {
     event TokensToSendCalled(
@@ -44,8 +42,8 @@ contract ERC777SenderRecipientMock is Context, IERC777Sender, IERC777Recipient, 
 
     IERC1820Registry private _erc1820 = IERC1820Registry(0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24);
 
-    bytes32 constant private _TOKENS_SENDER_INTERFACE_HASH = keccak256("ERC777TokensSender");
-    bytes32 constant private _TOKENS_RECIPIENT_INTERFACE_HASH = keccak256("ERC777TokensRecipient");
+    bytes32 private constant _TOKENS_SENDER_INTERFACE_HASH = keccak256("ERC777TokensSender");
+    bytes32 private constant _TOKENS_RECIPIENT_INTERFACE_HASH = keccak256("ERC777TokensRecipient");
 
     function tokensToSend(
         address operator,
@@ -66,15 +64,7 @@ contract ERC777SenderRecipientMock is Context, IERC777Sender, IERC777Recipient, 
         uint256 toBalance = token.balanceOf(to);
 
         emit TokensToSendCalled(
-            operator,
-            from,
-            to,
-            amount,
-            userData,
-            operatorData,
-            address(token),
-            fromBalance,
-            toBalance
+            operator, from, to, amount, userData, operatorData, address(token), fromBalance, toBalance
         );
     }
 
@@ -97,15 +87,7 @@ contract ERC777SenderRecipientMock is Context, IERC777Sender, IERC777Recipient, 
         uint256 toBalance = token.balanceOf(to);
 
         emit TokensReceivedCalled(
-            operator,
-            from,
-            to,
-            amount,
-            userData,
-            operatorData,
-            address(token),
-            fromBalance,
-            toBalance
+            operator, from, to, amount, userData, operatorData, address(token), fromBalance, toBalance
         );
     }
 
@@ -168,7 +150,7 @@ contract ERC777SenderRecipientMock is Context, IERC777Sender, IERC777Recipient, 
 }
 
 contract ERC777RecipientReverting is IERC777Recipient, IERC1820Implementer {
-    bytes32 constant private _TOKENS_RECIPIENT_INTERFACE_HASH = keccak256("ERC777TokensRecipient");
+    bytes32 private constant _TOKENS_RECIPIENT_INTERFACE_HASH = keccak256("ERC777TokensRecipient");
 
     // allow to use the hook for this contract itself
     constructor() {
@@ -177,25 +159,26 @@ contract ERC777RecipientReverting is IERC777Recipient, IERC1820Implementer {
     }
 
     function tokensReceived(
-        address /*operator*/,
-        address /*from*/,
-        address /*to*/,
-        uint256 /*amount*/,
-        bytes calldata /*userData*/,
+        address, /*operator*/
+        address, /*from*/
+        address, /*to*/
+        uint256, /*amount*/
+        bytes calldata, /*userData*/
         bytes calldata /*operatorData*/
     ) external pure override {
         revert("they shall not pass");
     }
 
     // allow anybody to use the hook
-    function canImplementInterfaceForAddress(bytes32 interfaceHash, address /*addr*/)
-        external pure override
-        returns(bytes32)
+    function canImplementInterfaceForAddress(bytes32 interfaceHash, address /*addr*/ )
+        external
+        pure
+        override
+        returns (bytes32)
     {
-        return
-            interfaceHash == _TOKENS_RECIPIENT_INTERFACE_HASH ?
-            keccak256(abi.encodePacked("ERC1820_ACCEPT_MAGIC")) :
-            bytes32(0x00);
+        return interfaceHash == _TOKENS_RECIPIENT_INTERFACE_HASH
+            ? keccak256(abi.encodePacked("ERC1820_ACCEPT_MAGIC"))
+            : bytes32(0x00);
     }
 }
 
@@ -203,36 +186,36 @@ contract ERC777RecipientReverting is IERC777Recipient, IERC1820Implementer {
 * ERC777Recipient which drains all gas it gets, trying to make the caller run out of gas
 */
 contract ERC777RecipientDrainingGas is IERC777Recipient, IERC1820Implementer {
-    bytes32 constant private _TOKENS_RECIPIENT_INTERFACE_HASH = keccak256("ERC777TokensRecipient");
+    bytes32 private constant _TOKENS_RECIPIENT_INTERFACE_HASH = keccak256("ERC777TokensRecipient");
     uint256 internal _uselessVar = 1;
 
     event DrainedGas(uint256 allowance, uint256 burned);
 
     function tokensReceived(
-        address /*operator*/,
-        address /*from*/,
-        address /*to*/,
-        uint256 /*amount*/,
-        bytes calldata /*userData*/,
+        address, /*operator*/
+        address, /*from*/
+        address, /*to*/
+        uint256, /*amount*/
+        bytes calldata, /*userData*/
         bytes calldata /*operatorData*/
     ) external override {
         uint256 initialGas = gasleft();
-        while (gasleft() > 30000) { // need to leave enough for the send() itself to not fail
+        while (gasleft() > 30000) {
+            // need to leave enough for the send() itself to not fail
             _uselessVar++; // SSTORE drains much faster than an empty loop
         }
         emit DrainedGas(initialGas, gasleft());
     }
 
     // allow anybody to use the hook
-    function canImplementInterfaceForAddress(bytes32 interfaceHash, address /*addr*/)
-        external pure override
-        returns(bytes32)
+    function canImplementInterfaceForAddress(bytes32 interfaceHash, address /*addr*/ )
+        external
+        pure
+        override
+        returns (bytes32)
     {
-        return
-            interfaceHash == _TOKENS_RECIPIENT_INTERFACE_HASH ?
-            keccak256(abi.encodePacked("ERC1820_ACCEPT_MAGIC")) :
-            bytes32(0x00);
+        return interfaceHash == _TOKENS_RECIPIENT_INTERFACE_HASH
+            ? keccak256(abi.encodePacked("ERC1820_ACCEPT_MAGIC"))
+            : bytes32(0x00);
     }
 }
-
-

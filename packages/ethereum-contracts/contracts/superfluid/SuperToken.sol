@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.19;
+pragma solidity 0.8.20;
 
 // solhint-disable max-states-count
 // Notes: SuperToken is rich with states, disable this default rule here.
@@ -15,10 +15,10 @@ import {
 import { SuperfluidToken } from "./SuperfluidToken.sol";
 import { ERC777Helper } from "../libs/ERC777Helper.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import { SafeMath } from "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
-import { IERC777Recipient } from "@openzeppelin/contracts/token/ERC777/IERC777Recipient.sol";
-import { IERC777Sender } from "@openzeppelin/contracts/token/ERC777/IERC777Sender.sol";
+import { IERC777Recipient } from "../interfaces/deprecated/IERC777Recipient.sol";
+import { IERC777Sender } from "../interfaces/deprecated/IERC777Sender.sol";
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 
 /**
@@ -32,7 +32,7 @@ contract SuperToken is
     ISuperToken
 {
 
-    using SafeMath for uint256;
+    using Math for uint256;
     using SafeCast for uint256;
     using Address for address;
     using ERC777Helper for ERC777Helper.Operators;
@@ -272,7 +272,7 @@ contract SuperToken is
             _approve(
                 holder,
                 spender,
-                _allowances[holder][spender].sub(amount, "SuperToken: transfer amount exceeds allowance"));
+                _allowances[holder][spender].trySub(amount, "SuperToken: transfer amount exceeds allowance"));
         }
 
         return true;

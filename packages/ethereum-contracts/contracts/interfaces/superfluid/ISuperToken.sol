@@ -3,7 +3,7 @@ pragma solidity >= 0.8.11;
 
 import { ISuperfluidToken } from "./ISuperfluidToken.sol";
 import { IERC20, IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import { IERC777 } from "@openzeppelin/contracts/token/ERC777/IERC777.sol";
+import { IERC777 } from "../deprecated/IERC777.sol";
 import { IConstantOutflowNFT } from "./IConstantOutflowNFT.sol";
 import { IConstantInflowNFT } from "./IConstantInflowNFT.sol";
 

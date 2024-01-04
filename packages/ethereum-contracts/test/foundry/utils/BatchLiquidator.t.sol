@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.19;
+pragma solidity 0.8.20;
 
 import { FoundrySuperfluidTester, SuperTokenV1Library } from "../FoundrySuperfluidTester.sol";
 import { ISuperToken, SuperToken, ISuperfluid, IConstantOutflowNFT, IConstantInflowNFT } from "../../../contracts/superfluid/SuperToken.sol";

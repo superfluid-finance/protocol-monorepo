@@ -680,7 +680,8 @@ export const mapGetAllEventsQueryEvents = (
                     `An unknown event [${eventBase.name}] was detected which couldn't be properly mapped. Please update to the latest version of @superfluid-finance/sdk-core.`
                 );
                 return typeGuard<events.UnknownEvent>({
-                    name: eventBase.name,
+                    // force casted as empty string for the type system
+                    name: eventBase.name as "",
                     id: eventBase.id,
                     blockNumber: eventBase.blockNumber,
                     transactionHash: eventBase.transactionHash,

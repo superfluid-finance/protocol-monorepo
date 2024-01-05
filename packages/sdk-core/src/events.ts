@@ -436,5 +436,6 @@ export interface BondIncreasedEvent extends EventBase {
 }
 
 export interface UnknownEvent extends EventBase {
-    name: string;
+    // @note using the string type breaks the type guard
+    name: "";
 }

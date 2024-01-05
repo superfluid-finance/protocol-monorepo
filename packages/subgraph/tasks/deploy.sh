@@ -15,7 +15,13 @@ GRAPH_NETWORKS=( $($JQ -r .[] ./hosted-service-networks.json) ) || exit 1
 # shellcheck disable=SC2034
 SATSUMA_NETWORKS=( "polygon-mainnet" "xdai-mainnet" "eth-mainnet" "eth-sepolia" "optimism-mainnet" "base-mainnet")
 # shellcheck disable=SC2034
-SUPERFLUID_NETWORKS=( "polygon-zkevm-testnet" "polygon-mainnet" "eth-sepolia" "base-goerli" "eth-mainnet" "xdai-mainnet" "base-mainnet" "optimism-mainnet" "arbitrum-one")
+SUPERFLUID_NETWORKS=( "polygon-zkevm-testnet" "polygon-mainnet" "eth-sepolia" "base-goerli" "eth-mainnet" "xdai-mainnet" "base-mainnet" "optimism-mainnet" "arbitrum-one" "celo-mainnet" "bsc-mainnet" "avalanche-c")
+
+declare -A VENDOR_NETWORKS=(
+    ["graph"]="${GRAPH_NETWORKS[@]}"
+    ["satsuma"]="${SATSUMA_NETWORKS[@]}"
+    ["superfluid"]="${SUPERFLUID_NETWORKS[@]}"
+)
 
 VENDOR=""
 NETWORK=""
@@ -90,7 +96,7 @@ deploy_to_satsuma() {
     echo "********* Deploying $network subgraph to Satsuma. **********"
     $GRAPH_CLI deploy "$satsumaNetwork" \
         --version-label "$VERSION_LABEL" \
-        --node https://app.satsuma.xyz/api/subgraphs/deploy \
+        --node https://subgraphs.alchemy.com/api/subgraphs/deploy \
         --deploy-key "$SATSUMA_DEPLOY_KEY" \
         --ipfs https://ipfs.satsuma.xyz
 }
@@ -163,7 +169,7 @@ fi
 
 # Handle all vs specific network
 if [ "$NETWORK" == "all" ]; then
-    for network in "${NETWORKS_REF[@]}"; do
+    for network in ${VENDOR_NETWORKS[$VENDOR]}; do
         deploy_to "$VENDOR" "$network"
     done
 else

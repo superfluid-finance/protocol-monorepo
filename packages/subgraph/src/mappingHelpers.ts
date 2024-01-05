@@ -119,6 +119,7 @@ export function getOrInitSuperToken(
         );
 
         token = handleTokenRPCCalls(token, resolverAddress);
+        token.isListed = false;
         const underlyingAddress = token.underlyingAddress;
         token.underlyingToken = underlyingAddress.toHexString();
 

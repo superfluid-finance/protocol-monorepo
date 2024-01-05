@@ -2,9 +2,13 @@
 // solhint-disable reason-string
 pragma solidity >= 0.8.0;
 
+import {SuperToken} from "@superfluid-finance/ethereum-contracts/contracts/superfluid/SuperToken.sol";
+import {SuperTokenV1Library} from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperTokenV1Library.sol";
 import "../HotFuzzBase.sol";
 
 abstract contract CFAHotFuzzMixin is HotFuzzBase {
+    using SuperTokenV1Library for SuperToken;
+
     function createFlow(uint8 a, uint8 b, int64 flowRate) public {
         require(flowRate > 0);
         (SuperfluidTester testerA, SuperfluidTester testerB) = _getTwoTesters(a, b);
@@ -16,6 +20,29 @@ abstract contract CFAHotFuzzMixin is HotFuzzBase {
         (SuperfluidTester testerA, SuperfluidTester testerB) = _getTwoTesters(a, b);
 
         testerA.flow(address(testerB), 0);
+    }
+
+    /// @notice testerA liquidates a flow from testerB to testerC
+    /// @dev testerA can be the same as testerB or testerC
+    function cfaLiquidateFlow(uint8 a, uint8 b, uint8 c) public {
+        (SuperfluidTester liquidator, SuperfluidTester sender, SuperfluidTester recipient) = _getThreeTesters(a, b, c);
+
+        // we first check the condition for whether a flow exists
+        bool flowExists = superToken.getFlowRate(address(sender), address(recipient)) > 0;
+
+        // then we ensure that the sender has a critical balance
+        (int256 availableBalance,,,) = superToken.realtimeBalanceOfNow(address(sender));
+        bool isSenderCritical = availableBalance < 0;
+
+        // if both conditions are met, a liquidation should occur without fail
+        bool isLiquidationValid = flowExists && isSenderCritical;
+        if (isLiquidationValid) {
+            // solhint-disable-next-line no-empty-blocks
+            try liquidator.cfaLiquidate(address(sender), address(recipient)) {}
+            catch {
+                liquidationFails = true;
+            }
+        }
     }
 
     function setFlowPermissions(
@@ -63,11 +90,7 @@ abstract contract CFAHotFuzzMixin is HotFuzzBase {
     ) public {
         (SuperfluidTester testerA, SuperfluidTester testerB) = _getTwoTesters(a, b);
 
-        testerA.increaseFlowRateAllowanceWithPermissions(
-            address(testerB),
-            permissionsToAdd,
-            addedFlowRateAllowance
-        );
+        testerA.increaseFlowRateAllowanceWithPermissions(address(testerB), permissionsToAdd, addedFlowRateAllowance);
     }
 
     function decreaseFlowRateAllowanceWithPermissions(
@@ -79,9 +102,7 @@ abstract contract CFAHotFuzzMixin is HotFuzzBase {
         (SuperfluidTester testerA, SuperfluidTester testerB) = _getTwoTesters(a, b);
 
         testerA.decreaseFlowRateAllowanceWithPermissions(
-            address(testerB),
-            permissionsToRemove,
-            subtractedFlowRateAllowance
+            address(testerB), permissionsToRemove, subtractedFlowRateAllowance
         );
     }
 }

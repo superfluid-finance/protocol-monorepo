@@ -25,7 +25,7 @@ import { normalizeAddress } from "./utils";
  * Superfluid Pool Helper Class
  * @description A helper class to interact with the SuperfluidPool contract.
  */
-export default class SuperfluidPool {
+export default class SuperfluidPoolClass {
     readonly contract: ISuperfluidPool;
 
     constructor(poolAddress: string) {

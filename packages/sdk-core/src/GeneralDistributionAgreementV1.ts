@@ -3,6 +3,7 @@ import { ethers } from "ethers";
 import Host from "./Host";
 import { SFError } from "./SFError";
 import SuperfluidAgreement from "./SuperfluidAgreement";
+import SuperfluidPoolClass from "./SuperfluidPool";
 import {
     ConnectPoolParams,
     CreatePoolParams,
@@ -265,10 +266,7 @@ export default class GeneralDistributionAgreementV1 extends SuperfluidAgreement 
         try {
             return await this.contract
                 .connect(params.providerOrSigner)
-                ["isMemberConnected(address,address)"](
-                    normalizedPool,
-                    normalizedMember
-                );
+                .isMemberConnected(normalizedPool, normalizedMember);
         } catch (err) {
             throw new SFError({
                 type: "GDAV1_READ",
@@ -315,9 +313,14 @@ export default class GeneralDistributionAgreementV1 extends SuperfluidAgreement 
      *
      * @param token The token address.
      * @param admin The admin address.
-     * @returns The created pool.
+     * @returns CreatePoolTxn and SuperfluidPool instance
      */
-    createPool = async (params: CreatePoolParams) => {
+    createPool = async (
+        params: CreatePoolParams
+    ): Promise<{
+        createPoolTxn: ethers.ContractTransaction;
+        pool: SuperfluidPoolClass;
+    }> => {
         const normalizedToken = normalizeAddress(params.token);
         const normalizedAdmin = normalizeAddress(params.admin);
 
@@ -333,7 +336,7 @@ export default class GeneralDistributionAgreementV1 extends SuperfluidAgreement 
                 poolCreatedEvent?.args?.pool || ethers.constants.AddressZero;
             return {
                 createPoolTxn,
-                poolAddress,
+                pool: new SuperfluidPoolClass(poolAddress),
             };
         } catch (err) {
             throw new SFError({
@@ -352,7 +355,7 @@ export default class GeneralDistributionAgreementV1 extends SuperfluidAgreement 
      * @param overrides The transaction overrides.
      * @returns The call agreement operation result.
      */
-    connectPool = async (params: ConnectPoolParams) => {
+    connectPool = (params: ConnectPoolParams) => {
         const normalizedPool = normalizeAddress(params.pool);
         const callData = gdaInterface.encodeFunctionData("connectPool", [
             normalizedPool,
@@ -388,7 +391,7 @@ export default class GeneralDistributionAgreementV1 extends SuperfluidAgreement 
      * @param overrides The transaction overrides.
      * @returns The call agreement operation result.
      */
-    disconnectPool = async (params: DisconnectPoolParams) => {
+    disconnectPool = (params: DisconnectPoolParams) => {
         const normalizedPool = normalizeAddress(params.pool);
         const callData = gdaInterface.encodeFunctionData("disconnectPool", [
             normalizedPool,
@@ -427,7 +430,7 @@ export default class GeneralDistributionAgreementV1 extends SuperfluidAgreement 
      * @param overrides The transaction overrides.
      * @returns The call agreement operation result.
      */
-    distribute = async (params: DistributeParams) => {
+    distribute = (params: DistributeParams) => {
         const normalizedToken = normalizeAddress(params.token);
         const normalizedFrom = normalizeAddress(params.from);
         const normalizedPool = normalizeAddress(params.pool);
@@ -475,7 +478,7 @@ export default class GeneralDistributionAgreementV1 extends SuperfluidAgreement 
      * @param overrides The transaction overrides.
      * @returns The call agreement operation result.
      */
-    distributeFlow = async (params: DistributeFlowParams) => {
+    distributeFlow = (params: DistributeFlowParams) => {
         const normalizedToken = normalizeAddress(params.token);
         const normalizedFrom = normalizeAddress(params.from);
         const normalizedPool = normalizeAddress(params.pool);

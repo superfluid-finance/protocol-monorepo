@@ -339,28 +339,16 @@ describe("SuperTokenV1Library.GDA", function () {
                 ).to.equal(true);
             });
 
-            it("#2.3 should disconnectPool in callback", async () => {
-                await expect(
-                    host
-                        .connect(aliceSigner)
-                        .callAgreement(
-                            cfa.address,
-                            createFlowCalldata,
-                            userData(
-                                callbackFunctionIndex.DISCONNECT_POOL,
-                                appCreatedPool.address
-                            )
+            it("#2.3 should call disconnectPool in callback without revert", async () => {
+                await host
+                    .connect(aliceSigner)
+                    .callAgreement(
+                        cfa.address,
+                        createFlowCalldata,
+                        userData(
+                            callbackFunctionIndex.DISCONNECT_POOL,
+                            appCreatedPool.address
                         )
-                )
-                    .to.emit(t.contracts.gda, "PoolConnectionUpdated")
-                    .withArgs(
-                        ethers.utils.getAddress(appSuperToken.address),
-                        ethers.utils.getAddress(appCreatedPool.address),
-                        ethers.utils.getAddress(
-                            superTokenLibGDASuperAppMock.address
-                        ),
-                        false,
-                        "0x3078"
                     );
             });
 

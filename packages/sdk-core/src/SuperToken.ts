@@ -69,6 +69,7 @@ import {
     getSanitizedTimestamp,
     getStringCurrentTimeInSeconds,
     normalizeAddress,
+    tryGet,
 } from "./utils";
 
 export interface NFTAddresses {
@@ -156,9 +157,13 @@ export default abstract class SuperToken extends ERC20Token {
                 options.address,
                 options.provider
             );
-            const underlyingTokenAddress = await superToken
+            const getUnderlyingTokenPromise = superToken
                 .connect(options.provider)
                 .getUnderlyingToken();
+            const underlyingTokenAddress = await tryGet(
+                getUnderlyingTokenPromise,
+                ethers.constants.AddressZero
+            );
             const settings: ITokenSettings = {
                 address: options.address,
                 config: options.config,
@@ -178,10 +183,48 @@ export default abstract class SuperToken extends ERC20Token {
             const nativeTokenSymbol = resolverData.nativeTokenSymbol || "ETH";
             const nativeSuperTokenSymbol = nativeTokenSymbol + "x";
 
-            const constantOutflowNFTProxy =
-                await superToken.CONSTANT_OUTFLOW_NFT();
-            const constantInflowNFTProxy =
-                await superToken.CONSTANT_INFLOW_NFT();
+            // @note This is tech debt and should be reverted once GoodDollar upgrades their token contract
+            // @note We are using tryGet here just to handle GoodDollar not having
+            // CONSTANT_OUTFLOW_NFT in its SuperToken implementation.
+            let constantOutflowNFTProxy = await tryGet(
+                superToken.CONSTANT_OUTFLOW_NFT(),
+                ethers.constants.AddressZero
+            );
+            let constantInflowNFTProxy = await tryGet(
+                superToken.CONSTANT_INFLOW_NFT(),
+                ethers.constants.AddressZero
+            );
+
+            // @note We only want to run this bit of code for GoodDollar SuperTokens
+            // (dev and mainnet)
+            const GOOD_DOLLAR_SYMBOL = "G$";
+            if (tokenSymbol === GOOD_DOLLAR_SYMBOL) {
+                // @note we need to create a new interface for the old GoodDollar SuperToken
+                // which contains the functions for constantInflowNFT and constantOutflowNFT
+                const oldSuperTokenInterface = new ethers.utils.Interface([
+                    "function constantInflowNFT() view returns (address)",
+                    "function constantOutflowNFT() view returns (address)",
+                ]);
+                const goodDollarSpecificToken = new ethers.Contract(
+                    superToken.address,
+                    oldSuperTokenInterface
+                );
+
+                // @note we attempt to get the constantInflowNFT and constantOutflowNFT
+                if (constantOutflowNFTProxy === ethers.constants.AddressZero) {
+                    constantOutflowNFTProxy = await tryGet(
+                        goodDollarSpecificToken.constantOutflowNFT(),
+                        ethers.constants.AddressZero
+                    );
+                }
+                if (constantInflowNFTProxy === ethers.constants.AddressZero) {
+                    constantInflowNFTProxy = await tryGet(
+                        goodDollarSpecificToken.constantInflowNFT(),
+                        ethers.constants.AddressZero
+                    );
+                }
+            }
+
             const nftAddresses: NFTAddresses = {
                 constantOutflowNFTProxy,
                 constantInflowNFTProxy,
@@ -928,8 +971,8 @@ export default abstract class SuperToken extends ERC20Token {
      * @param overrides The transaction overrides.
      * @returns The call agreement operation result.
      */
-    connectPool = async (params: ConnectPoolParams): Promise<Operation> => {
-        return await this.gdaV1.connectPool({
+    connectPool = (params: ConnectPoolParams): Operation => {
+        return this.gdaV1.connectPool({
             ...params,
         });
     };
@@ -942,10 +985,8 @@ export default abstract class SuperToken extends ERC20Token {
      * @param overrides The transaction overrides.
      * @returns The call agreement operation result.
      */
-    disconnectPool = async (
-        params: DisconnectPoolParams
-    ): Promise<Operation> => {
-        return await this.gdaV1.disconnectPool({
+    disconnectPool = (params: DisconnectPoolParams): Operation => {
+        return this.gdaV1.disconnectPool({
             ...params,
         });
     };
@@ -960,10 +1001,8 @@ export default abstract class SuperToken extends ERC20Token {
      * @param overrides The transaction overrides.
      * @returns The call agreement operation result.
      */
-    distributeWithGDA = async (
-        params: SuperTokenDistributeParams
-    ): Promise<Operation> => {
-        return await this.gdaV1.distribute({
+    distributeWithGDA = (params: SuperTokenDistributeParams): Operation => {
+        return this.gdaV1.distribute({
             token: this.settings.address,
             ...params,
         });
@@ -979,10 +1018,8 @@ export default abstract class SuperToken extends ERC20Token {
      * @param overrides The transaction overrides.
      * @returns The call agreement operation result.
      */
-    distributeFlow = async (
-        params: SuperTokenDistributeFlowParams
-    ): Promise<Operation> => {
-        return await this.gdaV1.distributeFlow({
+    distributeFlow = (params: SuperTokenDistributeFlowParams): Operation => {
+        return this.gdaV1.distributeFlow({
             token: this.settings.address,
             ...params,
         });

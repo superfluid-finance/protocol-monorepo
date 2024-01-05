@@ -4,14 +4,14 @@ pragma solidity >=0.8.4;
 import { IERC721Metadata } from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 
 interface IPoolNFTBase is IERC721Metadata {
-    error POOL_NFT_APPROVE_TO_CALLER();
-    error POOL_NFT_ONLY_SUPER_TOKEN_FACTORY();
-    error POOL_NFT_INVALID_TOKEN_ID();
-    error POOL_NFT_APPROVE_TO_CURRENT_OWNER();
-    error POOL_NFT_APPROVE_CALLER_NOT_OWNER_OR_APPROVED_FOR_ALL();
-    error POOL_NFT_NOT_REGISTERED_POOL();
-    error POOL_NFT_TRANSFER_NOT_ALLOWED();
-    error POOL_NFT_TRANSFER_CALLER_NOT_OWNER_OR_APPROVED_FOR_ALL();
+    error POOL_NFT_APPROVE_TO_CALLER();                             // 0x9212b333
+    error POOL_NFT_ONLY_SUPER_TOKEN_FACTORY();                      // 0x1fd7e3d8
+    error POOL_NFT_INVALID_TOKEN_ID();                              // 0x09275994
+    error POOL_NFT_APPROVE_TO_CURRENT_OWNER();                      // 0x020226d3
+    error POOL_NFT_APPROVE_CALLER_NOT_OWNER_OR_APPROVED_FOR_ALL();  // 0x1e82f255
+    error POOL_NFT_NOT_REGISTERED_POOL();                           // 0x6421912e
+    error POOL_NFT_TRANSFER_NOT_ALLOWED();                          // 0x432fb160
+    error POOL_NFT_TRANSFER_CALLER_NOT_OWNER_OR_APPROVED_FOR_ALL(); // 0x4028ee0e
 
     /// @notice Informs third-party platforms that NFT metadata should be updated
     /// @dev This event comes from https://eips.ethereum.org/EIPS/eip-4906

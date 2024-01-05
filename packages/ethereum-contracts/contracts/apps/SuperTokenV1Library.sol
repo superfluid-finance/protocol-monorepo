@@ -1055,7 +1055,7 @@ library SuperTokenV1Library {
 
     function isMemberConnected(ISuperToken token, address pool, address member) internal view returns (bool) {
         (, IGeneralDistributionAgreementV1 gda) = _getHostAndGDA(token);
-        return gda.isMemberConnected(token, pool, member);
+        return gda.isMemberConnected(ISuperfluidPool(pool), member);
     }
 
 
@@ -1927,8 +1927,8 @@ library SuperTokenV1Library {
 
     function distributeFlowWithCtx(
         ISuperToken token,
-        ISuperfluidPool pool,
         address from,
+        ISuperfluidPool pool,
         int96 requestedFlowRate,
         bytes memory ctx
     ) internal returns (bytes memory newCtx) {

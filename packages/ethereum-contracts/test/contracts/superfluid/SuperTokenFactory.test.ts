@@ -185,7 +185,8 @@ describe("SuperTokenFactory Contract", function () {
                     superfluid.address,
                     ZERO_ADDRESS,
                     [],
-                    factory2Logic.address
+                    factory2Logic.address,
+                    ZERO_ADDRESS
                 );
                 await superfluid.getSuperTokenFactoryLogic();
             }
@@ -347,7 +348,8 @@ describe("SuperTokenFactory Contract", function () {
                     superfluid.address,
                     ZERO_ADDRESS,
                     [],
-                    factory2Logic.address
+                    factory2Logic.address,
+                    ZERO_ADDRESS
                 );
 
                 await expectCustomError(

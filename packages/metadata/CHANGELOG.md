@@ -3,6 +3,22 @@ All notable changes to the metadata will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.1.21]
+### Changed
+- New contract addresses for Resolver and SuperfluidLoader on xdai-mainnet and polygon-mainnet
+
+## [v1.1.20]
+### Changed
+- New contract addresses for Resolver and SuperfluidLoader on eth-goerli and polygon-mumbai
+
+## [v1.1.19]
+### Added
+- `cliName` property under "subgraphV1" for the canonical subgraph network names, see [here](https://thegraph.com/docs/en/developing/supported-networks/#hosted-service)
+
+## [v1.1.18]
+### Fixed
+- Changed the `module/networks/list.d.ts` file to correctly reflect the `contractsV1` object in our `networks.json` file.
+
 ## [v1.1.17]
 ### Fixed
 - Removed `governance` from testnets, changes frequently and can't be reliably kept up to date here

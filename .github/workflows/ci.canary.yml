@@ -272,7 +272,7 @@ jobs:
           cloudfront_distribution_id: E3JEO5R14CT8IH
 
   upgrade-contracts:
-    name: Upgrade ethereum-contracts on canary testnet (protocol release version "test")
+    name: Upgrade ethereum-contracts on canary testnet (protocol release version "canary")
 
     needs: [all-packages-tested]
 
@@ -306,6 +306,6 @@ jobs:
           npx truffle exec --network ${{ matrix.network }} ops-scripts/info-print-contract-addresses.js : addresses.vars
           tasks/etherscan-verify-framework.sh ${{ matrix.network }} addresses.vars
         env:
-          RELEASE_VERSION: master
+          RELEASE_VERSION: canary
           AVALANCHE_FUJI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
           AVALANCHE_FUJI_PROVIDER_URL: ${{ secrets.AVALANCHE_FUJI_PROVIDER_URL }}

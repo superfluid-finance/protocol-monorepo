@@ -26,8 +26,10 @@ function main() {
     if (!networkMetadata) {
         throw new Error("No metadata found");
     }
+
     const subgraphConfig: SubgraphConfig = {
-        network: networkMetadata.shortName,
+        // cliName exists for networks supported by the hosted service
+        network: networkMetadata.subgraphV1.cliName || networkMetadata.shortName,
         hostStartBlock: networkMetadata.startBlockV1,
         hostAddress: networkMetadata.contractsV1.host,
         cfaAddress: networkMetadata.contractsV1.cfaV1,
@@ -36,14 +38,11 @@ function main() {
         superTokenFactoryAddress: networkMetadata.contractsV1.superTokenFactory,
         resolverV1Address: networkMetadata.contractsV1.resolver,
         nativeAssetSuperTokenAddress: networkMetadata.nativeTokenWrapper,
-        constantOutflowNFTAddress:
-            networkMetadata.contractsV1.constantOutflowNFT || ADDRESS_ZERO,
-        constantInflowNFTAddress:
-            networkMetadata.contractsV1.constantInflowNFT || ADDRESS_ZERO,
+        constantOutflowNFTAddress: networkMetadata.contractsV1.constantOutflowNFT || ADDRESS_ZERO,
+        constantInflowNFTAddress: networkMetadata.contractsV1.constantInflowNFT || ADDRESS_ZERO,
     };
 
-    const writeToDir =
-        __dirname.split("subgraph")[0] + `subgraph/config/${networkName}.json`;
+    const writeToDir = __dirname.split("subgraph")[0] + `subgraph/config/${networkName}.json`;
 
     fs.writeFile(writeToDir, JSON.stringify(subgraphConfig), (err) => {
         if (err) {

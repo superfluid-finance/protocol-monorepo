@@ -79,6 +79,7 @@ describe("Superfluid Ownable Governance Contract", function () {
                 superfluid.address,
                 ZERO_ADDRESS,
                 [],
+                ZERO_ADDRESS,
                 ZERO_ADDRESS
             ),
             governance,

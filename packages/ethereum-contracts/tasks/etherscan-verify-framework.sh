@@ -28,7 +28,7 @@ source "$ADDRESSES_VARS"
 FAILED_VERIFICATIONS=()
 function try_verify() {
     echo # newline for better readability
-    npx truffle run --network "$TRUFFLE_NETWORK" verify "$@" "$EXTRA_ARGS" ||
+    npx truffle run --network "$TRUFFLE_NETWORK" verify "$@" ${EXTRA_ARGS:+$EXTRA_ARGS} ||
         FAILED_VERIFICATIONS[${#FAILED_VERIFICATIONS[@]}]="$*"
         # NOTE: append using length so that having spaces in the element is not a problem
         # TODO: version 0.6.5 of the plugin seems to not reliably return non-zero if verification fails
@@ -55,14 +55,6 @@ function link_library() {
 EOF
         ) > "$CONTRACTS_DIR/${contract_name}.json"
 }
-
-if [ -n "$CONSTANT_OUTFLOW_NFT_LOGIC" ]; then
-    try_verify ConstantOutflowNFT@"${CONSTANT_OUTFLOW_NFT_LOGIC}"
-fi
-
-if [ -n "$CONSTANT_INFLOW_NFT_LOGIC" ]; then
-    try_verify ConstantInflowNFT@"${CONSTANT_INFLOW_NFT_LOGIC}"
-fi
 
 if [ -n "$RESOLVER" ]; then
     try_verify Resolver@"${RESOLVER}"

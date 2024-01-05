@@ -18,6 +18,7 @@
         "pretest": "yarn testenv:start",
         "test": "npx hardhat test",
         "matchstick": "run-s matchstick:*",
+        "matchstick:build-network-config": "npx ts-node scripts/buildNetworkConfig.ts polygon-mainnet",
         "matchstick:prepare-manifest": "mustache config/polygon-mainnet.json subgraph.template.yaml > subgraph.yaml",
         "matchstick:prepare-addresses": "mustache config/polygon-mainnet.json src/addresses.template.ts > src/addresses.ts",
         "matchstick:prepare-generated": "yarn getAbi && yarn codegen && yarn generate-sf-meta-local",
@@ -51,11 +52,11 @@
     "dependencies": {
         "@graphprotocol/graph-cli": "0.57.0",
         "@graphprotocol/graph-ts": "0.31.0",
-        "@superfluid-finance/sdk-core": "0.6.8",
+        "@superfluid-finance/sdk-core": "0.6.13",
         "mustache": "^4.2.0"
     },
     "devDependencies": {
-        "@superfluid-finance/metadata": "1.1.17",
+        "@superfluid-finance/metadata": "1.1.21",
         "coingecko-api": "^1.0.10",
         "graphql": "^16.8.0",
         "graphql-request": "^6.1.0",

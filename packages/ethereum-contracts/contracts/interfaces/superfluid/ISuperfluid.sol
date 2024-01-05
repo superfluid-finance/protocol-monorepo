@@ -32,7 +32,7 @@ import { IPoolMemberNFT } from "../agreements/gdav1/IPoolMemberNFT.sol";
 import { ISuperAgreement } from "./ISuperAgreement.sol";
 import { IConstantFlowAgreementV1 } from "../agreements/IConstantFlowAgreementV1.sol";
 import { IInstantDistributionAgreementV1 } from "../agreements/IInstantDistributionAgreementV1.sol";
-import { IGeneralDistributionAgreementV1 } from "../agreements/gdav1/IGeneralDistributionAgreementV1.sol";
+import { IGeneralDistributionAgreementV1, PoolConfig } from "../agreements/gdav1/IGeneralDistributionAgreementV1.sol";
 import { ISuperfluidPool } from "../agreements/gdav1/ISuperfluidPool.sol";
 /// Superfluid App interfaces:
 import { ISuperApp } from "./ISuperApp.sol";
@@ -239,6 +239,19 @@ interface ISuperfluid {
      * For backward compatibility, the "host" is the default "admin" if unset (address(0)).
      */
     function changeSuperTokenAdmin(ISuperToken token, address newAdmin) external;
+
+    /**
+     * @notice Change the implementation address the pool beacon points to
+     * @dev Updating the logic the beacon points to will update the logic of all the Pool BeaconProxy instances
+     */
+    function updatePoolBeaconLogic(address newBeaconLogic) external;
+
+    /**
+     * @dev Pool Beacon logic updated event
+     * @param beaconProxy addrss of the beacon proxy
+     * @param newBeaconLogic address of the new beacon logic
+     */
+    event PoolBeaconLogicUpdated(address indexed beaconProxy, address newBeaconLogic);
 
     /**************************************************************************
      * App Registry

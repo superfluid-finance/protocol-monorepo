@@ -118,139 +118,6 @@ contract SuperfluidFrameworkDeploymentSteps {
     error DEPLOY_SUPER_TOKEN_REQUIRES_DEPLOY_SUPER_TOKEN_CONTRACTS();
     error RESOLVER_LIST_REQUIRES_DEPLOY_PERIPHERALS();
 
-    function _deployNFTProxyAndLogicAndInitialize() internal {
-        if (address(host) == address(0)) revert DEPLOY_SUPER_TOKEN_CONTRACTS_REQUIRES_DEPLOY_CORE();
-        // Deploy canonical Constant Outflow NFT proxy contract
-        UUPSProxy constantOutflowNFTProxy = ProxyDeployerLibrary.deployUUPSProxy();
-
-        // Deploy canonical Constant Outflow NFT proxy contract
-        UUPSProxy constantInflowNFTProxy = ProxyDeployerLibrary.deployUUPSProxy();
-
-        // Deploy canonical Pool Admin NFT proxy contract
-        UUPSProxy poolAdminNFTProxy = ProxyDeployerLibrary.deployUUPSProxy();
-
-        // Deploy canonical Pool Member NFT proxy contract
-        UUPSProxy poolMemberNFTProxy = ProxyDeployerLibrary.deployUUPSProxy();
-
-        // Deploy canonical Constant Outflow NFT logic contract
-        constantOutflowNFTLogic = SuperfluidFlowNFTLogicDeployerLibrary.deployConstantOutflowNFT(
-            host, IConstantInflowNFT(address(constantInflowNFTProxy))
-        );
-
-        // Initialize Constant Outflow NFT logic contract
-        constantOutflowNFTLogic.castrate();
-
-        // Deploy canonical Constant Inflow NFT logic contract
-        constantInflowNFTLogic = SuperfluidFlowNFTLogicDeployerLibrary.deployConstantInflowNFT(
-            host, IConstantOutflowNFT(address(constantOutflowNFTProxy))
-        );
-
-        // Initialize Constant Inflow NFT logic contract
-        constantInflowNFTLogic.castrate();
-
-        // Deploy canonical Pool Admin NFT logic contract
-        poolAdminNFTLogic = SuperfluidPoolNFTLogicDeployerLibrary.deployPoolAdminNFT(host);
-
-        // Initialize Pool Admin NFT logic contract
-        poolAdminNFTLogic.castrate();
-
-        // Deploy canonical Pool Member NFT logic contract
-        poolMemberNFTLogic = SuperfluidPoolNFTLogicDeployerLibrary.deployPoolMemberNFT(host);
-
-        // Initialize Pool Member NFT logic contract
-        poolMemberNFTLogic.castrate();
-
-        // Initialize COFNFT proxy contract
-        constantOutflowNFTProxy.initializeProxy(address(constantOutflowNFTLogic));
-
-        // Initialize CIFNFT proxy contract
-        constantInflowNFTProxy.initializeProxy(address(constantInflowNFTLogic));
-
-        // Initialize Pool Admin NFT proxy contract
-        poolAdminNFTProxy.initializeProxy(address(poolAdminNFTLogic));
-
-        // Initialize Pool Member NFT proxy contract
-        poolMemberNFTProxy.initializeProxy(address(poolMemberNFTLogic));
-
-        // // Initialize COFNFT proxy contract
-        IConstantOutflowNFT(address(constantOutflowNFTProxy)).initialize("Constant Outflow NFT", "COF");
-
-        // // Initialize CIFNFT proxy contract
-        IConstantInflowNFT(address(constantInflowNFTProxy)).initialize("Constant Inflow NFT", "CIF");
-
-        // // Initialize Pool Admin NFT proxy contract
-        IPoolAdminNFT(address(poolAdminNFTProxy)).initialize("Pool Admin NFT", "PA");
-
-        // // Initialize Pool Member NFT proxy contract
-        IPoolMemberNFT(address(poolMemberNFTProxy)).initialize("Pool Member NFT", "PM");
-
-        constantOutflowNFT = ConstantOutflowNFT(address(constantOutflowNFTProxy));
-        constantInflowNFT = ConstantInflowNFT(address(constantInflowNFTProxy));
-        poolAdminNFT = PoolAdminNFT(address(poolAdminNFTProxy));
-        poolMemberNFT = PoolMemberNFT(address(poolMemberNFTProxy));
-    }
-
-    function _deploySuperTokenLogicAndSuperTokenFactoryAndUpdateContracts() internal {
-        // _deploySuperTokenLogic();
-        // Deploy canonical SuperToken logic contract
-        superTokenLogic = SuperToken(
-            SuperTokenDeployerLibrary.deploySuperTokenLogic(
-                host,
-                IConstantOutflowNFT(address(constantOutflowNFT)),
-                IConstantInflowNFT(address(constantInflowNFT)),
-                IPoolAdminNFT(address(poolAdminNFT)),
-                IPoolMemberNFT(address(poolMemberNFT))
-            )
-        );
-
-        // _deploySuperTokenFactory();
-        superTokenFactoryLogic = SuperfluidPeripheryDeployerLibrary.deploySuperTokenFactory(
-            host,
-            superTokenLogic,
-            constantOutflowNFTLogic,
-            constantInflowNFTLogic,
-            poolAdminNFTLogic,
-            poolMemberNFTLogic
-        );
-
-        // _setSuperTokenFactoryInHost();
-        // 'Update' code with Governance and register SuperTokenFactory with Superfluid
-        testGovernance.updateContracts(host, address(0), new address[](0), address(superTokenFactoryLogic));
-
-        // we set the canonical address based on host.getSuperTokenFactory() because
-        // in the upgradeable case, we create a new proxy contract in the function
-        // and set it as the canonical supertokenfactory.
-        superTokenFactory = SuperTokenFactory(address(host.getSuperTokenFactory()));
-    }
-
-    function _deployTestResolverAndSuperfluidLoaderAndSet(address resolverAdmin) internal {
-        // _deployTestResolver(resolverAdmin);
-        if (address(host) == address(0)) revert DEPLOY_PERIPHERALS_REQUIRES_DEPLOY_CORE();
-        testResolver = SuperfluidPeripheryDeployerLibrary.deployTestResolver(resolverAdmin);
-
-        // _deploySuperfluidLoader();
-        superfluidLoader = SuperfluidLoaderDeployerLibrary.deploySuperfluidLoader(testResolver);
-
-        // _setAddressesInResolver();
-        // Register Governance with Resolver
-        testResolver.set("TestGovernance.test", address(testGovernance));
-
-        // Register Superfluid with Resolver
-        testResolver.set("Superfluid.test", address(host));
-
-        // Register SuperfluidLoader with Resolver
-        testResolver.set("SuperfluidLoader-v1", address(superfluidLoader));
-
-        // Register CFAv1Forwarder with Resolver
-        testResolver.set("CFAv1Forwarder", address(cfaV1Forwarder));
-
-        // Register IDAv1Forwarder with Resolver
-        testResolver.set("IDAv1Forwarder", address(idaV1Forwarder));
-
-        // Register GDAv1Forwarder with Resolver
-        testResolver.set("GDAv1Forwarder", address(gdaV1Forwarder));
-    }
-
     /// @notice Fetches the framework contracts
     function getFramework() external view returns (Framework memory sf) {
         sf = Framework({
@@ -377,21 +244,150 @@ contract SuperfluidFrameworkDeploymentSteps {
             SuperfluidUpgradeableBeacon superfluidPoolBeacon =
                 ProxyDeployerLibrary.deploySuperfluidUpgradeableBeacon(address(superfluidPoolLogic));
             gdaV1.initialize(superfluidPoolBeacon);
+            
+            superfluidPoolBeacon.transferOwnership(address(host));
         } else if (step == 5) {
             // PERIPHERAL CONTRACTS: NFT Proxy and Logic
             // Deploy Superfluid NFTs (Proxy and Logic contracts)
-            _deployNFTProxyAndLogicAndInitialize();
+
+            if (address(host) == address(0)) revert DEPLOY_SUPER_TOKEN_CONTRACTS_REQUIRES_DEPLOY_CORE();
+            // Deploy canonical Constant Outflow NFT proxy contract
+            UUPSProxy constantOutflowNFTProxy = ProxyDeployerLibrary.deployUUPSProxy();
+
+            // Deploy canonical Constant Outflow NFT proxy contract
+            UUPSProxy constantInflowNFTProxy = ProxyDeployerLibrary.deployUUPSProxy();
+
+            // Deploy canonical Pool Admin NFT proxy contract
+            UUPSProxy poolAdminNFTProxy = ProxyDeployerLibrary.deployUUPSProxy();
+
+            // Deploy canonical Pool Member NFT proxy contract
+            UUPSProxy poolMemberNFTProxy = ProxyDeployerLibrary.deployUUPSProxy();
+
+            // Deploy canonical Constant Outflow NFT logic contract
+            constantOutflowNFTLogic = SuperfluidFlowNFTLogicDeployerLibrary.deployConstantOutflowNFT(
+                host, IConstantInflowNFT(address(constantInflowNFTProxy))
+            );
+
+            // Initialize Constant Outflow NFT logic contract
+            constantOutflowNFTLogic.castrate();
+
+            // Deploy canonical Constant Inflow NFT logic contract
+            constantInflowNFTLogic = SuperfluidFlowNFTLogicDeployerLibrary.deployConstantInflowNFT(
+                host, IConstantOutflowNFT(address(constantOutflowNFTProxy))
+            );
+
+            // Initialize Constant Inflow NFT logic contract
+            constantInflowNFTLogic.castrate();
+
+            // Deploy canonical Pool Admin NFT logic contract
+            poolAdminNFTLogic = SuperfluidPoolNFTLogicDeployerLibrary.deployPoolAdminNFT(host);
+
+            // Initialize Pool Admin NFT logic contract
+            poolAdminNFTLogic.castrate();
+
+            // Deploy canonical Pool Member NFT logic contract
+            poolMemberNFTLogic = SuperfluidPoolNFTLogicDeployerLibrary.deployPoolMemberNFT(host);
+
+            // Initialize Pool Member NFT logic contract
+            poolMemberNFTLogic.castrate();
+
+            // Initialize COFNFT proxy contract
+            constantOutflowNFTProxy.initializeProxy(address(constantOutflowNFTLogic));
+
+            // Initialize CIFNFT proxy contract
+            constantInflowNFTProxy.initializeProxy(address(constantInflowNFTLogic));
+
+            // Initialize Pool Admin NFT proxy contract
+            poolAdminNFTProxy.initializeProxy(address(poolAdminNFTLogic));
+
+            // Initialize Pool Member NFT proxy contract
+            poolMemberNFTProxy.initializeProxy(address(poolMemberNFTLogic));
+
+            // // Initialize COFNFT proxy contract
+            IConstantOutflowNFT(address(constantOutflowNFTProxy)).initialize("Constant Outflow NFT", "COF");
+
+            // // Initialize CIFNFT proxy contract
+            IConstantInflowNFT(address(constantInflowNFTProxy)).initialize("Constant Inflow NFT", "CIF");
+
+            // // Initialize Pool Admin NFT proxy contract
+            IPoolAdminNFT(address(poolAdminNFTProxy)).initialize("Pool Admin NFT", "PA");
+
+            // // Initialize Pool Member NFT proxy contract
+            IPoolMemberNFT(address(poolMemberNFTProxy)).initialize("Pool Member NFT", "PM");
+
+            constantOutflowNFT = ConstantOutflowNFT(address(constantOutflowNFTProxy));
+            constantInflowNFT = ConstantInflowNFT(address(constantInflowNFTProxy));
+            poolAdminNFT = PoolAdminNFT(address(poolAdminNFTProxy));
+            poolMemberNFT = PoolMemberNFT(address(poolMemberNFTProxy));
         } else if (step == 6) {
             // PERIPHERAL CONTRACTS: SuperToken Logic and SuperTokenFactory Logic
             // Deploy SuperToken Logic
             // Deploy SuperToken Factory
-            _deploySuperTokenLogicAndSuperTokenFactoryAndUpdateContracts();
+
+            // _deploySuperTokenLogic();
+            // Deploy canonical SuperToken logic contract
+            superTokenLogic = SuperToken(
+                SuperTokenDeployerLibrary.deploySuperTokenLogic(
+                    host,
+                    IConstantOutflowNFT(address(constantOutflowNFT)),
+                    IConstantInflowNFT(address(constantInflowNFT)),
+                    IPoolAdminNFT(address(poolAdminNFT)),
+                    IPoolMemberNFT(address(poolMemberNFT))
+                )
+            );
+
+            // _deploySuperTokenFactory();
+            superTokenFactoryLogic = SuperfluidPeripheryDeployerLibrary.deploySuperTokenFactory(
+                host,
+                superTokenLogic,
+                constantOutflowNFTLogic,
+                constantInflowNFTLogic,
+                poolAdminNFTLogic,
+                poolMemberNFTLogic
+            );
+
+            // _setSuperTokenFactoryInHost();
+            // 'Update' code with Governance and register SuperTokenFactory with Superfluid
+            testGovernance.updateContracts(
+                host, address(0), new address[](0), address(superTokenFactoryLogic), address(0)
+            );
+
+            // we set the canonical address based on host.getSuperTokenFactory() because
+            // in the upgradeable case, we create a new proxy contract in the function
+            // and set it as the canonical supertokenfactory.
+            superTokenFactory = SuperTokenFactory(address(host.getSuperTokenFactory()));
         } else if (step == 7) {
             // PERIPHERAL CONTRACTS: Resolver, SuperfluidLoader, TOGA, BatchLiquidator
             // Deploy TestResolver
-            // Deploy SuperfluidLoader and make SuperfluidFrameworkDpeloyer an admin for the TestResolver
+            // Deploy SuperfluidLoader and make SuperfluidFrameworkDeployer an admin for the TestResolver
             // Set TestGovernance, Superfluid, SuperfluidLoader and CFAv1Forwarder in TestResolver
-            _deployTestResolverAndSuperfluidLoaderAndSet(address(this));
+
+            // _deployTestResolver(resolverAdmin);
+            if (address(host) == address(0)) revert DEPLOY_PERIPHERALS_REQUIRES_DEPLOY_CORE();
+            testResolver = SuperfluidPeripheryDeployerLibrary.deployTestResolver(address(this));
+
+            // _deploySuperfluidLoader();
+            superfluidLoader = SuperfluidLoaderDeployerLibrary.deploySuperfluidLoader(testResolver);
+
+            // _setAddressesInResolver();
+            // Register Governance with Resolver
+            testResolver.set("TestGovernance.test", address(testGovernance));
+
+            // Register Superfluid with Resolver
+            testResolver.set("Superfluid.test", address(host));
+
+            // Register SuperfluidLoader with Resolver
+            testResolver.set("SuperfluidLoader-v1", address(superfluidLoader));
+
+            // Register CFAv1Forwarder with Resolver
+            testResolver.set("CFAv1Forwarder", address(cfaV1Forwarder));
+
+            // Register IDAv1Forwarder with Resolver
+            testResolver.set("IDAv1Forwarder", address(idaV1Forwarder));
+
+            // Register GDAv1Forwarder with Resolver
+            testResolver.set("GDAv1Forwarder", address(gdaV1Forwarder));
+
             // Make SuperfluidFrameworkDeployer deployer an admin for the TestResolver as well
             testResolver.addAdmin(msg.sender);
 

@@ -203,6 +203,22 @@ contract SuperTokenIntegrationTest is FoundrySuperfluidTester {
         vm.stopPrank();
     }
 
+    function testRevertWhenNonAdminTriesToUpdateCode(address _admin, address nonAdmin) public {
+        vm.assume(_admin != address(sf.host));
+        vm.assume(nonAdmin != address(sf.host));
+
+        (TestToken localTestToken, ISuperToken localSuperToken) =
+            sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max, address(0));
+
+        SuperToken newSuperTokenLogic =
+            _helperDeploySuperTokenAndInitialize(localSuperToken, localTestToken, 18, "FTT", "FTT", _admin);
+
+        vm.startPrank(nonAdmin);
+        vm.expectRevert(ISuperToken.SUPER_TOKEN_ONLY_ADMIN.selector);
+        UUPSProxiable(address(localSuperToken)).updateCode(address(newSuperTokenLogic));
+        vm.stopPrank();
+    }
+
     function testOnlyHostCanUpdateCodeWhenNoAdmin() public {
         (TestToken localTestToken, ISuperToken localSuperToken) =
             sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max, address(0));
@@ -241,20 +257,5 @@ contract SuperTokenIntegrationTest is FoundrySuperfluidTester {
             address(newSuperTokenLogic),
             "testOnlyHostCanUpdateCodeWhenNoAdmin: super token logic not updated correctly"
         );
-    }
-
-    function testRevertWhenNonAdminTriesToUpdateCode(address _admin, address nonAdmin) public {
-        vm.assume(_admin != address(sf.host));
-
-        (TestToken localTestToken, ISuperToken localSuperToken) =
-            sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max, address(0));
-
-        SuperToken newSuperTokenLogic =
-            _helperDeploySuperTokenAndInitialize(localSuperToken, localTestToken, 18, "FTT", "FTT", _admin);
-
-        vm.startPrank(nonAdmin);
-        vm.expectRevert(ISuperToken.SUPER_TOKEN_ONLY_ADMIN.selector);
-        UUPSProxiable(address(localSuperToken)).updateCode(address(newSuperTokenLogic));
-        vm.stopPrank();
     }
 }

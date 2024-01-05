@@ -5,7 +5,7 @@ interface AutowrapAddresses {
 interface ContractAddresses {
     readonly resolver: string;
     readonly host: string;
-    readonly governance: string;
+    readonly governance?: string;
     readonly cfaV1: string;
     readonly cfaV1Forwarder: string;
     readonly idaV1: string;
@@ -14,15 +14,17 @@ interface ContractAddresses {
     readonly constantOutflowNFT?: string;
     readonly constantInflowNFT?: string;
     readonly superfluidLoader: string;
-    readonly toga: string;
-    readonly vestingScheduler: string;
-    readonly flowScheduler: string;
-    readonly batchLiquidator: string;
-    readonly autowrap: AutowrapAddresses;
+    readonly toga?: string;
+    readonly vestingScheduler?: string;
+    readonly flowScheduler?: string;
+    readonly batchLiquidator?: string;
+    readonly superSpreader?: string;
+    readonly autowrap?: AutowrapAddresses;
     readonly existentialNFTCloneFactory: string;
 }
 interface SubgraphData {
     readonly name: string;
+    readonly cliName?: string;
     readonly hostedEndpoint?: string;
     readonly satsumaEndpoint?: string;
 }

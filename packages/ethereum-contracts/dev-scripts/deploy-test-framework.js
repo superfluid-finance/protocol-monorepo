@@ -1,4 +1,5 @@
 const {ethers} = require("hardhat");
+const {JsonRpcProvider} = require("@ethersproject/providers");
 
 const SuperfluidPoolDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/agreements/gdav1/SuperfluidPoolDeployerLibrary.sol/SuperfluidPoolDeployerLibrary.json");
 const SuperfluidGovDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/SuperfluidGovDeployerLibrary.json");

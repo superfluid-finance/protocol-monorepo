@@ -73,6 +73,13 @@ export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
     pool.totalUnits = pool.totalUnits.plus(unitsDelta);
     pool.save();
 
+    const newReceivedAmount = pool.totalAmountDistributedUntilUpdatedAt
+        .minus(poolMember.totalAmountDistributedUntilUpdatedAt)
+        .div(pool.totalUnits)
+        .mul(poolMember.units);
+    poolMember.totalAmountReceivedUntilUpdatedAt = poolMember.totalAmountReceivedUntilUpdatedAt.plus(newReceivedAmount);
+    poolMember.totalAmountDistributedUntilUpdatedAt = pool.totalAmountDistributedUntilUpdatedAt;
+
     // 0 units to > 0 units
     if (previousUnits.equals(BIG_INT_ZERO) && event.params.newUnits.gt(BIG_INT_ZERO)) {
         pool.totalMembers = pool.totalMembers + 1;

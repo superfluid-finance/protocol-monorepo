@@ -1809,6 +1809,8 @@ type PoolMember @entity {
     units: BigInt!
     isConnected: Boolean!
     totalAmountClaimed: BigInt!
+    poolTotalAmountDistributedUntilUpdatedAt: BigInt!
+    totalAmountReceivedUntilUpdatedAt: BigInt!
 
     account: Account!
     pool: Pool!

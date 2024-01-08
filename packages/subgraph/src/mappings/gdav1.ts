@@ -24,6 +24,7 @@ import {
     updateATSStreamedAndBalanceUntilUpdatedAt,
     updateAggregateDistributionAgreementData,
     updatePoolDistributorTotalAmountFlowedAndDistributed,
+    updatePoolMemberTotalAmountUntilUpdatedAtFields,
     updatePoolTotalAmountFlowedAndDistributed,
     updateSenderATSStreamData,
     updateTokenStatisticStreamData,
@@ -83,7 +84,7 @@ export function handlePoolConnectionUpdated(
     event: PoolConnectionUpdated
 ): void {
     // Update Pool Member Entity
-    const poolMember = getOrInitPoolMember(
+    let poolMember = getOrInitPoolMember(
         event,
         event.params.pool,
         event.params.account
@@ -127,6 +128,10 @@ export function handlePoolConnectionUpdated(
         }
     }
     pool.save();
+
+    // Update totalAmountDistributedUntilUpdatedAt
+    poolMember = updatePoolMemberTotalAmountUntilUpdatedAtFields(pool, poolMember);
+    poolMember.save();
 
     // Update Token Stats Streamed Until Updated At
     updateTokenStatsStreamedUntilUpdatedAt(event.params.token, event.block);

@@ -1608,3 +1608,22 @@ export function updateAggregateEntitiesTransferData(
         tokenStatistic.totalAmountTransferredUntilUpdatedAt.plus(value);
     tokenStatistic.save();
 }
+
+/**
+ * Updates `totalAmountReceivedUntilUpdatedAt` and `poolTotalAmountDistributedUntilUpdatedAt` fields
+ * Requires an explicit save on the PoolMember entity.
+ * Requires `pool.totalAmountDistributedUntilUpdatedAt` to be updated prior to calling this function.
+ * @param pool the pool entity
+ * @param poolMember the pool member entity
+ * @returns the updated pool member entity to be saved
+ */
+export function updatePoolMemberTotalAmountUntilUpdatedAtFields(pool: Pool, poolMember: PoolMember): PoolMember {
+    const newReceivedAmount = pool.totalAmountDistributedUntilUpdatedAt
+        .minus(poolMember.poolTotalAmountDistributedUntilUpdatedAt)
+        .div(pool.totalUnits)
+        .times(poolMember.units);
+    poolMember.totalAmountReceivedUntilUpdatedAt = poolMember.totalAmountReceivedUntilUpdatedAt.plus(newReceivedAmount);
+    poolMember.poolTotalAmountDistributedUntilUpdatedAt = pool.totalAmountDistributedUntilUpdatedAt;
+
+    return poolMember;
+}

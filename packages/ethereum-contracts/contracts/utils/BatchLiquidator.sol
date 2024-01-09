@@ -2,7 +2,8 @@
 pragma solidity 0.8.19;
 
 import {
-    ISuperfluid, ISuperAgreement, ISuperToken, IConstantFlowAgreementV1
+    ISuperfluid, ISuperAgreement, ISuperToken, ISuperfluidPool,
+    IConstantFlowAgreementV1, IGeneralDistributionAgreementV1
 } from "../interfaces/superfluid/ISuperfluid.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
@@ -14,54 +15,47 @@ import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
  */
 
 contract BatchLiquidator {
+    enum FlowType {
+        ConstantFlowAgreement,
+        GeneralDistributionAgreement
+    }
 
-    error ARRAY_SIZES_DIFFERENT();
+    struct FlowLiquidationData {
+        FlowType agreementOperation;
+        address sender;
+        address receiver;
+    }
 
     address public immutable host;
     address public immutable cfa;
+    address public immutable gda;
 
-    constructor(address host_, address cfa_) {
+    constructor(address host_) {
         host = host_;
-        cfa = cfa_;
+        cfa = address(
+            ISuperfluid(host).getAgreementClass(keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1"))
+        );
+        gda = address(
+            ISuperfluid(host).getAgreementClass(
+                keccak256("org.superfluid-finance.agreements.GeneralDistributionAgreement.v1")
+            )
+        );
     }
 
     /**
      * @dev Delete flows in batch
      * @param superToken - The super token the flows belong to.
-     * @param senders - List of senders.
-     * @param receivers - Corresponding list of receivers.
-     * @return nSuccess - Number of succeeded deletions.
+     * @param data - The array of flow data to be deleted.
      */
-    function deleteFlows(
-        address superToken,
-        address[] calldata senders, address[] calldata receivers
-    ) external returns (uint nSuccess) {
-        uint256 length = senders.length;
-        if(length != receivers.length) revert ARRAY_SIZES_DIFFERENT();
-        for (uint256 i; i < length;) {
+    function deleteFlows(address superToken, FlowLiquidationData[] memory data) external {
+        for (uint256 i; i < data.length;) {
             // We tolerate any errors occured during liquidations.
             // It could be due to flow had been liquidated by others.
-            // solhint-disable-next-line avoid-low-level-calls
-            (bool success,) = address(host).call(
-                abi.encodeCall(
-                    ISuperfluid(host).callAgreement,
-                    (
-                        ISuperAgreement(cfa),
-                        abi.encodeCall(
-                            IConstantFlowAgreementV1(cfa).deleteFlow,
-                            (
-                                ISuperToken(superToken),
-                                senders[i],
-                                receivers[i],
-                                new bytes(0)
-                            )
-                        ),
-                        new bytes(0)
-                    )
-                )
-            );
-            if (success) ++nSuccess;
-            unchecked { i++; }
+            _deleteFlow(superToken, data[i]);
+
+            unchecked {
+                i++;
+            }
         }
 
         // If the liquidation(s) resulted in any super token
@@ -78,27 +72,14 @@ contract BatchLiquidator {
         }
     }
 
-    // single flow delete with check for success
-    function deleteFlow(address superToken, address sender, address receiver) external {
+    /**
+     * @dev Delete a single flow
+     * @param superToken - The super token the flow belongs to.
+     * @param data - The flow data to be deleted.
+     */
+    function deleteFlow(address superToken, FlowLiquidationData memory data) external {
         /* solhint-disable */
-        (bool success, bytes memory returndata) = address(host).call(
-            abi.encodeCall(
-                ISuperfluid(host).callAgreement,
-                (
-                    ISuperAgreement(cfa),
-                    abi.encodeCall(
-                        IConstantFlowAgreementV1(cfa).deleteFlow,
-                        (
-                            ISuperToken(superToken),
-                            sender,
-                            receiver,
-                            new bytes(0)
-                        )
-                    ),
-                    new bytes(0)
-                )
-            )
-        );
+        (bool success, bytes memory returndata) = _deleteFlow(superToken, data);
         if (!success) {
             if (returndata.length == 0) revert();
             // solhint-disable
@@ -117,6 +98,43 @@ contract BatchLiquidator {
                 // solhint-disable-next-line no-empty-blocks
                 {} catch {}
             }
+        }
+    }
+
+    function _deleteFlow(address superToken, FlowLiquidationData memory data)
+        internal
+        returns (bool success, bytes memory returndata)
+    {
+        if (data.agreementOperation == FlowType.ConstantFlowAgreement) {
+            // solhint-disable-next-line avoid-low-level-calls
+            (success, returndata) = address(host).call(
+                abi.encodeCall(
+                    ISuperfluid(host).callAgreement,
+                    (
+                        ISuperAgreement(cfa),
+                        abi.encodeCall(
+                            IConstantFlowAgreementV1(cfa).deleteFlow,
+                            (ISuperToken(superToken), data.sender, data.receiver, new bytes(0))
+                            ),
+                        new bytes(0)
+                    )
+                )
+            );
+        } else {
+            // solhint-disable-next-line avoid-low-level-calls
+            (success, returndata) = address(host).call(
+                abi.encodeCall(
+                    ISuperfluid(host).callAgreement,
+                    (
+                        ISuperAgreement(gda),
+                        abi.encodeCall(
+                            IGeneralDistributionAgreementV1(gda).distributeFlow,
+                            (ISuperToken(superToken), data.sender, ISuperfluidPool(data.receiver), 0, new bytes(0))
+                            ),
+                        new bytes(0)
+                    )
+                )
+            );
         }
     }
 }

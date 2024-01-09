@@ -13,6 +13,7 @@ contract SuperfluidFrameworkDeployerTest is FoundrySuperfluidTester {
         assertTrue(address(sf.host) != address(0), "SFDeployer: host not deployed");
         assertTrue(address(sf.cfa) != address(0), "SFDeployer: cfa not deployed");
         assertTrue(address(sf.ida) != address(0), "SFDeployer: ida not deployed");
+        assertTrue(address(sf.gda) != address(0), "SFDeployer: gda not deployed");
         assertTrue(address(sf.superTokenFactory) != address(0), "SFDeployer: superTokenFactory not deployed");
         assertTrue(address(sf.superTokenLogic) != address(0), "SFDeployer: superTokenLogic not deployed");
         assertTrue(address(sf.constantOutflowNFT) != address(0), "SFDeployer: constantOutflowNFT not deployed");
@@ -20,6 +21,9 @@ contract SuperfluidFrameworkDeployerTest is FoundrySuperfluidTester {
         assertTrue(address(sf.resolver) != address(0), "SFDeployer: resolver not deployed");
         assertTrue(address(sf.superfluidLoader) != address(0), "SFDeployer: superfluidLoader not deployed");
         assertTrue(address(sf.cfaV1Forwarder) != address(0), "SFDeployer: cfaV1Forwarder not deployed");
+        assertTrue(address(sf.idaV1Forwarder) != address(0), "SFDeployer: idaV1Forwarder not deployed");
+        assertTrue(address(sf.gdaV1Forwarder) != address(0), "SFDeployer: gdaV1Forwarder not deployed");
+        assertTrue(address(sf.batchLiquidator) != address(0), "SFDeployer: batchLiquidator not deployed");
     }
 
     function testResolverGetsGovernance() public {
@@ -63,7 +67,7 @@ contract SuperfluidFrameworkDeployerTest is FoundrySuperfluidTester {
         uint256 _mintLimit
     ) public {
         (TestToken underlyingToken, SuperToken _superToken) =
-            sfDeployer.deployWrapperSuperToken(_name, _symbol, _decimals, _mintLimit);
+            sfDeployer.deployWrapperSuperToken(_name, _symbol, _decimals, _mintLimit, address(0));
 
         // assert underlying erc20 name/symbol properly set
         assertEq(underlyingToken.name(), _name, "SFDeployer: Underlying token name not properly set");

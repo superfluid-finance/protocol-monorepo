@@ -11,7 +11,7 @@ abstract contract IDAHotFuzzMixin is HotFuzzBase {
     function setupIndex(uint8 a, uint8 b, uint32 indexId, uint128 units) public {
         indexId = indexId % MAX_NUM_INDICES;
 
-        (SuperfluidTester testerA, SuperfluidTester testerB) = getTwoTesters(a, b);
+        (SuperfluidTester testerA, SuperfluidTester testerB) = _getTwoTesters(a, b);
 
         (bool exists,,,) = sf.ida.getIndex(superToken, address(testerA), indexId);
         if (!exists) {
@@ -22,23 +22,52 @@ abstract contract IDAHotFuzzMixin is HotFuzzBase {
 
     function distributeIfIndexExists(uint8 a, uint32 indexId, uint256 amount) public {
         indexId = indexId % MAX_NUM_INDICES;
-        (SuperfluidTester testerA) = getOneTester(a);
+        (SuperfluidTester testerA) = _getOneTester(a);
 
         (bool exists,,,) = sf.ida.getIndex(superToken, address(testerA), indexId);
         if (exists) {
             (uint256 actualAmount, ) = sf.ida.calculateDistribution(superToken, address(testerA), indexId, amount);
+            int256 a1 = _superTokenBalanceOfNow(address(testerA));
             testerA.distribute(indexId, amount);
-            int256 a1 = superTokenBalanceOfNow(address(testerA));
-            int256 a2 = superTokenBalanceOfNow(address(testerA));
+            int256 a2 = _superTokenBalanceOfNow(address(testerA));
             assert(a1 - a2 == int256(actualAmount));
         }
+    }
+
+    function updateIndexIfIndexExists(uint8 a, uint32 indexId, uint128 indexValue) public {
+        indexId = indexId % MAX_NUM_INDICES;
+        (SuperfluidTester testerA) = _getOneTester(a);
+
+        (bool exists,,,) = sf.ida.getIndex(superToken, address(testerA), indexId);
+        if (exists) {
+            testerA.updateIndex(indexId, indexValue);
+        }
+    }
+
+    function revokeSubscription(uint8 a, uint8 b, uint32 indexId) public {
+        indexId = indexId % MAX_NUM_INDICES;
+
+        (SuperfluidTester testerA, SuperfluidTester testerB) = _getTwoTesters(a, b);
+        testerB.revokeSubscription(address(testerA), indexId);
+    }
+
+    function deleteSubscription(uint8 a, uint8 b, uint32 indexId) public {
+        indexId = indexId % MAX_NUM_INDICES;
+
+        (SuperfluidTester testerA, SuperfluidTester testerB) = _getTwoTesters(a, b);
+        testerB.deleteSubscription(address(testerB), indexId, address(testerA));
+    }
+
+    function claim(uint8 a, uint8 b, uint32 indexId) public {
+        (SuperfluidTester testerA, SuperfluidTester testerB) = _getTwoTesters(a, b);
+        testerB.claim(address(testerB), indexId, address(testerA));
     }
 
     function updateSubscriptionUnits(uint8 a, uint8 b, uint32 indexId, uint128 units) public {
         require(units > 0);
 
         indexId = indexId % MAX_NUM_INDICES;
-        (SuperfluidTester testerA, SuperfluidTester testerB) = getTwoTesters(a, b);
+        (SuperfluidTester testerA, SuperfluidTester testerB) = _getTwoTesters(a, b);
 
         testerA.updateSubscriptionUnits(indexId, address(testerB), units);
         bool exist;
@@ -51,7 +80,7 @@ abstract contract IDAHotFuzzMixin is HotFuzzBase {
     function approveSubscriptionUnits(uint8 a, uint8 b, uint32 indexId) public {
         indexId = indexId % MAX_NUM_INDICES;
 
-        (SuperfluidTester testerA, SuperfluidTester testerB) = getTwoTesters(a, b);
+        (SuperfluidTester testerA, SuperfluidTester testerB) = _getTwoTesters(a, b);
         bool exist;
         bool approved;
         sf.ida.getSubscription(superToken, address(testerA), indexId, address(testerB));
@@ -65,6 +94,6 @@ abstract contract IDAHotFuzzMixin is HotFuzzBase {
 
 contract IDAHotFuzz is IDAHotFuzzMixin {
     constructor() HotFuzzBase(10) {
-        initTesters();
+        _initTesters();
     }
 }

@@ -8,6 +8,12 @@ import {
     IInstantDistributionAgreementV1
 } from "../interfaces/superfluid/ISuperfluid.sol";
 
+import {
+    IGeneralDistributionAgreementV1,
+    ISuperfluidPool,
+    PoolConfig
+} from "../interfaces/agreements/gdav1/IGeneralDistributionAgreementV1.sol";
+
 /**
  * @title Library for Token Centric Interface
  * @author Superfluid
@@ -819,7 +825,7 @@ library SuperTokenV1Library {
     }
 
     /**
-     * @dev get net flow rate for given account for given token
+     * @dev get net flow rate for given account for given token (CFA + GDA)
      * @param token Super token address
      * @param account Account to query
      * @return flowRate The net flow rate of the account
@@ -828,7 +834,36 @@ library SuperTokenV1Library {
         internal view returns (int96 flowRate)
     {
         (, IConstantFlowAgreementV1 cfa) = _getHostAndCFA(token);
+        (, IGeneralDistributionAgreementV1 gda) = _getHostAndGDA(token);
+        int96 cfaNetFlow = cfa.getNetFlow(token, account);
+        int96 gdaNetFlow = gda.getNetFlow(token, account);
+        return cfaNetFlow + gdaNetFlow;
+    }
+
+    /**
+     * @dev get CFA net flow rate for given account for given token
+     * @param token Super token address
+     * @param account Account to query
+     * @return flowRate The net flow rate of the account
+     */
+    function getCFANetFlowRate(ISuperToken token, address account)
+        internal view returns (int96 flowRate)
+    {
+        (, IConstantFlowAgreementV1 cfa) = _getHostAndCFA(token);
         return cfa.getNetFlow(token, account);
+    }
+
+    /**
+     * @dev get GDA net flow rate for given account for given token
+     * @param token Super token address
+     * @param account Account to query
+     * @return flowRate The net flow rate of the account
+     */
+    function getGDANetFlowRate(ISuperToken token, address account)
+        internal view returns (int96 flowRate)
+    {
+        (, IGeneralDistributionAgreementV1 gda) = _getHostAndGDA(token);
+        return gda.getNetFlow(token, account);
     }
 
     /**
@@ -986,6 +1021,41 @@ library SuperTokenV1Library {
     {
         (, IInstantDistributionAgreementV1 ida) = _getHostAndIDA(token);
         return ida.getSubscriptionByID(token, agreementId);
+    }
+
+    /** GDA VIEW FUNCTIONS ************************************* */
+    function getFlowDistributionFlowRate(ISuperToken token, address from, ISuperfluidPool to)
+        internal
+        view
+        returns (int96)
+    {
+        (, IGeneralDistributionAgreementV1 gda) = _getHostAndGDA(token);
+        return gda.getFlowRate(token, from, to);
+    }
+
+    function estimateFlowDistributionActualFlowRate(
+        ISuperToken token,
+        address from,
+        ISuperfluidPool to,
+        int96 requestedFlowRate
+    ) internal view returns (int96 actualFlowRate, int96 totalDistributionFlowRate) {
+        (, IGeneralDistributionAgreementV1 gda) = _getHostAndGDA(token);
+        return gda.estimateFlowDistributionActualFlowRate(token, from, to, requestedFlowRate);
+    }
+
+    function estimateDistributionActualAmount(
+        ISuperToken token,
+        address from,
+        ISuperfluidPool to,
+        uint256 requestedAmount
+    ) internal view returns (uint256 actualAmount) {
+        (, IGeneralDistributionAgreementV1 gda) = _getHostAndGDA(token);
+        return gda.estimateDistributionActualAmount(token, from, to, requestedAmount);
+    }
+
+    function isMemberConnected(ISuperToken token, address pool, address member) internal view returns (bool) {
+        (, IGeneralDistributionAgreementV1 gda) = _getHostAndGDA(token);
+        return gda.isMemberConnected(ISuperfluidPool(pool), member);
     }
 
 
@@ -1636,6 +1706,250 @@ library SuperTokenV1Library {
         );
     }
 
+    /** GDA BASE FUNCTIONS ************************************* */
+
+    function createPool(ISuperToken token, address admin, PoolConfig memory poolConfig)
+        internal
+        returns (ISuperfluidPool pool)
+    {
+        (, IGeneralDistributionAgreementV1 gda) = _getAndCacheHostAndGDA(token);
+        pool = gda.createPool(token, admin, poolConfig);
+    }
+
+    function updateMemberUnits(ISuperToken token, ISuperfluidPool pool, address memberAddress, uint128 newUnits)
+        internal
+        returns (bool)
+    {
+        return updateMemberUnits(token, pool, memberAddress, newUnits, new bytes(0));
+    }
+
+    function updateMemberUnits(
+        ISuperToken token,
+        ISuperfluidPool pool,
+        address memberAddress,
+        uint128 newUnits,
+        bytes memory userData
+    ) internal returns (bool) {
+        (ISuperfluid host, IGeneralDistributionAgreementV1 gda) = _getAndCacheHostAndGDA(token);
+        host.callAgreement(
+            gda, abi.encodeCall(gda.updateMemberUnits, (pool, memberAddress, newUnits, new bytes(0))), userData
+        );
+
+        return true;
+    }
+
+    function claimAll(ISuperToken token, ISuperfluidPool pool, address memberAddress) internal returns (bool) {
+        return claimAll(token, pool, memberAddress, new bytes(0));
+    }
+
+    function claimAll(ISuperToken token, ISuperfluidPool pool, address memberAddress, bytes memory userData)
+        internal
+        returns (bool)
+    {
+        (ISuperfluid host, IGeneralDistributionAgreementV1 gda) = _getAndCacheHostAndGDA(token);
+        host.callAgreement(gda, abi.encodeCall(gda.claimAll, (pool, memberAddress, new bytes(0))), userData);
+
+        return true;
+    }
+
+    function connectPool(ISuperToken token, ISuperfluidPool pool) internal returns (bool) {
+        return connectPool(token, pool, new bytes(0));
+    }
+
+    function connectPool(ISuperToken token, ISuperfluidPool pool, bytes memory userData) internal returns (bool) {
+        (ISuperfluid host, IGeneralDistributionAgreementV1 gda) = _getAndCacheHostAndGDA(token);
+        host.callAgreement(gda, abi.encodeCall(gda.connectPool, (pool, new bytes(0))), userData);
+
+        return true;
+    }
+
+    function disconnectPool(ISuperToken token, ISuperfluidPool pool) internal returns (bool) {
+        return disconnectPool(token, pool, new bytes(0));
+    }
+
+    function disconnectPool(ISuperToken token, ISuperfluidPool pool, bytes memory userData) internal returns (bool) {
+        (ISuperfluid host, IGeneralDistributionAgreementV1 gda) = _getAndCacheHostAndGDA(token);
+        host.callAgreement(gda, abi.encodeCall(gda.disconnectPool, (pool, new bytes(0))), userData);
+        return true;
+    }
+
+    // @note we already have a distribute function from IDA, do we want this too? do we want to differentiate this?
+    function distributeToPool(ISuperToken token, address from, ISuperfluidPool pool, uint256 requestedAmount)
+        internal
+        returns (bool)
+    {
+        return distribute(token, from, pool, requestedAmount, new bytes(0));
+    }
+
+    function distribute(
+        ISuperToken token,
+        address from,
+        ISuperfluidPool pool,
+        uint256 requestedAmount,
+        bytes memory userData
+    ) internal returns (bool) {
+        (ISuperfluid host, IGeneralDistributionAgreementV1 gda) = _getAndCacheHostAndGDA(token);
+        host.callAgreement(
+            gda, abi.encodeCall(gda.distribute, (token, from, pool, requestedAmount, new bytes(0))), userData
+        );
+        return true;
+    }
+
+    function distributeFlow(ISuperToken token, address from, ISuperfluidPool pool, int96 requestedFlowRate)
+        internal
+        returns (bool)
+    {
+        return distributeFlow(token, from, pool, requestedFlowRate, new bytes(0));
+    }
+
+    function distributeFlow(
+        ISuperToken token,
+        address from,
+        ISuperfluidPool pool,
+        int96 requestedFlowRate,
+        bytes memory userData
+    ) internal returns (bool) {
+        (ISuperfluid host, IGeneralDistributionAgreementV1 gda) = _getAndCacheHostAndGDA(token);
+        host.callAgreement(
+            gda, abi.encodeCall(gda.distributeFlow, (token, from, pool, requestedFlowRate, new bytes(0))), userData
+        );
+        return true;
+    }
+
+    /** GDA WITH CTX FUNCTIONS ************************************* */
+
+    function updateMemberUnitsWithCtx(
+        ISuperToken token,
+        ISuperfluidPool pool,
+        address memberAddress,
+        uint128 newUnits,
+        bytes memory ctx
+    ) internal returns (bytes memory newCtx) {
+        (ISuperfluid host, IGeneralDistributionAgreementV1 gda) = _getAndCacheHostAndGDA(token);
+        (newCtx,) = host.callAgreementWithContext(
+            gda,
+            abi.encodeCall(
+                gda.updateMemberUnits,
+                (
+                    pool,
+                    memberAddress,
+                    newUnits,
+                    new bytes(0) // ctx placeholder
+                )
+            ),
+            "0x",
+            ctx
+        );
+    }
+
+    function claimAllWithCtx(ISuperToken token, ISuperfluidPool pool, address memberAddress, bytes memory ctx)
+        internal
+        returns (bytes memory newCtx)
+    {
+        (ISuperfluid host, IGeneralDistributionAgreementV1 gda) = _getAndCacheHostAndGDA(token);
+        (newCtx,) = host.callAgreementWithContext(
+            gda,
+            abi.encodeCall(
+                gda.claimAll,
+                (
+                    pool,
+                    memberAddress,
+                    new bytes(0) // ctx placeholder
+                )
+            ),
+            "0x",
+            ctx
+        );
+    }
+
+    function connectPoolWithCtx(ISuperToken token, ISuperfluidPool pool, bytes memory ctx)
+        internal
+        returns (bytes memory newCtx)
+    {
+        (ISuperfluid host, IGeneralDistributionAgreementV1 gda) = _getAndCacheHostAndGDA(token);
+        (newCtx,) = host.callAgreementWithContext(
+            gda,
+            abi.encodeCall(
+                gda.connectPool,
+                (
+                    pool,
+                    new bytes(0) // ctx placeholder
+                )
+            ),
+            "0x",
+            ctx
+        );
+    }
+
+    function disconnectPoolWithCtx(ISuperToken token, ISuperfluidPool pool, bytes memory ctx)
+        internal
+        returns (bytes memory newCtx)
+    {
+        (ISuperfluid host, IGeneralDistributionAgreementV1 gda) = _getAndCacheHostAndGDA(token);
+        (newCtx,) = host.callAgreementWithContext(
+            gda,
+            abi.encodeCall(
+                gda.disconnectPool,
+                (
+                    pool,
+                    new bytes(0) // ctx placeholder
+                )
+            ),
+            "0x",
+            ctx
+        );
+    }
+
+    function distributeWithCtx(
+        ISuperToken token,
+        ISuperfluidPool pool,
+        address from,
+        uint256 requestedAmount,
+        bytes memory ctx
+    ) internal returns (bytes memory newCtx) {
+        (ISuperfluid host, IGeneralDistributionAgreementV1 gda) = _getAndCacheHostAndGDA(token);
+        (newCtx,) = host.callAgreementWithContext(
+            gda,
+            abi.encodeCall(
+                gda.distribute,
+                (
+                    token,
+                    from,
+                    pool,
+                    requestedAmount,
+                    new bytes(0) // ctx placeholder
+                )
+            ),
+            "0x",
+            ctx
+        );
+    }
+
+    function distributeFlowWithCtx(
+        ISuperToken token,
+        address from,
+        ISuperfluidPool pool,
+        int96 requestedFlowRate,
+        bytes memory ctx
+    ) internal returns (bytes memory newCtx) {
+        (ISuperfluid host, IGeneralDistributionAgreementV1 gda) = _getAndCacheHostAndGDA(token);
+        (newCtx,) = host.callAgreementWithContext(
+            gda,
+            abi.encodeCall(
+                gda.distributeFlow,
+                (
+                    token,
+                    from,
+                    pool,
+                    requestedFlowRate,
+                    new bytes(0) // ctx placeholder
+                )
+            ),
+            "0x",
+            ctx
+        );
+    }
+
     // ************** private helpers **************
 
     // @note We must use hardcoded constants here because:
@@ -1646,14 +1960,18 @@ library SuperTokenV1Library {
     bytes32 private constant _CFA_SLOT = 0xb969d79d88acd02d04ed7ee7d43b949e7daf093d363abcfbbc43dfdfd1ce969a;
     // keccak256("org.superfluid-finance.apps.SuperTokenLibrary.v1.ida");
     bytes32 private constant _IDA_SLOT = 0xa832ee1924ea960211af2df07d65d166232018f613ac6708043cd8f8773eddeb;
+    // keccak256("org.superfluid-finance.apps.SuperTokenLibrary.v1.gda");
+    bytes32 private constant _GDA_SLOT = 0xc36f6c05164a669ecb6da53e218d77ae44d51cfc99f91e5a125a18de0949bee4;
 
     // gets the host and cfa addrs for the token and caches it in storage for gas efficiency
     // to be used in state changing methods
-    function _getAndCacheHostAndCFA(ISuperToken token) private
-        returns(ISuperfluid host, IConstantFlowAgreementV1 cfa)
+    function _getAndCacheHostAndCFA(ISuperToken token)
+        private
+        returns (ISuperfluid host, IConstantFlowAgreementV1 cfa)
     {
         // check if already in contract storage...
-        assembly { // solium-disable-line
+        assembly {
+            // solium-disable-line
             host := sload(_HOST_SLOT)
             cfa := sload(_CFA_SLOT)
         }
@@ -1662,11 +1980,12 @@ library SuperTokenV1Library {
             if (address(host) == address(0)) {
                 host = ISuperfluid(token.getHost());
             }
+
             cfa = IConstantFlowAgreementV1(address(ISuperfluid(host).getAgreementClass(
                 keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1"))));
             // now that we got them and are in a transaction context, persist in storage
             assembly {
-            // solium-disable-line
+                // solium-disable-line
                 sstore(_HOST_SLOT, host)
                 sstore(_CFA_SLOT, cfa)
             }
@@ -1677,11 +1996,13 @@ library SuperTokenV1Library {
 
     // gets the host and ida addrs for the token and caches it in storage for gas efficiency
     // to be used in state changing methods
-    function _getAndCacheHostAndIDA(ISuperToken token) private
-        returns(ISuperfluid host, IInstantDistributionAgreementV1 ida)
+    function _getAndCacheHostAndIDA(ISuperToken token)
+        private
+        returns (ISuperfluid host, IInstantDistributionAgreementV1 ida)
     {
         // check if already in contract storage...
-        assembly { // solium-disable-line
+        assembly {
+            // solium-disable-line
             host := sload(_HOST_SLOT)
             ida := sload(_IDA_SLOT)
         }
@@ -1694,7 +2015,7 @@ library SuperTokenV1Library {
                 keccak256("org.superfluid-finance.agreements.InstantDistributionAgreement.v1"))));
             // now that we got them and are in a transaction context, persist in storage
             assembly {
-            // solium-disable-line
+                // solium-disable-line
                 sstore(_HOST_SLOT, host)
                 sstore(_IDA_SLOT, ida)
             }
@@ -1703,13 +2024,47 @@ library SuperTokenV1Library {
         assert(address(ida) != address(0));
     }
 
-    // gets the host and cfa addrs for the token
-    // to be used in non-state changing methods (view functions)
-    function _getHostAndCFA(ISuperToken token) private view
-        returns(ISuperfluid host, IConstantFlowAgreementV1 cfa)
+    // gets the host and gda addrs for the token and caches it in storage for gas efficiency
+    // to be used in state changing methods
+    function _getAndCacheHostAndGDA(ISuperToken token)
+        private
+        returns (ISuperfluid host, IGeneralDistributionAgreementV1 gda)
     {
         // check if already in contract storage...
-        assembly { // solium-disable-line
+        assembly {
+            // solium-disable-line
+            host := sload(_HOST_SLOT)
+            gda := sload(_GDA_SLOT)
+        }
+        if (address(gda) == address(0)) {
+            // framework contract addrs not yet cached, retrieving now...
+            if (address(host) == address(0)) {
+                host = ISuperfluid(token.getHost());
+            }
+            gda = IGeneralDistributionAgreementV1(
+                address(
+                    ISuperfluid(host).getAgreementClass(
+                        keccak256("org.superfluid-finance.agreements.GeneralDistributionAgreement.v1")
+                    )
+                )
+            );
+            // now that we got them and are in a transaction context, persist in storage
+            assembly {
+                // solium-disable-line
+                sstore(_HOST_SLOT, host)
+                sstore(_GDA_SLOT, gda)
+            }
+        }
+        assert(address(host) != address(0));
+        assert(address(gda) != address(0));
+    }
+
+    // gets the host and cfa addrs for the token
+    // to be used in non-state changing methods (view functions)
+    function _getHostAndCFA(ISuperToken token) private view returns (ISuperfluid host, IConstantFlowAgreementV1 cfa) {
+        // check if already in contract storage...
+        assembly {
+            // solium-disable-line
             host := sload(_HOST_SLOT)
             cfa := sload(_CFA_SLOT)
         }
@@ -1727,11 +2082,14 @@ library SuperTokenV1Library {
 
     // gets the host and ida addrs for the token
     // to be used in non-state changing methods (view functions)
-    function _getHostAndIDA(ISuperToken token) private view
-        returns(ISuperfluid host, IInstantDistributionAgreementV1 ida)
+    function _getHostAndIDA(ISuperToken token)
+        private
+        view
+        returns (ISuperfluid host, IInstantDistributionAgreementV1 ida)
     {
         // check if already in contract storage...
-        assembly { // solium-disable-line
+        assembly {
+            // solium-disable-line
             host := sload(_HOST_SLOT)
             ida := sload(_IDA_SLOT)
         }
@@ -1745,5 +2103,35 @@ library SuperTokenV1Library {
         }
         assert(address(host) != address(0));
         assert(address(ida) != address(0));
+    }
+
+    // gets the host and gda addrs for the token
+    // to be used in non-state changing methods (view functions)
+    function _getHostAndGDA(ISuperToken token)
+        private
+        view
+        returns (ISuperfluid host, IGeneralDistributionAgreementV1 gda)
+    {
+        // check if already in contract storage...
+        assembly {
+            // solium-disable-line
+            host := sload(_HOST_SLOT)
+            gda := sload(_GDA_SLOT)
+        }
+        if (address(gda) == address(0)) {
+            // framework contract addrs not yet cached in storage, retrieving now...
+            if (address(host) == address(0)) {
+                host = ISuperfluid(token.getHost());
+            }
+            gda = IGeneralDistributionAgreementV1(
+                address(
+                    ISuperfluid(host).getAgreementClass(
+                        keccak256("org.superfluid-finance.agreements.GeneralDistributionAgreement.v1")
+                    )
+                )
+            );
+        }
+        assert(address(host) != address(0));
+        assert(address(gda) != address(0));
     }
 }

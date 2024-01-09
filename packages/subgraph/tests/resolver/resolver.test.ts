@@ -1,23 +1,7 @@
 import { newMockEvent } from "matchstick-as";
-import {
-    assert,
-    beforeEach,
-    clearStore,
-    describe,
-    test,
-} from "matchstick-as/assembly/index";
-import {
-    DEFAULT_DECIMALS,
-    FALSE,
-    maticXAddress,
-    maticXName,
-    maticXSymbol,
-    TRUE,
-} from "../constants";
-import {
-    assertEventBaseProperties,
-    assertHigherOrderBaseProperties,
-} from "../assertionHelpers";
+import { assert, beforeEach, clearStore, describe, test } from "matchstick-as/assembly/index";
+import { DEFAULT_DECIMALS, FALSE, maticXAddress, maticXName, maticXSymbol, TRUE } from "../constants";
+import { assertEventBaseProperties, assertHigherOrderBaseProperties } from "../assertionHelpers";
 import { createSetEvent } from "./resolver.helper";
 import { handleSet } from "../../src/mappings/resolver";
 import { stringToBytes } from "../converters";
@@ -30,10 +14,7 @@ import { Address } from "@graphprotocol/graph-ts";
  * @param target the target address
  * @returns ResolverEntry id
  */
-function testResolverEntryParams(
-    tokenAddress: Address,
-    target: Address
-): string {
+function testResolverEntryParams(tokenAddress: Address, target: Address): string {
     const name = stringToBytes("supertokens.v1.maticx");
     const setEvent = createSetEvent(name, target.toHexString());
     const isToken = tokenAddress.equals(Address.zero()) ? FALSE : TRUE;
@@ -42,20 +23,8 @@ function testResolverEntryParams(
     handleSet(setEvent);
 
     const resolverEntryId = name.toHex();
-    assertHigherOrderBaseProperties(
-        "ResolverEntry",
-        resolverEntryId,
-        setEvent.block.timestamp,
-        setEvent.block.number,
-        setEvent.block.timestamp,
-        setEvent.block.number
-    );
-    assert.fieldEquals(
-        "ResolverEntry",
-        resolverEntryId,
-        "targetAddress",
-        target.toHexString()
-    );
+    assertHigherOrderBaseProperties("ResolverEntry", resolverEntryId, setEvent);
+    assert.fieldEquals("ResolverEntry", resolverEntryId, "targetAddress", target.toHexString());
 
     assert.fieldEquals("ResolverEntry", resolverEntryId, "isToken", isToken);
     assert.fieldEquals("ResolverEntry", resolverEntryId, "isListed", isListed);
@@ -76,19 +45,9 @@ describe("Resolver Mapper Unit Tests", () => {
             handleSet(setEvent);
 
             const id = assertEventBaseProperties(setEvent, "Set");
-            assert.fieldEquals(
-                "SetEvent",
-                id,
-                "hashedName",
-                name.toHexString()
-            );
+            assert.fieldEquals("SetEvent", id, "hashedName", name.toHexString());
             assert.fieldEquals("SetEvent", id, "target", target);
-            assert.fieldEquals(
-                "SetEvent",
-                id,
-                "resolverEntry",
-                name.toHexString()
-            );
+            assert.fieldEquals("SetEvent", id, "resolverEntry", name.toHexString());
         });
     });
 
@@ -110,15 +69,7 @@ describe("Resolver Mapper Unit Tests", () => {
         test("Should create a ResolverEntry entity (token case) - list case", () => {
             const mockEvent = newMockEvent();
             const token = Address.fromString(maticXAddress);
-            createSuperToken(
-                token,
-                mockEvent.block,
-                DEFAULT_DECIMALS,
-                maticXName,
-                maticXSymbol,
-                false,
-                Address.zero()
-            );
+            createSuperToken(token, mockEvent.block, DEFAULT_DECIMALS, maticXName, maticXSymbol, false, Address.zero());
             const target = Address.fromString(maticXAddress);
             assert.fieldEquals("Token", maticXAddress, "isListed", FALSE);
             // list token on resolver

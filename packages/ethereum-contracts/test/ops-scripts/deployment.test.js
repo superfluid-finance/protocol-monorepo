@@ -555,6 +555,7 @@ contract("Embedded deployment scripts", (accounts) => {
                     s.superfluid.address,
                     s.superfluid.address, // a dead loop proxy
                     [],
+                    ZERO_ADDRESS,
                     ZERO_ADDRESS
                 );
             } catch (err) {

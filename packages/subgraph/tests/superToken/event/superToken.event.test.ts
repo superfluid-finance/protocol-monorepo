@@ -17,10 +17,7 @@ import {
     handleTransfer,
 } from "../../../src/mappings/superToken";
 import { BIG_INT_ONE, BIG_INT_ZERO, encode, ZERO_ADDRESS } from "../../../src/utils";
-import {
-    assertEventBaseProperties,
-    assertTokenStatisticProperties,
-} from "../../assertionHelpers";
+import { assertEmptyTokenStatisticProperties, assertEventBaseProperties, assertTokenStatisticProperties } from "../../assertionHelpers";
 import { alice, bob, cfaV1Address, charlie, DEFAULT_DECIMALS, delta, FAKE_INITIAL_BALANCE, maticXName, maticXSymbol } from "../../constants";
 import { getETHAddress, getETHUnsignedBigInt, stringToBytes } from "../../converters";
 import { createStream, createStreamRevision } from "../../mockedEntities";
@@ -273,14 +270,24 @@ describe("SuperToken Mapper Unit Tests", () => {
                 agreementLiquidatedV2Event.block.timestamp,
                 agreementLiquidatedV2Event.block.number,
                 0, // totalNumberOfActiveStreams
+                0, // totalCFANumberOfActiveStreams
+                0, // totalGDANumberOfActiveStreams
                 0, // totalNumberOfClosedStreams
+                0, // totalCFANumberOfClosedStreams
+                0, // totalGDANumberOfClosedStreams
                 0, // totalNumberOfIndexes
                 0, // totalNumberOfActiveIndexes
                 0, // totalSubscriptionsWithUnits
                 0, // totalApprovedSubscriptions
                 BIG_INT_ZERO, // totalDeposit
+                BIG_INT_ZERO, // totalCFADeposit
+                BIG_INT_ZERO, // totalGDADeposit
                 BIG_INT_ZERO, // totalOutflowRate
+                BIG_INT_ZERO, // totalCFAOutflowRate
+                BIG_INT_ZERO, // totalGDAOutflowRate
                 BIG_INT_ZERO, // totalAmountStreamedUntilUpdatedAt
+                BIG_INT_ZERO, // totalCFAAmountStreamedUntilUpdatedAt
+                BIG_INT_ZERO, // totalGDAAmountStreamedUntilUpdatedAt
                 BIG_INT_ZERO, // totalAmountTransferredUntilUpdatedAt
                 BIG_INT_ZERO, // totalAmountDistributedUntilUpdatedAt
                 BigInt.fromI32(1000000), // totalSupply = 100
@@ -358,14 +365,24 @@ describe("SuperToken Mapper Unit Tests", () => {
                 transferEvent.block.timestamp,
                 transferEvent.block.number,
                 0, // totalNumberOfActiveStreams
+                0, // totalCFANumberOfActiveStreams
+                0, // totalGDANumberOfActiveStreams
                 0, // totalNumberOfClosedStreams
+                0, // totalCFANumberOfClosedStreams
+                0, // totalGDANumberOfClosedStreams
                 0, // totalNumberOfIndexes
                 0, // totalNumberOfActiveIndexes
                 0, // totalSubscriptionsWithUnits
                 0, // totalApprovedSubscriptions
                 BIG_INT_ZERO, // totalDeposit
+                BIG_INT_ZERO, // totalCFADeposit
+                BIG_INT_ZERO, // totalGDADeposit
                 BIG_INT_ZERO, // totalOutflowRate
+                BIG_INT_ZERO, // totalCFAOutflowRate
+                BIG_INT_ZERO, // totalGDAOutflowRate
                 BIG_INT_ZERO, // totalAmountStreamedUntilUpdatedAt
+                BIG_INT_ZERO, // totalCFAAmountStreamedUntilUpdatedAt
+                BIG_INT_ZERO, // totalGDAAmountStreamedUntilUpdatedAt
                 value, // totalAmountTransferredUntilUpdatedAt
                 BIG_INT_ZERO, // totalAmountDistributedUntilUpdatedAt
                 BigInt.fromI32(1000000), // totalSupply = 100
@@ -495,14 +512,24 @@ describe("SuperToken Mapper Unit Tests", () => {
                 transferEvent.block.timestamp,
                 transferEvent.block.number,
                 0, // totalNumberOfActiveStreams
+                0, // totalCFANumberOfActiveStreams
+                0, // totalGDANumberOfActiveStreams
                 0, // totalNumberOfClosedStreams
+                0, // totalCFANumberOfClosedStreams
+                0, // totalGDANumberOfClosedStreams
                 0, // totalNumberOfIndexes
                 0, // totalNumberOfActiveIndexes
                 0, // totalSubscriptionsWithUnits
                 0, // totalApprovedSubscriptions
                 BIG_INT_ZERO, // totalDeposit
+                BIG_INT_ZERO, // totalCFADeposit
+                BIG_INT_ZERO, // totalGDADeposit
                 BIG_INT_ZERO, // totalOutflowRate
+                BIG_INT_ZERO, // totalCFAOutflowRate
+                BIG_INT_ZERO, // totalGDAOutflowRate
                 BIG_INT_ZERO, // totalAmountStreamedUntilUpdatedAt
+                BIG_INT_ZERO, // totalCFAAmountStreamedUntilUpdatedAt
+                BIG_INT_ZERO, // totalGDAAmountStreamedUntilUpdatedAt
                 value, // totalAmountTransferredUntilUpdatedAt
                 BIG_INT_ZERO, // totalAmountDistributedUntilUpdatedAt
                 BigInt.fromI32(1000000), // totalSupply = 100
@@ -535,14 +562,24 @@ describe("SuperToken Mapper Unit Tests", () => {
                 secondTransferEvent.block.timestamp,
                 secondTransferEvent.block.number,
                 0, // totalNumberOfActiveStreams
+                0, // totalCFANumberOfActiveStreams
+                0, // totalGDANumberOfActiveStreams
                 0, // totalNumberOfClosedStreams
+                0, // totalCFANumberOfClosedStreams
+                0, // totalGDANumberOfClosedStreams
                 0, // totalNumberOfIndexes
                 0, // totalNumberOfActiveIndexes
                 0, // totalSubscriptionsWithUnits
                 0, // totalApprovedSubscriptions
                 BIG_INT_ZERO, // totalDeposit
+                BIG_INT_ZERO, // totalCFADeposit
+                BIG_INT_ZERO, // totalGDADeposit
                 BIG_INT_ZERO, // totalOutflowRate
+                BIG_INT_ZERO, // totalCFAOutflowRate
+                BIG_INT_ZERO, // totalGDAOutflowRate
                 BIG_INT_ZERO, // totalAmountStreamedUntilUpdatedAt
+                BIG_INT_ZERO, // totalCFAAmountStreamedUntilUpdatedAt
+                BIG_INT_ZERO, // totalGDAAmountStreamedUntilUpdatedAt
                 value.times(BigInt.fromI32(2)), // totalAmountTransferredUntilUpdatedAt
                 BIG_INT_ZERO, // totalAmountDistributedUntilUpdatedAt
                 BigInt.fromI32(1000000), // totalSupply = 100
@@ -573,26 +610,13 @@ describe("SuperToken Mapper Unit Tests", () => {
             );
 
             handleBurned(burnedEvent);
-            assertTokenStatisticProperties(
+            assertEmptyTokenStatisticProperties(
                 null,
                 null,
                 burnedEvent.address.toHex(),
                 burnedEvent.block.timestamp,
                 burnedEvent.block.number,
-                0, // totalNumberOfActiveStreams
-                0, // totalNumberOfClosedStreams
-                0, // totalNumberOfIndexes
-                0, // totalNumberOfActiveIndexes
-                0, // totalSubscriptionsWithUnits
-                0, // totalApprovedSubscriptions
-                BIG_INT_ZERO, // totalDeposit
-                BIG_INT_ZERO, // totalOutflowRate
-                BIG_INT_ZERO, // totalAmountStreamedUntilUpdatedAt
-                BIG_INT_ZERO, // totalAmountTransferredUntilUpdatedAt
-                BIG_INT_ZERO, // totalAmountDistributedUntilUpdatedAt
-                amount.neg(), // totalSupply = -100 (not possible in practice)
-                0, // totalNumberOfAccounts
-                0, // totalNumberOfHolders
+                amount.neg() // totalSupply = -100 (not possible in practice)
             );
         });
 
@@ -612,26 +636,13 @@ describe("SuperToken Mapper Unit Tests", () => {
             );
 
             handleMinted(mintedEvent);
-            assertTokenStatisticProperties(
+            assertEmptyTokenStatisticProperties(
                 null,
                 null,
                 mintedEvent.address.toHex(),
                 mintedEvent.block.timestamp,
                 mintedEvent.block.number,
-                0, // totalNumberOfActiveStreams
-                0, // totalNumberOfClosedStreams
-                0, // totalNumberOfIndexes
-                0, // totalNumberOfActiveIndexes
-                0, // totalSubscriptionsWithUnits
-                0, // totalApprovedSubscriptions
-                BIG_INT_ZERO, // totalDeposit
-                BIG_INT_ZERO, // totalOutflowRate
-                BIG_INT_ZERO, // totalAmountStreamedUntilUpdatedAt
-                BIG_INT_ZERO, // totalAmountTransferredUntilUpdatedAt
-                BIG_INT_ZERO, // totalAmountDistributedUntilUpdatedAt
-                amount, // totalSupply = 100
-                0, // totalNumberOfAccounts,
-                0 // totalNumberOfHolders
+                amount // totalSupply = 100
             );
         });
     });

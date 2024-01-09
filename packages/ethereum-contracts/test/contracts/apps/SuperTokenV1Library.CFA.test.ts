@@ -41,14 +41,20 @@ const callbackFunctionIndex = {
 export const deploySuperTokenAndNFTContractsAndInitialize = async (
     t: TestEnvironment
 ) => {
-    const {constantOutflowNFTProxy, constantInflowNFTProxy} =
-        await t.deployNFTContracts();
+    const {
+        constantOutflowNFTProxy,
+        constantInflowNFTProxy,
+        poolAdminNFTProxy,
+        poolMemberNFTProxy,
+    } = await t.deployNFTContracts();
     const superToken = await t.deployContract<SuperTokenMock>(
         "SuperTokenMock",
         t.contracts.superfluid.address,
         "69",
         constantOutflowNFTProxy.address,
-        constantInflowNFTProxy.address
+        constantInflowNFTProxy.address,
+        poolAdminNFTProxy.address,
+        poolMemberNFTProxy.address
     );
 
     return superToken;

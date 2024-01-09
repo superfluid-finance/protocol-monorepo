@@ -431,7 +431,8 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
     function testMultiplePICsInParallel(uint256 bond) public {
         bond = _boundBondValue(bond);
 
-        (, ISuperToken superToken2) = sfDeployer.deployWrapperSuperToken("TEST2", "TEST2", 18, type(uint256).max);
+        (, ISuperToken superToken2) =
+            sfDeployer.deployWrapperSuperToken("TEST2", "TEST2", 18, type(uint256).max, address(0));
 
         _helperDeal(superToken2, alice, INIT_SUPER_TOKEN_BALANCE);
         _helperDeal(superToken2, bob, INIT_SUPER_TOKEN_BALANCE);

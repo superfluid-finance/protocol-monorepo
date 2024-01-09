@@ -64,7 +64,8 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         ISuperfluid host,
         address hostNewLogic,
         address[] calldata agreementClassNewLogics,
-        address superTokenFactoryNewLogic
+        address superTokenFactoryNewLogic,
+        address poolBeaconNewLogic
     )
         external override
         onlyAuthorized(host)
@@ -86,6 +87,9 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
             try UUPSProxiable(address(superTokenFactoryNewLogic)).castrate() {}
             // solhint-disable-next-line no-empty-blocks
             catch {}
+        }
+        if (poolBeaconNewLogic != address(0)) {
+            host.updatePoolBeaconLogic(poolBeaconNewLogic);
         }
     }
 

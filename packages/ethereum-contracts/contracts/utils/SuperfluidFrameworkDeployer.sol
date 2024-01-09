@@ -41,118 +41,14 @@ contract SuperfluidFrameworkDeployer is SuperfluidFrameworkDeploymentSteps {
         uint256 minBondDuration;
     }
 
-    error DEPLOY_AGREEMENTS_REQUIRES_DEPLOY_CORE();
-    error DEPLOY_PERIPHERALS_REQUIRES_DEPLOY_CORE();
-    error DEPLOY_PERIPHERALS_REQUIRES_DEPLOY_AGREEMENTS();
-    error DEPLOY_SUPER_TOKEN_CONTRACTS_REQUIRES_DEPLOY_CORE();
-    error DEPLOY_SUPER_TOKEN_REQUIRES_1820();
-    error DEPLOY_SUPER_TOKEN_REQUIRES_DEPLOY_SUPER_TOKEN_CONTRACTS();
-    error DEPLOY_TOGA_REQUIRES_1820();
-    error RESOLVER_LIST_REQUIRES_DEPLOY_PERIPHERALS();
-
     /// @notice Deploys the Superfluid Framework (Test)
     /// @dev This uses default configurations for the framework.
     /// NOTE: ERC1820 must be deployed as a prerequisite before calling this function.
     function deployTestFramework() external {
         // Default Configs
-        TestFrameworkConfigs memory configs = TestFrameworkConfigs({
-            nonUpgradeable: DEFAULT_NON_UPGRADEABLE,
-            appWhitelistingEnabled: DEFAULT_APP_WHITELISTING_ENABLED,
-            trustedForwarders: DEFAULT_TRUSTED_FORWARDERS,
-            defaultRewardAddress: DEFAULT_REWARD_ADDRESS,
-            liquidationPeriod: DEFAULT_LIQUIDATION_PERIOD,
-            patricianPeriod: DEFAULT_PATRICIAN_PERIOD,
-            minBondDuration: DEFAULT_TOGA_MIN_BOND_DURATION
-        });
-
-        _deployTestFramework(configs);
-    }
-
-    function _deployTestFramework(TestFrameworkConfigs memory configs) internal {
-        // Deploy Host and Governance
-        _deployCoreContracts(configs);
-
-        // Initialize Host with Governance address
-        _initializeHost();
-
-        // Initialize Governance with Host address and Configs
-        _initializeGovernance(
-            configs.defaultRewardAddress, configs.liquidationPeriod, configs.patricianPeriod, configs.trustedForwarders
-        );
-
-        // Deploy CFAv1 and IDAv1
-        _deployAgreementContracts();
-
-        // Register the agreements with governance
-        _registerAgreements();
-
-        // Deploy NFT Proxy and Logic, SuperToken Logic, SuperTokenFactory Proxy and Logic contracts
-        _deploySuperTokenContracts();
-
-        // Set SuperTokenFactory as the canonical contract
-        _setSuperTokenFactoryInHost();
-
-        // Deploy Resolver, SuperfluidLoaderV1, CFAv1Forwarder, TOGA, BatchLiquidator contracts
-        _deployPeripheralContracts(configs);
-
-        // Enable the CFAv1Forwarder as a trusted forwarder via Governance
-        _enableCFAv1ForwarderAsTrustedForwarder();
-
-        // Enable the IDAv1Forwarder as a trusted forwarder via Governance
-        _enableIDAv1ForwarderAsTrustedForwarder();
-
-        // Set TestGovernance, Superfluid, SuperfluidLoader and CFAv1Forwarder addresses in Resolver
-        _setAddressesInResolver();
-    }
-
-    /// @notice Deploys the core Superfluid contracts
-    /// @dev Host and Governance
-    function deployCoreContracts() public {
-        TestFrameworkConfigs memory configs;
-        configs.nonUpgradeable = true;
-        configs.appWhitelistingEnabled = false;
-
-        _deployCoreContracts(configs);
-    }
-
-    /// @notice Deploys the core Superfluid contracts w/ Configs
-    /// @dev Host and Governance
-    /// @param configs the configurations for the framework
-    function deployCoreContracts(TestFrameworkConfigs memory configs) public {
-        _deployCoreContracts(configs);
-    }
-
-    function _deployCoreContracts(TestFrameworkConfigs memory configs) internal {
-        _deployGovernance(address(this));
-        _deployHost(configs.nonUpgradeable, configs.appWhitelistingEnabled);
-    }
-
-    /// @notice Deploys the Superfluid agreement contracts
-    /// @dev Deploys Superfluid agreement contracts
-    /// NOTE: This requires the core contracts to be deployed first.
-    function deployAgreementContracts() public {
-        _deployAgreementContracts();
-    }
-
-    function _deployAgreementContracts() internal {
-        if (address(host) == address(0)) revert DEPLOY_AGREEMENTS_REQUIRES_DEPLOY_CORE();
-
-        _deployCFAv1();
-        _deployIDAv1();
-    }
-
-    /// @notice Deploys all SuperToken-related contracts
-    /// @dev Deploys NFT Proxy and Logic, SuperToken Logic, SuperTokenFactory Proxy and Logic contracts
-    function deploySuperTokenContracts() public {
-        _deploySuperTokenContracts();
-    }
-
-    function _deploySuperTokenContracts() internal {
-        if (address(host) == address(0)) revert DEPLOY_SUPER_TOKEN_CONTRACTS_REQUIRES_DEPLOY_CORE();
-
-        _deployNFTProxyAndLogicAndInitialize();
-        _deploySuperTokenLogic();
-        _deploySuperTokenFactory();
+        for (uint256 i = 0; i < getNumSteps(); ++i) {
+            executeStep(uint8(i));
+        }
     }
 
     /// @notice Deploys an ERC20 and a Wrapper Super Token for the ERC20 and lists both in the resolver
@@ -176,27 +72,6 @@ contract SuperfluidFrameworkDeployer is SuperfluidFrameworkDeploymentSteps {
         returns (TestToken underlyingToken, SuperToken superToken)
     {
         return _deployWrapperSuperToken(_underlyingName, _underlyingSymbol, _decimals, _mintLimit, _admin);
-    }
-
-    /// @notice Deploys an ERC20 and a Wrapper Super Token for the ERC20 and lists both in the resolver
-    /// @dev SuperToken name and symbol format: `Super ${_underlyingSymbol}` and `${_underlyingSymbol}x`, respectively
-    /// @param _underlyingName The underlying token name
-    /// @param _underlyingSymbol The token symbol
-    /// @param _decimals The token decimals
-    /// @param _mintLimit The mint limit of the underlying token
-    /// @return underlyingToken and superToken
-    function deployWrapperSuperToken(
-        string calldata _underlyingName,
-        string calldata _underlyingSymbol,
-        uint8 _decimals,
-        uint256 _mintLimit
-    )
-        external
-        requiresSuperTokenFactory
-        deploySuperTokenRequires1820
-        returns (TestToken underlyingToken, SuperToken superToken)
-    {
-        return _deployWrapperSuperToken(_underlyingName, _underlyingSymbol, _decimals, _mintLimit, address(0));
     }
 
     /// @notice Deploys a Native Asset Super Token and lists it in the resolver
@@ -245,8 +120,8 @@ contract SuperfluidFrameworkDeployer is SuperfluidFrameworkDeploymentSteps {
 
     function _handleResolverList(bool _listOnResolver, string memory _resolverKey, address _superTokenAddress)
         internal
-        requiresResolver
     {
+        if (address(testResolver) == address(0)) revert RESOLVER_LIST_REQUIRES_DEPLOY_PERIPHERALS();
         if (_listOnResolver) {
             testResolver.set(_resolverKey, address(_superTokenAddress));
         }
@@ -286,65 +161,6 @@ contract SuperfluidFrameworkDeployer is SuperfluidFrameworkDeploymentSteps {
         _handleResolverList(true, superTokenKey, address(superToken));
     }
 
-    /// @notice Deploys all peripheral Superfluid contracts
-    /// @dev Deploys Resolver, SuperfluidLoaderV1, CFAv1Forwarder, TOGA, BatchLiquidator contracts
-    function deployPeripheralContracts() public {
-        TestFrameworkConfigs memory configs;
-        configs.minBondDuration = DEFAULT_TOGA_MIN_BOND_DURATION;
-
-        _deployPeripheralContracts(configs);
-    }
-
-    /// @notice Deploys all peripheral Superfluid contracts with configs
-    /// @dev Deploys Resolver, SuperfluidLoaderV1, CFAv1Forwarder, TOGA, BatchLiquidator contracts
-    function deployPeripheralContracts(TestFrameworkConfigs memory configs) public {
-        _deployPeripheralContracts(configs);
-    }
-
-    function _deployPeripheralContracts(TestFrameworkConfigs memory configs) internal {
-        if (address(host) == address(0)) revert DEPLOY_PERIPHERALS_REQUIRES_DEPLOY_CORE();
-
-        _deployTestResolver(address(this));
-        _deploySuperfluidLoader();
-
-        // Set the deployer of this contract as an admin of the resolver
-        // So that they can add other admins and set addresses
-        testResolver.addAdmin(msg.sender);
-
-        _deployCFAv1Forwarder();
-        _deployIDAv1Forwarder();
-        _deployTOGA(configs.minBondDuration);
-
-        if (address(cfaV1) == address(0)) revert DEPLOY_PERIPHERALS_REQUIRES_DEPLOY_AGREEMENTS();
-        _deployBatchLiquidator();
-    }
-
-    function _deployTOGA(uint256 _minBondDuration) internal override deployTogaRequires1820 {
-        super._deployTOGA(_minBondDuration);
-    }
-
-    //// JS-Specific Functions ////
-    function getNumSteps() external pure returns (uint8) {
-        return _getNumSteps();
-    }
-
-    function executeStep(uint8 step) external {
-        _executeStep(step);
-    }
-
-    function _is1820Deployed() internal view returns (bool) {
-        uint256 codeSize;
-        assembly {
-            codeSize := extcodesize(0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24)
-        }
-        return codeSize != 0;
-    }
-
-    modifier requiresResolver() {
-        if (address(testResolver) == address(0)) revert RESOLVER_LIST_REQUIRES_DEPLOY_PERIPHERALS();
-        _;
-    }
-
     modifier requiresSuperTokenFactory() {
         if (address(superTokenFactory) == address(0)) revert DEPLOY_SUPER_TOKEN_REQUIRES_DEPLOY_SUPER_TOKEN_CONTRACTS();
         _;
@@ -352,11 +168,6 @@ contract SuperfluidFrameworkDeployer is SuperfluidFrameworkDeploymentSteps {
 
     modifier deploySuperTokenRequires1820() {
         if (!_is1820Deployed()) revert DEPLOY_SUPER_TOKEN_REQUIRES_1820();
-        _;
-    }
-
-    modifier deployTogaRequires1820() {
-        if (!_is1820Deployed()) revert DEPLOY_TOGA_REQUIRES_1820();
         _;
     }
 }

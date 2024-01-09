@@ -8,6 +8,7 @@ import { SuperTokenV1Library } from "../../../contracts/apps/SuperTokenV1Library
 import { ISuperAgreement } from "../../../contracts/interfaces/superfluid/ISuperAgreement.sol";
 import { ISuperfluid } from "../../../contracts/interfaces/superfluid/ISuperfluid.sol";
 import { AgreementMock } from "../../../contracts/mocks/AgreementMock.sol";
+import { SuperfluidPool } from "../../../contracts/agreements/gdav1/SuperfluidPool.sol";
 
 contract SuperfluidGovernanceIntegrationTest is FoundrySuperfluidTester {
     using SuperTokenV1Library for SuperToken;
@@ -26,6 +27,7 @@ contract SuperfluidGovernanceIntegrationTest is FoundrySuperfluidTester {
 
     function testRevertChangeSuperTokenAdminWhenCallerIsNotNotGovOwner(address newAdmin) public {
         vm.assume(newAdmin != address(0));
+        vm.assume(newAdmin != sf.governance.owner());
 
         vm.startPrank(newAdmin);
         vm.expectRevert();
@@ -33,7 +35,7 @@ contract SuperfluidGovernanceIntegrationTest is FoundrySuperfluidTester {
         vm.stopPrank();
     }
 
-    function testRevertWhenHostIsNotAdmin(address initialAdmin) public {
+    function testRevertChangeSuperTokenAdminWhenHostIsNotAdmin(address initialAdmin) public {
         vm.assume(initialAdmin != address(0));
         vm.assume(initialAdmin != address(sf.host));
 
@@ -47,10 +49,50 @@ contract SuperfluidGovernanceIntegrationTest is FoundrySuperfluidTester {
         vm.stopPrank();
     }
 
+    function testRevertUpgradePoolBeaconLogicWhenNotOwner() public {
+        SuperfluidPool newPoolLogic = new SuperfluidPool(sf.gda);
+
+        vm.expectRevert();
+        sf.governance.updateContracts(sf.host, address(0), new address[](0), address(0), address(newPoolLogic));
+    }
+
+    function testUpdateContractsToUpgradePoolBeaconLogic() public {
+        SuperfluidPool newPoolLogic = new SuperfluidPool(sf.gda);
+        vm.startPrank(sf.governance.owner());
+        sf.governance.updateContracts(sf.host, address(0), new address[](0), address(0), address(newPoolLogic));
+        vm.stopPrank();
+
+        assertEq(
+            sf.gda.superfluidPoolBeacon().implementation(),
+            address(newPoolLogic),
+            "testUpdateContractsToUpgradePoolBeaconLogic: pool beacon logic not upgraded"
+        );
+    }
+    
+    function testRevertUpgradePoolBeaconLogicWhenNotGovernance() public {
+        SuperfluidPool newPoolLogic = new SuperfluidPool(sf.gda);
+        vm.expectRevert();
+        sf.host.updatePoolBeaconLogic(address(newPoolLogic));
+    }
+
+    function testUpgradePoolBeaconLogic() public {
+        SuperfluidPool newPoolLogic = new SuperfluidPool(sf.gda);
+        vm.startPrank(address(sf.governance));
+        sf.host.updatePoolBeaconLogic(address(newPoolLogic));
+        vm.stopPrank();
+
+        assertEq(
+            sf.gda.superfluidPoolBeacon().implementation(),
+            address(newPoolLogic),
+            "testUpgradePoolBeaconLogic: pool beacon logic not upgraded"
+        );
+    }
+
     function testBatchChangeSuperTokenAdmin(address newAdmin) public {
         vm.assume(newAdmin != address(0));
 
-        (, ISuperToken localSuperToken) = sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max);
+        (, ISuperToken localSuperToken) =
+            sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max, address(0));
 
         ISuperToken[] memory superTokens = new ISuperToken[](2);
         superTokens[0] = superToken;        // host admin
@@ -90,7 +132,8 @@ contract SuperfluidGovernanceIntegrationTest is FoundrySuperfluidTester {
         vm.assume(newAdmin != address(0));
         vm.assume(newAdmin != address(sf.governance.owner()));
 
-        (, ISuperToken localSuperToken) = sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max);
+        (, ISuperToken localSuperToken) =
+            sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max, address(0));
 
         ISuperToken[] memory superTokens = new ISuperToken[](2);
         superTokens[0] = superToken;        // host admin

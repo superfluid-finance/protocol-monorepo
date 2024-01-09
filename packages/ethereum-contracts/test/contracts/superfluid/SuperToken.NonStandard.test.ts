@@ -67,14 +67,20 @@ describe("SuperToken's Non Standard Functions", function () {
 
     describe("#1 upgradability", () => {
         it("#1.1 storage layout", async () => {
-            const {constantOutflowNFTProxy, constantInflowNFTProxy} =
-                await t.deployNFTContracts();
+            const {
+                constantOutflowNFTProxy,
+                constantInflowNFTProxy,
+                poolAdminNFTProxy,
+                poolMemberNFTProxy,
+            } = await t.deployNFTContracts();
             const superTokenLogic =
                 await t.deployContract<SuperTokenStorageLayoutTester>(
                     "SuperTokenStorageLayoutTester",
                     superfluid.address,
                     constantOutflowNFTProxy.address,
-                    constantInflowNFTProxy.address
+                    constantInflowNFTProxy.address,
+                    poolAdminNFTProxy.address,
+                    poolMemberNFTProxy.address
                 );
             await superTokenLogic.validateStorageLayout();
         });
@@ -704,14 +710,20 @@ describe("SuperToken's Non Standard Functions", function () {
         });
 
         it("#3.1 Custom token storage should not overlap with super token", async () => {
-            const {constantOutflowNFTProxy, constantInflowNFTProxy} =
-                await t.deployNFTContracts();
+            const {
+                constantOutflowNFTProxy,
+                constantInflowNFTProxy,
+                poolAdminNFTProxy,
+                poolMemberNFTProxy,
+            } = await t.deployNFTContracts();
             const superTokenLogic =
                 await t.deployContract<SuperTokenStorageLayoutTester>(
                     "SuperTokenStorageLayoutTester",
                     superfluid.address,
                     constantOutflowNFTProxy.address,
-                    constantInflowNFTProxy.address
+                    constantInflowNFTProxy.address,
+                    poolAdminNFTProxy.address,
+                    poolMemberNFTProxy.address
                 );
             const a = await superTokenLogic.getLastSuperTokenStorageSlot();
             const b = await customToken.getFirstCustomTokenStorageSlot();

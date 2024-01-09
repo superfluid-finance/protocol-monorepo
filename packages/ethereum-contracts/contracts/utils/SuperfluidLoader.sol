@@ -26,6 +26,7 @@ contract SuperfluidLoader {
         ISuperTokenFactory superTokenFactory;
         ISuperAgreement agreementCFAv1;
         ISuperAgreement agreementIDAv1;
+        ISuperAgreement agreementGDAv1;
     }
 
     constructor(IResolver resolver) {
@@ -50,6 +51,9 @@ contract SuperfluidLoader {
         );
         result.agreementIDAv1 = result.superfluid.getAgreementClass(
             keccak256("org.superfluid-finance.agreements.InstantDistributionAgreement.v1")
+        );
+        result.agreementGDAv1 = result.superfluid.getAgreementClass(
+            keccak256("org.superfluid-finance.agreements.GeneralDistributionAgreement.v1")
         );
     }
 }

@@ -80,10 +80,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
 
     console.log("deploying solvency related contracts");
     const minBondDuration = process.env.TOGA_MIN_BOND_DURATION || 604800;
-    const toga = await TOGA.new(
-        sf.host.address,
-        minBondDuration
-    );
+    const toga = await TOGA.new(sf.host.address, minBondDuration);
     console.log("TOGA deployed at:", toga.address);
 
     await gov.setRewardAddress(
@@ -93,10 +90,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     );
     console.log("reward address set to TOGA");
 
-    const batchLiquidator = await BatchLiquidator.new(
-        sf.host.address,
-        sf.agreements.cfa.address,
-    );
+    const batchLiquidator = await BatchLiquidator.new(sf.host.address);
     console.log("BatchLiquidator deployed at:", batchLiquidator.address);
 
     await oldGov.replaceGovernance(sf.host.address, govProxy.address);

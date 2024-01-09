@@ -70,13 +70,19 @@ describe("SuperTokenFactory Contract", function () {
                 constantInflowNFTProxy,
                 cofNFTLogicAddress,
                 cifNFTLogicAddress,
+                poolAdminNFTProxy,
+                poolMemberNFTProxy,
+                paNFTLogicAddress,
+                pmNFTLogicAddress,
             } = await t.deployNFTContracts();
             const superTokenLogic = await t.deployContract<SuperTokenMock>(
                 "SuperTokenMock",
                 superfluid.address,
                 "0",
                 constantOutflowNFTProxy.address,
-                constantInflowNFTProxy.address
+                constantInflowNFTProxy.address,
+                poolAdminNFTProxy.address,
+                poolMemberNFTProxy.address
             );
             const tester =
                 await t.deployContract<SuperTokenFactoryStorageLayoutTester>(
@@ -84,7 +90,9 @@ describe("SuperTokenFactory Contract", function () {
                     superfluid.address,
                     superTokenLogic.address,
                     cofNFTLogicAddress,
-                    cifNFTLogicAddress
+                    cifNFTLogicAddress,
+                    paNFTLogicAddress,
+                    pmNFTLogicAddress
                 );
             await tester.validateStorageLayout();
         });
@@ -149,13 +157,19 @@ describe("SuperTokenFactory Contract", function () {
                     constantInflowNFTProxy,
                     cofNFTLogicAddress,
                     cifNFTLogicAddress,
+                    poolAdminNFTProxy,
+                    poolMemberNFTProxy,
+                    paNFTLogicAddress,
+                    pmNFTLogicAddress,
                 } = await t.deployNFTContracts();
                 const superTokenLogic = await t.deployContract<SuperTokenMock>(
                     "SuperTokenMock",
                     superfluid.address,
                     42,
                     constantOutflowNFTProxy.address,
-                    constantInflowNFTProxy.address
+                    constantInflowNFTProxy.address,
+                    poolAdminNFTProxy.address,
+                    poolMemberNFTProxy.address
                 );
                 const factory2Logic =
                     await t.deployContract<SuperTokenFactoryMock42>(
@@ -163,13 +177,16 @@ describe("SuperTokenFactory Contract", function () {
                         superfluid.address,
                         superTokenLogic.address,
                         cofNFTLogicAddress,
-                        cifNFTLogicAddress
+                        cifNFTLogicAddress,
+                        paNFTLogicAddress,
+                        pmNFTLogicAddress
                     );
                 await governance.updateContracts(
                     superfluid.address,
                     ZERO_ADDRESS,
                     [],
-                    factory2Logic.address
+                    factory2Logic.address,
+                    ZERO_ADDRESS
                 );
                 await superfluid.getSuperTokenFactoryLogic();
             }
@@ -270,14 +287,20 @@ describe("SuperTokenFactory Contract", function () {
                 await updateSuperTokenFactory();
                 assert.equal((await superToken1.waterMark()).toString(), "0");
 
-                const {constantOutflowNFTProxy, constantInflowNFTProxy} =
-                    await t.deployNFTContracts();
+                const {
+                    constantOutflowNFTProxy,
+                    constantInflowNFTProxy,
+                    poolAdminNFTProxy,
+                    poolMemberNFTProxy,
+                } = await t.deployNFTContracts();
                 const superTokenLogic = await t.deployContract<SuperTokenMock>(
                     "SuperTokenMock",
                     superfluid.address,
                     69,
                     constantOutflowNFTProxy.address,
-                    constantInflowNFTProxy.address
+                    constantInflowNFTProxy.address,
+                    poolAdminNFTProxy.address,
+                    poolMemberNFTProxy.address
                 );
 
                 await governance[
@@ -298,12 +321,18 @@ describe("SuperTokenFactory Contract", function () {
                     constantInflowNFTProxy,
                     cofNFTLogicAddress,
                     cifNFTLogicAddress,
+                    poolAdminNFTProxy,
+                    poolMemberNFTProxy,
+                    paNFTLogicAddress,
+                    pmNFTLogicAddress,
                 } = await t.deployNFTContracts();
                 const superTokenLogic = await t.deployContract<SuperToken>(
                     "SuperToken",
                     superfluid.address,
                     constantOutflowNFTProxy.address,
-                    constantInflowNFTProxy.address
+                    constantInflowNFTProxy.address,
+                    poolAdminNFTProxy.address,
+                    poolMemberNFTProxy.address
                 );
                 const factory2Logic =
                     await t.deployContract<SuperTokenFactoryMock42>(
@@ -311,13 +340,16 @@ describe("SuperTokenFactory Contract", function () {
                         superfluid.address,
                         superTokenLogic.address,
                         cofNFTLogicAddress,
-                        cifNFTLogicAddress
+                        cifNFTLogicAddress,
+                        paNFTLogicAddress,
+                        pmNFTLogicAddress
                     );
                 await governance.updateContracts(
                     superfluid.address,
                     ZERO_ADDRESS,
                     [],
-                    factory2Logic.address
+                    factory2Logic.address,
+                    ZERO_ADDRESS
                 );
 
                 await expectCustomError(

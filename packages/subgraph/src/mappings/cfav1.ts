@@ -29,8 +29,11 @@ import {
     getOrInitFlowOperator,
     getOrInitStream,
     getOrInitStreamRevision,
-    updateAggregateEntitiesStreamData,
+    updateSenderATSStreamData,
+    updateReceiverATSStreamData,
     updateATSStreamedAndBalanceUntilUpdatedAt,
+    updateTokenStatisticStreamData,
+    updateTokenStatsStreamedUntilUpdatedAt,
 } from "../mappingHelpers";
 import { getHostAddress } from "../addresses";
 
@@ -78,7 +81,9 @@ export function handleFlowUpdated(event: FlowUpdated): void {
     const oldDeposit = stream.deposit;
     const oldFlowRate = stream.currentFlowRate;
 
-    const timeSinceLastUpdate = currentTimestamp.minus(stream.updatedAtTimestamp);
+    const timeSinceLastUpdate = currentTimestamp.minus(
+        stream.updatedAtTimestamp
+    );
     const userAmountStreamedSinceLastUpdate =
         oldFlowRate.times(timeSinceLastUpdate);
     const newStreamedUntilLastUpdate = stream.streamedUntilUpdatedAt.plus(
@@ -124,6 +129,7 @@ export function handleFlowUpdated(event: FlowUpdated): void {
         newDeposit
     );
 
+    // update streamed and balance until updated at for sender and receiver
     updateATSStreamedAndBalanceUntilUpdatedAt(
         senderAddress,
         tokenAddress,
@@ -137,19 +143,46 @@ export function handleFlowUpdated(event: FlowUpdated): void {
         event.block,
         null
     );
-    // @note EXCEPTION for not calling updateTokenStatsStreamedUntilUpdatedAt
-    // because updateAggregateEntitiesStreamData updates tokenStats.streamedUntilUpdatedAt
-    updateAggregateEntitiesStreamData(
+
+    // update stream counter data for sender and receiver ATS
+    updateSenderATSStreamData(
         senderAddress,
-        receiverAddress,
         tokenAddress,
         flowRate,
         flowRateDelta,
         depositDelta,
         isCreate,
         isDelete,
+        true,
         event.block
     );
+    updateReceiverATSStreamData(
+        receiverAddress,
+        tokenAddress,
+        flowRate,
+        flowRateDelta,
+        isCreate,
+        isDelete,
+        true,
+        event.block
+    );
+
+    // update token stats streamed until updated at
+    updateTokenStatsStreamedUntilUpdatedAt(tokenAddress, event.block);
+
+    // update token stats stream counter data
+    updateTokenStatisticStreamData(
+        tokenAddress,
+        flowRate,
+        flowRateDelta,
+        depositDelta,
+        isCreate,
+        isDelete,
+        true,
+        event.block
+    );
+
+    // create ATS and token statistic log entities
     _createAccountTokenSnapshotLogEntity(
         event,
         senderAddress,

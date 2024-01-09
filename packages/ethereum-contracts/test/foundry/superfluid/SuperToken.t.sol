@@ -7,6 +7,8 @@ import { UUPSProxiable } from "../../../contracts/upgradability/UUPSProxiable.so
 import { IERC20, ISuperToken, SuperToken } from "../../../contracts/superfluid/SuperToken.sol";
 import { ConstantOutflowNFT, IConstantOutflowNFT } from "../../../contracts/superfluid/ConstantOutflowNFT.sol";
 import { ConstantInflowNFT, IConstantInflowNFT } from "../../../contracts/superfluid/ConstantInflowNFT.sol";
+import { PoolAdminNFT, IPoolAdminNFT } from "../../../contracts/agreements/gdav1/PoolAdminNFT.sol";
+import { PoolMemberNFT, IPoolMemberNFT } from "../../../contracts/agreements/gdav1/PoolMemberNFT.sol";
 import { FoundrySuperfluidTester } from "../FoundrySuperfluidTester.sol";
 import { TestToken } from "../../../contracts/utils/TestToken.sol";
 import { TokenDeployerLibrary } from "../../../contracts/utils/SuperfluidFrameworkDeploymentSteps.sol";
@@ -27,7 +29,7 @@ contract SuperTokenIntegrationTest is FoundrySuperfluidTester {
         // We assume that most underlying tokens will not have more than 32 decimals
         vm.assume(decimals <= 32);
         (TestToken localToken, ISuperToken localSuperToken) =
-            sfDeployer.deployWrapperSuperToken("FTT", "FTT", decimals, type(uint256).max);
+            sfDeployer.deployWrapperSuperToken("FTT", "FTT", decimals, type(uint256).max, address(0));
         (uint256 underlyingAmount, uint256 adjustedAmount) = localSuperToken.toUnderlyingAmount(amount);
         localToken.mint(alice, INIT_TOKEN_BALANCE);
         vm.startPrank(alice);
@@ -46,7 +48,7 @@ contract SuperTokenIntegrationTest is FoundrySuperfluidTester {
         vm.assume(decimals <= 32);
         vm.assume(downgradeAmount < upgradeAmount);
         (TestToken localToken, ISuperToken localSuperToken) =
-            sfDeployer.deployWrapperSuperToken("FTT", "FTT", decimals, type(uint256).max);
+            sfDeployer.deployWrapperSuperToken("FTT", "FTT", decimals, type(uint256).max, address(0));
         (uint256 underlyingAmount, uint256 adjustedAmount) = localSuperToken.toUnderlyingAmount(upgradeAmount);
         localToken.mint(alice, INIT_TOKEN_BALANCE);
 
@@ -70,6 +72,8 @@ contract SuperTokenIntegrationTest is FoundrySuperfluidTester {
     function testRevertSuperTokenUpdateCodeWrongNFTProxies() public {
         UUPSProxy cifProxy = new UUPSProxy();
         UUPSProxy cofProxy = new UUPSProxy();
+        UUPSProxy paProxy = new UUPSProxy();
+        UUPSProxy pmProxy = new UUPSProxy();
 
         ConstantInflowNFT cifNFTLogic = new ConstantInflowNFT(
             sf.host,
@@ -79,21 +83,35 @@ contract SuperTokenIntegrationTest is FoundrySuperfluidTester {
             sf.host,
             IConstantInflowNFT(address(cifProxy))
         );
+        PoolAdminNFT paNFTLogic = new PoolAdminNFT(
+            sf.host
+        );
+        PoolMemberNFT pmNFTLogic = new PoolMemberNFT(
+            sf.host
+        );
 
         cifNFTLogic.castrate();
         cofNFTLogic.castrate();
+        paNFTLogic.castrate();
+        pmNFTLogic.castrate();
 
         cifProxy.initializeProxy(address(cifNFTLogic));
         cofProxy.initializeProxy(address(cofNFTLogic));
+        paProxy.initializeProxy(address(paNFTLogic));
+        pmProxy.initializeProxy(address(pmNFTLogic));
 
         ConstantInflowNFT(address(cofProxy)).initialize("Constant Outflow NFT", "COF");
         ConstantOutflowNFT(address(cifProxy)).initialize("Constant Inflow NFT", "CIF");
+        PoolAdminNFT(address(paProxy)).initialize("Pool Admin NFT", "PA");
+        PoolMemberNFT(address(pmProxy)).initialize("Pool Member NFT", "PM");
 
-        // both nft proxies incorrect
+        // all nft proxies incorrect
         SuperToken superTokenLogic = new SuperToken(
             sf.host,
             ConstantOutflowNFT(address(cofProxy)),
-            ConstantInflowNFT(address(cifProxy))
+            ConstantInflowNFT(address(cifProxy)),
+            PoolAdminNFT(address(paProxy)),
+            PoolMemberNFT(address(pmProxy))
         );
         vm.prank(address(sf.host));
         vm.expectRevert(ISuperToken.SUPER_TOKEN_NFT_PROXY_ADDRESS_CHANGED.selector);
@@ -103,7 +121,9 @@ contract SuperTokenIntegrationTest is FoundrySuperfluidTester {
         superTokenLogic = new SuperToken(
             sf.host,
             superToken.CONSTANT_OUTFLOW_NFT(),
-            ConstantInflowNFT(address(cifProxy))
+            ConstantInflowNFT(address(cifProxy)),
+            superToken.POOL_ADMIN_NFT(),
+            superToken.POOL_MEMBER_NFT()
         );
         vm.prank(address(sf.host));
         vm.expectRevert(ISuperToken.SUPER_TOKEN_NFT_PROXY_ADDRESS_CHANGED.selector);
@@ -113,7 +133,9 @@ contract SuperTokenIntegrationTest is FoundrySuperfluidTester {
         superTokenLogic = new SuperToken(
             sf.host,
             ConstantOutflowNFT(address(cofProxy)),
-            superToken.CONSTANT_INFLOW_NFT()
+            superToken.CONSTANT_INFLOW_NFT(),
+            superToken.POOL_ADMIN_NFT(),
+            superToken.POOL_MEMBER_NFT()
         );
         vm.prank(address(sf.host));
         vm.expectRevert(ISuperToken.SUPER_TOKEN_NFT_PROXY_ADDRESS_CHANGED.selector);
@@ -132,7 +154,8 @@ contract SuperTokenIntegrationTest is FoundrySuperfluidTester {
     }
 
     function testOnlyHostCanChangeAdminWhenNoAdmin(address _admin) public {
-        (, ISuperToken localSuperToken) = sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max);
+        (, ISuperToken localSuperToken) =
+            sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max, address(0));
 
         vm.startPrank(address(sf.host));
         localSuperToken.changeAdmin(_admin);
@@ -180,9 +203,25 @@ contract SuperTokenIntegrationTest is FoundrySuperfluidTester {
         vm.stopPrank();
     }
 
+    function testRevertWhenNonAdminTriesToUpdateCode(address _admin, address nonAdmin) public {
+        vm.assume(_admin != address(sf.host));
+        vm.assume(nonAdmin != address(sf.host));
+
+        (TestToken localTestToken, ISuperToken localSuperToken) =
+            sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max, address(0));
+
+        SuperToken newSuperTokenLogic =
+            _helperDeploySuperTokenAndInitialize(localSuperToken, localTestToken, 18, "FTT", "FTT", _admin);
+
+        vm.startPrank(nonAdmin);
+        vm.expectRevert(ISuperToken.SUPER_TOKEN_ONLY_ADMIN.selector);
+        UUPSProxiable(address(localSuperToken)).updateCode(address(newSuperTokenLogic));
+        vm.stopPrank();
+    }
+
     function testOnlyHostCanUpdateCodeWhenNoAdmin() public {
         (TestToken localTestToken, ISuperToken localSuperToken) =
-            sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max);
+            sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max, address(0));
 
         SuperToken newSuperTokenLogic =
             _helperDeploySuperTokenAndInitialize(localSuperToken, localTestToken, 18, "FTT", "FTT", address(0));
@@ -218,20 +257,5 @@ contract SuperTokenIntegrationTest is FoundrySuperfluidTester {
             address(newSuperTokenLogic),
             "testOnlyHostCanUpdateCodeWhenNoAdmin: super token logic not updated correctly"
         );
-    }
-
-    function testRevertWhenNonAdminTriesToUpdateCode(address _admin, address nonAdmin) public {
-        vm.assume(_admin != address(sf.host));
-
-        (TestToken localTestToken, ISuperToken localSuperToken) =
-            sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max);
-
-        SuperToken newSuperTokenLogic =
-            _helperDeploySuperTokenAndInitialize(localSuperToken, localTestToken, 18, "FTT", "FTT", _admin);
-
-        vm.startPrank(nonAdmin);
-        vm.expectRevert(ISuperToken.SUPER_TOKEN_ONLY_ADMIN.selector);
-        UUPSProxiable(address(localSuperToken)).updateCode(address(newSuperTokenLogic));
-        vm.stopPrank();
     }
 }

@@ -23,7 +23,7 @@
         "matchstick:prepare-addresses": "mustache config/polygon-mainnet.json src/addresses.template.ts > src/addresses.ts",
         "matchstick:prepare-generated": "yarn getAbi && yarn codegen && yarn generate-sf-meta-local",
         "matchstick:test": "graph test",
-        "dev": "nodemon -e ts -x yarn matchstick:test",
+        "dev": "yarn matchstick && nodemon -e ts -x yarn matchstick:test",
         "posttest": "yarn testenv:stop",
         "integrity": "npx hardhat run scripts/dataIntegrity/dataIntegrityTest.ts --network",
         "check-indexing-completeness": "ts-node scripts/checkIsDeployedOnAllNetworks.ts",
@@ -33,6 +33,7 @@
         "remove-local": "graph remove superfluid-test --node http://localhost:8020/",
         "deploy-local": "graph deploy superfluid-test --node http://localhost:8020/ --ipfs http://localhost:5001 --version-label v1.0.0",
         "prepare-local": "run-s prepare-local:*",
+        "prepare-local:deploy-contracts": "cd ../ethereum-contracts && npx hardhat run dev-scripts/run-deploy-contracts-and-token.js && cd ../subgraph",
         "prepare-local:manifest": "yarn prepare-manifest-local",
         "prepare-local:network": "yarn set-network-local",
         "prepare-local:abi": "yarn getAbi",
@@ -51,7 +52,7 @@
     "dependencies": {
         "@graphprotocol/graph-cli": "0.57.0",
         "@graphprotocol/graph-ts": "0.31.0",
-        "@superfluid-finance/sdk-core": "0.6.8",
+        "@superfluid-finance/sdk-core": "0.6.13",
         "mustache": "^4.2.0"
     },
     "devDependencies": {

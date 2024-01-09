@@ -5,23 +5,17 @@ import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
 import { ConstantInflowNFT, IConstantInflowNFT } from "../superfluid/ConstantInflowNFT.sol";
 import { ConstantOutflowNFT, IConstantOutflowNFT } from "../superfluid/ConstantOutflowNFT.sol";
 import { FlowNFTBase } from "../superfluid/FlowNFTBase.sol";
+import { IStorageLayoutBase } from "./IStorageLayoutBase.sol";
 
 /*//////////////////////////////////////////////////////////////////////////
                                 FlowNFTBase Mocks
 //////////////////////////////////////////////////////////////////////////*/
 
-interface IFlowNFTBaseMockErrors {
-    error STORAGE_LOCATION_CHANGED(string _name);
-}
-
 /// @title FlowNFTBaseStorageLayoutMock
 /// @author Superfluid
 /// @notice A mock FlowNFTBase contract for testing storage layout.
 /// @dev This contract *MUST* have the same storage layout as FlowNFTBase.sol
-contract FlowNFTBaseStorageLayoutMock is FlowNFTBase {
-
-    error STORAGE_LOCATION_CHANGED(string _name);
-
+contract FlowNFTBaseStorageLayoutMock is FlowNFTBase, IStorageLayoutBase {
     constructor(
         ISuperfluid host
     ) FlowNFTBase(host) {}
@@ -96,10 +90,7 @@ contract FlowNFTBaseStorageLayoutMock is FlowNFTBase {
 /// @author Superfluid
 /// @notice A mock ConstantOutflowNFT contract for testing storage layout.
 /// @dev This contract *MUST* have the same storage layout as ConstantOutflowNFT.sol
-contract ConstantInflowNFTStorageLayoutMock is ConstantInflowNFT {
-
-    error STORAGE_LOCATION_CHANGED(string _name);
-
+contract ConstantInflowNFTStorageLayoutMock is ConstantInflowNFT, IStorageLayoutBase {
 
     constructor(
         ISuperfluid host,
@@ -136,18 +127,6 @@ contract ConstantInflowNFTStorageLayoutMock is ConstantInflowNFT {
     }
 
     // Dummy implementations for abstract functions
-    function _ownerOf(
-        uint256 //tokenId
-        ) internal pure override returns (address) {
-        return address(0);
-    }
-    function _transfer(
-        address, //from,
-        address, //to,
-        uint256  //tokenId
-    ) internal pure override {
-        return;
-    }
     function _safeTransfer(
         address from,
         address to,
@@ -162,10 +141,7 @@ contract ConstantInflowNFTStorageLayoutMock is ConstantInflowNFT {
 /// @author Superfluid
 /// @notice A mock ConstantOutflowNFT contract for testing storage layout.
 /// @dev This contract *MUST* have the same storage layout as ConstantOutflowNFT.sol
-contract ConstantOutflowNFTStorageLayoutMock is ConstantOutflowNFT {
-
-    error STORAGE_LOCATION_CHANGED(string _name);
-
+contract ConstantOutflowNFTStorageLayoutMock is ConstantOutflowNFT, IStorageLayoutBase {
 
     constructor(
         ISuperfluid host,
@@ -201,21 +177,10 @@ contract ConstantOutflowNFTStorageLayoutMock is ConstantOutflowNFT {
         if (slot != 21 || offset != 0) revert STORAGE_LOCATION_CHANGED("_reserve21");
 
         assembly { slot := _flowDataByTokenId.slot offset := _flowDataByTokenId.offset }
+        if (slot != 22 || offset != 0) revert STORAGE_LOCATION_CHANGED("_flowDataByTokenId");
     }
 
     // Dummy implementations for abstract functions
-    function _ownerOf(
-        uint256 //tokenId
-        ) internal pure override returns (address) {
-        return address(0);
-    }
-    function _transfer(
-        address, //from,
-        address, //to,
-        uint256  //tokenId
-    ) internal pure override {
-        return;
-    }
     function _safeTransfer(
         address from,
         address to,

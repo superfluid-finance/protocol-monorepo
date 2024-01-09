@@ -1,0 +1,53 @@
+name: Reusable Workflow | Deploy Framework and Update Tokens on a Forked Network
+
+on:
+  workflow_call:
+    inputs:
+      network:
+        required: true
+        type: string
+      network-id:
+        required: true
+        type: string
+      provider-url:
+        required: true
+        type: string
+
+jobs:
+  deploy-to-forked-network:
+    name: Deploy Framework and Update Tokens on a Forked Network
+    runs-on: ubuntu-latest
+    env:
+      ethereum-contracts-working-directory: ./packages/ethereum-contracts
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install and Build
+        run: |
+          yarn install --frozen-lockfile
+          yarn build-for-contracts-dev
+
+      - name: Start ganache
+        run: npx ganache --port 47545 --mnemonic --fork.url ${{ github.event.inputs.provider-url }} --network-id ${{ github.event.inputs.network-id }} --chain.chainId ${{ github.event.inputs.network-id }}
+
+      - name: Deploy framework
+        run: |
+          echo "${{ github.event.inputs.environments }}" | sed 's/;/\n/' > .env
+          npx truffle exec --network ${{ github.event.inputs.network }} ops-scripts/deploy-test-environment.js
+        working-directory: ${{ env.ethereum-contracts-working-directory }}
+
+      - name: Validate deployment before token upgrade
+        run: |
+          npx hardhat run ops-scripts/validate-deployment.ts --network ${{ github.event.inputs.network }}
+        working-directory: ${{ env.ethereum-contracts-working-directory }}
+
+      - name: Update Super Token Logic for all tokens
+        run: |
+          npx truffle exec --network ${{ github.event.inputs.network }} ops-scripts/gov-upgrade-super-token-logic.js : ALL
+        working-directory: ${{ env.ethereum-contracts-working-directory }}
+
+      - name: Validate deployment post token upgrade
+        run: |
+          npx hardhat run ops-scripts/validate-deployment.ts --network ${{ github.event.inputs.network }}
+        working-directory: ${{ env.ethereum-contracts-working-directory }}

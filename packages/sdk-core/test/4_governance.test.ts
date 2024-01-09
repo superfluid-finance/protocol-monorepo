@@ -13,9 +13,11 @@ makeSuite("Governance Tests", (testEnv: TestEnvironment) => {
         expect(defaultParams.patricianPeriod).to.equal(
             testEnv.constants.PATRICIAN_PERIOD
         );
-        expect(defaultParams.rewardAddress).to.equal(
-            testEnv.constants.DEFAULT_REWARD_ADDRESS
-        );
+        const defaultRewardAddress =
+            await testEnv.sdkFramework.governance.getRewardAddress({
+                providerOrSigner: testEnv.alice,
+            });
+        expect(defaultParams.rewardAddress).to.equal(defaultRewardAddress);
         expect(defaultParams.minimumDeposit).to.equal("0");
     });
 
@@ -31,8 +33,12 @@ makeSuite("Governance Tests", (testEnv: TestEnvironment) => {
         expect(tokenSpecificParams.patricianPeriod).to.equal(
             testEnv.constants.PATRICIAN_PERIOD
         );
+        const defaultRewardAddress =
+            await testEnv.sdkFramework.governance.getRewardAddress({
+                providerOrSigner: testEnv.alice,
+            });
         expect(tokenSpecificParams.rewardAddress).to.equal(
-            testEnv.constants.DEFAULT_REWARD_ADDRESS
+            defaultRewardAddress
         );
         expect(tokenSpecificParams.minimumDeposit).to.equal("0");
     });

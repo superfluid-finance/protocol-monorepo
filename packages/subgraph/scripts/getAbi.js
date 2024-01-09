@@ -2,27 +2,22 @@ const fs = require("fs");
 const path = require("path");
 
 const contracts = [
-    "ConstantFlowAgreementV1",
     "ERC20",
     "IConstantFlowAgreementV1",
     "IFlowNFTBase",
-    "IResolver",
     "ISuperTokenFactory",
     "ISuperToken",
     "ISuperfluid",
     "Resolver",
     "IInstantDistributionAgreementV1",
-    "InstantDistributionAgreementV1",
+    "IGeneralDistributionAgreementV1",
+    "ISuperfluidPool",
     "SuperfluidGovernanceBase",
-    "SuperToken",
     "TestToken",
     "TOGA",
 ];
 
-const directoryPath = path.join(
-    __dirname,
-    "../../ethereum-contracts/build/truffle"
-);
+const directoryPath = path.join(__dirname, "../../ethereum-contracts/build/truffle");
 
 fs.mkdir("abis/", (err) => {
     if (err) return; //console.error(err);

@@ -19,11 +19,12 @@ async function deployContractsAndToken() {
 
     await deployer
         .connect(Deployer)
-        ["deployWrapperSuperToken(string,string,uint8,uint256)"](
+        .deployWrapperSuperToken(
             "Fake DAI",
             "fDAI",
             18,
-            ethers.utils.parseUnits("1000000000000")
+            ethers.utils.parseUnits("1000000000000"),
+            ethers.constants.AddressZero
         );
 
     await deployer

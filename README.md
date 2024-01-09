@@ -1,22 +1,22 @@
 <h1 align="center">Welcome to superfluid protocol-monorepo 👋</h1>
 
 <p>
-  <a href="#superfluid-financeethereum-contracts" target="_blank">
+  <a href="#superfluid-finance/ethereum-contracts" target="_blank">
     <img alt="npm" src="https://img.shields.io/npm/v/@superfluid-finance/ethereum-contracts?label=ethereum-contracts">
   </a>
-  <a href="#superfluid-financesubgraph" target="_blank">
+  <a href="#superfluid-finance/subgraph" target="_blank">
     <img alt="GitHub package.json version (subfolder of monorepo)" src="https://img.shields.io/github/package-json/v/superfluid-finance/protocol-monorepo?filename=packages%2Fsubgraph%2Fpackage.json&label=subgraph"> 
   </a>
-  <a href="#superfluid-financejs-sdk" target="_blank">
+  <a href="#superfluid-finance/js-sdk" target="_blank">
     <img alt="npm" src="https://img.shields.io/npm/v/@superfluid-finance/js-sdk?label=js-sdk">
   </a>
-  <a href="#superfluid-financesdk-core" target="_blank">
+  <a href="#superfluid-finance/sdk-core" target="_blank">
     <img alt="npm" src="https://img.shields.io/npm/v/@superfluid-finance/sdk-core?label=sdk-core">
   </a>
-  <a href="#superfluid-financesdk-redux" target="_blank">
+  <a href="#superfluid-finance/sdk-redux" target="_blank">
     <img alt="npm" src="https://img.shields.io/npm/v/@superfluid-finance/sdk-redux?label=sdk-redux">
   </a>
-  <a href="#superfluid-financehot-fuzz" target="_blank">
+  <a href="#superfluid-finance/hot-fuzz" target="_blank">
     <img alt="GitHub package.json version (subfolder of monorepo)" src="https://img.shields.io/github/package-json/v/superfluid-finance/protocol-monorepo?filename=packages%2Fhot-fuzz%2Fpackage.json&label=hot-fuzz"> 
   </a>
   <br>

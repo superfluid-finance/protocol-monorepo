@@ -5,6 +5,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Unreleased
 
+## [v1.9.0] - 2024-01-09
+
 ### Breaking
 
 - `TokenInfo` and `ERC20WithTokenInfo` interface/abstract contract are removed from the codebase, including the bundled ABI contracts
@@ -14,6 +16,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Added
 
+- New agreement: `GeneralDistributionAgreement` added which enables 1-to-N flowing distributions in addition to 1-to-N instant distributions via the `SuperfluidPool` contract
 - Added 'test-slither' yarn sub-task.
 - Expose `SuperToken._underlyingDecimals` with `SuperToken.getUnderlyingDecimals()`
 - Expose `_toUnderlyingAmount(uint256 amount)` with `toUnderlyingAmount(uint256 amount)`

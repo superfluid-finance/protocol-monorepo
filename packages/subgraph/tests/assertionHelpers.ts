@@ -1,6 +1,6 @@
 import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
 import { assert, log } from "matchstick-as/assembly/index";
-import { createEventID, createLogID, getIndexID, getOrder } from "../src/utils";
+import { BIG_INT_ZERO, createEventID, createLogID, getIndexID, getOrder } from "../src/utils";
 
 // General Assertion Helpers
 
@@ -45,14 +45,11 @@ export function assertEventBaseProperties(
 export function assertHigherOrderBaseProperties(
     entityName: string,
     id: string,
-    createdAtTimestamp: BigInt,
-    createdAtBlockNumber: BigInt,
-    updatedAtTimestamp: BigInt,
-    updatedAtBlockNumber: BigInt
+    event: ethereum.Event,
 ): void {
-    assertAggregateBaseProperties(entityName, id, updatedAtTimestamp, updatedAtBlockNumber);
-    assert.fieldEquals(entityName, id, "createdAtTimestamp", createdAtTimestamp.toString());
-    assert.fieldEquals(entityName, id, "createdAtBlockNumber", createdAtBlockNumber.toString());
+    assertAggregateBaseProperties(entityName, id, event.block.timestamp, event.block.number);
+    assert.fieldEquals(entityName, id, "createdAtTimestamp", event.block.timestamp.toString());
+    assert.fieldEquals(entityName, id, "createdAtBlockNumber", event.block.number.toString());
 }
 
 /**
@@ -145,15 +142,25 @@ export function assertIDAEventBaseProperties(
  * @param triggeredByEventName if triggeredByEventName is passed, we validate TokenStatisticLog
  * @param updatedAtTimestamp timestamp retrieved from the event
  * @param updatedAtBlockNumber block number retrieved from the event
- * @param totalNumberOfActiveStreams expected count of active streams for the token
- * @param totalNumberOfClosedStreams expected count of closed streams for the token
+ * @param totalNumberOfActiveStreams expected count of active streams for the token for all flow agreements
+ * @param totalCFANumberOfActiveStreams expected count of active streams for the token for the CFA
+ * @param totalGDANumberOfActiveStreams expected count of active streams for the token for the GDA
+ * @param totalNumberOfClosedStreams expected count of closed streams for the token for all flow agreements
+ * @param totalNumberOfCFAClosedStreams expected count of closed streams for the token for the CFA
+ * @param totalNumberOfGDAClosedStreams expected count of closed streams for the token for the GDA
  * @param totalNumberOfIndexes expected count of indexes for the token
  * @param totalNumberOfActiveIndexes expected count of active indexes for the token
  * @param totalSubscriptionsWithUnits expected count of subscriptions with allocated units for the token
  * @param totalApprovedSubscriptions expected totalNumber of approved subscriptions for the token
- * @param totalDeposit expected total deposit amount
- * @param totalOutflowRate expected total outflow rate
- * @param totalAmountStreamedUntilUpdatedAt expected total amount streamed until updated at timestamp
+ * @param totalDeposit expected total deposit amount for all flow agreements
+ * @param totalCFADeposit expected total deposit amount for the CFA
+ * @param totalGDADeposit expected total deposit amount for the GDA
+ * @param totalOutflowRate expected total outflow rate for all flow agreements
+ * @param totalCFAOutflowRate expected total outflow rate for the CFA
+ * @param totalGDAOutflowRate expected total outflow rate for the GDA
+ * @param totalAmountStreamedUntilUpdatedAt expected total amount streamed until updated at timestamp for all flow agreements
+ * @param totalCFAAmountStreamedUntilUpdatedAt expected total amount streamed until updated at timestamp for the CFA
+ * @param totalGDAAmountStreamedUntilUpdatedAt expected total amount streamed until updated at timestamp for the GDA
  * @param totalAmountTransferredUntilUpdatedAt expected total amount transferred until updated at timestamp
  * @param totalAmountDistributedUntilUpdatedAt expected total amount distributed (with IDA) until updated at timestamp
  * @param totalSupply expected total supply
@@ -167,14 +174,24 @@ export function assertTokenStatisticProperties(
     updatedAtTimestamp: BigInt,
     updatedAtBlockNumber: BigInt,
     totalNumberOfActiveStreams: i32,
+    totalCFANumberOfActiveStreams: i32,
+    totalGDANumberOfActiveStreams: i32,
     totalNumberOfClosedStreams: i32,
+    totalCFANumberOfClosedStreams: i32,
+    totalGDANumberOfClosedStreams: i32,
     totalNumberOfIndexes: i32,
     totalNumberOfActiveIndexes: i32,
     totalSubscriptionsWithUnits: i32,
     totalApprovedSubscriptions: i32,
     totalDeposit: BigInt,
+    totalCFADeposit: BigInt,
+    totalGDADeposit: BigInt,
     totalOutflowRate: BigInt,
+    totalCFAOutflowRate: BigInt,
+    totalGDAOutflowRate: BigInt,
     totalAmountStreamedUntilUpdatedAt: BigInt,
+    totalCFAAmountStreamedUntilUpdatedAt: BigInt,
+    totalGDAAmountStreamedUntilUpdatedAt: BigInt,
     totalAmountTransferredUntilUpdatedAt: BigInt,
     totalAmountDistributedUntilUpdatedAt: BigInt,
     totalSupply: BigInt,
@@ -188,14 +205,24 @@ export function assertTokenStatisticProperties(
     const entityName = "TokenStatistic";
     assertAggregateBaseProperties(entityName, id, updatedAtTimestamp, updatedAtBlockNumber);
     assert.fieldEquals(entityName, id, "totalNumberOfActiveStreams", totalNumberOfActiveStreams.toString());
+    assert.fieldEquals(entityName, id, "totalCFANumberOfActiveStreams", totalCFANumberOfActiveStreams.toString());
+    assert.fieldEquals(entityName, id, "totalGDANumberOfActiveStreams", totalGDANumberOfActiveStreams.toString());
     assert.fieldEquals(entityName, id, "totalNumberOfClosedStreams", totalNumberOfClosedStreams.toString());
+    assert.fieldEquals(entityName, id, "totalCFANumberOfClosedStreams", totalCFANumberOfClosedStreams.toString());
+    assert.fieldEquals(entityName, id, "totalGDANumberOfClosedStreams", totalGDANumberOfClosedStreams.toString());
     assert.fieldEquals(entityName, id, "totalNumberOfIndexes", totalNumberOfIndexes.toString());
     assert.fieldEquals(entityName, id, "totalNumberOfActiveIndexes", totalNumberOfActiveIndexes.toString());
     assert.fieldEquals(entityName, id, "totalSubscriptionsWithUnits", totalSubscriptionsWithUnits.toString());
     assert.fieldEquals(entityName, id, "totalApprovedSubscriptions", totalApprovedSubscriptions.toString());
     assert.fieldEquals(entityName, id, "totalDeposit", totalDeposit.toString());
+    assert.fieldEquals(entityName, id, "totalCFADeposit", totalCFADeposit.toString());
+    assert.fieldEquals(entityName, id, "totalGDADeposit", totalGDADeposit.toString());
     assert.fieldEquals(entityName, id, "totalOutflowRate", totalOutflowRate.toString());
+    assert.fieldEquals(entityName, id, "totalCFAOutflowRate", totalCFAOutflowRate.toString());
+    assert.fieldEquals(entityName, id, "totalGDAOutflowRate", totalGDAOutflowRate.toString());
     assert.fieldEquals(entityName, id, "totalAmountStreamedUntilUpdatedAt", totalAmountStreamedUntilUpdatedAt.toString());
+    assert.fieldEquals(entityName, id, "totalCFAAmountStreamedUntilUpdatedAt", totalCFAAmountStreamedUntilUpdatedAt.toString());
+    assert.fieldEquals(entityName, id, "totalGDAAmountStreamedUntilUpdatedAt", totalGDAAmountStreamedUntilUpdatedAt.toString());
     assert.fieldEquals(entityName, id, "totalAmountTransferredUntilUpdatedAt", totalAmountTransferredUntilUpdatedAt.toString());
     assert.fieldEquals(entityName, id, "totalAmountDistributedUntilUpdatedAt", totalAmountDistributedUntilUpdatedAt.toString());
     assert.fieldEquals(entityName, id, "totalSupply", totalSupply.toString());
@@ -209,14 +236,24 @@ export function assertTokenStatisticProperties(
             event,
             triggeredByEventName,
             totalNumberOfActiveStreams,
+            totalCFANumberOfActiveStreams,
+            totalGDANumberOfActiveStreams,
             totalNumberOfClosedStreams,
+            totalCFANumberOfClosedStreams,
+            totalGDANumberOfClosedStreams,
             totalNumberOfIndexes,
             totalNumberOfActiveIndexes,
             totalSubscriptionsWithUnits,
             totalApprovedSubscriptions,
             totalDeposit,
+            totalCFADeposit,
+            totalGDADeposit,
             totalOutflowRate,
+            totalCFAOutflowRate,
+            totalGDAOutflowRate,
             totalAmountStreamedUntilUpdatedAt,
+            totalCFAAmountStreamedUntilUpdatedAt,
+            totalGDAAmountStreamedUntilUpdatedAt,
             totalAmountTransferredUntilUpdatedAt,
             totalAmountDistributedUntilUpdatedAt,
             totalSupply,
@@ -250,15 +287,25 @@ export function assertTokenStatisticProperties(
  * Asserts that the properties on a TokenStatisticLog entity are correct.
  * @param event ethereum event object
  * @param triggeredByEventName name of the event which triggered the creation of this log
- * @param totalNumberOfActiveStreams expected count of active streams for the token
- * @param totalNumberOfClosedStreams expected count of closed streams for the token
+ * @param totalNumberOfActiveStreams expected count of active streams for the token for all flow agreements
+ * @param totalCFANumberOfActiveStreams expected count of active streams for the token for the CFA
+ * @param totalGDANumberOfActiveStreams expected count of active streams for the token for the GDA
+ * @param totalNumberOfClosedStreams expected count of closed streams for the token for all flow agreements
+ * @param totalNumberOfCFAClosedStreams expected count of closed streams for the token for the CFA
+ * @param totalNumberOfGDAClosedStreams expected count of closed streams for the token for the GDA
  * @param totalNumberOfIndexes expected count of indexes for the token
  * @param totalNumberOfActiveIndexes expected count of active indexes for the token
  * @param totalSubscriptionsWithUnits expected count of subscriptions with allocated units for the token
  * @param totalApprovedSubscriptions expected totalNumber of approved subscriptions for the token
- * @param totalDeposit expected total deposit amount
- * @param totalOutflowRate expected total outflow rate
- * @param totalAmountStreamed expected total amount streamed until timestamp
+ * @param totalDeposit expected total deposit amount for all flow agreements
+ * @param totalCFADeposit expected total deposit amount for the CFA
+ * @param totalGDADeposit expected total deposit amount for the GDA
+ * @param totalOutflowRate expected total outflow rate for all flow agreements
+ * @param totalCFAOutflowRate expected total outflow rate for the CFA
+ * @param totalGDAOutflowRate expected total outflow rate for the GDA
+ * @param totalAmountStreamed expected total amount streamed until timestamp for all flow agreements
+ * @param totalCFAAmountStreamed expected total amount streamed until timestamp for the CFA
+ * @param totalGDAAmountStreamed expected total amount streamed until timestamp for the GDA
  * @param totalAmountTransferred expected total amount transferred until timestamp
  * @param totalAmountDistributed expected total amount distributed (with IDA) until timestamp
  * @param totalSupply expected total supply
@@ -270,14 +317,24 @@ export function assertTokenStatisticLogProperties(
     event: ethereum.Event,
     triggeredByEventName: string,
     totalNumberOfActiveStreams: i32,
+    totalCFANumberOfActiveStreams: i32,
+    totalGDANumberOfActiveStreams: i32,
     totalNumberOfClosedStreams: i32,
+    totalCFANumberOfClosedStreams: i32,
+    totalGDANumberOfClosedStreams: i32,
     totalNumberOfIndexes: i32,
     totalNumberOfActiveIndexes: i32,
     totalSubscriptionsWithUnits: i32,
     totalApprovedSubscriptions: i32,
     totalDeposit: BigInt,
+    totalCFADeposit: BigInt,
+    totalGDADeposit: BigInt,
     totalOutflowRate: BigInt,
+    totalCFAOutflowRate: BigInt,
+    totalGDAOutflowRate: BigInt,
     totalAmountStreamed: BigInt,
+    totalCFAAmountStreamed: BigInt,
+    totalGDAAmountStreamed: BigInt,
     totalAmountTransferred: BigInt,
     totalAmountDistributed: BigInt,
     totalSupply: BigInt,
@@ -298,19 +355,80 @@ export function assertTokenStatisticLogProperties(
     assert.fieldEquals(entityName, id, "order", order.toString());
     assert.fieldEquals(entityName, id, "triggeredByEventName", triggeredByEventName);
     assert.fieldEquals(entityName, id, "totalNumberOfActiveStreams", totalNumberOfActiveStreams.toString());
+    assert.fieldEquals(entityName, id, "totalCFANumberOfActiveStreams", totalCFANumberOfActiveStreams.toString());
+    assert.fieldEquals(entityName, id, "totalGDANumberOfActiveStreams", totalGDANumberOfActiveStreams.toString());
+    assert.fieldEquals(entityName, id, "totalNumberOfClosedStreams", totalNumberOfClosedStreams.toString());
+    assert.fieldEquals(entityName, id, "totalCFANumberOfClosedStreams", totalCFANumberOfClosedStreams.toString());
+    assert.fieldEquals(entityName, id, "totalGDANumberOfClosedStreams", totalGDANumberOfClosedStreams.toString());
     assert.fieldEquals(entityName, id, "totalNumberOfClosedStreams", totalNumberOfClosedStreams.toString());
     assert.fieldEquals(entityName, id, "totalNumberOfIndexes", totalNumberOfIndexes.toString());
     assert.fieldEquals(entityName, id, "totalNumberOfActiveIndexes", totalNumberOfActiveIndexes.toString());
     assert.fieldEquals(entityName, id, "totalSubscriptionsWithUnits", totalSubscriptionsWithUnits.toString());
     assert.fieldEquals(entityName, id, "totalApprovedSubscriptions", totalApprovedSubscriptions.toString());
     assert.fieldEquals(entityName, id, "totalDeposit", totalDeposit.toString());
+    assert.fieldEquals(entityName, id, "totalCFADeposit", totalCFADeposit.toString());
+    assert.fieldEquals(entityName, id, "totalGDADeposit", totalGDADeposit.toString());
     assert.fieldEquals(entityName, id, "totalOutflowRate", totalOutflowRate.toString());
+    assert.fieldEquals(entityName, id, "totalCFAOutflowRate", totalCFAOutflowRate.toString());
+    assert.fieldEquals(entityName, id, "totalGDAOutflowRate", totalGDAOutflowRate.toString());
     assert.fieldEquals(entityName, id, "totalAmountStreamed", totalAmountStreamed.toString());
+    assert.fieldEquals(entityName, id, "totalCFAAmountStreamed", totalCFAAmountStreamed.toString());
+    assert.fieldEquals(entityName, id, "totalGDAAmountStreamed", totalGDAAmountStreamed.toString());
     assert.fieldEquals(entityName, id, "totalAmountTransferred", totalAmountTransferred.toString());
     assert.fieldEquals(entityName, id, "totalAmountDistributed", totalAmountDistributed.toString());
     assert.fieldEquals(entityName, id, "totalSupply", totalSupply.toString());
     assert.fieldEquals(entityName, id, "token", tokenAddress);
-    assert.fieldEquals(entityName, id, "totalNumberOfAccounts", totalNumberOfAccounts.toString());
     assert.fieldEquals(entityName, id, "tokenStatistic", tokenAddress);
+    assert.fieldEquals(entityName, id, "totalNumberOfAccounts", totalNumberOfAccounts.toString());
     assert.fieldEquals(entityName, id, "totalNumberOfHolders", totalNumberOfHolders.toString());
+}
+
+/**
+ * Asserts that the properties on an "empty" initialized TokenStatistic entity are correct.
+ * @param id the token address
+ * @param event if event is passed, we validate TokenStatisticLog
+ * @param triggeredByEventName if triggeredByEventName is passed, we validate TokenStatisticLog
+ * @param updatedAtTimestamp timestamp retrieved from the event
+ * @param updatedAtBlockNumber block number retrieved from the event
+ * @param totalSupply expected total supply
+ */
+export function assertEmptyTokenStatisticProperties(
+    event: ethereum.Event | null,
+    triggeredByEventName: string | null,
+    id: string,
+    updatedAtTimestamp: BigInt,
+    updatedAtBlockNumber: BigInt,
+    totalSupply: BigInt
+): void {
+    assertTokenStatisticProperties(
+        event,
+        triggeredByEventName,
+        id,
+        updatedAtTimestamp,
+        updatedAtBlockNumber,
+        0, // totalNumberOfActiveStreams
+        0, // totalCFANumberOfActiveStreams
+        0, // totalGDANumberOfActiveStreams
+        0, // totalNumberOfClosedStreams
+        0, // totalCFANumberOfClosedStreams
+        0, // totalGDANumberOfClosedStreams
+        0, // totalNumberOfIndexes
+        0, // totalNumberOfActiveIndexes
+        0, // totalSubscriptionsWithUnits
+        0, // totalApprovedSubscriptions
+        BIG_INT_ZERO, // totalDeposit
+        BIG_INT_ZERO, // totalCFADeposit
+        BIG_INT_ZERO, // totalGDADeposit
+        BIG_INT_ZERO, // totalOutflowRate
+        BIG_INT_ZERO, // totalCFAOutflowRate
+        BIG_INT_ZERO, // totalGDAOutflowRate
+        BIG_INT_ZERO, // totalAmountStreamedUntilUpdatedAt
+        BIG_INT_ZERO, // totalCFAAmountStreamedUntilUpdatedAt
+        BIG_INT_ZERO, // totalGDAAmountStreamedUntilUpdatedAt
+        BIG_INT_ZERO, // totalAmountTransferredUntilUpdatedAt
+        BIG_INT_ZERO, // totalAmountDistributedUntilUpdatedAt
+        totalSupply, // totalSupply
+        0,           // totalNumberOfAccounts
+        0            // totalNumberOfHolders
+    )
 }

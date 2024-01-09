@@ -41,7 +41,8 @@ interface ISuperfluidGovernance {
         ISuperfluid host,
         address hostNewLogic,
         address[] calldata agreementClassNewLogics,
-        address superTokenFactoryNewLogic
+        address superTokenFactoryNewLogic,
+        address beaconNewLogic
     ) external;
 
     /**

@@ -5,6 +5,7 @@ const Resolver = artifacts.require("Resolver");
 
 const SuperfluidLoader = artifacts.require("SuperfluidLoader");
 const CFAv1Forwarder = artifacts.require("CFAv1Forwarder");
+const GDAv1Forwarder = artifacts.require("GDAv1Forwarder");
 
 /**
  * @dev Deploy specified contract at a deterministic address (defined by sender, nonce)
@@ -79,6 +80,12 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         deployArgs = [hostAddr];
         console.log(
             `setting up CFAv1Forwarder for chainId ${chainId}, host ${hostAddr}`
+        );
+    } else if (contractName === "GDAv1Forwarder") {
+        ContractArtifact = GDAv1Forwarder;
+        deployArgs = [hostAddr];
+        console.log(
+            `setting up GDAv1Forwarder for chainId ${chainId}, host ${hostAddr}`
         );
     } else {
         throw new Error("Contract unknown / not supported");
@@ -165,5 +172,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     const deployTxReceipt = await web3.eth.sendSignedTransaction(
         signedTx.rawTransaction
     );
-    console.log("contract deployed at:", deployTxReceipt.contractAddress);
+    // make it easy to get the deployed address with `tail -n 1`
+    console.log("contract deployed at:");
+    console.log(deployTxReceipt.contractAddress);
 });

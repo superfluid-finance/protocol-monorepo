@@ -1,10 +1,19 @@
-import { Address, BigInt, Bytes, crypto, Entity, ethereum, log, Value } from "@graphprotocol/graph-ts";
+import {
+    Address,
+    BigInt,
+    Bytes,
+    crypto,
+    Entity,
+    ethereum,
+    log,
+    Value,
+} from "@graphprotocol/graph-ts";
 import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
-import { Resolver } from "../generated/ResolverV1/Resolver";
 import {
     IndexSubscription,
     Token,
     TokenStatistic,
+    PoolMember,
 } from "../generated/schema";
 
 /**************************************************************************
@@ -29,7 +38,7 @@ export function bytesToAddress(bytes: Bytes): Address {
  * @param values
  * @returns the encoded bytes
  */
- export function encode(values: Array<ethereum.Value>): Bytes {
+export function encode(values: Array<ethereum.Value>): Bytes {
     return ethereum.encode(
         // forcefully cast Value[] -> Tuple
         ethereum.Value.fromTuple(changetype<ethereum.Tuple>(values))
@@ -63,7 +72,7 @@ export function initializeEventEntity(
     entity: Entity,
     event: ethereum.Event,
     addresses: Bytes[]
-  ): Entity {
+): Entity {
     const idValue = entity.get("id");
     if (!idValue) return entity;
 
@@ -72,7 +81,10 @@ export function initializeEventEntity(
 
     entity.set("blockNumber", Value.fromBigInt(event.block.number));
     entity.set("logIndex", Value.fromBigInt(event.logIndex));
-    entity.set("order", Value.fromBigInt(getOrder(event.block.number, event.logIndex)));
+    entity.set(
+        "order",
+        Value.fromBigInt(getOrder(event.block.number, event.logIndex))
+    );
     entity.set("name", Value.fromString(name));
     entity.set("addresses", Value.fromBytesArray(addresses));
     entity.set("timestamp", Value.fromBigInt(event.block.timestamp));
@@ -82,7 +94,7 @@ export function initializeEventEntity(
     if (receipt) {
         entity.set("gasUsed", Value.fromBigInt(receipt.gasUsed));
     } else {
-        // @note `gasUsed` is a non-nullable property in our `schema.graphql` file, so when we attempt to save 
+        // @note `gasUsed` is a non-nullable property in our `schema.graphql` file, so when we attempt to save
         // the entity with a null field, it will halt the subgraph indexing.
         // Nonetheless, we explicitly throw if receipt is null, as this can arise due forgetting to include
         // `receipt: true` under `eventHandlers` in our manifest (`subgraph.template.yaml`) file.
@@ -90,7 +102,7 @@ export function initializeEventEntity(
     }
 
     return entity;
-  }
+}
 
 /**************************************************************************
  * HOL entities util functions
@@ -127,8 +139,8 @@ export function getTokenInfoAndReturn(token: Token): Token {
 
 /**
  * Gets and sets the total supply for TokenStatistic of a SuperToken upon initial creation
- * @param tokenStatistic 
- * @param tokenAddress 
+ * @param tokenStatistic
+ * @param tokenAddress
  * @returns TokenStatistic
  */
 export function getInitialTotalSupplyForSuperToken(
@@ -183,11 +195,7 @@ export function getStreamRevisionID(
         ethereum.Value.fromAddress(receiverAddress),
     ];
     const flowId = crypto.keccak256(encode(values));
-    return (
-        flowId.toHex() +
-        "-" +
-        tokenAddress.toHex()
-    );
+    return flowId.toHex() + "-" + tokenAddress.toHex();
 }
 
 export function getStreamID(
@@ -260,6 +268,27 @@ export function getIndexID(
     );
 }
 
+export function getPoolMemberID(
+    poolAddress: Address,
+    poolMemberAddress: Address
+): string {
+    return (
+        "poolMember-" + poolAddress.toHex() + "-" + poolMemberAddress.toHex()
+    );
+}
+
+export function getPoolDistributorID(
+    poolAddress: Address,
+    poolDistributorAddress: Address
+): string {
+    return (
+        "poolDistributor-" +
+        poolAddress.toHex() +
+        "-" +
+        poolDistributorAddress.toHex()
+    );
+}
+
 // Get Aggregate ID functions
 export function getAccountTokenSnapshotID(
     accountAddress: Address,
@@ -278,9 +307,22 @@ export function getAccountTokenSnapshotID(
  * @param id
  * @returns
  */
-export function subscriptionExists(id: string): boolean {
+export function subscriptionWithUnitsExists(id: string): boolean {
     const subscription = IndexSubscription.load(id);
     return subscription != null && subscription.units.gt(BIG_INT_ZERO);
+}
+
+/**
+ * If your units get set to 0, you will still have a pool member
+ * entity, but your pool member technically no longer exists.
+ * Similarly, you may be approved, but the pool member by this
+ * definition does not exist.
+ * @param id
+ * @returns
+ */
+export function membershipWithUnitsExists(id: string): boolean {
+    const poolMembership = PoolMember.load(id);
+    return poolMembership != null && poolMembership.units.gt(BIG_INT_ZERO);
 }
 
 export function getAmountStreamedSinceLastUpdatedAt(
@@ -290,6 +332,17 @@ export function getAmountStreamedSinceLastUpdatedAt(
 ): BigInt {
     const timeDelta = currentTime.minus(lastUpdatedTime);
     return timeDelta.times(flowRate);
+}
+
+export function getActiveStreamsDelta(
+    isCreate: boolean,
+    isDelete: boolean
+): i32 {
+    return isCreate ? 1 : isDelete ? -1 : 0;
+}
+
+export function getClosedStreamsDelta(isDelete: boolean): i32 {
+    return isDelete ? 1 : 0;
 }
 
 /**

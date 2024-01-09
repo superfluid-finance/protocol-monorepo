@@ -323,6 +323,7 @@ export default
         "logsQueryRange": 10000,
         "explorer": "https://goerli.basescan.org/",
         "subgraphV1": {
+            "cliName": "base-testnet",
             "name": "protocol-v1-base-goerli"
         },
         "publicRPCs": [

@@ -71,7 +71,7 @@
         "truffle": "^5.11.5",
         "ts-node": "^10.9.2",
         "typechain": "^8.3.2",
-        "typedoc": "^0.25.7",
+        "typedoc": "^0.25.6",
         "typescript": "^5.3.3",
         "web3": "^1.10.2"
     },

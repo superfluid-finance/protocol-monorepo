@@ -50,17 +50,17 @@
         "cloc": "cloc src"
     },
     "dependencies": {
-        "@graphprotocol/graph-cli": "0.64.1",
-        "@graphprotocol/graph-ts": "0.32.0",
+        "@graphprotocol/graph-cli": "0.57.0",
+        "@graphprotocol/graph-ts": "0.31.0",
         "@superfluid-finance/sdk-core": "0.6.13",
         "mustache": "^4.2.0"
     },
     "devDependencies": {
         "@superfluid-finance/metadata": "1.1.22",
         "coingecko-api": "^1.0.10",
-        "graphql": "^16.8.1",
+        "graphql": "^16.8.0",
         "graphql-request": "^6.1.0",
         "lodash": "^4.17.21",
-        "matchstick-as": "^0.6.0"
+        "matchstick-as": "^0.5.2"
     }
 }

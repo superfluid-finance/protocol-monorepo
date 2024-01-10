@@ -310,8 +310,8 @@ export const clipDepositNumber = (deposit: BigNumber, roundingDown = false) => {
     const rounding = roundingDown
         ? 0
         : deposit.and(toBN(0xffffffff)).isZero()
-        ? 0
-        : 1;
+          ? 0
+          : 1;
     return deposit.shr(32).add(toBN(rounding)).shl(32);
 };
 

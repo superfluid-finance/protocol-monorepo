@@ -94,10 +94,10 @@ export const createPagedResult = <T extends ILightEntity>(
             ? isSkipPaging(paging)
                 ? nextSkipPaging(paging)
                 : isLastIdPaging(paging)
-                ? nextLastIdPaging(paging, lastId!)
-                : isPageNumberPaging(paging)
-                ? nextPageNumberPaging(paging)
-                : undefined
+                  ? nextLastIdPaging(paging, lastId!)
+                  : isPageNumberPaging(paging)
+                    ? nextPageNumberPaging(paging)
+                    : undefined
             : undefined,
         data: data,
         items: data,

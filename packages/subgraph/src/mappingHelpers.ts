@@ -1618,11 +1618,11 @@ export function updateAggregateEntitiesTransferData(
  * @returns the updated pool member entity to be saved
  */
 export function updatePoolMemberTotalAmountUntilUpdatedAtFields(pool: Pool, poolMember: PoolMember): PoolMember {
-    const newReceivedAmount = pool.totalAmountDistributedUntilUpdatedAt
+    const amountReceivedDelta = pool.totalAmountDistributedUntilUpdatedAt
         .minus(poolMember.poolTotalAmountDistributedUntilUpdatedAt)
         .div(pool.totalUnits)
         .times(poolMember.units);
-    poolMember.totalAmountReceivedUntilUpdatedAt = poolMember.totalAmountReceivedUntilUpdatedAt.plus(newReceivedAmount);
+    poolMember.totalAmountReceivedUntilUpdatedAt = poolMember.totalAmountReceivedUntilUpdatedAt.plus(amountReceivedDelta);
     poolMember.poolTotalAmountDistributedUntilUpdatedAt = pool.totalAmountDistributedUntilUpdatedAt;
 
     return poolMember;

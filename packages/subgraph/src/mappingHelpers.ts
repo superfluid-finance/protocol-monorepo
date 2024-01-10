@@ -558,6 +558,8 @@ export function getOrInitPoolMember(
         poolMember.units = BIG_INT_ZERO;
         poolMember.isConnected = false;
         poolMember.totalAmountClaimed = BIG_INT_ZERO;
+        poolMember.poolTotalAmountDistributedUntilUpdatedAt = BIG_INT_ZERO;
+        poolMember.totalAmountReceivedUntilUpdatedAt = BIG_INT_ZERO;
 
         poolMember.account = poolMemberAddress.toHex();
         poolMember.pool = poolAddress.toHex();
@@ -1607,4 +1609,26 @@ export function updateAggregateEntitiesTransferData(
     tokenStatistic.totalAmountTransferredUntilUpdatedAt =
         tokenStatistic.totalAmountTransferredUntilUpdatedAt.plus(value);
     tokenStatistic.save();
+}
+
+/**
+ * Updates `totalAmountReceivedUntilUpdatedAt` and `poolTotalAmountDistributedUntilUpdatedAt` fields
+ * Requires an explicit save on the PoolMember entity.
+ * Requires `pool.totalAmountDistributedUntilUpdatedAt` to be updated prior to calling this function.
+ * @param pool the pool entity
+ * @param poolMember the pool member entity
+ * @returns the updated pool member entity to be saved
+ */
+export function updatePoolMemberTotalAmountUntilUpdatedAtFields(pool: Pool, poolMember: PoolMember): PoolMember {
+    const amountReceivedDelta = pool.totalUnits.equals(BIG_INT_ZERO)
+        ? BIG_INT_ZERO
+        : pool.totalAmountDistributedUntilUpdatedAt
+              .minus(poolMember.poolTotalAmountDistributedUntilUpdatedAt)
+              .div(pool.totalUnits)
+              .times(poolMember.units);
+    poolMember.totalAmountReceivedUntilUpdatedAt =
+        poolMember.totalAmountReceivedUntilUpdatedAt.plus(amountReceivedDelta);
+    poolMember.poolTotalAmountDistributedUntilUpdatedAt = pool.totalAmountDistributedUntilUpdatedAt;
+
+    return poolMember;
 }

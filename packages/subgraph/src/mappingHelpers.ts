@@ -558,6 +558,8 @@ export function getOrInitPoolMember(
         poolMember.units = BIG_INT_ZERO;
         poolMember.isConnected = false;
         poolMember.totalAmountClaimed = BIG_INT_ZERO;
+        poolMember.poolTotalAmountDistributedUntilUpdatedAt = BIG_INT_ZERO;
+        poolMember.totalAmountReceivedUntilUpdatedAt = BIG_INT_ZERO;
 
         poolMember.account = poolMemberAddress.toHex();
         poolMember.pool = poolAddress.toHex();

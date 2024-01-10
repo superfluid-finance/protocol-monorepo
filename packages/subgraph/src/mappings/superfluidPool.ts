@@ -11,6 +11,7 @@ import {
     getOrInitPoolMember,
     updateATSStreamedAndBalanceUntilUpdatedAt,
     updateAggregateDistributionAgreementData,
+    updatePoolMemberTotalAmountUntilUpdatedAtFields,
     updatePoolTotalAmountFlowedAndDistributed,
     updateTokenStatsStreamedUntilUpdatedAt,
 } from "../mappingHelpers";
@@ -27,8 +28,10 @@ export function handleDistributionClaimed(event: DistributionClaimed): void {
     pool.save();
 
     // Update PoolMember
-    const poolMember = getOrInitPoolMember(event, event.address, event.params.member);
+    let poolMember = getOrInitPoolMember(event, event.address, event.params.member);
     poolMember.totalAmountClaimed = event.params.totalClaimed;
+
+    poolMember = updatePoolMemberTotalAmountUntilUpdatedAtFields(pool, poolMember);
     poolMember.save();
 
     // Update Token Statistics
@@ -47,7 +50,7 @@ export function handleDistributionClaimed(event: DistributionClaimed): void {
 export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
     // - PoolMember
     // - units
-    const poolMember = getOrInitPoolMember(event, event.address, event.params.member);
+    let poolMember = getOrInitPoolMember(event, event.address, event.params.member);
     const hasMembershipWithUnits = membershipWithUnitsExists(poolMember.id);
 
     const previousUnits = poolMember.units;
@@ -72,6 +75,9 @@ export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
     }
     pool.totalUnits = pool.totalUnits.plus(unitsDelta);
     pool.save();
+
+    poolMember = updatePoolMemberTotalAmountUntilUpdatedAtFields(pool, poolMember);
+    poolMember.save();
 
     // 0 units to > 0 units
     if (previousUnits.equals(BIG_INT_ZERO) && event.params.newUnits.gt(BIG_INT_ZERO)) {

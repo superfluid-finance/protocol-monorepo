@@ -142,15 +142,15 @@ export default class Framework {
         const provider = isEthersProvider(options.provider)
             ? options.provider
             : isInjectedWeb3(options.provider)
-            ? // must explicitly cast web3 provider type because
-              // ethers.providers.Web3Provider doesn't like
-              // the type passed.
-              new ethers.providers.Web3Provider(
-                  options.provider.currentProvider as
-                      | ethers.providers.ExternalProvider
-                      | ethers.providers.JsonRpcFetchFunc
-              )
-            : options.provider.provider;
+              ? // must explicitly cast web3 provider type because
+                // ethers.providers.Web3Provider doesn't like
+                // the type passed.
+                new ethers.providers.Web3Provider(
+                    options.provider.currentProvider as
+                        | ethers.providers.ExternalProvider
+                        | ethers.providers.JsonRpcFetchFunc
+                )
+              : options.provider.provider;
 
         const network = await provider.getNetwork();
         if (network.chainId !== chainId && chainId != null) {
@@ -169,8 +169,8 @@ export default class Framework {
             const resolverAddress = options.resolverAddress
                 ? options.resolverAddress
                 : networkData
-                ? networkData.addresses.resolver
-                : ethers.constants.AddressZero;
+                  ? networkData.addresses.resolver
+                  : ethers.constants.AddressZero;
             const resolver = Resolver__factory.connect(
                 resolverAddress,
                 provider

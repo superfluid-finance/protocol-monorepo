@@ -15,21 +15,19 @@ contract PoolMemberNFTIntegrationTest is PoolNFTBaseIntegrationTest {
                                     Revert Tests
     //////////////////////////////////////////////////////////////////////////*/
 
-    function testRevertIfTransferFromForPoolMemberNFT(address _poolAdmin, address _member, address _receiver) public {
+    function testRevertIfTransferFromForPoolMemberNFT(address _poolAdmin, address _receiver) public {
         vm.assume(_poolAdmin != address(0));
-        vm.assume(_member != address(0));
         vm.assume(_receiver != address(0));
-        vm.assume(_member != _receiver);
 
         ISuperfluidPool pool = sf.gda.createPool(superTokenMock, _poolAdmin, poolConfig);
-        uint256 nftId = _helperGetPoolMemberNftId(address(pool), _member);
+        uint256 nftId = _helperGetPoolMemberNftId(address(pool), alice);
 
         vm.startPrank(_poolAdmin);
-        pool.updateMemberUnits(_member, 1);
+        pool.updateMemberUnits(alice, 1);
         vm.stopPrank();
 
         _helperRevertIfTransferFrom(
-            poolMemberNFT, _member, _member, _receiver, nftId, IPoolNFTBase.POOL_NFT_TRANSFER_NOT_ALLOWED.selector
+            poolMemberNFT, alice, alice, _receiver, nftId, IPoolNFTBase.POOL_NFT_TRANSFER_NOT_ALLOWED.selector
         );
     }
 

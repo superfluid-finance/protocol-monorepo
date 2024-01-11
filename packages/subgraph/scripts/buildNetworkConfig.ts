@@ -1,4 +1,5 @@
 import fs from "fs";
+import { join } from 'path';
 import metadata from "@superfluid-finance/metadata";
 
 interface SubgraphConfig {
@@ -42,7 +43,7 @@ function main() {
         constantInflowNFTAddress: networkMetadata.contractsV1.constantInflowNFT || ADDRESS_ZERO,
     };
 
-    const writeToDir = __dirname.split("subgraph")[0] + `subgraph/config/${networkName}.json`;
+    const writeToDir = join(__dirname, '..', `config/${networkName}.json`);
 
     fs.writeFile(writeToDir, JSON.stringify(subgraphConfig), (err) => {
         if (err) {

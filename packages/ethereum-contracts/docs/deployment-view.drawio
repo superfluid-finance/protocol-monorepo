@@ -1,4 +1,4 @@
-<mxfile host="Electron" modified="2024-01-11T11:49:04.870Z" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/22.1.2 Chrome/120.0.6099.109 Electron/28.1.0 Safari/537.36" etag="7-16UsoSpaUJA-a6-yEF" version="22.1.2" type="device">
+<mxfile host="Electron" modified="2024-01-11T11:56:53.116Z" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/22.1.2 Chrome/120.0.6099.109 Electron/28.1.0 Safari/537.36" etag="h5r9rD8YOCUZdzio_UoQ" version="22.1.2" type="device">
   <diagram name="Page-1" id="iipwh64n65vx4WovocLg">
     <mxGraphModel dx="2074" dy="1230" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
       <root>
@@ -11,7 +11,7 @@
           <mxGeometry x="250" y="370" width="160" height="40" as="geometry" />
         </mxCell>
         <mxCell id="yRzJGyd7bDUnVyytgLMS-10" value="&lt;br&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#008a00;fontColor=#ffffff;strokeColor=#005700;gradientColor=none;shadow=0;opacity=50;" parent="1" vertex="1">
-          <mxGeometry x="1009" y="330" width="160" height="40" as="geometry" />
+          <mxGeometry x="969" y="330" width="160" height="40" as="geometry" />
         </mxCell>
         <mxCell id="yRzJGyd7bDUnVyytgLMS-6" value="Legend" style="rounded=0;whiteSpace=wrap;html=1;dashed=1;fillColor=none;verticalAlign=top;" parent="1" vertex="1">
           <mxGeometry width="160" height="80" as="geometry" />
@@ -20,16 +20,16 @@
           <mxGeometry x="20" y="20" width="120" height="40" as="geometry" />
         </mxCell>
         <mxCell id="yRzJGyd7bDUnVyytgLMS-3" value="«UUPS Proxy»&lt;br&gt;ConstantFlowAgreementV1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#008a00;fontColor=#ffffff;strokeColor=#005700;" parent="1" vertex="1">
-          <mxGeometry x="720" y="240" width="200" height="40" as="geometry" />
+          <mxGeometry x="680" y="240" width="200" height="40" as="geometry" />
         </mxCell>
         <mxCell id="yRzJGyd7bDUnVyytgLMS-4" value="«UUPS Proxy»&lt;br&gt;InstantDistributionAgreementV1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#008a00;fontColor=#ffffff;strokeColor=#005700;" parent="1" vertex="1">
-          <mxGeometry x="720" y="280" width="200" height="40" as="geometry" />
+          <mxGeometry x="680" y="280" width="200" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="yRzJGyd7bDUnVyytgLMS-18" value="owns (Ownable)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" parent="1" source="yRzJGyd7bDUnVyytgLMS-5" target="yRzJGyd7bDUnVyytgLMS-9" edge="1">
+        <mxCell id="yRzJGyd7bDUnVyytgLMS-18" value="admins (as proxy or Ownable)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" parent="1" source="yRzJGyd7bDUnVyytgLMS-5" target="0KwlKN-99ruFgOMUbXw1-1" edge="1">
           <mxGeometry x="-0.125" relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="560" y="160" />
-              <mxPoint x="1080" y="160" />
+              <mxPoint x="560" y="140" />
+              <mxPoint x="905" y="140" />
             </Array>
             <mxPoint as="offset" />
             <mxPoint x="1070" y="320" as="targetPoint" />
@@ -46,19 +46,28 @@
         <mxCell id="yRzJGyd7bDUnVyytgLMS-5" value="«UUPS Proxy»&lt;br&gt;Superfluid (host contract)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#008a00;fontColor=#ffffff;strokeColor=#005700;" parent="1" vertex="1">
           <mxGeometry x="480" y="240" width="160" height="40" as="geometry" />
         </mxCell>
+        <mxCell id="0KwlKN-99ruFgOMUbXw1-2" value="governs" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="yRzJGyd7bDUnVyytgLMS-7" target="yRzJGyd7bDUnVyytgLMS-5">
+          <mxGeometry x="-0.3333" relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="660" y="480" />
+              <mxPoint x="660" y="260" />
+            </Array>
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
         <mxCell id="yRzJGyd7bDUnVyytgLMS-7" value="«UUPS Proxy»&lt;br&gt;SuperfluidGovernanceII" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e51400;fontColor=#FFD966;strokeColor=#B20000;" parent="1" vertex="1">
           <mxGeometry x="720" y="440" width="200" height="80" as="geometry" />
         </mxCell>
         <mxCell id="yRzJGyd7bDUnVyytgLMS-51" value="creates&lt;br&gt;(as factory)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;labelBackgroundColor=none;" parent="1" source="yRzJGyd7bDUnVyytgLMS-8" target="yRzJGyd7bDUnVyytgLMS-9" edge="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="990" y="340" as="targetPoint" />
+            <mxPoint x="950" y="340" as="targetPoint" />
           </mxGeometry>
         </mxCell>
         <mxCell id="yRzJGyd7bDUnVyytgLMS-8" value="«UUPS Proxy»&lt;br&gt;GeneralDistributionAgreementV1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#008a00;fontColor=#ffffff;strokeColor=#005700;" parent="1" vertex="1">
-          <mxGeometry x="720" y="320" width="200" height="40" as="geometry" />
+          <mxGeometry x="680" y="320" width="200" height="40" as="geometry" />
         </mxCell>
         <mxCell id="yRzJGyd7bDUnVyytgLMS-9" value="«Beacon Proxy»&lt;br&gt;SuperfluidPool" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#008a00;fontColor=#ffffff;strokeColor=#005700;gradientColor=none;shadow=0;" parent="1" vertex="1">
-          <mxGeometry x="1000" y="320" width="160" height="40" as="geometry" />
+          <mxGeometry x="960" y="320" width="160" height="40" as="geometry" />
         </mxCell>
         <mxCell id="yRzJGyd7bDUnVyytgLMS-23" value="link" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" parent="1" source="yRzJGyd7bDUnVyytgLMS-11" target="yRzJGyd7bDUnVyytgLMS-25" edge="1">
           <mxGeometry relative="1" as="geometry">
@@ -157,6 +166,9 @@
         </mxCell>
         <mxCell id="a_0XLxlSzXslzA3Ya2Eq-2" value="&lt;h1&gt;Superfluid&amp;nbsp; Framework Deployment View&lt;/h1&gt;" style="text;html=1;strokeColor=none;fillColor=none;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;align=center;" parent="1" vertex="1">
           <mxGeometry x="320" y="30" width="520" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="0KwlKN-99ruFgOMUbXw1-1" value="Superfluid Agreements" style="rounded=0;whiteSpace=wrap;html=1;dashed=1;fillColor=none;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="670" y="200" width="470" height="200" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>

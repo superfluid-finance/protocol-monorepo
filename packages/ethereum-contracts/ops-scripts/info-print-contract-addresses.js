@@ -6,6 +6,7 @@ const {
     getScriptRunnerFactory: S,
     getCodeAddress,
     extractWeb3Options,
+    ZERO_ADDRESS,
 } = require("./libs/common");
 
 /**
@@ -142,22 +143,30 @@ module.exports = eval(`(${S.toString()})()`)(async function (
 
     const constantOutflowNFTProxyAddress =
         await superTokenLogicContract.CONSTANT_OUTFLOW_NFT();
-    output += `CONSTANT_OUTFLOW_NFT_PROXY=${constantOutflowNFTProxyAddress}\n`;
 
-    const constantOutflowNFTLogicAddress = await (
-        await UUPSProxiable.at(constantOutflowNFTProxyAddress)
-    ).getCodeAddress();
-    output += `CONSTANT_OUTFLOW_NFT_LOGIC=${constantOutflowNFTLogicAddress}\n`;
+    // FlowNFTs are optional, zero address means not deployed
+    if (constantOutflowNFTProxyAddress !== ZERO_ADDRESS) {
+        output += `CONSTANT_OUTFLOW_NFT_PROXY=${constantOutflowNFTProxyAddress}\n`;
+
+        const constantOutflowNFTLogicAddress = await (
+            await UUPSProxiable.at(constantOutflowNFTProxyAddress)
+        ).getCodeAddress();
+        output += `CONSTANT_OUTFLOW_NFT_LOGIC=${constantOutflowNFTLogicAddress}\n`;
+    }
 
     const constantInflowNFTProxyAddress =
         await superTokenLogicContract.CONSTANT_INFLOW_NFT();
-    output += `CONSTANT_INFLOW_NFT_PROXY=${constantInflowNFTProxyAddress}\n`;
 
-    const constantInflowNFTLogicAddress = await (
-        await UUPSProxiable.at(constantInflowNFTProxyAddress)
-    ).getCodeAddress();
-    output += `CONSTANT_INFLOW_NFT_LOGIC=${constantInflowNFTLogicAddress}\n`;
-    
+    // FlowNFTs are optional, zero address means not deployed
+    if (constantInflowNFTProxyAddress !== ZERO_ADDRESS) {
+        output += `CONSTANT_INFLOW_NFT_PROXY=${constantInflowNFTProxyAddress}\n`;
+
+        const constantInflowNFTLogicAddress = await (
+            await UUPSProxiable.at(constantInflowNFTProxyAddress)
+        ).getCodeAddress();
+        output += `CONSTANT_INFLOW_NFT_LOGIC=${constantInflowNFTLogicAddress}\n`;
+    }
+
     const poolAdminNFTProxyAddress =
         await superTokenLogicContract.POOL_ADMIN_NFT();
     output += `POOL_ADMIN_NFT_PROXY=${poolAdminNFTProxyAddress}\n`;

@@ -1,4 +1,5 @@
 import fs from "fs";
+import { join } from 'path';
 import metadata from "@superfluid-finance/metadata";
 
 // This script is used to retrieve the list of networks which have a hosted
@@ -11,9 +12,7 @@ function main() {
             .map((x) => x.name)
     );
 
-    const writeToDir =
-        __dirname.split("subgraph")[0] +
-        "subgraph/hosted-service-networks.json";
+    const writeToDir = join(__dirname, '..', 'hosted-service-networks.json');
 
     fs.writeFile(writeToDir, networks, (err) => {
         if (err) {

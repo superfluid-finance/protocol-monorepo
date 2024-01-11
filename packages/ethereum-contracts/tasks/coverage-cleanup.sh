@@ -4,12 +4,12 @@ set -ex
 
 cd "$(dirname "$0")"/..
 
-# extract coverage for NFT contracts from forge coverage
+# extract coverage for Superfluid contracts from forge coverage
 lcov -e ../../lcov.info \
      "packages/ethereum-contracts/contracts/*" \
      -o lcov.info
 
-# remove mocks, base super app, test and deployer contracts (see .solcover.js)
+# remove contracts whose coverage we don't care about (see .solcover.js)
 lcov -r lcov.info \
      "packages/ethereum-contracts/contracts/mocks/*" \
      "packages/ethereum-contracts/contracts/apps/*Base*" \

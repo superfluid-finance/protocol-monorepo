@@ -4,6 +4,7 @@ import BatchCall from "./BatchCall";
 import ConstantFlowAgreementV1 from "./ConstantFlowAgreementV1";
 import ERC20Token from "./ERC20Token";
 import Framework from "./Framework";
+import GeneralDistributionAgreementV1 from "./GeneralDistributionAgreementV1";
 import Governance from "./Governance";
 import Host from "./Host";
 import InstantDistributionAgreementV1 from "./InstantDistributionAgreementV1";
@@ -14,6 +15,7 @@ import SuperToken, {
     PureSuperToken,
     WrapperSuperToken,
 } from "./SuperToken";
+import SuperfluidPoolClass from "./SuperfluidPool";
 
 export * from "./interfaces";
 export * from "./constants";
@@ -32,6 +34,8 @@ export { Framework };
 export { Governance };
 export { Host };
 export { InstantDistributionAgreementV1 };
+export { GeneralDistributionAgreementV1 };
+export { SuperfluidPoolClass };
 export { NativeAssetSuperToken };
 export { PureSuperToken };
 export { Query };

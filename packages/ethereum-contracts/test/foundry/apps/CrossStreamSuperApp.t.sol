@@ -30,6 +30,13 @@ contract CrossStreamSuperAppTest is FoundrySuperfluidTester {
         vm.assume(flowRate > 2 ** 32 - 1);
         int96 initialFlowRate = flowRate;
 
+        // @note transfer tokens from alice to carol so that 
+        // alice has type(uint64).max balance to start
+        uint256 diff = type(uint88).max - type(uint64).max;
+        vm.startPrank(alice);
+        superToken.transfer(carol, diff);
+        vm.stopPrank();
+
         uint256 balance = superToken.balanceOf(alice);
 
         uint256 amountOfTimeTillZero = balance / uint256(uint96(initialFlowRate));

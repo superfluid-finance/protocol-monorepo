@@ -3,6 +3,8 @@ pragma solidity 0.8.19;
 
 import { ISuperfluid, ISuperToken } from "../interfaces/superfluid/ISuperfluid.sol";
 import { SuperAppDefinitions } from "../interfaces/superfluid/ISuperfluid.sol";
+import { ISuperfluidPool } from "../interfaces/agreements/gdav1/ISuperfluidPool.sol";
+import { PoolConfig } from "../interfaces/agreements/gdav1/IGeneralDistributionAgreementV1.sol";
 import { SuperAppBase } from "../apps/SuperAppBase.sol";
 import { SuperTokenV1Library } from "../apps/SuperTokenV1Library.sol";
 
@@ -491,6 +493,74 @@ contract SuperTokenLibraryIDAMock {
     }
 }
 
+contract SuperTokenLibraryGDAMock {
+    using SuperTokenV1Library for ISuperToken;
+    //// View Functions ////
+
+    function getFlowDistributionFlowRateTest(ISuperToken token, address from, ISuperfluidPool to)
+        external
+        view
+        returns (int96)
+    {
+        return token.getFlowDistributionFlowRate(from, to);
+    }
+
+    function estimateFlowDistributionActualFlowRateTest(
+        ISuperToken token,
+        address from,
+        ISuperfluidPool to,
+        int96 requestedFlowRate
+    ) external view returns (int96 actualFlowRate, int96 totalDistributionFlowRate) {
+        return token.estimateFlowDistributionActualFlowRate(from, to, requestedFlowRate);
+    }
+    function estimateDistributionActualAmountTest(
+        ISuperToken token,
+        address from,
+        ISuperfluidPool to,
+        uint256 requestedAmount
+    ) external view returns (uint256 actualAmount) {
+        return token.estimateDistributionActualAmount(from, to, requestedAmount);
+    }
+
+    function isMemberConnectedTest(ISuperToken token, address pool, address member)
+        external
+        view
+        returns (bool)
+    {
+        return token.isMemberConnected(pool, member);
+    }
+
+    //// Admin/Distributor Operations ////
+
+    function createPoolTest(ISuperToken token, address admin, PoolConfig memory config)
+        external
+    {
+        token.createPool(admin, config);
+    }
+
+    function distributeToPoolTest(ISuperToken token, address from, ISuperfluidPool pool, uint256 requestedAmount)
+        external
+    {
+        token.distributeToPool(from, pool, requestedAmount);
+    }
+
+    function distributeFlowTest(ISuperToken token, address from, ISuperfluidPool pool, int96 requestedFlowRate)
+        external
+    {
+        token.distributeFlow(from, pool, requestedFlowRate);
+    }
+
+    //// Member Operations ////
+
+    function connectPoolTest(ISuperToken token, ISuperfluidPool pool) external {
+        token.connectPool(pool);
+    }
+
+    function disconnectPoolTest(ISuperToken token, ISuperfluidPool pool) external {
+        token.disconnectPool(pool);
+    }
+}
+
 contract SuperTokenLibraryCFASuperAppMock is SuperAppBase {
 
     using SuperTokenV1Library for ISuperToken;
@@ -499,7 +569,7 @@ contract SuperTokenLibraryCFASuperAppMock is SuperAppBase {
     address internal immutable sender;
     address internal immutable receiver;
     address internal immutable flowOperator;
-    ISuperfluid internal host;
+    ISuperfluid internal immutable host;
 
     // for selectively testing functions in the same callback
     enum FunctionIndex {
@@ -593,16 +663,13 @@ contract SuperTokenLibraryIDASuperAppMock is SuperTokenLibraryIDAMock, SuperAppB
 
     using SuperTokenV1Library for ISuperToken;
 
-    bytes internal constant _MOCK_USER_DATA = abi.encode("oh hello");
-    ISuperfluid internal host;
+    ISuperfluid internal immutable host;
 
     constructor(ISuperfluid _host) SuperTokenLibraryIDAMock() {
         host = _host;
         uint256 configWord = SuperAppDefinitions.APP_LEVEL_FINAL |
             SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP |
-            // SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP |
             SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP |
-            // SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP |
             SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP |
             SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP;
 
@@ -724,6 +791,87 @@ contract SuperTokenLibraryIDASuperAppMock is SuperTokenLibraryIDAMock, SuperAppB
                 subscriber,
                 ctx
             );
+        } else {
+            revert("invalid function index");
+        }
+    }
+}
+
+// GDA LIBRARY SUPER APP CALLBACK MOCK
+contract SuperTokenLibraryGDASuperAppMock is SuperTokenLibraryGDAMock, SuperAppBase {
+    using SuperTokenV1Library for ISuperToken;
+
+    ISuperfluid internal immutable host;
+
+    constructor(ISuperfluid _host) {
+        host = _host;
+        uint256 configWord = SuperAppDefinitions.APP_LEVEL_FINAL | SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP
+            | SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP | SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP
+            | SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP;
+
+        host.registerAppWithKey(configWord, "");
+    }
+
+    function afterAgreementCreated(
+        ISuperToken token,
+        address,
+        bytes32,
+        bytes calldata,
+        bytes calldata,
+        bytes calldata ctx
+    ) external override returns (bytes memory newCtx) {
+        return _callbackTest(token, ctx);
+    }
+
+    function afterAgreementUpdated(
+        ISuperToken token,
+        address,
+        bytes32,
+        bytes calldata,
+        bytes calldata,
+        bytes calldata ctx
+    ) external override returns (bytes memory newCtx) {
+        return _callbackTest(token, ctx);
+    }
+
+    enum FunctionIndex {
+        UPDATE_MEMBER_UNITS,
+        CONNECT_POOL,
+        DISCONNECT_POOL,
+        CLAIM_ALL,
+        DISTRIBUTE,
+        DISTRIBUTE_FLOW
+    }
+
+    /// @dev extracts some user data to test out all callback library functions
+    /// @param token super token
+    /// @param ctx Context string
+    /// @return New Context
+    function _callbackTest(ISuperToken token, bytes memory ctx) internal returns (bytes memory) {
+        // extract userData, then decode everything else
+        bytes memory userData = host.decodeCtx(ctx).userData;
+        (
+            uint8 functionIndex,
+            address pool,
+            address member,
+            address from,
+            uint128 units,
+            uint256 requestedAmount,
+            int96 requestedFlowRate
+        ) = abi.decode(userData, (uint8, address, address, address, uint128, uint256, int96));
+
+        if (functionIndex == uint8(FunctionIndex.UPDATE_MEMBER_UNITS)) {
+            return token.updateMemberUnitsWithCtx(ISuperfluidPool(pool), member, units, ctx);
+        } else if (functionIndex == uint8(FunctionIndex.CONNECT_POOL)) {
+            return token.connectPoolWithCtx(ISuperfluidPool(pool), ctx);
+        } else if (functionIndex == uint8(FunctionIndex.DISCONNECT_POOL)) {
+            return token.disconnectPoolWithCtx(ISuperfluidPool(pool), ctx);
+        } else if (functionIndex == uint8(FunctionIndex.CLAIM_ALL)) {
+            return token.claimAllWithCtx(ISuperfluidPool(pool), member, ctx);
+        } else if (functionIndex == uint8(FunctionIndex.DISTRIBUTE)) {
+            return token.distributeWithCtx(ISuperfluidPool(pool), from, requestedAmount, ctx);
+        } else if (functionIndex == uint8(FunctionIndex.DISTRIBUTE_FLOW)) {
+            return token.distributeFlowWithCtx(from, ISuperfluidPool(pool), requestedFlowRate, ctx);
         } else {
             revert("invalid function index");
         }

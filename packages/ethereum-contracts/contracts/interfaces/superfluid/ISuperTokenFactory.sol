@@ -19,10 +19,6 @@ interface ISuperTokenFactory {
     error SUPER_TOKEN_FACTORY_NON_UPGRADEABLE_IS_DEPRECATED();  // 0xc4901a43
     error SUPER_TOKEN_FACTORY_ZERO_ADDRESS();                   // 0x305c9e82
 
-    /**************************************************************************
-    * Immutable Variables
-    **************************************************************************/
-
     /**
      * @dev Get superfluid host contract address
      */

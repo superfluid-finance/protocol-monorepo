@@ -57,10 +57,17 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     const SuperToken = artifacts.require("SuperToken");
     const UUPSProxiable = artifacts.require("UUPSProxiable");
     const ISuperTokenFactory = artifacts.require("ISuperTokenFactory");
+    const GeneralDistributionAgreementV1 = artifacts.require(
+        "GeneralDistributionAgreementV1"
+    );
+    const SuperfluidUpgradeableBeacon = artifacts.require(
+        "SuperfluidUpgradeableBeacon"
+    );
 
     if (config.isTestnet) {
         output += "IS_TESTNET=1\n";
     }
+
     output += `NETWORK_ID=${networkId}\n`;
     output += `RESOLVER=${sf.resolver.address}\n`;
     output += `SUPERFLUID_LOADER=${sf.loader.address}\n`;
@@ -81,20 +88,20 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         // ignore
     }
 
-    output += `SUPERFLUID_SUPER_TOKEN_FACTORY_PROXY=${await sf.host.getSuperTokenFactory()}\n`;
-    output += `SUPERFLUID_SUPER_TOKEN_FACTORY_LOGIC=${await sf.host.getSuperTokenFactoryLogic()}\n`;
+    output += `SUPER_TOKEN_FACTORY_PROXY=${await sf.host.getSuperTokenFactory()}\n`;
+    output += `SUPER_TOKEN_FACTORY_LOGIC=${await sf.host.getSuperTokenFactoryLogic()}\n`;
     output += `CFA_PROXY=${sf.agreements.cfa.address}\n`;
     output += `CFA_LOGIC=${await getCodeAddress(
         UUPSProxiable,
         sf.agreements.cfa.address
     )}\n`;
     output += `IDA_PROXY=${sf.agreements.ida.address}\n`;
-    output += `SLOTS_BITMAP_LIBRARY_ADDRESS=${
+    output += `SLOTS_BITMAP_LIBRARY=${
         "0x" +
         (
             await web3.eth.call({
                 to: sf.agreements.ida.address,
-                data: "0x3fd4176a", //SLOTS_BITMAP_LIBRARY_ADDRESS()
+                data: "0x3fd4176a", //SLOTS_BITMAP_LIBRARY()
             })
         ).slice(-40)
     }\n`;
@@ -102,10 +109,35 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         UUPSProxiable,
         sf.agreements.ida.address
     )}\n`;
+    const gdaProxy = await sf.host.getAgreementClass(
+        web3.utils.sha3(
+            "org.superfluid-finance.agreements.GeneralDistributionAgreement.v1"
+        )
+    );
+    output += `GDA_PROXY=${gdaProxy}\n`;
+    output += `GDA_SLOTS_BITMAP_LIBRARY=${
+        "0x" +
+        (
+            await web3.eth.call({
+                to: gdaProxy,
+                data: "0x3fd4176a", //SLOTS_BITMAP_LIBRARY()
+            })
+        ).slice(-40)
+    }\n`;
+    output += `GDA_LOGIC=${await getCodeAddress(UUPSProxiable, gdaProxy)}\n`;
+
+    const gdaContract = await GeneralDistributionAgreementV1.at(gdaProxy);
+    const superfluidPoolBeaconContract = await SuperfluidUpgradeableBeacon.at(
+        await gdaContract.superfluidPoolBeacon()
+    );
+    output += `SUPERFLUID_POOL_DEPLOYER=${await gdaContract.SUPERFLUID_POOL_DEPLOYER_ADDRESS()}\n`;
+    output += `SUPERFLUID_POOL_BEACON=${superfluidPoolBeaconContract.address}\n`;
+    output += `SUPERFLUID_POOL_LOGIC=${await superfluidPoolBeaconContract.implementation()}\n`;
+
     const superTokenLogicAddress = await (
         await ISuperTokenFactory.at(await sf.host.getSuperTokenFactory())
     ).getSuperTokenLogic();
-    output += `SUPERFLUID_SUPER_TOKEN_LOGIC=${superTokenLogicAddress}\n`;
+    output += `SUPER_TOKEN_LOGIC=${superTokenLogicAddress}\n`;
 
     const superTokenLogicContract = await SuperToken.at(superTokenLogicAddress);
 
@@ -134,6 +166,24 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         ).getCodeAddress();
         output += `CONSTANT_INFLOW_NFT_LOGIC=${constantInflowNFTLogicAddress}\n`;
     }
+
+    const poolAdminNFTProxyAddress =
+        await superTokenLogicContract.POOL_ADMIN_NFT();
+    output += `POOL_ADMIN_NFT_PROXY=${poolAdminNFTProxyAddress}\n`;
+
+    const poolAdminNFTLogicAddress = await (
+        await UUPSProxiable.at(poolAdminNFTProxyAddress)
+    ).getCodeAddress();
+    output += `POOL_ADMIN_NFT_LOGIC=${poolAdminNFTLogicAddress}\n`;
+
+    const poolMemberNFTProxyAddress =
+        await superTokenLogicContract.POOL_MEMBER_NFT();
+    output += `POOL_MEMBER_NFT_PROXY=${poolMemberNFTProxyAddress}\n`;
+
+    const poolMemberNFTLogicAddress = await (
+        await UUPSProxiable.at(poolMemberNFTProxyAddress)
+    ).getCodeAddress();
+    output += `POOL_MEMBER_NFT_LOGIC=${poolMemberNFTLogicAddress}\n`;
 
     if (! skipTokens) {
         await Promise.all(

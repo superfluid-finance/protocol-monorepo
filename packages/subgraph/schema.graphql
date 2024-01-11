@@ -1809,6 +1809,8 @@ type PoolMember @entity {
     units: BigInt!
     isConnected: Boolean!
     totalAmountClaimed: BigInt!
+    poolTotalAmountDistributedUntilUpdatedAt: BigInt!
+    totalAmountReceivedUntilUpdatedAt: BigInt!
 
     account: Account!
     pool: Pool!
@@ -2259,7 +2261,6 @@ type AccountTokenSnapshot @entity {
     """
     totalCFANumberOfActiveStreams: Int!
 
-    # delete this property
     """
     The count of currently open streams for an account, both incoming and outgoing for the GDA.
     """
@@ -2290,7 +2291,6 @@ type AccountTokenSnapshot @entity {
     """
     activeCFAIncomingStreamCount: Int!
 
-    # delete this property
     """
     The count of active incoming streams to this account for the GDA.
     """

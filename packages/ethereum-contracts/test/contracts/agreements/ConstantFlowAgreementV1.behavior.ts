@@ -905,13 +905,13 @@ export async function shouldUpdateFlowOperatorPermissionsAndValidateEvent({
     const expectedPermissions = isFullControl
         ? 7 // 1 1 1
         : isFullControlRevoke
-        ? 0 // 0 0 0
-        : Number(permissions);
+          ? 0 // 0 0 0
+          : Number(permissions);
     const expectedFlowRateAllowance = isFullControl
         ? MAXIMUM_FLOW_RATE
         : isFullControlRevoke
-        ? "0"
-        : flowRateAllowance;
+          ? "0"
+          : flowRateAllowance;
 
     // updateFlowOperatorPermissions &&
     // validate event was emitted with correct values

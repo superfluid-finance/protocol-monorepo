@@ -5,7 +5,8 @@
     flake-utils.url = "github:numtide/flake-utils";
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     foundry = {
-      url = "github:shazow/foundry.nix/monthly";
+      # TODO: https://github.com/foundry-rs/foundry/pull/6806 to be merged
+      url = "github:shazow/foundry.nix/ad6182c16c85a3303cb97ecd37086b034510a302";
       inputs.flake-utils.follows = "flake-utils";
       inputs.nixpkgs.follows = "nixpkgs";
     };

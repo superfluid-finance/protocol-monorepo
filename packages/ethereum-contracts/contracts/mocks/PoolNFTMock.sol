@@ -3,7 +3,7 @@
 pragma solidity 0.8.19;
 
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
-import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
+import { IGeneralDistributionAgreementV1, ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
 import { PoolAdminNFT } from "../agreements/gdav1/PoolAdminNFT.sol";
 import { PoolMemberNFT } from "../agreements/gdav1/PoolMemberNFT.sol";
 import { PoolNFTBase } from "../agreements/gdav1/PoolNFTBase.sol";
@@ -13,7 +13,7 @@ contract PoolNFTBaseMock is PoolNFTBase {
 
     mapping(uint256 => address) private _owners;
 
-    constructor(ISuperfluid host) PoolNFTBase(host) { }
+    constructor(ISuperfluid host, IGeneralDistributionAgreementV1 gdaV1) PoolNFTBase(host, gdaV1) { }
 
     function proxiableUUID() public pure override returns (bytes32) {
         return keccak256("org.superfluid-finance.contracts.PoolNFTBaseMock.implementation");
@@ -52,7 +52,7 @@ contract PoolNFTBaseMock is PoolNFTBase {
 }
 
 contract PoolAdminNFTMock is PoolAdminNFT {
-    constructor(ISuperfluid host) PoolAdminNFT(host) { }
+    constructor(ISuperfluid host, IGeneralDistributionAgreementV1 gdaV1) PoolAdminNFT(host, gdaV1) { }
 
     /// @dev a mock mint function that exposes the internal _mint function
     function mockMint(address _pool) public {
@@ -71,7 +71,7 @@ contract PoolAdminNFTMock is PoolAdminNFT {
 }
 
 contract PoolMemberNFTMock is PoolMemberNFT {
-    constructor(ISuperfluid host) PoolMemberNFT(host) { }
+    constructor(ISuperfluid host, IGeneralDistributionAgreementV1 gdaV1) PoolMemberNFT(host, gdaV1) { }
 
     /// @dev a mock mint function that exposes the internal _mint function
     function mockMint(address _pool, address _member) public {

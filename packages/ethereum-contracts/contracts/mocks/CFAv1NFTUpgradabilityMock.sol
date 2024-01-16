@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.19;
 
-import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
+import { IConstantFlowAgreementV1, IGeneralDistributionAgreementV1, ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
 import { ConstantInflowNFT, IConstantInflowNFT } from "../superfluid/ConstantInflowNFT.sol";
 import { ConstantOutflowNFT, IConstantOutflowNFT } from "../superfluid/ConstantOutflowNFT.sol";
 import { FlowNFTBase } from "../superfluid/FlowNFTBase.sol";
@@ -16,9 +16,10 @@ import { IStorageLayoutBase } from "./IStorageLayoutBase.sol";
 /// @notice A mock FlowNFTBase contract for testing storage layout.
 /// @dev This contract *MUST* have the same storage layout as FlowNFTBase.sol
 contract FlowNFTBaseStorageLayoutMock is FlowNFTBase, IStorageLayoutBase {
-    constructor(
-        ISuperfluid host
-    ) FlowNFTBase(host) {}
+
+    constructor(ISuperfluid host, IConstantFlowAgreementV1 cfaV1, IGeneralDistributionAgreementV1 gdaV1)
+        FlowNFTBase(host, cfaV1, gdaV1)
+    { }
 
     /// @notice Validates storage layout
     /// @dev This function is used by all the FlowNFTBase mock contracts to validate the layout
@@ -94,8 +95,10 @@ contract ConstantInflowNFTStorageLayoutMock is ConstantInflowNFT, IStorageLayout
 
     constructor(
         ISuperfluid host,
+        IConstantFlowAgreementV1 cfaV1,
+        IGeneralDistributionAgreementV1 gdaV1,
         IConstantOutflowNFT constantOutflowNFT
-    ) ConstantInflowNFT(host, constantOutflowNFT) {}
+    ) ConstantInflowNFT(host, cfaV1, gdaV1, constantOutflowNFT) { }
 
     /// @notice Validates storage layout
     /// @dev This function is used to validate storage layout of ConstantInflowNFT
@@ -145,8 +148,10 @@ contract ConstantOutflowNFTStorageLayoutMock is ConstantOutflowNFT, IStorageLayo
 
     constructor(
         ISuperfluid host,
+        IConstantFlowAgreementV1 cfaV1,
+        IGeneralDistributionAgreementV1 gdaV1,
         IConstantInflowNFT constantInflowNFT
-    ) ConstantOutflowNFT(host, constantInflowNFT) {}
+    ) ConstantOutflowNFT(host, cfaV1, gdaV1, constantInflowNFT) { }
 
     /// @notice Validates storage layout
     /// @dev This function is used to validate storage layout of ConstantOutflowNFT

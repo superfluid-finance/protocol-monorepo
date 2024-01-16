@@ -60,14 +60,10 @@ contract ERC721IntegrationTest is FoundrySuperfluidTester {
         UUPSProxy inflowProxy = new UUPSProxy();
 
         // we deploy mock NFT contracts for the tests to access internal functions
-        constantOutflowNFTLogic = new ConstantOutflowNFTMock(
-            sf.host,
-            IConstantInflowNFT(address(inflowProxy))
-        );
-        constantInflowNFTLogic = new ConstantInflowNFTMock(
-            sf.host,
-            IConstantOutflowNFT(address(outflowProxy))
-        );
+        constantOutflowNFTLogic =
+            new ConstantOutflowNFTMock(sf.host, sf.cfa, sf.gda, IConstantInflowNFT(address(inflowProxy)));
+        constantInflowNFTLogic =
+            new ConstantInflowNFTMock(sf.host, sf.cfa, sf.gda, IConstantOutflowNFT(address(outflowProxy)));
 
         constantOutflowNFTLogic.castrate();
         constantInflowNFTLogic.castrate();
@@ -94,8 +90,8 @@ contract ERC721IntegrationTest is FoundrySuperfluidTester {
         UUPSProxy poolAdminProxy = new UUPSProxy();
 
         // we deploy mock NFT contracts for the tests to access internal functions
-        poolMemberNFTLogic = new PoolMemberNFTMock(sf.host);
-        poolAdminNFTLogic = new PoolAdminNFTMock(sf.host);
+        poolMemberNFTLogic = new PoolMemberNFTMock(sf.host, sf.gda);
+        poolAdminNFTLogic = new PoolAdminNFTMock(sf.host, sf.gda);
 
         poolMemberNFTLogic.castrate();
         poolAdminNFTLogic.castrate();
@@ -114,12 +110,7 @@ contract ERC721IntegrationTest is FoundrySuperfluidTester {
         poolAdminNFT.initialize(POOL_ADMIN_NFT_NAME_TEMPLATE, POOL_ADMIN_NFT_SYMBOL_TEMPLATE);
 
         // Deploy TestToken
-        TestToken testTokenMock = new TestToken(
-            "Mock Test",
-            "MT",
-            18,
-            100000000
-        );
+        TestToken testTokenMock = new TestToken("Mock Test", "MT", 18, 100000000);
 
         // Deploy SuperToken proxy
         UUPSProxy superTokenMockProxy = new UUPSProxy();

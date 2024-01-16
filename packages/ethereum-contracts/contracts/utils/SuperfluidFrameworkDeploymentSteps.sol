@@ -32,6 +32,7 @@ import { CFAv1Library } from "../apps/CFAv1Library.sol";
 import { IDAv1Library } from "../apps/IDAv1Library.sol";
 import { IResolver } from "../interfaces/utils/IResolver.sol";
 
+
 /// @title Superfluid Framework Deployment Steps
 /// @author Superfluid
 /// @notice A contract which splits framework deployment into steps.
@@ -197,7 +198,10 @@ contract SuperfluidFrameworkDeploymentSteps {
             idaV1Logic = SuperfluidIDAv1DeployerLibrary.deployInstantDistributionAgreementV1(host);
 
             // _deployGDAv1();
-            gdaV1Logic = SuperfluidGDAv1DeployerLibrary.deployGeneralDistributionAgreementV1(host);
+            SuperfluidUpgradeableBeacon superfluidPoolBeacon =
+                ProxyDeployerLibrary.deploySuperfluidUpgradeableBeacon(address(0));
+            gdaV1Logic =
+                SuperfluidGDAv1DeployerLibrary.deployGeneralDistributionAgreementV1(host, superfluidPoolBeacon);
 
             // _registerAgreements();
             // we set the canonical address based on host.getAgreementClass() because
@@ -241,11 +245,8 @@ contract SuperfluidFrameworkDeploymentSteps {
             superfluidPoolLogic.castrate();
 
             // Deploy SuperfluidPool beacon
-            SuperfluidUpgradeableBeacon superfluidPoolBeacon =
-                ProxyDeployerLibrary.deploySuperfluidUpgradeableBeacon(address(superfluidPoolLogic));
-            gdaV1.initialize(superfluidPoolBeacon);
-            
-            superfluidPoolBeacon.transferOwnership(address(host));
+            gdaV1Logic.superfluidPoolBeacon().upgradeTo(address(superfluidPoolLogic));
+            gdaV1Logic.superfluidPoolBeacon().transferOwnership(address(host));
         } else if (step == 5) {
             // PERIPHERAL CONTRACTS: NFT Proxy and Logic
             // Deploy Superfluid NFTs (Proxy and Logic contracts)
@@ -474,13 +475,14 @@ library SuperfluidIDAv1DeployerLibrary {
 /// @dev This library is used for testing purposes only, not deployments to test OR production networks
 library SuperfluidGDAv1DeployerLibrary {
     /// @notice deploys the Superfluid GeneralDistributionAgreementV1 Contract
-    /// @param _host Superfluid host address
+    /// @param host Superfluid host address
+    /// @param superfluidPoolBeacon beacon proxy for the superfluid pool logic
     /// @return newly deployed GeneralDistributionAgreementV1 contract
-    function deployGeneralDistributionAgreementV1(ISuperfluid _host)
+    function deployGeneralDistributionAgreementV1(ISuperfluid host, SuperfluidUpgradeableBeacon superfluidPoolBeacon)
         external
         returns (GeneralDistributionAgreementV1)
     {
-        return new GeneralDistributionAgreementV1(_host);
+        return new GeneralDistributionAgreementV1(host, superfluidPoolBeacon);
     }
 }
 

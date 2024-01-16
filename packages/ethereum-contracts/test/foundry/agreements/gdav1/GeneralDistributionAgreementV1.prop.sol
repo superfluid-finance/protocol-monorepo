@@ -49,7 +49,7 @@ contract GeneralDistributionAgreementV1Properties is GeneralDistributionAgreemen
 
     address public constant alice = address(0x420);
 
-    constructor() GeneralDistributionAgreementV1(ISuperfluid(address(0))) {
+    constructor() GeneralDistributionAgreementV1(ISuperfluid(address(0)), SuperfluidUpgradeableBeacon(address(0))) {
         // deploy ERC1820 registry
         vm.etch(ERC1820RegistryCompiled.at, ERC1820RegistryCompiled.bin);
         sfDeployer = new SuperfluidFrameworkDeployer();

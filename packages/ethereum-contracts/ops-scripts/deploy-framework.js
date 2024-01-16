@@ -22,6 +22,7 @@ const {
 
 let resetSuperfluidFramework;
 let resolver;
+let sfObjForGovAndResolver;
 
 /// @param deployFunc must return a contract object
 /// @returns the newly deployed or existing loaded contract
@@ -39,10 +40,7 @@ async function deployAndRegisterContractIf(
         console.log(`${contractName} needs new deployment.`);
         contractDeployed = await deployFunc();
         console.log(`${resolverKey} deployed to`, contractDeployed.address);
-        await web3tx(resolver.set, `Resolver set ${resolverKey}`)(
-            resolverKey,
-            contractDeployed.address
-        );
+        await setResolver(sfObjForGovAndResolver, resolverKey, contractDeployed.address);
     } else {
         console.log(`${contractName} does not need new deployment.`);
         contractDeployed = await Contract.at(contractAddress);
@@ -216,6 +214,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         "GeneralDistributionAgreementV1",
         "SuperfluidUpgradeableBeacon",
         "SuperfluidPool",
+        "SuperfluidPoolPlaceholder",
         "SuperfluidPoolDeployerLibrary",
         "ConstantOutflowNFT",
         "ConstantInflowNFT",
@@ -254,6 +253,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         GeneralDistributionAgreementV1,
         SuperfluidUpgradeableBeacon,
         SuperfluidPool,
+        SuperfluidPoolPlaceholder,
         SuperfluidPoolDeployerLibrary,
         ConstantOutflowNFT,
         ConstantInflowNFT,
@@ -276,11 +276,27 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     }
     console.log("Resolver address", resolver.address);
 
+    sfObjForGovAndResolver = {
+        contracts: {
+            Resolver,
+            Ownable,
+            IMultiSigWallet,
+            ISafe,
+            IAccessControlEnumerable,
+            SuperfluidGovernanceBase
+        },
+        resolver: {
+            address: resolver.address
+        }
+    };
+
     const previousVersionString = pseudoAddressToVersionString(
         await resolver.get(`versionString.${protocolReleaseVersion}`)
     );
     console.log(`previous versionString: ${previousVersionString}`);
     console.log(`new versionString:      ${versionString}`);
+
+    // =========== BOOTSTRAPPING (initial deployment) ===========
 
     // deploy new governance contract
     let governanceInitializationRequired = false;
@@ -370,11 +386,14 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             return superfluid;
         }
     );
-    // this is needed later on
+
+    // helper objects needed later on
     const superfluidConstructorParam = superfluid.address
         .toLowerCase()
         .slice(2)
         .padStart(64, "0");
+
+    sfObjForGovAndResolver.host = superfluid;
 
     // load existing governance if needed
     if (!governance) {
@@ -537,8 +556,8 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         }
     }
 
-    // @note GDA deployment is commented out until we plan on releasing it
-    const deployGDAv1 = async () => {
+    const deployGDAv1 = async (superfluidPoolBeaconAddr) => {
+        console.log(  "deployGDAv1 with superfluidPoolBeaconAddr", superfluidPoolBeaconAddr);
         try {
             // deploy and link SuperfluidPoolDeployerLibrary
             await deployExternalLibraryAndLink(
@@ -567,7 +586,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         const agreement = await web3tx(
             GeneralDistributionAgreementV1.new,
             "GeneralDistributionAgreementV1.new"
-        )(superfluid.address);
+        )(superfluid.address, superfluidPoolBeaconAddr);
 
         console.log(
             "New GeneralDistributionAgreementV1 address",
@@ -577,12 +596,51 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         return agreement;
     };
 
+    let initialGDALogicAddr;
+    // initial GDA deployment (GDA bootstrapping)
     if (!(await superfluid.isAgreementTypeListed.call(GDAv1_TYPE))) {
-        const gda = await deployGDAv1();
-        await web3tx(
-            governance.registerAgreementClass,
-            "Governance registers GDA"
-        )(superfluid.address, gda.address);
+        // first we deploy a SuperfluidPoolBeacon
+        // ... with the placeholder logic (just enough to allow later update)
+        const superfluidPoolPlaceholderLogic = await web3tx(
+            SuperfluidPoolPlaceholder.new,
+            "SuperfluidPoolPlaceholder.new"
+        )();
+        const superfluidPoolBeaconContract = await web3tx(
+            SuperfluidUpgradeableBeacon.new,
+            "SuperfluidUpgradeableBeacon.new"
+        )(superfluidPoolPlaceholderLogic.address);
+        console.log(
+            "New SuperfluidPoolBeacon address",
+            superfluidPoolBeaconContract.address
+        );
+        output += `SUPERFLUID_POOL_BEACON=${superfluidPoolBeaconContract.address}\n`;
+
+        const gda = await deployGDAv1(superfluidPoolBeaconContract.address);
+        initialGDALogicAddr = gda.address;
+
+        // now that we have a GDA, we can deploy the actual SuperfluidPool...
+        const superfluidPoolLogic = await web3tx(
+            SuperfluidPool.new,
+            "SuperfluidPool.new"
+        )(gda.address);
+        await superfluidPoolLogic.castrate();
+        console.log("New SuperfluidPoolLogic address", superfluidPoolLogic.address);
+        output += `SUPERFLUID_POOL_LOGIC=${superfluidPoolLogic.address}\n`;
+
+        // ...update the beacon to it...
+        console.log("Upgrading beacon to the actual SuperfluidPool logic...");
+        await superfluidPoolBeaconContract.upgradeTo(superfluidPoolLogic.address);
+
+        // ...and transfer ownership of the beacon
+        console.log("Transferring ownership of beacon contract to Superfluid Host...");
+        await superfluidPoolBeaconContract.transferOwnership(superfluid.address);
+
+        // finally, register the GDA with a gov action.
+        // its pending state changes don't affect the remaining actions
+        await sendGovernanceAction(
+            sfObjForGovAndResolver,
+            (gov) => gov.registerAgreementClass(superfluid.address, gda.address)
+        );
     } else {
         // NOTE that we are reusing the existing deployed external library
         // here as an optimization, this assumes that we do not change the
@@ -678,6 +736,9 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         );
     }
 
+    // =========== UPGRADE changed contracts ===========
+    console.log("===== STARTING UPGRADE PHASE ======");
+
     let superfluidNewLogicAddress = ZERO_ADDRESS;
     const agreementsToUpdate = [];
     if (!nonUpgradable) {
@@ -740,25 +801,34 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         if (idaNewLogicAddress !== ZERO_ADDRESS) {
             agreementsToUpdate.push(idaNewLogicAddress);
         }
-        // @note commented out: deploy new GDA logic
-        const gdaNewLogicAddress = await deployContractIfCodeChanged(
-            web3,
-            GeneralDistributionAgreementV1,
-            await (
-                await UUPSProxiable.at(
-                    await superfluid.getAgreementClass.call(GDAv1_TYPE)
-                )
-            ).getCodeAddress(),
-            async () => (await deployGDAv1()).address,
-            [
-                // See SuperToken constructor parameter
-                superfluidConstructorParam,
-            ]
-        );
-        if (gdaNewLogicAddress !== ZERO_ADDRESS) {
-            agreementsToUpdate.push(gdaNewLogicAddress);
+
+        // only check GDA if we're NOT in GDA bootstrapping phase
+        if (initialGDALogicAddr === undefined) {
+            const gdaNewLogicAddress = await deployContractIfCodeChanged(
+                web3,
+                GeneralDistributionAgreementV1,
+                await (
+                    await UUPSProxiable.at(
+                        await superfluid.getAgreementClass.call(GDAv1_TYPE)
+                    )
+                ).getCodeAddress(),
+                async () => {
+                    const GDAv1 = await GeneralDistributionAgreementV1.at(
+                        await superfluid.getAgreementClass.call(GDAv1_TYPE)
+                    );
+                    const superfluidPoolBeaconAddr = await GDAv1.superfluidPoolBeacon.call();
+                    return (await deployGDAv1(superfluidPoolBeaconAddr)).address
+                },
+                [
+                    // See SuperToken constructor parameter
+                    superfluidConstructorParam,
+                ]
+            );
+
+            if (gdaNewLogicAddress !== ZERO_ADDRESS) {
+                agreementsToUpdate.push(gdaNewLogicAddress);
+            }
         }
-        // @note GDA deployment is commented out until we plan on releasing it
     }
 
     // deploy new super token factory logic (depends on SuperToken logic, which links to nft deployer library)
@@ -891,6 +961,8 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 return true;
             }
         },
+        // now we know if something changed which requires it to be upgraded
+        // if so, this is what needs to be done:
         async () => {
             let superTokenFactoryLogic;
 
@@ -917,7 +989,9 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                     const superTokenLogic = await SuperTokenLogic.at(
                         superTokenLogicAddress
                     );
+
                     // Flow NFTs
+                    console.log("   getting FlowNFT addrs");
                     cofNFTProxyAddress =
                         await superTokenLogic.CONSTANT_OUTFLOW_NFT.call();
                     cifNFTProxyAddress =
@@ -930,6 +1004,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                     ).getCodeAddress();
 
                     // Pool NFTs
+                    console.log("   getting PoolNFT addrs");
                     poolAdminNFTProxyAddress =
                         await superTokenLogic.POOL_ADMIN_NFT.call();
                     poolMemberNFTProxyAddress =
@@ -942,154 +1017,96 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                     ).getCodeAddress();
                 } catch (err) {
                     console.error("Unable to get nft proxy addresses");
+                    // if any of them fails, we assume the following ones are missing too
                 }
             }
 
             // if the super token logic does not have the proxies, we must deploy
             // new nft logic and proxies.
+
+            const cfaAddr = await superfluid.getAgreementClass.call(CFAv1_TYPE);
+            // in bootstrapping, we use the GDA logic contract.
+            // that's ok because it is stateless.
+            // caveat: need to also redeploy the logic contracts pointing to it
+            // when upgrading GDA
+            const gdaAddr = initialGDALogicAddr ?
+                initialGDALogicAddr : await superfluid.getAgreementClass.call(GDAv1_TYPE);
+
+            // TODO: this may re-deploy proxies even if they exist
+            // in case querying fails for random reasons like RPC issues
+
             if (
                 cofNFTProxyAddress === ZERO_ADDRESS ||
-                cifNFTProxyAddress === ZERO_ADDRESS ||
-                poolAdminNFTProxyAddress === ZERO_ADDRESS ||
-                poolMemberNFTProxyAddress === ZERO_ADDRESS
+                cifNFTProxyAddress === ZERO_ADDRESS
             ) {
-                if (
-                    cofNFTProxyAddress === ZERO_ADDRESS ||
-                    cifNFTProxyAddress === ZERO_ADDRESS
-                ) {
-                    const constantOutflowNFTProxy = await web3tx(
-                        UUPSProxy.new,
-                        `Create ConstantOutflowNFT proxy`
-                    )();
-                    console.log(
-                        "ConstantOutflowNFT Proxy address",
-                        constantOutflowNFTProxy.address
-                    );
-                    output += `CONSTANT_OUTFLOW_NFT_PROXY=${constantOutflowNFTProxy.address}\n`;
+                console.log("BOOTSTRAPPING: Deploying Flow NFT Proxies...");
+                const constantOutflowNFTProxy = await web3tx(
+                    UUPSProxy.new,
+                    `Create ConstantOutflowNFT proxy`
+                )();
+                console.log(
+                    "ConstantOutflowNFT Proxy address",
+                    constantOutflowNFTProxy.address
+                );
+                output += `CONSTANT_OUTFLOW_NFT_PROXY=${constantOutflowNFTProxy.address}\n`;
 
-                    const constantInflowNFTProxy = await web3tx(
-                        UUPSProxy.new,
-                        `Create ConstantInflowNFT proxy`
-                    )();
-                    console.log(
-                        "ConstantInflowNFT Proxy address",
-                        constantInflowNFTProxy.address
-                    );
-                    output += `CONSTANT_INFLOW_NFT_PROXY=${constantInflowNFTProxy.address}\n`;
+                const constantInflowNFTProxy = await web3tx(
+                    UUPSProxy.new,
+                    `Create ConstantInflowNFT proxy`
+                )();
+                console.log(
+                    "ConstantInflowNFT Proxy address",
+                    constantInflowNFTProxy.address
+                );
+                output += `CONSTANT_INFLOW_NFT_PROXY=${constantInflowNFTProxy.address}\n`;
 
-                    const constantOutflowNFTLogic = await deployNFTContract(
-                        ConstantOutflowNFT,
-                        "ConstantOutflowNFT",
-                        "CONSTANT_OUTFLOW_NFT",
-                        [superfluid.address, constantInflowNFTProxy.address]
-                    );
-                    const constantInflowNFTLogic = await deployNFTContract(
-                        ConstantInflowNFT,
-                        "ConstantInflowNFT",
-                        "CONSTANT_INFLOW_NFT",
-                        [superfluid.address, constantOutflowNFTProxy.address]
-                    );
+                const constantOutflowNFTLogic = await deployNFTContract(
+                    ConstantOutflowNFT,
+                    "ConstantOutflowNFT",
+                    "CONSTANT_OUTFLOW_NFT",
+                    [superfluid.address, cfaAddr, gdaAddr, constantInflowNFTProxy.address]
+                );
+                const constantInflowNFTLogic = await deployNFTContract(
+                    ConstantInflowNFT,
+                    "ConstantInflowNFT",
+                    "CONSTANT_INFLOW_NFT",
+                    [superfluid.address, cfaAddr, gdaAddr, constantOutflowNFTProxy.address]
+                );
 
-                    // set the nft logic addresses (to be consumed by the super token factory logic constructor)
-                    cofNFTLogicAddress = constantOutflowNFTLogic.address;
-                    cifNFTLogicAddress = constantInflowNFTLogic.address;
+                // set the nft logic addresses (to be consumed by the super token factory logic constructor)
+                cofNFTLogicAddress = constantOutflowNFTLogic.address;
+                cifNFTLogicAddress = constantInflowNFTLogic.address;
 
-                    // initialize the nft proxy with the nft logic
-                    await constantOutflowNFTProxy.initializeProxy(
-                        constantOutflowNFTLogic.address
-                    );
-                    await constantInflowNFTProxy.initializeProxy(
-                        constantInflowNFTLogic.address
-                    );
-                    const constantOutflowNFT = await ConstantOutflowNFT.at(
-                        constantOutflowNFTProxy.address
-                    );
-                    const constantInflowNFT = await ConstantInflowNFT.at(
-                        constantInflowNFTProxy.address
-                    );
+                // initialize the nft proxy with the nft logic
+                await constantOutflowNFTProxy.initializeProxy(
+                    constantOutflowNFTLogic.address
+                );
+                await constantInflowNFTProxy.initializeProxy(
+                    constantInflowNFTLogic.address
+                );
+                const constantOutflowNFT = await ConstantOutflowNFT.at(
+                    constantOutflowNFTProxy.address
+                );
+                const constantInflowNFT = await ConstantInflowNFT.at(
+                    constantInflowNFTProxy.address
+                );
 
-                    // initialize the proxy contracts with the nft names
-                    await constantOutflowNFT.initialize(
-                        "Constant Outflow NFT",
-                        "COF"
-                    );
-                    await constantInflowNFT.initialize(
-                        "Constant Inflow NFT",
-                        "CIF"
-                    );
+                // initialize the proxy contracts with the nft names
+                await constantOutflowNFT.initialize(
+                    "Constant Outflow NFT",
+                    "COF"
+                );
+                await constantInflowNFT.initialize(
+                    "Constant Inflow NFT",
+                    "CIF"
+                );
 
-                    // set the nft proxy addresses (to be consumed by the super token logic constructor)
-                    cofNFTProxyAddress = constantOutflowNFTProxy.address;
-                    cifNFTProxyAddress = constantInflowNFTProxy.address;
-                }
-                if (
-                    poolAdminNFTProxyAddress === ZERO_ADDRESS ||
-                    poolMemberNFTProxyAddress === ZERO_ADDRESS
-                ) {
-                    const poolAdminNFTProxy = await web3tx(
-                        UUPSProxy.new,
-                        `Create PoolAdminNFT proxy`
-                    )();
-                    console.log(
-                        "PoolAdminNFT Proxy address",
-                        poolAdminNFTProxy.address
-                    );
-                    output += `POOL_ADMIN_NFT_PROXY=${poolAdminNFTProxy.address}\n`;
-
-                    const poolMemberNFTProxy = await web3tx(
-                        UUPSProxy.new,
-                        `Create PoolMemberNFT proxy`
-                    )();
-                    console.log(
-                        "PoolMemberNFT Proxy address",
-                        poolMemberNFTProxy.address
-                    );
-                    output += `POOL_MEMBER_NFT_PROXY=${poolMemberNFTProxy.address}\n`;
-
-                    const poolAdminNFTLogic = await deployNFTContract(
-                        PoolAdminNFT,
-                        "PoolAdminNFT",
-                        "POOL_ADMIN_NFT",
-                        [superfluid.address]
-                    );
-                    const poolMemberNFTLogic = await deployNFTContract(
-                        PoolMemberNFT,
-                        "PoolMemberNFT",
-                        "POOL_MEMBER_NFT",
-                        [superfluid.address]
-                    );
-
-                    // set the nft logic addresses (to be consumed by the super token factory logic constructor)
-                    poolAdminNFTLogicAddress = poolAdminNFTLogic.address;
-                    poolMemberNFTLogicAddress = poolMemberNFTLogic.address;
-
-                    // initialize the nft proxy with the nft logic
-                    await poolAdminNFTProxy.initializeProxy(
-                        poolAdminNFTLogic.address
-                    );
-
-                    await poolMemberNFTProxy.initializeProxy(
-                        poolMemberNFTLogic.address
-                    );
-
-                    const poolAdminNFT = await PoolAdminNFT.at(
-                        poolAdminNFTProxy.address
-                    );
-
-                    const poolMemberNFT = await PoolMemberNFT.at(
-                        poolMemberNFTProxy.address
-                    );
-
-                    // initialize the proxy contracts with the nft names
-                    await poolAdminNFT.initialize("Pool Admin NFT", "PA");
-                    await poolMemberNFT.initialize("Pool Member NFT", "PM");
-
-                    // set the nft proxy addresses (to be consumed by the super token logic constructor)
-                    poolAdminNFTProxyAddress = poolAdminNFTProxy.address;
-                    poolMemberNFTProxyAddress = poolMemberNFTProxy.address;
-                }
+                // set the nft proxy addresses (to be consumed by the super token logic constructor)
+                cofNFTProxyAddress = constantOutflowNFTProxy.address;
+                cifNFTProxyAddress = constantInflowNFTProxy.address;
             } else {
-                // nft proxies already exist
+                // FlowNFT proxies already exist
+                console.log("Check-upgrading Flow NFTs...");
                 await deployContractIf(
                     web3,
                     ConstantOutflowNFT,
@@ -1101,7 +1118,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                             ConstantOutflowNFT,
                             "ConstantOutflowNFT",
                             "CONSTANT_OUTFLOW_NFT",
-                            [superfluid.address, cifNFTProxyAddress]
+                            [superfluid.address, cfaAddr, gdaAddr, cifNFTProxyAddress]
                         );
                         // @note we set the cofNFTLogicAddress to be passed to SuperTokenFactoryLogic here
                         cofNFTLogicAddress = cofNFTLogic.address;
@@ -1120,16 +1137,85 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                             ConstantInflowNFT,
                             "ConstantInflowNFT",
                             "CONSTANT_INFLOW_NFT",
-                            [
-                                superfluid.address,
-                                cofNFTProxyAddress,
-                            ]
+                            [superfluid.address, cfaAddr, gdaAddr, cofNFTProxyAddress]
                         );
                         // @note we set the cifNFTLogicAddress to be passed to SuperTokenFactoryLogic here
                         cifNFTLogicAddress = cifNFTLogic.address;
                         return cifNFTLogic.address;
                     }
                 );
+            };
+
+
+            if (
+                poolAdminNFTProxyAddress === ZERO_ADDRESS ||
+                poolMemberNFTProxyAddress === ZERO_ADDRESS
+            ) {
+                console.log("BOOTSTRAPPING: Deploying Pool NFT Proxies...");
+                const poolAdminNFTProxy = await web3tx(
+                    UUPSProxy.new,
+                    `Create PoolAdminNFT proxy`
+                )();
+                console.log(
+                    "PoolAdminNFT Proxy address",
+                    poolAdminNFTProxy.address
+                );
+                output += `POOL_ADMIN_NFT_PROXY=${poolAdminNFTProxy.address}\n`;
+
+                const poolMemberNFTProxy = await web3tx(
+                    UUPSProxy.new,
+                    `Create PoolMemberNFT proxy`
+                )();
+                console.log(
+                    "PoolMemberNFT Proxy address",
+                    poolMemberNFTProxy.address
+                );
+                output += `POOL_MEMBER_NFT_PROXY=${poolMemberNFTProxy.address}\n`;
+
+                const poolAdminNFTLogic = await deployNFTContract(
+                    PoolAdminNFT,
+                    "PoolAdminNFT",
+                    "POOL_ADMIN_NFT",
+                    [superfluid.address, gdaAddr]
+                );
+                const poolMemberNFTLogic = await deployNFTContract(
+                    PoolMemberNFT,
+                    "PoolMemberNFT",
+                    "POOL_MEMBER_NFT",
+                    [superfluid.address, gdaAddr]
+                );
+
+                // set the nft logic addresses (to be consumed by the super token factory logic constructor)
+                poolAdminNFTLogicAddress = poolAdminNFTLogic.address;
+                poolMemberNFTLogicAddress = poolMemberNFTLogic.address;
+
+                // initialize the nft proxy with the nft logic
+                await poolAdminNFTProxy.initializeProxy(
+                    poolAdminNFTLogic.address
+                );
+
+                await poolMemberNFTProxy.initializeProxy(
+                    poolMemberNFTLogic.address
+                );
+
+                const poolAdminNFT = await PoolAdminNFT.at(
+                    poolAdminNFTProxy.address
+                );
+
+                const poolMemberNFT = await PoolMemberNFT.at(
+                    poolMemberNFTProxy.address
+                );
+
+                // initialize the proxy contracts with the nft names
+                await poolAdminNFT.initialize("Pool Admin NFT", "PA");
+                await poolMemberNFT.initialize("Pool Member NFT", "PM");
+
+                // set the nft proxy addresses (to be consumed by the super token logic constructor)
+                poolAdminNFTProxyAddress = poolAdminNFTProxy.address;
+                poolMemberNFTProxyAddress = poolMemberNFTProxy.address;
+            } else {
+                // PoolNFT proxies already exist
+                console.log("Check-upgrading Pool NFTs...");
                 await deployContractIf(
                     web3,
                     PoolAdminNFT,
@@ -1141,7 +1227,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                             PoolAdminNFT,
                             "PoolAdminNFT",
                             "POOL_ADMIN_NFT",
-                            [superfluid.address]
+                            [superfluid.address, gdaAddr]
                         );
                         // @note we set the poolAdminNFTLogicAddress to be passed to SuperTokenFactoryLogic here
                         poolAdminNFTLogicAddress = poolAdminNFTLogic.address;
@@ -1159,7 +1245,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                             PoolMemberNFT,
                             "PoolMemberNFT",
                             "POOL_MEMBER_NFT",
-                            [superfluid.address]
+                            [superfluid.address, gdaAddr]
                         );
                         // @note we set the poolMemberNFTLogicAddress to be passed to SuperTokenFactoryLogic here
                         poolMemberNFTLogicAddress = poolMemberNFTLogic.address;
@@ -1208,146 +1294,76 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         }
     );
 
+
+    let superfluidPoolNewLogicAddress = ZERO_ADDRESS;
+
+    // SuperfluidPool upgrade
+    if (initialGDALogicAddr) {
+        // if we just bootstrapped the GDA, do nothing here
+        console.log("skipping SuperfluidPool update in GDA bootstrapping phase");
+    } else {
+        const gdaV1Contract = await GeneralDistributionAgreementV1.at(
+            await superfluid.getAgreementClass.call(GDAv1_TYPE)
+        );
+        const superfluidPoolBeaconAddress = await gdaV1Contract.superfluidPoolBeacon();
+
+        superfluidPoolNewLogicAddress = await deployContractIfCodeChanged(
+            web3,
+            SuperfluidPool,
+            await (
+                await SuperfluidUpgradeableBeacon.at(superfluidPoolBeaconAddress)
+            ).implementation(),
+            async () => {
+                // Deploy new SuperfluidPool logic contract
+                const superfluidPoolLogic = await web3tx(
+                    SuperfluidPool.new,
+                    "SuperfluidPool.new"
+                )(gdaV1Contract.address);
+                await superfluidPoolLogic.castrate();
+                console.log(
+                    "New SuperfluidPoolLogic address",
+                    superfluidPoolLogic.address
+                );
+                output += `SUPERFLUID_POOL_LOGIC=${superfluidPoolLogic.address}\n`;
+                return superfluidPoolLogic.address;
+            },
+            [ap(gdaV1Contract.address)]
+        );
+    }
+
+
     if (
         superfluidNewLogicAddress !== ZERO_ADDRESS ||
         agreementsToUpdate.length > 0 ||
-        superTokenFactoryNewLogicAddress !== ZERO_ADDRESS
+        superTokenFactoryNewLogicAddress !== ZERO_ADDRESS ||
+        superfluidPoolNewLogicAddress !== ZERO_ADDRESS
     ) {
         console.log(`invoking gov.updateContracts(${superfluid.address}, ${superfluidNewLogicAddress}, [${agreementsToUpdate}], ${superTokenFactoryNewLogicAddress})})`);
         await sendGovernanceAction(
-            {
-                host: superfluid,
-                contracts: {
-                    Ownable,
-                    IMultiSigWallet,
-                    ISafe,
-                    SuperfluidGovernanceBase,
-                },
-            },
+            sfObjForGovAndResolver,
             (gov) =>
                 gov.updateContracts(
                     superfluid.address,
                     superfluidNewLogicAddress,
                     agreementsToUpdate,
                     superTokenFactoryNewLogicAddress,
-                    ZERO_ADDRESS
+                    superfluidPoolNewLogicAddress
                 )
         );
     }
 
-    // Superfluid Pool Beacon deployment
-    const gdaV1Contract = await GeneralDistributionAgreementV1.at(
-        await superfluid.getAgreementClass.call(GDAv1_TYPE)
-    );
-    const superfluidPoolBeaconAddress =
-        await gdaV1Contract.superfluidPoolBeacon();
-
-    const getPoolLogicAddress = async () => {
-        if (superfluidPoolBeaconAddress === ZERO_ADDRESS) {
-            return ZERO_ADDRESS;
-        }
-
-        try {
-            return await (
-                await SuperfluidUpgradeableBeacon.at(
-                    superfluidPoolBeaconAddress
-                )
-            ).implementation();
-        } catch (e) {
-            return ZERO_ADDRESS;
-        }
-    };
-    const superfluidPoolLogicAddress = await deployContractIfCodeChanged(
-        web3,
-        SuperfluidPool,
-        await getPoolLogicAddress(),
-        async () => {
-            // Deploy new SuperfluidPool logic contract
-            const superfluidPoolLogic = await web3tx(
-                SuperfluidPool.new,
-                "SuperfluidPool.new"
-            )(gdaV1Contract.address);
-            await superfluidPoolLogic.castrate();
-            console.log(
-                "New SuperfluidPoolLogic address",
-                superfluidPoolLogic.address
-            );
-            output += `SUPERFLUID_POOL_LOGIC=${superfluidPoolLogic.address}\n`;
-
-            return superfluidPoolLogic.address;
-        },
-        [
-            // See SuperToken constructor parameter
-            gdaV1Contract.address.toLowerCase().slice(2).padStart(64, "0"),
-        ]
-    );
-
-    // if beacon doesn't exist, we deploy a new one
-    if (superfluidPoolBeaconAddress === ZERO_ADDRESS) {
-        console.log(
-            "SuperfluidPool Beacon doesn't exist, creating a new one..."
-        );
-        const superfluidPoolBeaconContract = await web3tx(
-            SuperfluidUpgradeableBeacon.new,
-            "SuperfluidUpgradeableBeacon.new"
-        )(superfluidPoolLogicAddress);
-        console.log(
-            "New SuperfluidPoolBeacon address",
-            superfluidPoolBeaconContract.address
-        );
-        output += `SUPERFLUID_POOL_BEACON=${superfluidPoolBeaconContract.address}\n`;
-
-        console.log("Transferring ownership of beacon contract to Superfluid Host...");
-        await superfluidPoolBeaconContract.transferOwnership(superfluid.address);
-
-        console.log("Initializing GDA w/ beacon contract...");
-        await gdaV1Contract.initialize(superfluidPoolBeaconContract.address);
-    } else {
-        console.log("Superfluid Pool Beacon exists...");
-        // if the beacon exists AND we deployed a new SuperfluidPool logic contract
-        if (superfluidPoolLogicAddress !== ZERO_ADDRESS) {
-            console.log(
-                "superfluidPoolLogicAddress updated, upgrading logic contract..."
-            );
-            // update beacon implementation
-            const superfluidPoolBeacon = await SuperfluidUpgradeableBeacon.at(
-                superfluidPoolBeaconAddress
-            );
-            await superfluidPoolBeacon.upgradeTo(superfluidPoolLogicAddress);
-        }
-    }
 
     // finally, set the version string in resolver
     if (previousVersionString !== versionString) {
-        const sfObjForResolver = {
-            contracts: {
-                Resolver,
-                IAccessControlEnumerable,
-            },
-            resolver: {
-                address: resolver.address
-            }
-        };
         const encodedVersionString = versionStringToPseudoAddress(versionString);
-        await setResolver(sfObjForResolver, `versionString.${protocolReleaseVersion}`, encodedVersionString);
+        await setResolver(sfObjForGovAndResolver, `versionString.${protocolReleaseVersion}`, encodedVersionString);
     }
 
     // finally, set the version string in resolver
 
     if (previousVersionString !== versionString) {
-        const sfObjForResolver = {
-            contracts: {
-                Resolver,
-                IMultiSigWallet,
-                ISafe,
-                IAccessControlEnumerable,
-            },
-            resolver: {
-                address: resolver.address
-            }
-        };
         const encodedVersionString = versionStringToPseudoAddress(versionString);
-        await setResolver(sfObjForResolver, `versionString.${protocolReleaseVersion}`, encodedVersionString);
+        await setResolver(sfObjForGovAndResolver, `versionString.${protocolReleaseVersion}`, encodedVersionString);
     }
 
     console.log("======== Superfluid framework deployed ========");

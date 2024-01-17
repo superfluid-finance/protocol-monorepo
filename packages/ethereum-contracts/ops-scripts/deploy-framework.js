@@ -618,7 +618,9 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         const gda = await deployGDAv1(superfluidPoolBeaconContract.address);
         initialGDALogicAddr = gda.address;
 
+        /*
         // now that we have a GDA, we can deploy the actual SuperfluidPool...
+        // "narrator: no, we cannot, needs the proxy address"
         const superfluidPoolLogic = await web3tx(
             SuperfluidPool.new,
             "SuperfluidPool.new"
@@ -630,6 +632,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         // ...update the beacon to it...
         console.log("Upgrading beacon to the actual SuperfluidPool logic...");
         await superfluidPoolBeaconContract.upgradeTo(superfluidPoolLogic.address);
+        */
 
         // ...and transfer ownership of the beacon
         console.log("Transferring ownership of beacon contract to Superfluid Host...");
@@ -641,6 +644,10 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             sfObjForGovAndResolver,
             (gov) => gov.registerAgreementClass(superfluid.address, gda.address)
         );
+
+        console.log("##### STEP1 of GDA DEPLOYMENT DONE #####");
+        console.log("Now go execute the gov action, then run this script again");
+        process.exit();
     } else {
         // NOTE that we are reusing the existing deployed external library
         // here as an optimization, this assumes that we do not change the
@@ -681,7 +688,6 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             console.warn("Cannot get slotsBitmapLibrary address", e.toString());
         }
     }
-    // @note GDA deployment is commented out until we plan on releasing it
 
     if (protocolReleaseVersion === "test") {
         // deploy CFAv1Forwarder for test deployments
@@ -889,6 +895,8 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 const cfaPAddr = await superfluid.getAgreementClass.call(CFAv1_TYPE);
                 const gdaPAddr = await superfluid.getAgreementClass.call(GDAv1_TYPE);
 
+                // TODO: check only if non-zero address
+                // don't do in try block, otherwise we may accidentally re-deploy the NFT proxies
                 constantOutflowNFTLogicChanged = await codeChanged(
                     web3,
                     ConstantOutflowNFT,
@@ -1354,13 +1362,8 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
 
 
     // finally, set the version string in resolver
-    if (previousVersionString !== versionString) {
-        const encodedVersionString = versionStringToPseudoAddress(versionString);
-        await setResolver(sfObjForGovAndResolver, `versionString.${protocolReleaseVersion}`, encodedVersionString);
-    }
-
-    // finally, set the version string in resolver
-
+    // Note that if executed immediately, this may advance the version string
+    // before the actual protocol upgrade takes place through gov multisig signing
     if (previousVersionString !== versionString) {
         const encodedVersionString = versionStringToPseudoAddress(versionString);
         await setResolver(sfObjForGovAndResolver, `versionString.${protocolReleaseVersion}`, encodedVersionString);

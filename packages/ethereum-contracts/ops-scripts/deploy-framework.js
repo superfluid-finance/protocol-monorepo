@@ -568,7 +568,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             await deployExternalLibraryAndLink(
                 SuperfluidPoolDeployerLibrary,
                 "SuperfluidPoolDeployerLibrary",
-                "SUPERFLUID_POOL_DEPLOYER",
+                "SUPERFLUID_POOL_DEPLOYER_LIBRARY",
                 GeneralDistributionAgreementV1
             );
 

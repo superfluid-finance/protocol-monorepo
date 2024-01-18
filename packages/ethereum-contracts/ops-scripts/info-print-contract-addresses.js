@@ -130,7 +130,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     const superfluidPoolBeaconContract = await SuperfluidUpgradeableBeacon.at(
         await gdaContract.superfluidPoolBeacon()
     );
-    output += `SUPERFLUID_POOL_DEPLOYER=${await gdaContract.SUPERFLUID_POOL_DEPLOYER_ADDRESS()}\n`;
+    output += `SUPERFLUID_POOL_DEPLOYER_LIBRARY=${await gdaContract.SUPERFLUID_POOL_DEPLOYER_ADDRESS()}\n`;
     output += `SUPERFLUID_POOL_BEACON=${superfluidPoolBeaconContract.address}\n`;
     output += `SUPERFLUID_POOL_LOGIC=${await superfluidPoolBeaconContract.implementation()}\n`;
 

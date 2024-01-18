@@ -147,12 +147,12 @@ if [ -n "$IDA_PROXY" ]; then
 fi
 mv -f $CONTRACTS_DIR/InstantDistributionAgreementV1.json.bak $CONTRACTS_DIR/InstantDistributionAgreementV1.json
 
-if [ -n "$SUPERFLUID_POOL_DEPLOYER" ]; then
-    try_verify SuperfluidPoolDeployerLibrary@"${SUPERFLUID_POOL_DEPLOYER}"
+if [ -n "$SUPERFLUID_POOL_DEPLOYER_LIBRARY" ]; then
+    try_verify SuperfluidPoolDeployerLibrary@"${SUPERFLUID_POOL_DEPLOYER_LIBRARY}"
 fi
 
 link_library "GeneralDistributionAgreementV1" "SlotsBitmapLibrary" "${SLOTS_BITMAP_LIBRARY}"
-link_library "GeneralDistributionAgreementV1" "SuperfluidPoolDeployerLibrary" "${SUPERFLUID_POOL_DEPLOYER}"
+link_library "GeneralDistributionAgreementV1" "SuperfluidPoolDeployerLibrary" "${SUPERFLUID_POOL_DEPLOYER_LIBRARY}"
 if [ -n "$GDA_LOGIC" ]; then
     try_verify GeneralDistributionAgreementV1@"${GDA_LOGIC}"
 fi

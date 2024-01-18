@@ -21,7 +21,7 @@
   flake-utils.lib.eachDefaultSystem (system:
   let
     minDevSolcVer = "solc_0_8_11"; # minimum solidity version used for external development
-    solcVer = "solc_0_8_19";
+    solcVer = "solc_0_8_23";
     ghcVer92 = "ghc928";
     ghcVer94 = "ghc945";
 

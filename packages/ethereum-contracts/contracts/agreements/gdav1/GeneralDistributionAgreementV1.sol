@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPLv3
 // solhint-disable not-rely-on-time
-pragma solidity 0.8.19;
+pragma solidity 0.8.23;
 
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { IBeacon } from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";

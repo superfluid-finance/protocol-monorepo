@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.19;
+pragma solidity 0.8.23;
 
 import "forge-std/Test.sol";
 import { ERC1820RegistryCompiled } from "../../../contracts/libs/ERC1820RegistryCompiled.sol";

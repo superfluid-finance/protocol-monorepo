@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.19;
+pragma solidity 0.8.23;
 
 import { IERC165, IERC721, IERC721Metadata } from "@openzeppelin/contracts/interfaces/IERC721Metadata.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";

@@ -2,7 +2,7 @@
 root = '../..'
 src = 'packages/ethereum-contracts/contracts'
 test = 'packages/ethereum-contracts/test/foundry/'
-solc_version = "0.8.19"
+solc_version = "0.8.23"
 ignored_error_codes = [5159] # selfdestruct in contracts/mocks/SuperfluidDestructorMock.sol
 # deny_warnings = true
 # keep in sync with truffle-config.js

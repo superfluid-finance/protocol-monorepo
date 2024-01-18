@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPLv3
 // solhint-disable not-rely-on-time
-pragma solidity 0.8.19;
+pragma solidity 0.8.23;
 
 // Notes: We use these interfaces in natspec documentation below, grep @inheritdoc
 // solhint-disable-next-line no-unused-import

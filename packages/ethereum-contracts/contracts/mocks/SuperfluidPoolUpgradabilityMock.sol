@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.19;
+pragma solidity 0.8.23;
 
 import { GeneralDistributionAgreementV1 } from "../agreements/gdav1/GeneralDistributionAgreementV1.sol";
 import { SuperfluidPool } from "../agreements/gdav1/SuperfluidPool.sol";

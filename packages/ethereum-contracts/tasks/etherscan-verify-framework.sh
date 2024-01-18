@@ -145,12 +145,13 @@ fi
 if [ -n "$IDA_PROXY" ]; then
     try_verify InstantDistributionAgreementV1@"${IDA_PROXY}" --custom-proxy UUPSProxy
 fi
+mv -f $CONTRACTS_DIR/InstantDistributionAgreementV1.json.bak $CONTRACTS_DIR/InstantDistributionAgreementV1.json
 
 if [ -n "$SUPERFLUID_POOL_DEPLOYER" ]; then
     try_verify SuperfluidPoolDeployerLibrary@"${SUPERFLUID_POOL_DEPLOYER}"
 fi
 
-link_library "GeneralDistributionAgreementV1" "SlotsBitmapLibrary" "${GDA_SLOTS_BITMAP_LIBRARY}"
+link_library "GeneralDistributionAgreementV1" "SlotsBitmapLibrary" "${SLOTS_BITMAP_LIBRARY}"
 link_library "GeneralDistributionAgreementV1" "SuperfluidPoolDeployerLibrary" "${SUPERFLUID_POOL_DEPLOYER}"
 if [ -n "$GDA_LOGIC" ]; then
     try_verify GeneralDistributionAgreementV1@"${GDA_LOGIC}"
@@ -159,6 +160,7 @@ fi
 if [ -n "$GDA_PROXY" ]; then
     try_verify GeneralDistributionAgreementV1@"${GDA_PROXY}" --custom-proxy UUPSProxy
 fi
+mv -f $CONTRACTS_DIR/GeneralDistributionAgreementV1.json.bak $CONTRACTS_DIR/GeneralDistributionAgreementV1.json
 
 if [ -n "$SUPERFLUID_POOL_BEACON" ]; then
     try_verify SuperfluidUpgradeableBeacon@"${SUPERFLUID_POOL_BEACON}"
@@ -167,8 +169,6 @@ fi
 if [ -n "$SUPERFLUID_POOL_LOGIC" ]; then
     try_verify SuperfluidPool@"${SUPERFLUID_POOL_LOGIC}"
 fi
-
-mv -f $CONTRACTS_DIR/InstantDistributionAgreementV1.json.bak $CONTRACTS_DIR/InstantDistributionAgreementV1.json
 
 if [ -n "$SUPER_TOKEN_NATIVE_COIN" ];then
     # special case: verify only the proxy

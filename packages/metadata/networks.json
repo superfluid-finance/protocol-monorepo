@@ -370,6 +370,43 @@
         ]
     },
     {
+        "name": "optimism-sepolia",
+        "isTestnet": true,
+        "networkId": 11155420,
+        "chainId": 11155420,
+        "sfId": 109,
+        "shortName": "opsepolia",
+        "uppercaseName": "OPTIMISM_SEPOLIA",
+        "humanReadableName": "Optimism Sepolia",
+        "nativeTokenSymbol": "ETH",
+        "nativeTokenWrapper": "0x0043d7c85C8b96a49A72A92C0B48CdC4720437d7",
+        "contractsV1": {
+            "resolver": "0x554c06487bEc8c890A0345eb05a5292C1b1017Bd",
+            "host": "0xd399e2Fb5f4cf3722a11F65b88FAB6B2B8621005",
+            "cfaV1": "0x8a3170AdbC67233196371226141736E4151e7C26",
+            "cfaV1Forwarder": "0xcfA132E353cB4E398080B9700609bb008eceB125",
+            "idaV1": "0x51BDA2C5F627d456E282257710F4A4b6Eb094A52",
+            "gdaV1": "0xd453d38A001B47271488886532f1CCeAbf0c7eF3",
+            "gdaV1Forwarder": "0x6DA13Bde224A05a288748d857b9e7DDEffd1dE08",
+            "superTokenFactory": "0xfcF0489488397332579f35b0F711BE570Da0E8f5",
+            "constantOutflowNFT": "0xda6db863cb2EE39b196edB8159c38A1ed5c55344",
+            "constantInflowNFT": "0x87E00Dced5670e01BEe33a9a724B1dac790937eF",
+            "superfluidLoader": "0x109412E3C84f0539b43d39dB691B08c90f58dC7c"
+        },
+        "startBlockV1": 6886559,
+        "logsQueryRange": 50000,
+        "explorer": "https://sepolia-optimism.etherscan.io",
+        "subgraphV1": {
+            "cliName": "optimism-sepolia",
+            "name": "protocol-v1-optimism-sepolia",
+            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-optimism-sepolia"
+        },
+        "publicRPCs": [
+            "https://sepolia.optimism.io"
+        ],
+        "trustedForwarders": []
+    },
+    {
         "name": "xdai-mainnet",
         "isTestnet": false,
         "networkId": 100,

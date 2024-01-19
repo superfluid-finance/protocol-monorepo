@@ -117,7 +117,7 @@ deploy_to_superfluid() {
 }
 
 # Vendor specific function dispatcher
-# Expected arguments: 
+# Expected arguments:
 # $1 - vendor
 # $2 - canonical network name
 deploy_to() {

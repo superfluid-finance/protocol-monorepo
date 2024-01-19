@@ -65,6 +65,7 @@ const ALIASES = {
 
     "optimism-mainnet": ["opmainnet"],
     "optimism-goerli": ["opgoerli"],
+    "optimism-sepolia": ["opsepolia"],
 
     "arbitrum-one": ["arbone"],
     "arbitrum-goerli": ["arbgoerli"],
@@ -85,7 +86,7 @@ const ALIASES = {
     // wildcard for any network
     "any": ["any"],
 
-    // currently unsupported
+    // currently unsupported or deprecated networks
     //
     "optimism-kovan": ["opkovan"],
 
@@ -240,6 +241,11 @@ const E = (module.exports = {
         "optimism-goerli": {
             ...createNetworkDefaultConfiguration("optimism-goerli"),
             network_id: 420,
+        },
+
+        "optimism-sepolia": {
+            ...createNetworkDefaultConfiguration("optimism-sepolia"),
+            network_id: 11155420,
         },
 
         //

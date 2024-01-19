@@ -5,7 +5,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [v1.1.23]
 ### Added
-- new network optimism-sepolia
+- new networks: optimism-sepolia, scroll-sepolia, scroll-mainnet
 
 ## [v1.1.22]
 ### Added

@@ -9,7 +9,8 @@ interface ContractAddresses {
     readonly cfaV1: string;
     readonly cfaV1Forwarder: string;
     readonly idaV1: string;
-    readonly gdaV1: string;
+    readonly gdaV1?: string;
+    readonly gdaV1Forwarder?: string;
     readonly superTokenFactory: string;
     readonly constantOutflowNFT?: string;
     readonly constantInflowNFT?: string;

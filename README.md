@@ -20,7 +20,7 @@
     <img alt="GitHub package.json version (subfolder of monorepo)" src="https://img.shields.io/github/package-json/v/superfluid-finance/protocol-monorepo?filename=packages%2Fhot-fuzz%2Fpackage.json&label=hot-fuzz"> 
   </a>
   <br>
-  <a href="https://twitter.com/Superfluid_HQ/status/" target="_blank">
+  <a href="https://twitter.com/Superfluid_HQ" target="_blank">
     <img alt="Twitter: Superfluid_HQ" src="https://img.shields.io/twitter/follow/Superfluid_HQ.svg?style=social" />
   </a>
   <a href="https://www.codetriage.com/superfluid-finance/protocol-monorepo">

@@ -83,6 +83,9 @@ const ALIASES = {
 
     "base-mainnet": ["base"],
 
+    "scroll-sepolia": ["scrsepolia"],
+    "scroll-mainnet": ["scroll"],
+
     // wildcard for any network
     "any": ["any"],
 
@@ -309,6 +312,18 @@ const E = (module.exports = {
         },
 
         //
+        // Scroll: https://docs.scroll.xyz/en/getting-started/overview/
+        //
+        "scroll-mainnet": {
+            ...createNetworkDefaultConfiguration("scroll-mainnet"),
+            network_id: 534352,
+        },
+        "scroll-sepolia": {
+            ...createNetworkDefaultConfiguration("scroll-sepolia"),
+            network_id: 534351,
+        },
+
+        //
         // Wildcard
         //
         "any": {
@@ -426,6 +441,7 @@ const E = (module.exports = {
         celoscan: process.env.CELOSCAN_API_KEY,
         basescan: process.env.BASESCAN_API_KEY,
         zkevm_polygonscan: process.env.ZKEVM_POLYGONSCAN_API_KEY,
+        scrollscan: process.env.SCROLLSCAN_API_KEY,
     },
 });
 

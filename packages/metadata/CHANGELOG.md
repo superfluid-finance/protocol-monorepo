@@ -3,6 +3,10 @@ All notable changes to the metadata will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.1.23]
+### Added
+- new networks: optimism-sepolia, scroll-sepolia, scroll-mainnet
+
 ## [v1.1.22]
 ### Added
 - `cliName` for `base-testnet`

@@ -164,7 +164,7 @@ function createNetworkDefaultConfiguration(
 const E = (module.exports = {
     plugins: [
         //"truffle-security",
-        "truffle-plugin-verify",
+        "@d10r/truffle-plugin-verify",
     ],
     /**
      * Networks define how you connect to your ethereum client and let you set the

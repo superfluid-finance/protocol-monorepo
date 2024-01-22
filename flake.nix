@@ -85,7 +85,7 @@
       hlint
       stylish-haskell
       # sage math
-      sage
+      # sage # TODO: https://github.com/NixOS/nixpkgs/issues/282383#issuecomment-1902660815
       # testing tooling
       gnuplot
       # yellowpaper pipeline tooling

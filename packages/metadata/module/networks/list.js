@@ -938,7 +938,7 @@ export default
         "contractsV1": {
             "resolver": "0xb25a19c0e7d10c8D37E5b63Ed3213b67f7ebfF80",
             "host": "0x0F86a21F6216c061B222c224e315d9FC34520bb7",
-            "governance": "0x43A636A202203e52ea99b6515a191b888ccc57AC",
+            "governance": "0xC2C9a709A6744816b3712D520BD314fe610AEa33",
             "cfaV1": "0x9d146055738BD4D258c99927A3188C94dCf4cd18",
             "cfaV1Forwarder": "0xcfA132E353cB4E398080B9700609bb008eceB125",
             "idaV1": "0xC537033813fA474e5f9588114ef2EfBB0564e080",
@@ -947,7 +947,7 @@ export default
             "constantOutflowNFT": "0x0de05fe0fF8F5eA9475CA8425e2D05Dd38ccED84",
             "constantInflowNFT": "0x8c24Fc82c8fDd763F08E654212fc27e577EbD934",
             "superfluidLoader": "0x7613030429E95cDFC76FE70f9573037068B51815",
-            "superTokenFactory": "0xacFBED2bC9344C158DD3dC229b84Bd7220e7c673",
+            "superTokenFactory": "0xacFBED2bC9344C158DD3dC229b84Bd7220e7c673"
         },
         "startBlockV1": 2575000,
         "logsQueryRange": 50000,

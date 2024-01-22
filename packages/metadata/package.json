@@ -22,6 +22,7 @@
     "pre-commit:check": "./tasks/compare-committed-against-build.sh",
     "lint": "run-s lint:*",
     "lint:js-eslint": "eslint . --max-warnings=0 --report-unused-disable-directives && echo '✔  Your .js files look good.'",
+    "lint:consistency": "./tasks/compare-committed-against-build.sh",
     "fix": "run-s fix:*",
     "fix:eslint": "yarn lint:js-eslint --fix",
     "check-updates": "ncu --target minor"

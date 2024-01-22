@@ -5,8 +5,7 @@
     flake-utils.url = "github:numtide/flake-utils";
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     foundry = {
-      # TODO: https://github.com/foundry-rs/foundry/pull/6806 to be merged
-      url = "github:shazow/foundry.nix/ad6182c16c85a3303cb97ecd37086b034510a302";
+      url = "github:shazow/foundry.nix/monthly";
       inputs.flake-utils.follows = "flake-utils";
       inputs.nixpkgs.follows = "nixpkgs";
     };
@@ -86,7 +85,7 @@
       hlint
       stylish-haskell
       # sage math
-      sage
+      # sage # TODO: https://github.com/NixOS/nixpkgs/issues/282383#issuecomment-1902660815
       # testing tooling
       gnuplot
       # yellowpaper pipeline tooling

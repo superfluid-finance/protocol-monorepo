@@ -893,6 +893,18 @@
   dependencies:
     "@jridgewell/trace-mapping" "0.3.9"
 
+"@d10r/truffle-plugin-verify@0.6.8":
+  version "0.6.8"
+  resolved "https://registry.yarnpkg.com/@d10r/truffle-plugin-verify/-/truffle-plugin-verify-0.6.8.tgz#516c262608fbea2d68757846f813450f8f8d8936"
+  integrity sha512-oQoCTAjLW0bbkHlebHG0GESaVeBHjqe/qvCQ/ptknQ42Sz0JFs1QvINZ41a00w+LORG/sH9mOTYFc8+T9fOoSg==
+  dependencies:
+    "@truffle/resolver" "^9.0.35"
+    axios "^0.26.1"
+    cli-logger "^0.5.40"
+    delay "^5.0.0"
+    querystring "^0.2.1"
+    tunnel "0.0.6"
+
 "@decentral.ee/web3-helpers@0.5.3":
   version "0.5.3"
   resolved "https://registry.yarnpkg.com/@decentral.ee/web3-helpers/-/web3-helpers-0.5.3.tgz#710aa9e90b186c5f7267150c4c5f3894fb52a2b4"
@@ -17962,18 +17974,6 @@ truffle-flattener@^1.6.0:
     find-up "^2.1.0"
     mkdirp "^1.0.4"
     tsort "0.0.1"
-
-truffle-plugin-verify@0.6.5:
-  version "0.6.5"
-  resolved "https://registry.yarnpkg.com/truffle-plugin-verify/-/truffle-plugin-verify-0.6.5.tgz#60110d39e8bc44301cb9b2aff81da8aa8308c177"
-  integrity sha512-8vFYVKe+L/tyhjyYb2aNwT7DFkN2BfQ+VSnmywCK2IbpGA0zRF7QYjRcne8UllpxcAVv0o4i1L97+qmN06ugnA==
-  dependencies:
-    "@truffle/resolver" "^9.0.35"
-    axios "^0.26.1"
-    cli-logger "^0.5.40"
-    delay "^5.0.0"
-    querystring "^0.2.1"
-    tunnel "0.0.6"
 
 truffle@^5.11.5:
   version "5.11.5"

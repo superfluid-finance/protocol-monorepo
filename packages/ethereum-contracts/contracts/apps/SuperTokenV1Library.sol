@@ -393,6 +393,7 @@ library SuperTokenV1Library {
      * @param allowCreate deletion permissions
      * @param flowRateAllowance The allowance provided to flowOperator
      * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     * @return newCtx The updated context after the execution of the agreement function
      */
     function setFlowPermissionsWithCtx(
         ISuperToken token,
@@ -429,6 +430,7 @@ library SuperTokenV1Library {
      * @param token The token used in flow
      * @param flowOperator The address given flow permissions
      * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     * @return newCtx The updated context after the execution of the agreement function
      */
     function setMaxFlowPermissionsWithCtx(
         ISuperToken token,
@@ -456,6 +458,7 @@ library SuperTokenV1Library {
      * @param token The token used in flow
      * @param flowOperator The address given flow permissions
      * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     * @return newCtx The updated context after the execution of the agreement function
      */
     function revokeFlowPermissionsWithCtx(
         ISuperToken token,
@@ -610,6 +613,7 @@ library SuperTokenV1Library {
      * @param receiver The receiver of the flow
      * @param flowRate The desired flowRate
      * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     * @return newCtx The updated context after the execution of the agreement function
      */
     function createFlowWithCtx(
         ISuperToken token,
@@ -641,6 +645,7 @@ library SuperTokenV1Library {
      * @param receiver The receiver of the flow
      * @param flowRate The desired flowRate
      * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     * @return newCtx The updated context after the execution of the agreement function
      */
     function createFlowFromWithCtx(
         ISuperToken token,
@@ -673,6 +678,7 @@ library SuperTokenV1Library {
      * @param receiver The receiver of the flow
      * @param flowRate The desired flowRate
      * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     * @return newCtx The updated context after the execution of the agreement function
      */
     function updateFlowWithCtx(
         ISuperToken token,
@@ -704,6 +710,7 @@ library SuperTokenV1Library {
      * @param receiver The receiver of the flow
      * @param flowRate The desired flowRate
      * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     * @return newCtx The updated context after the execution of the agreement function
      */
     function updateFlowFromWithCtx(
         ISuperToken token,
@@ -736,6 +743,7 @@ library SuperTokenV1Library {
      * @param sender The sender of the flow
      * @param receiver The receiver of the flow
      * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     * @return newCtx The updated context after the execution of the agreement function
      */
     function deleteFlowWithCtx(
         ISuperToken token,
@@ -766,6 +774,7 @@ library SuperTokenV1Library {
      * @param sender The sender of the flow
      * @param receiver The receiver of the flow
      * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     * @return newCtx The updated context after the execution of the agreement function
      */
     function deleteFlowFromWithCtx(
         ISuperToken token,
@@ -1456,7 +1465,8 @@ library SuperTokenV1Library {
      * Meant for usage in super app callbacks
      * @param token Super Token used with the index.
      * @param indexId ID of the index.
-     * @param ctx from super app callback
+     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     * @return newCtx The updated context after the execution of the agreement function
      */
     function createIndexWithCtx(
         ISuperToken token,
@@ -1486,7 +1496,8 @@ library SuperTokenV1Library {
      * @param token Super Token used with the index.
      * @param indexId ID of the index.
      * @param indexValue New TOTAL index value, this will equal the total amount distributed.
-     * @param ctx from super app callback
+     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     * @return newCtx The updated context after the execution of the agreement function
      */
     function updateIndexValueWithCtx(
         ISuperToken token,
@@ -1517,7 +1528,8 @@ library SuperTokenV1Library {
      * @param token Super Token used with the index.
      * @param indexId ID of the index.
      * @param amount Amount by which the index value should increase.
-     * @param ctx from super app callback
+     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     * @return newCtx The updated context after the execution of the agreement function
      */
     function distributeWithCtx(
         ISuperToken token,
@@ -1549,7 +1561,8 @@ library SuperTokenV1Library {
      * @param token Super Token used with the index.
      * @param publisher Publisher of the index.
      * @param indexId ID of the index.
-     * @param ctx from super app callback
+     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     * @return newCtx The updated context after the execution of the agreement function
      */
     function approveSubscriptionWithCtx(
         ISuperToken token,
@@ -1579,7 +1592,8 @@ library SuperTokenV1Library {
      * @param token Super Token used with the index.
      * @param publisher Publisher of the index.
      * @param indexId ID of the index.
-     * @param ctx from super app callback
+     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     * @return newCtx The updated context after the execution of the agreement function
      */
     function revokeSubscriptionWithCtx(
         ISuperToken token,
@@ -1611,7 +1625,8 @@ library SuperTokenV1Library {
      * @param indexId ID of the index.
      * @param subscriber Subscriber address whose units are to be updated.
      * @param units New number of units the subscriber holds.
-     * @param ctx from super app callback
+     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     * @return newCtx The updated context after the execution of the agreement function
      */
     function updateSubscriptionUnitsWithCtx(
         ISuperToken token,
@@ -1645,7 +1660,8 @@ library SuperTokenV1Library {
      * @param publisher Publisher of the index.
      * @param indexId ID of the index.
      * @param subscriber Subscriber address whose units are to be deleted.
-     * @param ctx from super app callback
+     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     * @return newCtx The updated context after the execution of the agreement function
      */
     function deleteSubscriptionWithCtx(
         ISuperToken token,
@@ -1679,7 +1695,8 @@ library SuperTokenV1Library {
      * @param publisher Publisher of the index.
      * @param indexId ID of the index.
      * @param subscriber Subscriber address that receives the claim.
-     * @param ctx from super app callback
+     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     * @return newCtx The updated context after the execution of the agreement function
      */
     function claimWithCtx(
         ISuperToken token,
@@ -1708,6 +1725,14 @@ library SuperTokenV1Library {
 
     /** GDA BASE FUNCTIONS ************************************* */
 
+
+    /**
+     * @dev Creates a new Superfluid Pool.
+     * @param token The Super Token address.
+     * @param admin The pool admin address.
+     * @param poolConfig The pool configuration (see PoolConfig in IGeneralDistributionAgreementV1.sol)
+     * @return pool The address of the deployed Superfluid Pool
+     */
     function createPool(ISuperToken token, address admin, PoolConfig memory poolConfig)
         internal
         returns (ISuperfluidPool pool)
@@ -1716,6 +1741,14 @@ library SuperTokenV1Library {
         pool = gda.createPool(token, admin, poolConfig);
     }
 
+    /**
+     * @dev Updates the units of a pool member.
+     * @param token The Super Token address.
+     * @param pool The Superfluid Pool to update.
+     * @param memberAddress The address of the member to update.
+     * @param newUnits The new units of the member.
+     * @return bool A boolean value indicating whether the pool was created successfully.
+     */
     function updateMemberUnits(ISuperToken token, ISuperfluidPool pool, address memberAddress, uint128 newUnits)
         internal
         returns (bool)
@@ -1723,6 +1756,15 @@ library SuperTokenV1Library {
         return updateMemberUnits(token, pool, memberAddress, newUnits, new bytes(0));
     }
 
+    /**
+     * @dev Updates the units of a pool member.
+     * @param token The Super Token address.
+     * @param pool The Superfluid Pool to update.
+     * @param memberAddress The address of the member to update.
+     * @param newUnits The new units of the member.
+     * @param userData User-specific data.
+     * @return A boolean value indicating whether the pool was created successfully.
+     */
     function updateMemberUnits(
         ISuperToken token,
         ISuperfluidPool pool,
@@ -1738,10 +1780,25 @@ library SuperTokenV1Library {
         return true;
     }
 
+    /**
+     * @dev Claims all tokens from the pool.
+     * @param token The Super Token address.
+     * @param pool The Superfluid Pool to claim from.
+     * @param memberAddress The address of the member to claim for.
+     * @return A boolean value indicating whether the claim was successful.
+     */
     function claimAll(ISuperToken token, ISuperfluidPool pool, address memberAddress) internal returns (bool) {
         return claimAll(token, pool, memberAddress, new bytes(0));
     }
 
+    /**
+     * @dev Claims all tokens from the pool.
+     * @param token The Super Token address.
+     * @param pool The Superfluid Pool to claim from.
+     * @param memberAddress The address of the member to claim for.
+     * @param userData User-specific data.
+     * @return A boolean value indicating whether the claim was successful.
+     */
     function claimAll(ISuperToken token, ISuperfluidPool pool, address memberAddress, bytes memory userData)
         internal
         returns (bool)
@@ -1752,10 +1809,24 @@ library SuperTokenV1Library {
         return true;
     }
 
+
+    /**
+     * @dev Connects a pool member to `pool`.
+     * @param token The Super Token address.
+     * @param pool The Superfluid Pool to connect.
+     * @return A boolean value indicating whether the connection was successful.
+     */
     function connectPool(ISuperToken token, ISuperfluidPool pool) internal returns (bool) {
         return connectPool(token, pool, new bytes(0));
     }
 
+    /**
+     * @dev Connects a pool member to `pool`.
+     * @param token The Super Token address.
+     * @param pool The Superfluid Pool to connect.
+     * @param userData User-specific data.
+     * @return A boolean value indicating whether the connection was successful.
+     */
     function connectPool(ISuperToken token, ISuperfluidPool pool, bytes memory userData) internal returns (bool) {
         (ISuperfluid host, IGeneralDistributionAgreementV1 gda) = _getAndCacheHostAndGDA(token);
         host.callAgreement(gda, abi.encodeCall(gda.connectPool, (pool, new bytes(0))), userData);
@@ -1763,17 +1834,37 @@ library SuperTokenV1Library {
         return true;
     }
 
+    /**
+     * @dev Disconnects a pool member from `pool`.
+     * @param token The Super Token address.
+     * @param pool The Superfluid Pool to disconnect.
+     * @return A boolean value indicating whether the disconnection was successful.
+     */
     function disconnectPool(ISuperToken token, ISuperfluidPool pool) internal returns (bool) {
         return disconnectPool(token, pool, new bytes(0));
     }
 
+    /**
+     * @dev Disconnects a pool member from `pool`.
+     * @param token The Super Token address.
+     * @param pool The Superfluid Pool to disconnect.
+     * @param userData User-specific data.
+     * @return A boolean value indicating whether the disconnection was successful.
+     */
     function disconnectPool(ISuperToken token, ISuperfluidPool pool, bytes memory userData) internal returns (bool) {
         (ISuperfluid host, IGeneralDistributionAgreementV1 gda) = _getAndCacheHostAndGDA(token);
         host.callAgreement(gda, abi.encodeCall(gda.disconnectPool, (pool, new bytes(0))), userData);
         return true;
     }
 
-    // @note we already have a distribute function from IDA, do we want this too? do we want to differentiate this?
+    /**
+     * @dev Tries to distribute `requestedAmount` amount of `token` from `from` to `pool`.
+     * @param token The Super Token address.
+     * @param from The address from which to distribute tokens.
+     * @param pool The Superfluid Pool address.
+     * @param requestedAmount The amount of tokens to distribute.
+     * @return A boolean value indicating whether the distribution was successful.
+     */
     function distributeToPool(ISuperToken token, address from, ISuperfluidPool pool, uint256 requestedAmount)
         internal
         returns (bool)
@@ -1781,6 +1872,15 @@ library SuperTokenV1Library {
         return distribute(token, from, pool, requestedAmount, new bytes(0));
     }
 
+    /**
+     * @dev Tries to distribute `requestedAmount` amount of `token` from `from` to `pool`.
+     * @param token The Super Token address.
+     * @param from The address from which to distribute tokens.
+     * @param pool The Superfluid Pool address.
+     * @param requestedAmount The amount of tokens to distribute.
+     * @param userData User-specific data.
+     * @return A boolean value indicating whether the distribution was successful.
+     */
     function distribute(
         ISuperToken token,
         address from,
@@ -1795,6 +1895,14 @@ library SuperTokenV1Library {
         return true;
     }
 
+    /**
+     * @dev Tries to distribute flow at `requestedFlowRate` of `token` from `from` to `pool`.
+     * @param token The Super Token address.
+     * @param from The address from which to distribute tokens.
+     * @param pool The Superfluid Pool address.
+     * @param requestedFlowRate The flow rate of tokens to distribute.
+     * @return A boolean value indicating whether the distribution was successful.
+     */
     function distributeFlow(ISuperToken token, address from, ISuperfluidPool pool, int96 requestedFlowRate)
         internal
         returns (bool)
@@ -1802,6 +1910,15 @@ library SuperTokenV1Library {
         return distributeFlow(token, from, pool, requestedFlowRate, new bytes(0));
     }
 
+    /**
+     * @dev Tries to distribute flow at `requestedFlowRate` of `token` from `from` to `pool`.
+     * @param token The Super Token address.
+     * @param from The address from which to distribute tokens.
+     * @param pool The Superfluid Pool address.
+     * @param requestedFlowRate The flow rate of tokens to distribute.
+     * @param userData User-specific data.
+     * @return A boolean value indicating whether the distribution was successful.
+     */
     function distributeFlow(
         ISuperToken token,
         address from,
@@ -1818,6 +1935,15 @@ library SuperTokenV1Library {
 
     /** GDA WITH CTX FUNCTIONS ************************************* */
 
+    /**
+     * @dev Updates the units of a pool member.
+     * @param token The Super Token address.
+     * @param pool The Superfluid Pool to update.
+     * @param memberAddress The address of the member to update.
+     * @param newUnits The new units of the member.
+     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     * @return newCtx The updated context after the execution of the agreement function
+     */
     function updateMemberUnitsWithCtx(
         ISuperToken token,
         ISuperfluidPool pool,
@@ -1842,6 +1968,14 @@ library SuperTokenV1Library {
         );
     }
 
+    /**
+     * @dev Claims all tokens from the pool.
+     * @param token The Super Token address.
+     * @param pool The Superfluid Pool to claim from.
+     * @param memberAddress The address of the member to claim for.
+     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     * @return newCtx The updated context after the execution of the agreement function
+     */
     function claimAllWithCtx(ISuperToken token, ISuperfluidPool pool, address memberAddress, bytes memory ctx)
         internal
         returns (bytes memory newCtx)
@@ -1862,6 +1996,13 @@ library SuperTokenV1Library {
         );
     }
 
+    /**
+     * @dev Connects a pool member to `pool`.
+     * @param token The Super Token address.
+     * @param pool The Superfluid Pool to connect.
+     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     * @return newCtx The updated context after the execution of the agreement function
+     */
     function connectPoolWithCtx(ISuperToken token, ISuperfluidPool pool, bytes memory ctx)
         internal
         returns (bytes memory newCtx)
@@ -1881,6 +2022,13 @@ library SuperTokenV1Library {
         );
     }
 
+    /**
+     * @dev Disconnects a pool member from `pool`.
+     * @param token The Super Token address.
+     * @param pool The Superfluid Pool to disconnect.
+     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     * @return newCtx The updated context after the execution of the agreement function
+     */
     function disconnectPoolWithCtx(ISuperToken token, ISuperfluidPool pool, bytes memory ctx)
         internal
         returns (bytes memory newCtx)
@@ -1900,6 +2048,15 @@ library SuperTokenV1Library {
         );
     }
 
+    /**
+     * @dev Tries to distribute `requestedAmount` amount of `token` from `from` to `pool`.
+     * @param token The Super Token address.
+     * @param from The address from which to distribute tokens.
+     * @param pool The Superfluid Pool address.
+     * @param requestedAmount The amount of tokens to distribute.
+     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     * @return newCtx The updated context after the execution of the agreement function
+     */
     function distributeWithCtx(
         ISuperToken token,
         ISuperfluidPool pool,
@@ -1925,6 +2082,15 @@ library SuperTokenV1Library {
         );
     }
 
+    /**
+     * @dev Tries to distribute flow at `requestedFlowRate` of `token` from `from` to `pool`.
+     * @param token The Super Token address.
+     * @param from The address from which to distribute tokens.
+     * @param pool The Superfluid Pool address.
+     * @param requestedFlowRate The flow rate of tokens to distribute.
+     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     * @return newCtx The updated context after the execution of the agreement function
+     */
     function distributeFlowWithCtx(
         ISuperToken token,
         address from,

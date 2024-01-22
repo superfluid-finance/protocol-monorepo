@@ -65,6 +65,7 @@ const ALIASES = {
 
     "optimism-mainnet": ["opmainnet"],
     "optimism-goerli": ["opgoerli"],
+    "optimism-sepolia": ["opsepolia"],
 
     "arbitrum-one": ["arbone"],
     "arbitrum-goerli": ["arbgoerli"],
@@ -82,10 +83,13 @@ const ALIASES = {
 
     "base-mainnet": ["base"],
 
+    "scroll-sepolia": ["scrsepolia"],
+    "scroll-mainnet": ["scroll"],
+
     // wildcard for any network
     "any": ["any"],
 
-    // currently unsupported
+    // currently unsupported or deprecated networks
     //
     "optimism-kovan": ["opkovan"],
 
@@ -160,7 +164,7 @@ function createNetworkDefaultConfiguration(
 const E = (module.exports = {
     plugins: [
         //"truffle-security",
-        "truffle-plugin-verify",
+        "@d10r/truffle-plugin-verify",
     ],
     /**
      * Networks define how you connect to your ethereum client and let you set the
@@ -242,6 +246,11 @@ const E = (module.exports = {
             network_id: 420,
         },
 
+        "optimism-sepolia": {
+            ...createNetworkDefaultConfiguration("optimism-sepolia"),
+            network_id: 11155420,
+        },
+
         //
         // Arbitrum: https://developer.offchainlabs.com
         //
@@ -300,6 +309,18 @@ const E = (module.exports = {
         "base-goerli": {
             ...createNetworkDefaultConfiguration("base-goerli"),
             network_id: 84531,
+        },
+
+        //
+        // Scroll: https://docs.scroll.xyz/en/getting-started/overview/
+        //
+        "scroll-mainnet": {
+            ...createNetworkDefaultConfiguration("scroll-mainnet"),
+            network_id: 534352,
+        },
+        "scroll-sepolia": {
+            ...createNetworkDefaultConfiguration("scroll-sepolia"),
+            network_id: 534351,
         },
 
         //
@@ -420,6 +441,7 @@ const E = (module.exports = {
         celoscan: process.env.CELOSCAN_API_KEY,
         basescan: process.env.BASESCAN_API_KEY,
         zkevm_polygonscan: process.env.ZKEVM_POLYGONSCAN_API_KEY,
+        scrollscan: process.env.SCROLLSCAN_API_KEY,
     },
 });
 

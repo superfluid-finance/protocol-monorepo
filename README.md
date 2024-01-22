@@ -20,7 +20,7 @@
     <img alt="GitHub package.json version (subfolder of monorepo)" src="https://img.shields.io/github/package-json/v/superfluid-finance/protocol-monorepo?filename=packages%2Fhot-fuzz%2Fpackage.json&label=hot-fuzz"> 
   </a>
   <br>
-  <a href="https://twitter.com/Superfluid_HQ/status/" target="_blank">
+  <a href="https://twitter.com/Superfluid_HQ" target="_blank">
     <img alt="Twitter: Superfluid_HQ" src="https://img.shields.io/twitter/follow/Superfluid_HQ.svg?style=social" />
   </a>
   <a href="https://www.codetriage.com/superfluid-finance/protocol-monorepo">
@@ -181,6 +181,7 @@ Thanks goes to these wonderful people ([🐸](https://allcontributors.org/docs/e
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/markcarey"><img src="https://avatars.githubusercontent.com/u/98136?v=4?s=100" width="100px;" alt="markcarey"/><br /><sub><b>markcarey</b></sub></a><br /><a href="https://github.com/superfluid-finance/protocol-monorepo/commits?author=markcarey" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/bertux"><img src="https://avatars.githubusercontent.com/u/5703?v=4?s=100" width="100px;" alt="Bertrand Juglas"/><br /><sub><b>Bertrand Juglas</b></sub></a><br /><a href="https://github.com/superfluid-finance/protocol-monorepo/pulls?q=is%3Apr+reviewed-by%3Abertux" title="Reviewed Pull Requests">👀</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://personal-site-shreyaspapi.vercel.app"><img src="https://avatars.githubusercontent.com/u/22324802?v=4?s=100" width="100px;" alt="Shreyas Papinwar"/><br /><sub><b>Shreyas Papinwar</b></sub></a><br /><a href="https://github.com/superfluid-finance/protocol-monorepo/commits?author=shreyaspapi" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/isabellewei"><img src="https://avatars.githubusercontent.com/u/15326838?v=4?s=100" width="100px;" alt="isabellewei"/><br /><sub><b>isabellewei</b></sub></a><br /><a href="https://github.com/superfluid-finance/protocol-monorepo/commits?author=isabellewei" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>

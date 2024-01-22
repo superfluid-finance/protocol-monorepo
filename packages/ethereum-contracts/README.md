@@ -12,7 +12,7 @@
   <a href="#" target="_blank">
     <img alt="License: AGPLv3" src="https://img.shields.io/badge/License-AGPL%20v3-blue.svg" />
   </a>
-  <a href="https://twitter.com/Superfluid_HQ/status/" target="_blank">
+  <a href="https://twitter.com/Superfluid_HQ" target="_blank">
     <img alt="Twitter: Superfluid_HQ" src="https://img.shields.io/twitter/follow/Superfluid_HQ.svg?style=social" />
   </a>
 </p>

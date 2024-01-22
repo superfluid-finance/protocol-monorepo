@@ -56,7 +56,7 @@
         "mustache": "^4.2.0"
     },
     "devDependencies": {
-        "@superfluid-finance/metadata": "1.1.22",
+        "@superfluid-finance/metadata": "1.1.24",
         "coingecko-api": "^1.0.10",
         "graphql": "^16.8.1",
         "graphql-request": "^6.1.0",

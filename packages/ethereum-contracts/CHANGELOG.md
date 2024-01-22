@@ -5,6 +5,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Unreleased
 
+### Added
+
+- New utility: TrustedMacrosVanilla trusted forwarder.
+
 ## [v1.9.0] - 2024-01-09
 
 ### Breaking

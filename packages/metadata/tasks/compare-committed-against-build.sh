@@ -10,6 +10,9 @@ function hashFiles() {
     sha256sum "$1" | cut -d ' ' -f 1
 }
 
+# first of all, ensure that we have valid json
+jq empty networks.json
+
 # Hash the commited files
 main_list_committed_hash=$(hashFiles ./main/networks/list.cjs)
 module_list_committed_hash=$(hashFiles ./module/networks/list.js)

@@ -3,6 +3,12 @@ All notable changes to the metadata will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.1.25]
+### Changed
+- updated gov contract of scroll-mainnet
+### Fixed
+- invalid networks.json
+
 ## [v1.1.24]
 ### Changed
 - added forwarder addresses for scroll-sepolia, scroll-mainnet

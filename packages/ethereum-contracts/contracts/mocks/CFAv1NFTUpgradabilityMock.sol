@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.19;
 
-import { IConstantFlowAgreementV1, IGeneralDistributionAgreementV1, ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
+import { IConstantFlowAgreementV1, IGeneralDistributionAgreementV1, ISuperfluid }
+    from "../interfaces/superfluid/ISuperfluid.sol";
 import { ConstantInflowNFT, IConstantInflowNFT } from "../superfluid/ConstantInflowNFT.sol";
 import { ConstantOutflowNFT, IConstantOutflowNFT } from "../superfluid/ConstantOutflowNFT.sol";
 import { FlowNFTBase } from "../superfluid/FlowNFTBase.sol";

@@ -10,7 +10,10 @@ import { BeaconProxiable } from "../../upgradability/BeaconProxiable.sol";
  */
 contract SuperfluidPoolPlaceholder is BeaconProxiable {
     // don't allow to create instances of the placeholder
-    function initialize(address, address, bool ,bool) external { revert(); }
+    function initialize(address, address, bool ,bool) external {
+        // solhint-disable-next-line reason-string
+        revert();
+    }
 
     function proxiableUUID() public pure override returns (bytes32) {
         return keccak256("org.superfluid-finance.contracts.SuperfluidPool.implementation");

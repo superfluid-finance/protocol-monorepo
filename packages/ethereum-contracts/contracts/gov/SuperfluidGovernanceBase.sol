@@ -95,7 +95,10 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
 
     // @note deprecated: to be removed in the next release
     // only exists in order to facilitate the update process
-    function updateContracts(ISuperfluid, address, address[] calldata, address) external { revert(); }
+    function updateContracts(ISuperfluid, address, address[] calldata, address) external {
+        // solhint-disable-next-line reason-string
+        revert();
+    }
 
     function batchUpdateSuperTokenLogic(
         ISuperfluid host,

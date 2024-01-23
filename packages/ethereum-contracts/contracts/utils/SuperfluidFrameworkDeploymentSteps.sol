@@ -206,7 +206,8 @@ contract SuperfluidFrameworkDeploymentSteps {
                 SuperfluidPoolLogicDeployerLibrary.deploySuperfluidPool(GeneralDistributionAgreementV1(address(0)));
             SuperfluidUpgradeableBeacon superfluidPoolBeacon =
                 ProxyDeployerLibrary.deploySuperfluidUpgradeableBeacon(address(superfluidPoolLogic));
-            gdaV1Logic = SuperfluidGDAv1DeployerLibrary.deployGeneralDistributionAgreementV1(host, superfluidPoolBeacon);
+            gdaV1Logic =
+                SuperfluidGDAv1DeployerLibrary.deployGeneralDistributionAgreementV1(host, superfluidPoolBeacon);
 
             // _registerAgreements();
             // we set the canonical address based on host.getAgreementClass() because

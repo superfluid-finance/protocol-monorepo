@@ -561,7 +561,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         }
     }
 
-    const deployGDAv1 = async () => {
+    const deployGDAv1 = async (superfluidPoolBeaconAddr) => {
         // TODO: why do we want to allow this to fail? Do we really?
         //try {
             // deploy and link SuperfluidPoolDeployerLibrary
@@ -588,10 +588,13 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         /*} catch (err) {
             console.error(err);
         }*/
-        const GDAv1 = await GeneralDistributionAgreementV1.at(
-            await superfluid.getAgreementClass.call(GDAv1_TYPE)
-        );
-        const superfluidPoolBeaconAddr = await GDAv1.superfluidPoolBeacon.call();
+        if (superfluidPoolBeaconAddr === undefined) {
+            // update case, we cat get from previous deployment
+            const GDAv1 = await GeneralDistributionAgreementV1.at(
+                await superfluid.getAgreementClass.call(GDAv1_TYPE)
+            );
+            superfluidPoolBeaconAddr = await GDAv1.superfluidPoolBeacon.call();
+        }
 
         const agreement = await web3tx(
             GeneralDistributionAgreementV1.new,
@@ -653,9 +656,6 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             (gov) => gov.registerAgreementClass(superfluid.address, gda.address)
         );
 
-        console.log("##### STEP1 of GDA DEPLOYMENT DONE #####");
-        console.log("Now go execute the gov action, then run this script again");
-
         // assumption: testnets don't require async gov action execution, so can continue
         // while for mainnets with async gov action, we need to exit here.
         if (!config.isTestnet) {
@@ -663,6 +663,8 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 console.log("info for verification:");
                 console.log(output);
             }
+            console.log("##### STEP1 of GDA DEPLOYMENT DONE #####");
+            console.log("Now go execute the gov action, then run this script again");
             process.exit();
         }
     } else {

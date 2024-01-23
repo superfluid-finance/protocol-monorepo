@@ -949,6 +949,8 @@ export default
             "constantOutflowNFT": "0x0de05fe0fF8F5eA9475CA8425e2D05Dd38ccED84",
             "constantInflowNFT": "0x8c24Fc82c8fDd763F08E654212fc27e577EbD934",
             "superfluidLoader": "0x7613030429E95cDFC76FE70f9573037068B51815",
+            "toga": "0x1bF9D75d50fD828a93f69ECB06f2B85767792CEB",
+            "batchLiquidator": "0x3024A39099D4FAE7c9eA8329FAfe05576AEd2c00",
             "superTokenFactory": "0xacFBED2bC9344C158DD3dC229b84Bd7220e7c673"
         },
         "startBlockV1": 2575000,

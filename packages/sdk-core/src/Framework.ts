@@ -199,9 +199,12 @@ export default class Framework {
                         hostAddress: networkData.addresses.host,
                         cfaV1Address: networkData.addresses.cfaV1,
                         idaV1Address: networkData.addresses.idaV1,
-                        gdaV1Address: networkData.addresses.gdaV1,
+                        gdaV1Address:
+                            networkData.addresses.gdaV1 ||
+                            ethers.constants.AddressZero,
                         gdaV1ForwarderAddress:
-                            networkData.addresses.gdaV1Forwarder,
+                            networkData.addresses.gdaV1Forwarder ||
+                            ethers.constants.AddressZero,
                         governanceAddress,
                         cfaV1ForwarderAddress:
                             networkData.addresses.cfaV1Forwarder,

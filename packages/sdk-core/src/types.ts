@@ -15,8 +15,8 @@ export type NetworkData = {
         cfaV1: string;
         cfaV1Forwarder: string;
         idaV1: string;
-        gdaV1: string;
-        gdaV1Forwarder: string;
+        gdaV1?: string;
+        gdaV1Forwarder?: string;
         superTokenFactory: string;
         superfluidLoader: string;
         toga?: string;

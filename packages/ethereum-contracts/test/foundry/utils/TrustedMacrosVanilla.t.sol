@@ -8,26 +8,25 @@ import { TrustedMacrosVanilla, IUserDefinedMacro } from "../../../contracts/util
 import { FoundrySuperfluidTester, SuperTokenV1Library } from "../FoundrySuperfluidTester.sol";
 
 
-contract DummyMacro is IUserDefinedMacro {
-    function executeMacro(ISuperfluid, bytes memory) override external pure
-        returns (ISuperfluid.Operation[] memory operations)
-    {
-        operations = new ISuperfluid.Operation[](0);
-    }
-}
-
 contract NautyMacro {
-    uint naughtyCounter;
+    int naughtyCounter = -1;
 
-    function executeMacro(ISuperfluid, bytes memory) external
+    constructor(bool beNaughty) {
+        if (beNaughty) naughtyCounter = 0;
+    }
+
+    function buildBatchOperations(ISuperfluid, bytes memory) external
         returns (ISuperfluid.Operation[] memory operation)
     {
-        naughtyCounter++;
+        // Do the naughty thing (updating state as an expected view function)
+        if (naughtyCounter >= 0) {
+            naughtyCounter++;
+        }
     }
 }
 
 contract GoodMacro is IUserDefinedMacro {
-    function executeMacro(ISuperfluid host, bytes memory params) external view
+    function buildBatchOperations(ISuperfluid host, bytes memory params) external view
         returns (ISuperfluid.Operation[] memory operations)
     {
         // host-agnostic deployment. alternatively, you may hard code cfa too
@@ -71,12 +70,12 @@ contract TrustedMacrosVanillaTest is FoundrySuperfluidTester {
     }
 
     function testDummyMacro() external {
-        DummyMacro m = new DummyMacro();
-        trustedMacros.runMacro(m, new bytes(0));
+        NautyMacro m = new NautyMacro(false /* not naughty */);
+        trustedMacros.runMacro(IUserDefinedMacro(address(m)), new bytes(0));
     }
 
     function testNaugtyMacro() external {
-        NautyMacro m = new NautyMacro();
+        NautyMacro m = new NautyMacro(true /* naughty */);
         vm.expectRevert();
         // Note: need to cast the naughty macro
         trustedMacros.runMacro(IUserDefinedMacro(address(m)), new bytes(0));

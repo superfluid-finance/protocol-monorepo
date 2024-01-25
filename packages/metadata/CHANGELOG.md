@@ -3,6 +3,12 @@ All notable changes to the metadata will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.1.26]
+### Added
+- gdaV1 and gdaV1Forwarder for several mainnets
+### Changed
+- loader on those networks (now also loads the gda)
+
 ## [v1.1.25]
 ### Changed
 - updated gov contract of scroll-mainnet

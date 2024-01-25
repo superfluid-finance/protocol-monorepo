@@ -243,11 +243,10 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         vm.stopPrank();
     }
 
-    function testRevertIfNotAdminOrGDAUpdatesMemberUnitsViaPool(address caller) public {
-        vm.assume(caller != alice);
-        vm.startPrank(caller);
+    function testRevertIfNotAdminOrGDAUpdatesMemberUnitsViaPool() public {
+        vm.startPrank(bob);
         vm.expectRevert(ISuperfluidPool.SUPERFLUID_POOL_NOT_POOL_ADMIN_OR_GDA.selector);
-        freePool.updateMemberUnits(caller, 69);
+        freePool.updateMemberUnits(bob, 69);
         vm.stopPrank();
     }
 

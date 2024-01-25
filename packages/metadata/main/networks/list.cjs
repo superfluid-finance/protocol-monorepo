@@ -403,9 +403,7 @@ module.exports =
             "name": "protocol-v1-optimism-sepolia",
             "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-optimism-sepolia"
         },
-        "publicRPCs": [
-            "https://sepolia.optimism.io"
-        ],
+        "publicRPCs": ["https://sepolia.optimism.io"],
         "trustedForwarders": []
     },
     {
@@ -755,10 +753,12 @@ module.exports =
             "cfaV1": "0x49c38108870e74Cb9420C0991a85D3edd6363F75",
             "cfaV1Forwarder": "0xcfA132E353cB4E398080B9700609bb008eceB125",
             "idaV1": "0x594ed9Cd773584B645aC1F5B11020d3b32cDF07d",
+            "gdaV1": "0x3bbFA4C406719424C7f66CD97A8Fe27Af383d3e2",
+            "gdaV1Forwarder": "0x6DA13Bde224A05a288748d857b9e7DDEffd1dE08",
             "superTokenFactory": "0x8bde47397301F0Cd31b9000032fD517a39c946Eb",
             "constantOutflowNFT": "0xcb05535bd212eCFC4B7b9db81d6C2C768b726776",
             "constantInflowNFT": "0xbF7BCcE8D60A9C3F6bFaEc9346Aa85B9f781a4e9",
-            "superfluidLoader": "0x3C26e5bEbc68EaAf4efcd88F8E5A6Aeb77b65579",
+            "superfluidLoader": "0xF353978890204756fc5fa6dfbD16a91eac9E6f4d",
             "toga": "0xFCD84210f5d51Cd40a30443d44d6A5500d5D10dF",
             "batchLiquidator": "0x5487d078CA8933e83d91d5E7AFBe3A7bfC3412d6",
             "flowScheduler": "0x2f9e2A2A59405682d4F86779275CF5525AD7eC2B",
@@ -947,6 +947,8 @@ module.exports =
             "constantOutflowNFT": "0x0de05fe0fF8F5eA9475CA8425e2D05Dd38ccED84",
             "constantInflowNFT": "0x8c24Fc82c8fDd763F08E654212fc27e577EbD934",
             "superfluidLoader": "0x7613030429E95cDFC76FE70f9573037068B51815",
+            "toga": "0x1bF9D75d50fD828a93f69ECB06f2B85767792CEB",
+            "batchLiquidator": "0x3024A39099D4FAE7c9eA8329FAfe05576AEd2c00",
             "superTokenFactory": "0xacFBED2bC9344C158DD3dC229b84Bd7220e7c673"
         },
         "startBlockV1": 2575000,

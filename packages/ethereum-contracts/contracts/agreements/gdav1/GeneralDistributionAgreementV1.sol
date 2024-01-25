@@ -129,6 +129,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         rtb += fromPools;
 
         buf = uint256(universalIndexData.totalBuffer.toInt256()); // upcasting to uint256 is safe
+        owedBuffer = 0;
     }
 
     /// @dev ISuperAgreement.realtimeBalanceOf implementation

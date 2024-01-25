@@ -290,7 +290,7 @@ query getAllEvents(
             minimumDeposit
             superToken
         }
-        
+
         ... on AgreementLiquidatedByEvent {
             ...eventFields
             token
@@ -373,6 +373,36 @@ query getAllEvents(
             ...eventFields
             token
             additionalBond
+        }
+        ... on PoolCreatedEvent {
+            ...eventFields
+        }
+        ... on PoolConnectionUpdatedEvent {
+            ...eventFields
+        }
+        ... on BufferAdjustedEvent {
+            ...eventFields
+        }
+        ... on InstantDistributionUpdatedEvent {
+            ...eventFields
+        }
+        ... on FlowDistributionUpdatedEvent {
+            ...eventFields
+        }
+        ... on DistributionClaimedEvent {
+            ...eventFields
+        }
+        ... on MemberUnitsUpdatedEvent {
+            ...eventFields
+        }
+        ... on ApprovalEvent {
+            ...eventFields
+        }
+        ... on ApprovalForAllEvent {
+            ...eventFields
+        }
+        ... on MetadataUpdateEvent {
+            ...eventFields
         }
     }
 }

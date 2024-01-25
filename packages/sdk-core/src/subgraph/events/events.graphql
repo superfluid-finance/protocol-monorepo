@@ -967,6 +967,36 @@ query events(
         ... on BondIncreasedEvent {
             ...newBondIncreasedEvent
         }
+        ... on PoolCreatedEvent {
+            ...poolCreatedEvent
+        }
+        ... on PoolConnectionUpdatedEvent {
+            ...poolConnectionUpdatedEvent
+        }
+        ... on BufferAdjustedEvent {
+            ...bufferAdjustedEvent
+        }
+        ... on InstantDistributionUpdatedEvent {
+            ...instantDistributionUpdatedEvent
+        }
+        ... on FlowDistributionUpdatedEvent {
+            ...flowDistributionUpdatedEvent
+        }
+        ... on DistributionClaimedEvent {
+            ...distributionClaimedEvent
+        }
+        ... on MemberUnitsUpdatedEvent {
+            ...memberUnitsUpdatedEvent
+        }
+        ... on ApprovalEvent {
+            ...approvalEvent
+        }
+        ... on ApprovalForAllEvent {
+            ...approvalForAllEvent
+        }
+        ... on MetadataUpdateEvent {
+            ...metadataUpdateEvent
+        }
     }
 }
 
@@ -1382,4 +1412,34 @@ fragment newBondIncreasedEvent on BondIncreasedEvent {
     ...eventFields
     token
     additionalBond
+}
+fragment poolCreatedEvent on PoolCreatedEvent {
+    ...eventFields
+}
+fragment poolConnectionUpdatedEvent on PoolConnectionUpdatedEvent {
+    ...eventFields
+}
+fragment bufferAdjustedEvent on BufferAdjustedEvent {
+    ...eventFields
+}
+fragment instantDistributionUpdatedEvent on InstantDistributionUpdatedEvent {
+    ...eventFields
+}
+fragment flowDistributionUpdatedEvent on FlowDistributionUpdatedEvent {
+    ...eventFields
+}
+fragment distributionClaimedEvent on DistributionClaimedEvent {
+    ...eventFields
+}
+fragment memberUnitsUpdatedEvent on MemberUnitsUpdatedEvent {
+    ...eventFields
+}
+fragment approvalEvent on ApprovalEvent {
+    ...eventFields
+}
+fragment approvalForAllEvent on ApprovalForAllEvent {
+    ...eventFields
+}
+fragment metadataUpdateEvent on MetadataUpdateEvent {
+    ...eventFields
 }

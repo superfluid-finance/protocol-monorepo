@@ -230,6 +230,14 @@ async function getTokensToBeUpgraded(sf, canonicalSuperTokenLogic, skipList) {
                     `??? [SKIP] SuperToken@${superToken.address} failed to be queried, probably not UUPSProxiable`
                 );
             }
+
+            try {
+                const adminAddr = await superToken.getAdmin();
+                console.log("   admin addr:", adminAddr);
+            } catch(err) {
+                // TODO: enable logging once we expect this to exist
+                //console.log("### failed to get admin addr:", err.message);
+            }
         }
     )).filter((i) => typeof i !== "undefined")
     .filter((item) => !skipList.map(e => e.toLowerCase()).includes(item.toLowerCase()));

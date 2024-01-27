@@ -44,6 +44,8 @@ function link_library() {
     local library_name="$2"
     local library_address="$3"
 
+    echo "linking $contract_name to $library_name at $library_address"
+
     cp -f "$CONTRACTS_DIR/${contract_name}.json" "$CONTRACTS_DIR/${contract_name}.json.bak"
     jq -s '.[0] * .[1]' \
         "$CONTRACTS_DIR/${contract_name}.json.bak" \
@@ -156,6 +158,7 @@ if [ -n "$SUPERFLUID_POOL_DEPLOYER_LIBRARY" ]; then
     try_verify SuperfluidPoolDeployerLibrary@"${SUPERFLUID_POOL_DEPLOYER_LIBRARY}"
 fi
 
+# this will fail with 'Library address is not prefixed with "0x"' if a library address is not set
 link_library "GeneralDistributionAgreementV1" "SlotsBitmapLibrary" "${SLOTS_BITMAP_LIBRARY}"
 link_library "GeneralDistributionAgreementV1" "SuperfluidPoolDeployerLibrary" "${SUPERFLUID_POOL_DEPLOYER_LIBRARY}"
 if [ -n "$GDA_LOGIC" ]; then
@@ -182,13 +185,6 @@ if [ -n "$SUPER_TOKEN_NATIVE_COIN" ];then
     # it is expected to point to a SuperToken logic contract which is already verified
     try_verify SuperToken@"${SUPER_TOKEN_NATIVE_COIN}" --custom-proxy SETHProxy
 fi
-
-for var in $(compgen -v); do
-    if [[ $var == SUPER_TOKEN_* ]]; then
-        addr=${!var}
-        try_verify SuperToken@"$addr" --custom-proxy UUPSProxy
-    fi
-done
 
 # testnet tokens
 for var in $(compgen -v); do

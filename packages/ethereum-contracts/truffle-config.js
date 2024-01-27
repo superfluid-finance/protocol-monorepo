@@ -121,6 +121,9 @@ function getEnvValue(networkName, key) {
 }
 
 function getProviderUrlByTemplate(networkName) {
+    if (process.env.PROVIDER_URL_OVERRIDE !== undefined) {
+        return process.env.PROVIDER_URL_OVERRIDE;
+    }
     if (process.env.PROVIDER_URL_TEMPLATE !== undefined) {
         if (! process.env.PROVIDER_URL_TEMPLATE.includes("{{NETWORK}}")) {
             console.error("env var PROVIDER_URL_TEMPLATE has invalid value");
@@ -152,9 +155,9 @@ function createNetworkDefaultConfiguration(
                 numberOfAddresses: 10,
                 shareNonce: true,
             }),
-        gasPrice: +getEnvValue(networkName, "GAS_PRICE"),
-        maxFeePerGas: +getEnvValue(networkName, "MAX_FEE_PER_GAS"),
-        maxPriorityFeePerGas: +getEnvValue(networkName, "MAX_PRIORITY_FEE_PER_GAS"),
+        gasPrice: getEnvValue(networkName, "GAS_PRICE"),
+        maxFeePerGas: getEnvValue(networkName, "MAX_FEE_PER_GAS"),
+        maxPriorityFeePerGas: getEnvValue(networkName, "MAX_PRIORITY_FEE_PER_GAS"),
         timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
         skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
         networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
@@ -210,8 +213,8 @@ const E = (module.exports = {
         "polygon-mainnet": {
             ...createNetworkDefaultConfiguration("polygon-mainnet"),
             network_id: 137,
-            maxPriorityFeePerGas: 31e9,
-            maxFeePerGas: 1500e9,
+            maxPriorityFeePerGas: 37e9,
+            maxFeePerGas: 500e9,
         },
 
         "polygon-mumbai": {
@@ -239,6 +242,8 @@ const E = (module.exports = {
         "optimism-mainnet": {
             ...createNetworkDefaultConfiguration("optimism-mainnet"),
             network_id: 10,
+            maxPriorityFeePerGas: 1e6, // 0.001 gwei
+            maxFeePerGas: 1e9, // 1 gwei
         },
 
         "optimism-goerli": {

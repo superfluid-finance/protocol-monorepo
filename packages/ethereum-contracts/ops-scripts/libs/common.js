@@ -2,6 +2,7 @@ const path = require("path");
 const async = require("async");
 const {promisify} = require("util");
 const readline = require("readline");
+const truffleConfig = require("../../truffle-config");
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
@@ -64,6 +65,37 @@ function detectTruffle() {
         ).length > 0;
     console.log("truffle detected", truffleDetected);
     return truffleDetected;
+}
+
+// extracts the gas related config for the given network from the truffle config
+// returns an object with the relevant fields set in the config (empty if none)
+//
+// NOTE: This implememtation only works for settings provided by a network specific config,
+// not for settings provided by a wildcard (network_id: "*") config.
+function getGasConfig(networkId) {
+    let gasConfig = {};
+
+    const networkConfig= Object.values(truffleConfig.networks).find(e => e.network_id === networkId);
+    if (networkConfig !== undefined) {
+        // gas limit
+        if (networkConfig.gas !== undefined) {
+            gasConfig.gas = networkConfig.gas;
+        }
+        // legacy gas price
+        if (networkConfig.gasPrice !== undefined) {
+            gasConfig.gasPrice = networkConfig.gasPrice;
+        }
+
+        // EIP-1559 gas price
+        if (networkConfig.maxPriorityFeePerGas !== undefined) {
+            gasConfig.maxPriorityFeePerGas = networkConfig.maxPriorityFeePerGas;
+        }
+        if (networkConfig.maxFeePerGas !== undefined) {
+            gasConfig.maxFeePerGas = networkConfig.maxFeePerGas;
+        }
+    }
+
+    return gasConfig;
 }
 
 /****************************************************************
@@ -516,6 +548,7 @@ module.exports = {
     extractWeb3Options,
     builtTruffleContractLoader,
     detectTruffle,
+    getGasConfig,
 
     hasCode,
     codeChanged,

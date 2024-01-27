@@ -167,23 +167,29 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         output += `CONSTANT_INFLOW_NFT_LOGIC=${constantInflowNFTLogicAddress}\n`;
     }
 
-    const poolAdminNFTProxyAddress =
-        await superTokenLogicContract.POOL_ADMIN_NFT();
-    output += `POOL_ADMIN_NFT_PROXY=${poolAdminNFTProxyAddress}\n`;
+    // not yet deployed on all networks
+    // TODO: remove try after rollout
+    try {
+        const poolAdminNFTProxyAddress =
+            await superTokenLogicContract.POOL_ADMIN_NFT();
+        output += `POOL_ADMIN_NFT_PROXY=${poolAdminNFTProxyAddress}\n`;
 
-    const poolAdminNFTLogicAddress = await (
-        await UUPSProxiable.at(poolAdminNFTProxyAddress)
-    ).getCodeAddress();
-    output += `POOL_ADMIN_NFT_LOGIC=${poolAdminNFTLogicAddress}\n`;
+        const poolAdminNFTLogicAddress = await (
+            await UUPSProxiable.at(poolAdminNFTProxyAddress)
+        ).getCodeAddress();
+        output += `POOL_ADMIN_NFT_LOGIC=${poolAdminNFTLogicAddress}\n`;
 
-    const poolMemberNFTProxyAddress =
-        await superTokenLogicContract.POOL_MEMBER_NFT();
-    output += `POOL_MEMBER_NFT_PROXY=${poolMemberNFTProxyAddress}\n`;
+        const poolMemberNFTProxyAddress =
+            await superTokenLogicContract.POOL_MEMBER_NFT();
+        output += `POOL_MEMBER_NFT_PROXY=${poolMemberNFTProxyAddress}\n`;
 
-    const poolMemberNFTLogicAddress = await (
-        await UUPSProxiable.at(poolMemberNFTProxyAddress)
-    ).getCodeAddress();
-    output += `POOL_MEMBER_NFT_LOGIC=${poolMemberNFTLogicAddress}\n`;
+        const poolMemberNFTLogicAddress = await (
+            await UUPSProxiable.at(poolMemberNFTProxyAddress)
+        ).getCodeAddress();
+        output += `POOL_MEMBER_NFT_LOGIC=${poolMemberNFTLogicAddress}\n`;
+    } catch (e) {
+        console.warn("POOL_ADMIN_NFT or POOL_MEMBER_NFT probably not deployed yet");
+    }
 
     if (! skipTokens) {
         await Promise.all(

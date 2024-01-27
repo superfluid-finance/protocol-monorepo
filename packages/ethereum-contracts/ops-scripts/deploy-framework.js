@@ -18,6 +18,7 @@ const {
     setResolver,
     versionStringToPseudoAddress,
     pseudoAddressToVersionString,
+    getGasConfig,
 } = require("./libs/common");
 
 let resetSuperfluidFramework;
@@ -270,6 +271,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         additionalContracts: contracts.concat(useMocks ? mockContracts : []),
         contractLoader: builtTruffleContractLoader,
         networkId,
+        gasConfig: getGasConfig(networkId),
     });
 
     if (!newTestResolver && config.resolverAddress) {
@@ -659,10 +661,8 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         // assumption: testnets don't require async gov action execution, so can continue
         // while for mainnets with async gov action, we need to exit here.
         if (!config.isTestnet) {
-            if (outputFile !== undefined) {
-                console.log("info for verification:");
-                console.log(output);
-            }
+            console.log("info for verification:");
+            console.log(output);
             console.log("##### STEP1 of GDA DEPLOYMENT DONE #####");
             console.log("Now go execute the gov action, then run this script again");
             process.exit();
@@ -676,6 +676,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             const GDAv1 = await GeneralDistributionAgreementV1.at(
                 await superfluid.getAgreementClass.call(GDAv1_TYPE)
             );
+            console.log("GDAv1 proxy address", GDAv1.address);
             slotsBitmapLibraryAddress =
                 await GDAv1.SLOTS_BITMAP_LIBRARY_ADDRESS.call();
             let superfluidPoolDeployerLibraryAddress =

@@ -75,7 +75,10 @@ function detectTruffle() {
 function getGasConfig(networkId) {
     let gasConfig = {};
 
-    const networkConfig= Object.values(truffleConfig.networks).find(e => e.network_id === networkId);
+    const networkConfig = Object.values(truffleConfig.networks)
+        .filter(e => e !== undefined)
+        .find(e => e.network_id === networkId);
+
     if (networkConfig !== undefined) {
         // gas limit
         if (networkConfig.gas !== undefined) {

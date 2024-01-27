@@ -563,10 +563,12 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         }
     }
 
+    let gdaIsLinked = false;
     const deployGDAv1 = async (superfluidPoolBeaconAddr) => {
         // TODO: why do we want to allow this to fail? Do we really?
         //try {
             // deploy and link SuperfluidPoolDeployerLibrary
+        if (!gdaIsLinked) {
             await deployExternalLibraryAndLink(
                 SuperfluidPoolDeployerLibrary,
                 "SuperfluidPoolDeployerLibrary",
@@ -587,6 +589,8 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                     slotsBitmapLibraryAddress
                 );
             }
+            gdaIsLinked = true;
+        }
         /*} catch (err) {
             console.error(err);
         }*/

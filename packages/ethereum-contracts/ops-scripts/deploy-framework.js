@@ -896,9 +896,12 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             const cofNFTPAddr = await superTokenLogic.CONSTANT_OUTFLOW_NFT();
             const cifNFTPAddr = await superTokenLogic.CONSTANT_INFLOW_NFT();
 
+            let cofNFTLAddr;
+            let cifNFTLAddr;
+
             if (cofNFTPAddr !== ZERO_ADDRESS) {
                 const cofNFTContract = await ConstantOutflowNFT.at(cofNFTPAddr);
-                const cofNFTLAddr = await cofNFTContract.getCodeAddress();
+                cofNFTLAddr = await cofNFTContract.getCodeAddress();
                 constantOutflowNFTLogicChanged = await codeChanged(
                     web3,
                     ConstantOutflowNFT,
@@ -910,7 +913,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
 
             if (cifNFTPAddr !== ZERO_ADDRESS) {
                 const cifNFTContract = await ConstantInflowNFT.at(cifNFTPAddr);
-                const cifNFTLAddr = await cifNFTContract.getCodeAddress();
+                cifNFTLAddr = await cifNFTContract.getCodeAddress();
                 constantInflowNFTLogicChanged = await codeChanged(
                     web3,
                     ConstantInflowNFT,

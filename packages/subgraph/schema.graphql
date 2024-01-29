@@ -2282,19 +2282,10 @@ type AccountTokenSnapshot @entity {
     activeGDAOutgoingStreamCount: Int!
 
     """
-    The count of active incoming streams to this account for all agreements.
+    The count of active incoming streams to this account for the CFA.
+    GDA incoming streams are *NOT* counted here.
     """
     activeIncomingStreamCount: Int!
-
-    """
-    The count of active incoming streams to this account for the CFA.
-    """
-    activeCFAIncomingStreamCount: Int!
-
-    """
-    The count of active incoming streams to this account for the GDA.
-    """
-    activeGDAIncomingStreamCount: Int!
 
     """
     The count of closed streams by `account`, both incoming and outgoing for all agreements.
@@ -2327,19 +2318,10 @@ type AccountTokenSnapshot @entity {
     inactiveGDAOutgoingStreamCount: Int!
 
     """
-    The count of closed incoming streams by `account` for all agreements.
+    The count of closed incoming streams by `account` for the CFA.
+    Close incoming GDA streams are *NOT* counted here.
     """
     inactiveIncomingStreamCount: Int!
-
-    """
-    The count of closed incoming streams by `account` for the CFA.
-    """
-    inactiveCFAIncomingStreamCount: Int!
-
-    """
-    The count of closed incoming streams by `account` for the GDA.
-    """
-    inactiveGDAIncomingStreamCount: Int!
 
     """
     The current (as of updatedAt) number of subscriptions with units allocated to them tied to this `account`.
@@ -2384,6 +2366,7 @@ type AccountTokenSnapshot @entity {
     """
     The total net flow rate of the `account` as of `updatedAtTimestamp`/`updatedAtBlock` for all flow agreements.
     This can be obtained by: `totalInflowRate - totalOutflowRate`.
+    NOTE: this property will NOT be 100% accurate all the time for receivers of GDA flows.
     """
     totalNetFlowRate: BigInt!
 
@@ -2393,24 +2376,10 @@ type AccountTokenSnapshot @entity {
     totalCFANetFlowRate: BigInt!
 
     """
-    The total net flow rate of the `account` as of `updatedAtTimestamp`/`updatedAtBlock` for the GDA.
-    """
-    totalGDANetFlowRate: BigInt!
-
-    """
-    The total inflow rate (receive flowRate per second) of the `account` for all flow agreements.
+    The total inflow rate (receive flowRate per second) of the `account` for the CFA.
+    GDA inflow rate is *NOT* included here.
     """
     totalInflowRate: BigInt!
-
-    """
-    The total inflow rate (receive flowRate per second) of the `account` for the CFA.
-    """
-    totalCFAInflowRate: BigInt!
-
-    """
-    The total inflow rate (receive flowRate per second) of the `account` for the GDA.
-    """
-    totalGDAInflowRate: BigInt!
 
     """
     The total outflow rate (send flowrate per second) of the `account` for all flow agreements.
@@ -2428,19 +2397,9 @@ type AccountTokenSnapshot @entity {
     totalGDAOutflowRate: BigInt!
 
     """
-    The total amount of `token` streamed into this `account` until the `updatedAtTimestamp`/`updatedAtBlock` for all flow agreements.
-    """
-    totalAmountStreamedInUntilUpdatedAt: BigInt!
-
-    """
     The total amount of `token` streamed into this `account` until the `updatedAtTimestamp`/`updatedAtBlock` for the CFA.
     """
-    totalCFAAmountStreamedInUntilUpdatedAt: BigInt!
-
-    """
-    The total amount of `token` streamed into this `account` until the `updatedAtTimestamp`/`updatedAtBlock` for the GDA.
-    """
-    totalGDAAmountStreamedInUntilUpdatedAt: BigInt!
+    totalAmountStreamedInUntilUpdatedAt: BigInt!
 
     """
     The total amount of `token` streamed from this `account` until the `updatedAtTimestamp`/`updatedAtBlock` for all flow agreements.
@@ -2466,11 +2425,6 @@ type AccountTokenSnapshot @entity {
     The total amount of `token` streamed through this `account` until the `updatedAtTimestamp`/`updatedAtBlock` for the CFA.
     """
     totalCFAAmountStreamedUntilUpdatedAt: BigInt!
-
-    """
-    The total amount of `token` streamed through this `account` until the `updatedAtTimestamp`/`updatedAtBlock` for the GDA.
-    """
-    totalGDAAmountStreamedUntilUpdatedAt: BigInt!
 
     """
     The total amount of `token` this `account` has transferred.
@@ -2539,16 +2493,6 @@ type AccountTokenSnapshotLog @entity {
     activeIncomingStreamCount: Int!
 
     """
-    The count of active incoming streams to this account for the CFA.
-    """
-    activeCFAIncomingStreamCount: Int!
-
-    """
-    The count of active incoming streams to this account for the GDA.
-    """
-    activeGDAIncomingStreamCount: Int!
-
-    """
     The current (as of timestamp) count of closed streams for all agreements.
     """
     totalNumberOfClosedStreams: Int!
@@ -2579,19 +2523,10 @@ type AccountTokenSnapshotLog @entity {
     inactiveGDAOutgoingStreamCount: Int!
 
     """
-    The count of closed incoming streams by `account` for all agreements.
+    The count of closed incoming streams by `account` for the CFA.
+    Close incoming GDA streams are *NOT* counted here.
     """
     inactiveIncomingStreamCount: Int!
-
-    """
-    The count of closed incoming streams by `account` for the CFA.
-    """
-    inactiveCFAIncomingStreamCount: Int!
-
-    """
-    The count of closed incoming streams by `account` for the GDA.
-    """
-    inactiveGDAIncomingStreamCount: Int!
 
     """
     The current (as of timestamp) number of subscriptions with units allocated to them tied to this `account`.
@@ -2641,30 +2576,13 @@ type AccountTokenSnapshotLog @entity {
 
     """
     The total (as of timestamp) net flow rate of the `account` as of `timestamp`/`block` for the CFA.
-    This can be obtained by: `totalCFAInflowRate - totalCFAOutflowRate`
     """
     totalCFANetFlowRate: BigInt!
-
-    """
-    The total (as of timestamp) net flow rate of the `account` as of `timestamp`/`block` for the GDA.
-    This can be obtained by: `totalGDAInflowRate - totalGDAOutflowRate`
-    """
-    totalGDANetFlowRate: BigInt!
 
     """
     The total (as of timestamp) inflow rate (receive flowRate per second) of the `account`.
     """
     totalInflowRate: BigInt!
-
-    """
-    The total (as of timestamp) inflow rate (receive flowRate per second) of the `account` for the CFA.
-    """
-    totalCFAInflowRate: BigInt!
-
-    """
-    The total (as of timestamp) inflow rate (receive flowRate per second) of the `account` for the GDA.
-    """
-    totalGDAInflowRate: BigInt!
 
     """
     The total (as of timestamp) outflow rate (send flowrate per second) of the `account`.
@@ -2685,16 +2603,6 @@ type AccountTokenSnapshotLog @entity {
     The total (as of timestamp) amount of `token` streamed into this `account` until the `timestamp`/`block`.
     """
     totalAmountStreamedIn: BigInt!
-
-    """
-    The total (as of timestamp) amount of `token` streamed into this `account` until the `timestamp`/`block` for the CFA.
-    """
-    totalCFAAmountStreamedIn: BigInt!
-
-    """
-    The total (as of timestamp) amount of `token` streamed into this `account` until the `timestamp`/`block` for the GDA.
-    """
-    totalGDAAmountStreamedIn: BigInt!
 
     """
     The total (as of timestamp) amount of `token` streamed from this `account` until the `timestamp`/`block`.
@@ -2856,11 +2764,6 @@ type TokenStatistic @entity {
     The all-time total amount streamed (outflows) until the `updatedAtTimestamp`/`updatedAtBlock` for the CFA.
     """
     totalCFAAmountStreamedUntilUpdatedAt: BigInt!
-
-    """
-    The all-time total amount streamed (outflows) until the `updatedAtTimestamp`/`updatedAtBlock` for the GDA.
-    """
-    totalGDAAmountStreamedUntilUpdatedAt: BigInt!
 
     """
     The all-time total amount transferred until the `updatedAtTimestamp`/`updatedAtBlock`.

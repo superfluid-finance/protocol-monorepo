@@ -1614,18 +1614,31 @@ export function updateAggregateEntitiesTransferData(
 /**
  * Updates `totalAmountReceivedUntilUpdatedAt` and `poolTotalAmountDistributedUntilUpdatedAt` fields
  * Requires an explicit save on the PoolMember entity.
- * Requires `pool.totalAmountDistributedUntilUpdatedAt` to be updated prior to calling this function.
+ * Requires `pool.totalAmountDistributedUntilUpdatedAt` is updated *BEFORE* this function is called.
+ * Requires that pool.totalUnits and poolMember.units are updated *AFTER* this function is called.
  * @param pool the pool entity
  * @param poolMember the pool member entity
  * @returns the updated pool member entity to be saved
  */
 export function updatePoolMemberTotalAmountUntilUpdatedAtFields(pool: Pool, poolMember: PoolMember): PoolMember {
-    const amountReceivedDelta = pool.totalUnits.equals(BIG_INT_ZERO)
-        ? BIG_INT_ZERO
-        : pool.totalAmountDistributedUntilUpdatedAt
-              .minus(poolMember.poolTotalAmountDistributedUntilUpdatedAt)
-              .div(pool.totalUnits)
-              .times(poolMember.units);
+    let amountReceivedDelta = BIG_INT_ZERO;
+    // if the pool has any units, we calculate the delta
+    // otherwise the delta is going to be 0
+    if (!pool.totalUnits.equals(BIG_INT_ZERO)) {
+        try {
+            amountReceivedDelta = pool.totalAmountDistributedUntilUpdatedAt
+                .minus(poolMember.poolTotalAmountDistributedUntilUpdatedAt)
+                .times(poolMember.units)
+                .div(pool.totalUnits);
+        } catch (err) {
+            // we divide here first before multiplying in case the try block fails
+            // due to an overflow
+            amountReceivedDelta = pool.totalAmountDistributedUntilUpdatedAt
+                .minus(poolMember.poolTotalAmountDistributedUntilUpdatedAt)
+                .div(pool.totalUnits)
+                .times(poolMember.units);
+        }
+    }
     poolMember.totalAmountReceivedUntilUpdatedAt =
         poolMember.totalAmountReceivedUntilUpdatedAt.plus(amountReceivedDelta);
     poolMember.poolTotalAmountDistributedUntilUpdatedAt = pool.totalAmountDistributedUntilUpdatedAt;

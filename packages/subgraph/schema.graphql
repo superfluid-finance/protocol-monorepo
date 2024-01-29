@@ -2412,11 +2412,6 @@ type AccountTokenSnapshot @entity {
     totalCFAAmountStreamedOutUntilUpdatedAt: BigInt!
 
     """
-    The total amount of `token` streamed from this `account` until the `updatedAtTimestamp`/`updatedAtBlock` for the GDA.
-    """
-    totalGDAAmountStreamedOutUntilUpdatedAt: BigInt!
-
-    """
     The total amount of `token` streamed through this `account` until the `updatedAtTimestamp`/`updatedAtBlock` for all flow agreements.
     """
     totalAmountStreamedUntilUpdatedAt: BigInt!
@@ -2615,11 +2610,6 @@ type AccountTokenSnapshotLog @entity {
     totalCFAAmountStreamedOut: BigInt!
 
     """
-    The total (as of timestamp) amount of `token` streamed from this `account` until the `timestamp`/`block` for the GDA.
-    """
-    totalGDAAmountStreamedOut: BigInt!
-
-    """
     The total (as of timestamp) net amount of `token` streamed through this `account` until the `timestamp`/`block`.
     """
     totalAmountStreamed: BigInt!
@@ -2628,11 +2618,6 @@ type AccountTokenSnapshotLog @entity {
     The total (as of timestamp) net amount of `token` streamed through this `account` until the `timestamp`/`block` for the CFA.
     """
     totalCFAAmountStreamed: BigInt!
-
-    """
-    The total (as of timestamp) net amount of `token` streamed through this `account` until the `timestamp`/`block` for the GDA.
-    """
-    totalGDAAmountStreamed: BigInt!
 
     """
     The total (as of timestamp) amount of `token` this `account` has transferred out until the `timestamp`/`block`.
@@ -2918,11 +2903,6 @@ type TokenStatisticLog @entity {
     The all-time total amount of `token` streamed (outflows) until the `timestamp`/`block` for the CFA.
     """
     totalCFAAmountStreamed: BigInt!
-
-    """
-    The all-time total amount of `token` streamed (outflows) until the `timestamp`/`block` for the GDA.
-    """
-    totalGDAAmountStreamed: BigInt!
 
     """
     The all-time total amount of `token` transferred until the `timestamp`/`block`.

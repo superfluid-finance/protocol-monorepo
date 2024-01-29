@@ -674,8 +674,6 @@ if (accountTokenSnapshot == null) {
             BIG_INT_ZERO;
         accountTokenSnapshot.totalCFAAmountStreamedOutUntilUpdatedAt =
             BIG_INT_ZERO;
-        accountTokenSnapshot.totalGDAAmountStreamedOutUntilUpdatedAt =
-            BIG_INT_ZERO;
         accountTokenSnapshot.totalAmountStreamedUntilUpdatedAt = BIG_INT_ZERO;
         accountTokenSnapshot.totalCFAAmountStreamedUntilUpdatedAt =
             BIG_INT_ZERO;
@@ -754,8 +752,6 @@ export function _createAccountTokenSnapshotLogEntity(
     atsLog.totalAmountStreamedOut = ats.totalAmountStreamedOutUntilUpdatedAt;
     atsLog.totalCFAAmountStreamedOut =
         ats.totalCFAAmountStreamedOutUntilUpdatedAt;
-    atsLog.totalGDAAmountStreamedOut =
-        ats.totalGDAAmountStreamedOutUntilUpdatedAt;
     atsLog.totalAmountTransferred = ats.totalAmountTransferredUntilUpdatedAt;
     atsLog.totalDeposit = ats.totalDeposit;
     atsLog.totalCFADeposit = ats.totalCFADeposit;
@@ -1129,20 +1125,6 @@ export function updateATSStreamedAndBalanceUntilUpdatedAt(
     accountTokenSnapshot.totalCFAAmountStreamedOutUntilUpdatedAt =
         accountTokenSnapshot.totalCFAAmountStreamedOutUntilUpdatedAt.plus(
             totalCFAAmountStreamedOutSinceLastUpdatedAt
-        );
-
-    //////////////// GDA streamed amounts ////////////////
-    const totalGDAAmountStreamedOutSinceLastUpdatedAt =
-        getAmountStreamedSinceLastUpdatedAt(
-            block.timestamp,
-            accountTokenSnapshot.updatedAtTimestamp,
-            accountTokenSnapshot.totalGDAOutflowRate
-        );
-
-    // update the totalGDAStreamedUntilUpdatedAt (out)
-    accountTokenSnapshot.totalGDAAmountStreamedOutUntilUpdatedAt =
-        accountTokenSnapshot.totalGDAAmountStreamedOutUntilUpdatedAt.plus(
-            totalGDAAmountStreamedOutSinceLastUpdatedAt
         );
 
     accountTokenSnapshot.save();

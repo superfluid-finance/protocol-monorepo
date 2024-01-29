@@ -181,7 +181,9 @@ describe("SuperTokenFactory Contract", function () {
                         paNFTLogicAddress,
                         pmNFTLogicAddress
                     );
-                await governance.updateContracts(
+                await governance[
+                    "updateContracts(address,address,address[],address,address)"
+                ](
                     superfluid.address,
                     ZERO_ADDRESS,
                     [],
@@ -344,7 +346,9 @@ describe("SuperTokenFactory Contract", function () {
                         paNFTLogicAddress,
                         pmNFTLogicAddress
                     );
-                await governance.updateContracts(
+                await governance[
+                    "updateContracts(address,address,address[],address,address)"
+                ](
                     superfluid.address,
                     ZERO_ADDRESS,
                     [],

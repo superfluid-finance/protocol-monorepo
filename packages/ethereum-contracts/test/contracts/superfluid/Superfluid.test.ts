@@ -118,7 +118,9 @@ describe("Superfluid Host Contract", function () {
                     true /* nonUpgradable */,
                     false /* appWhiteListingEnabled */
                 );
-                await governance.updateContracts(
+                await governance[
+                    "updateContracts(address,address,address[],address,address)"
+                ](
                     superfluid.address,
                     mock1.address,
                     [],
@@ -134,7 +136,9 @@ describe("Superfluid Host Contract", function () {
 
                 assert.equal(await superfluid.getCodeAddress(), mock1.address);
                 await expectCustomError(
-                    governance.updateContracts(
+                    governance[
+                        "updateContracts(address,address,address[],address,address)"
+                    ](
                         superfluid.address,
                         mock2.address,
                         [],
@@ -238,7 +242,9 @@ describe("Superfluid Host Contract", function () {
                 );
 
                 // upgrade typeA
-                await governance.updateContracts(
+                await governance[
+                    "updateContracts(address,address,address[],address,address)"
+                ](
                     superfluid.address,
                     ZERO_ADDRESS,
                     [mockA2.address],
@@ -348,7 +354,9 @@ describe("Superfluid Host Contract", function () {
                 const mockA = await createAgreementMock(typeA, 1);
 
                 await expectCustomError(
-                    governance.updateContracts(
+                    governance[
+                        "updateContracts(address,address,address[],address,address)"
+                    ](
                         superfluid.address,
                         ZERO_ADDRESS,
                         [mockA.address],
@@ -430,7 +438,9 @@ describe("Superfluid Host Contract", function () {
                     paNFTLogicAddress,
                     pmNFTLogicAddress
                 );
-                await governance.updateContracts(
+                await governance[
+                    "updateContracts(address,address,address[],address,address)"
+                ](
                     superfluid.address,
                     ZERO_ADDRESS,
                     [],
@@ -480,7 +490,9 @@ describe("Superfluid Host Contract", function () {
                     paNFTLogicAddress,
                     pmNFTLogicAddress
                 );
-                await governance.updateContracts(
+                await governance[
+                    "updateContracts(address,address,address[],address,address)"
+                ](
                     superfluid.address,
                     ZERO_ADDRESS,
                     [],
@@ -2635,7 +2647,9 @@ describe("Superfluid Host Contract", function () {
         describe("#30 non-upgradability", () => {
             it("#30.1 agreement is not upgradable", async () => {
                 await expectCustomError(
-                    governance.updateContracts(
+                    governance[
+                        "updateContracts(address,address,address[],address,address)"
+                    ](
                         superfluid.address,
                         ZERO_ADDRESS,
                         [t.contracts.ida.address],
@@ -2680,7 +2694,9 @@ describe("Superfluid Host Contract", function () {
                     pmNFTLogicAddress
                 );
                 await expectCustomError(
-                    governance.updateContracts(
+                    governance[
+                        "updateContracts(address,address,address[],address,address)"
+                    ](
                         superfluid.address,
                         ZERO_ADDRESS,
                         [],
@@ -2700,7 +2716,9 @@ describe("Superfluid Host Contract", function () {
                     false /* appWhiteListingEnabled */
                 );
                 await expectCustomError(
-                    governance.updateContracts(
+                    governance[
+                        "updateContracts(address,address,address[],address,address)"
+                    ](
                         superfluid.address,
                         mock1.address,
                         [],

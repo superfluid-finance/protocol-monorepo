@@ -64,11 +64,9 @@ const ALIASES = {
     "polygon-mumbai": ["mumbai"],
 
     "optimism-mainnet": ["opmainnet"],
-    "optimism-goerli": ["opgoerli"],
     "optimism-sepolia": ["opsepolia"],
 
     "arbitrum-one": ["arbone"],
-    "arbitrum-goerli": ["arbgoerli"],
 
     "avalanche-c": ["avalanche"],
     "avalanche-fuji": ["avafuji"],
@@ -76,8 +74,6 @@ const ALIASES = {
     "bsc-mainnet": ["bsc"],
 
     "celo-mainnet": ["celo"],
-
-    "base-goerli": ["bgoerli"],
 
     "polygon-zkevm-testnet": ["pzkevmtest"],
 
@@ -90,9 +86,13 @@ const ALIASES = {
     "any": ["any"],
 
     // currently unsupported or deprecated networks
-    //
+
+    "base-goerli": ["bgoerli"],
+
+    "optimism-goerli": ["opgoerli"],
     "optimism-kovan": ["opkovan"],
 
+    "arbitrum-goerli": ["arbgoerli"],
     "arbitrum-rinkeby": ["arbrinkeby"],
 
     "bsc-chapel": ["chapel"],

@@ -7,6 +7,10 @@ const {batchCall} = require("./batchCall");
 const ConstantFlowAgreementV1Helper = require("./ConstantFlowAgreementV1Helper");
 const InstantDistributionAgreementV1Helper = require("./InstantDistributionAgreementV1Helper");
 const fetch = require("node-fetch");
+// yes, this is dirty. truffle is deprecated, so this won't stick forever.
+const {
+    getGasConfig,
+} = require("../../ethereum-contracts/ops-scripts/libs/common");
 
 const User = require("./User");
 
@@ -92,6 +96,7 @@ module.exports = class Framework {
             additionalContracts: this._options.additionalContracts,
             contractLoader: this._options.contractLoader,
             networkId: this.networkId,
+            gasConfig: getGasConfig(this.networkId),
         });
 
         const resolverAddress =

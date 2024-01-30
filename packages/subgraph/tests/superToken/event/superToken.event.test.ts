@@ -287,7 +287,6 @@ describe("SuperToken Mapper Unit Tests", () => {
                 BIG_INT_ZERO, // totalGDAOutflowRate
                 BIG_INT_ZERO, // totalAmountStreamedUntilUpdatedAt
                 BIG_INT_ZERO, // totalCFAAmountStreamedUntilUpdatedAt
-                BIG_INT_ZERO, // totalGDAAmountStreamedUntilUpdatedAt
                 BIG_INT_ZERO, // totalAmountTransferredUntilUpdatedAt
                 BIG_INT_ZERO, // totalAmountDistributedUntilUpdatedAt
                 BigInt.fromI32(1000000), // totalSupply = 100
@@ -382,7 +381,6 @@ describe("SuperToken Mapper Unit Tests", () => {
                 BIG_INT_ZERO, // totalGDAOutflowRate
                 BIG_INT_ZERO, // totalAmountStreamedUntilUpdatedAt
                 BIG_INT_ZERO, // totalCFAAmountStreamedUntilUpdatedAt
-                BIG_INT_ZERO, // totalGDAAmountStreamedUntilUpdatedAt
                 value, // totalAmountTransferredUntilUpdatedAt
                 BIG_INT_ZERO, // totalAmountDistributedUntilUpdatedAt
                 BigInt.fromI32(1000000), // totalSupply = 100
@@ -529,7 +527,6 @@ describe("SuperToken Mapper Unit Tests", () => {
                 BIG_INT_ZERO, // totalGDAOutflowRate
                 BIG_INT_ZERO, // totalAmountStreamedUntilUpdatedAt
                 BIG_INT_ZERO, // totalCFAAmountStreamedUntilUpdatedAt
-                BIG_INT_ZERO, // totalGDAAmountStreamedUntilUpdatedAt
                 value, // totalAmountTransferredUntilUpdatedAt
                 BIG_INT_ZERO, // totalAmountDistributedUntilUpdatedAt
                 BigInt.fromI32(1000000), // totalSupply = 100
@@ -579,7 +576,6 @@ describe("SuperToken Mapper Unit Tests", () => {
                 BIG_INT_ZERO, // totalGDAOutflowRate
                 BIG_INT_ZERO, // totalAmountStreamedUntilUpdatedAt
                 BIG_INT_ZERO, // totalCFAAmountStreamedUntilUpdatedAt
-                BIG_INT_ZERO, // totalGDAAmountStreamedUntilUpdatedAt
                 value.times(BigInt.fromI32(2)), // totalAmountTransferredUntilUpdatedAt
                 BIG_INT_ZERO, // totalAmountDistributedUntilUpdatedAt
                 BigInt.fromI32(1000000), // totalSupply = 100

@@ -25,7 +25,7 @@ export const ZERO_ADDRESS = Address.zero();
 export const MAX_FLOW_RATE = BigInt.fromI32(2).pow(95).minus(BigInt.fromI32(1));
 export const ORDER_MULTIPLIER = BigInt.fromI32(10000);
 export const MAX_SAFE_SECONDS = BigInt.fromI64(8640000000000); //In seconds, https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date#the_ecmascript_epoch_and_timestamps
-
+export const MAX_UINT256 = BigInt.fromString("115792089237316195423570985008687907853269984665640564039457584007913129639935");
 /**************************************************************************
  * Convenience Conversions
  *************************************************************************/

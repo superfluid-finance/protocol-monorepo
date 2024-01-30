@@ -93,7 +93,6 @@ export function handlePoolConnectionUpdated(
     const memberConnectedStatusUpdated =
         previousIsConnected !== event.params.connected;
     poolMember.isConnected = event.params.connected;
-    poolMember.save();
 
     const hasMembershipWithUnits = membershipWithUnitsExists(poolMember.id);
 
@@ -127,10 +126,11 @@ export function handlePoolConnectionUpdated(
             }
         }
     }
-    pool.save();
 
     // Update totalAmountDistributedUntilUpdatedAt
     poolMember = updatePoolMemberTotalAmountUntilUpdatedAtFields(pool, poolMember);
+    
+    pool.save();
     poolMember.save();
 
     // Update Token Stats Streamed Until Updated At

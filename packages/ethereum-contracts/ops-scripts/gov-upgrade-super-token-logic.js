@@ -10,6 +10,7 @@ const {
     extractWeb3Options,
     builtTruffleContractLoader,
     sendGovernanceAction,
+    ZERO_ADDRESS,
 } = require("./libs/common");
 
 /**
@@ -104,7 +105,11 @@ module.exports = eval(`(${S.toString()})()`)(async function (
             console.log(`List of tokens to be upgraded written to ${outputFile}`);
         }
 
-        const batchSize = parseInt(process.env.BATCH_SIZE) || 1000;
+        // example gas use: 4.3M for 218 tokens in the batch
+        // https://polygonscan.com/tx/0xd449062303646e16bf1e5129588a3c3ec22724f29a4777c7af038cbb62b43dc9
+        // we want to keep it below 8M gas
+        // Note that the gas use can fluctuate depending on the actions done in the contracts
+        const batchSize = parseInt(process.env.BATCH_SIZE) || 380;
         for (let offset = 0; offset < tokensToBeUpgraded.length; offset += batchSize) {
             const batch = tokensToBeUpgraded.slice(offset, offset + batchSize);
             console.log(
@@ -233,7 +238,11 @@ async function getTokensToBeUpgraded(sf, canonicalSuperTokenLogic, skipList) {
 
             try {
                 const adminAddr = await superToken.getAdmin();
-                console.log("   admin addr:", adminAddr);
+                if (adminAddr !== ZERO_ADDRESS) {
+                    console.warn(
+                        `!!! [SKIP] SuperToken@${superToken.address} admin override set to ${adminAddr}`
+                    );
+                }
             } catch(err) {
                 // TODO: enable logging once we expect this to exist
                 //console.log("### failed to get admin addr:", err.message);

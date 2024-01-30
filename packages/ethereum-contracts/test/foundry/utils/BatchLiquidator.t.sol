@@ -2,38 +2,28 @@
 pragma solidity 0.8.19;
 
 import { FoundrySuperfluidTester, SuperTokenV1Library } from "../FoundrySuperfluidTester.sol";
-import {
-    ISuperfluid,
-    ISuperToken,
-    IConstantOutflowNFT,
-    IConstantInflowNFT,
-    IPoolAdminNFT,
-    IPoolMemberNFT,
-    SuperToken
-} from "../../../contracts/superfluid/SuperToken.sol";
-import { ISuperfluidPool } from "../../../contracts/interfaces/agreements/gdav1/ISuperfluidPool.sol";
+import { ISuperToken, SuperToken, ISuperfluid, IConstantOutflowNFT, IConstantInflowNFT } from "../../../contracts/superfluid/SuperToken.sol";
 import { BatchLiquidator } from "../../../contracts/utils/BatchLiquidator.sol";
 import "forge-std/Test.sol";
 
 contract NonTransferableST is SuperToken {
     // transferFrom will always revert
-    constructor(ISuperfluid host)
-        SuperToken(
-            host,
-            IConstantOutflowNFT(address(0)),
-            IConstantInflowNFT(address(0)),
-            IPoolAdminNFT(address(0)),
-            IPoolMemberNFT(address(0))
-        ) // solhint-disable-next-line
-            // no-empty-blocks
-    { }
+    constructor(
+        ISuperfluid host
+    )
+    SuperToken(host, IConstantOutflowNFT(address(0)), IConstantInflowNFT(address(0))) // solhint-disable-next-line no-empty-blocks
+    {
+    }
 
-    function transferFrom(address, address, uint256) public pure override returns (bool) {
+    function transferFrom(address holder, address recipient, uint256 amount)  public override returns (bool) {
         revert();
     }
 
-    function mintInternal(address to, uint256 amount) external {
-        _mint(msg.sender, to, amount, false, /* invokeHook */ false, /* requireReceptionAck */ "", "");
+    function mintInternal(
+        address to,
+        uint256 amount
+    ) external {
+        _mint(msg.sender, to, amount, false /* invokeHook */, false /* requireReceptionAck */, "", "");
     }
 }
 
@@ -51,278 +41,121 @@ contract BatchLiquidatorTest is FoundrySuperfluidTester {
 
     function setUp() public override {
         super.setUp();
-        batchLiquidator = new BatchLiquidator(address(sf.host));
+        batchLiquidator = new BatchLiquidator(address(sf.host), address(sf.cfa));
         badToken = new NonTransferableST(sf.host);
     }
 
     // Helpers
+    function _startStream(address sender, address receiver, int96 flowRate) internal {
+        vm.startPrank(sender);
+        superToken.createFlow(receiver, flowRate);
+        vm.stopPrank();
+    }
 
     function _transferAllToSink(address sender) internal {
-        _helperTransferAll(superToken, sender, admin);
+        vm.startPrank(sender);
+        superToken.transferAll(admin);
+        vm.stopPrank();
     }
 
-    function _assertNoCFAFlow(address sender, address receiver) internal {
-        (, int96 flowRate,,) = sf.cfa.getFlow(superToken, sender, receiver);
-        assertEq(flowRate, 0, "BatchLiquidator: CFA Flowrate should be 0");
+    function _assertNoFlow(address sender, address receiver) internal {
+        (, int96 flow,,) = sf.cfa.getFlow(superToken, sender, receiver);
+        assertEq(flow, 0, "BatchLiquidator: Flow should be 0");
     }
 
-    function _assertNoGDAFlow(address sender, ISuperfluidPool pool) internal {
-        int96 flowRate = sf.gda.getFlowRate(superToken, sender, pool);
-        assertEq(flowRate, 0, "BatchLiquidator: GDA Flowrate should be 0");
-    }
+    function testSingleLiquidation() public {
+        _startStream(alice, bob, FLOW_RATE);
+        _transferAllToSink(alice);
 
-    function _assertLiquidatorBalanceGreater(address _liqudidator, uint256 balanceBefore_) internal {
-        assertGt(
-            superToken.balanceOf(_liqudidator),
-            balanceBefore_,
-            "BatchLiquidator: SL - Balance should be greater than before"
+        vm.startPrank(liquidator);
+        uint256 balance = superToken.balanceOf(liquidator);
+        vm.warp(4 hours); // jump 4 hours
+        batchLiquidator.deleteFlow(address(superToken), alice, bob);
+        _assertNoFlow(alice, bob);
+
+        assertTrue(
+            superToken.balanceOf(liquidator) > balance, "BatchLiquidator: SL - Balance should be greater than before"
         );
-    }
-
-    function _createCFAFlowLiquidationData(address sender, address receiver)
-        internal
-        pure
-        returns (BatchLiquidator.FlowLiquidationData memory)
-    {
-        return BatchLiquidator.FlowLiquidationData({
-            agreementOperation: BatchLiquidator.FlowType.ConstantFlowAgreement,
-            sender: sender,
-            receiver: receiver
-        });
-    }
-
-    function _createGDAFlowLiquidationData(address sender, ISuperfluidPool pool)
-        internal
-        pure
-        returns (BatchLiquidator.FlowLiquidationData memory)
-    {
-        return BatchLiquidator.FlowLiquidationData({
-            agreementOperation: BatchLiquidator.FlowType.GeneralDistributionAgreement,
-            sender: sender,
-            receiver: address(pool)
-        });
-    }
-
-    function testCFAOnlySingleLiquidation() public {
-        _helperCreateFlow(superToken, alice, bob, FLOW_RATE);
-        _transferAllToSink(alice);
-
-        vm.startPrank(liquidator);
-        uint256 balanceBefore = superToken.balanceOf(liquidator);
-        vm.warp(4 hours); // jump 4 hours
-        batchLiquidator.deleteFlow(address(superToken), _createCFAFlowLiquidationData(alice, bob));
-        _assertNoCFAFlow(alice, bob);
-
-        _assertLiquidatorBalanceGreater(liquidator, balanceBefore);
         vm.stopPrank();
     }
 
-    function testGDAOnlySingleLiquidation() public {
-        ISuperfluidPool pool = _helperCreatePool(superToken, alice, alice);
-        _helperUpdateMemberUnits(pool, alice, bob, 1);
-        _helperDistributeFlow(superToken, alice, alice, pool, FLOW_RATE);
-
-        _transferAllToSink(alice);
-
-        vm.startPrank(liquidator);
-        uint256 balanceBefore = superToken.balanceOf(liquidator);
-        vm.warp(4 hours); // jump 4 hours
-        batchLiquidator.deleteFlow(address(superToken), _createGDAFlowLiquidationData(alice, pool));
-        _assertNoGDAFlow(alice, pool);
-
-        _assertLiquidatorBalanceGreater(liquidator, balanceBefore);
-        vm.stopPrank();
-    }
-
-    function testCFAOnlySingleLiquidationRevert() public {
+    function testSingleLiquidationRevert() public {
         vm.startPrank(liquidator);
         vm.expectRevert();
-        batchLiquidator.deleteFlow(address(superToken), _createCFAFlowLiquidationData(alice, bob));
+        batchLiquidator.deleteFlow(address(superToken), alice, bob);
         vm.stopPrank();
     }
 
-    function testGDAOnlySingleLiquidationRevert() public {
-        ISuperfluidPool pool = _helperCreatePool(superToken, alice, alice);
-        vm.startPrank(liquidator);
-        vm.expectRevert();
-        batchLiquidator.deleteFlow(address(superToken), _createGDAFlowLiquidationData(alice, pool));
-        vm.stopPrank();
-    }
-
-    function testCFAOnlyBatchLiquidation() public {
-        _helperCreateFlow(superToken, alice, bob, FLOW_RATE);
-        _helperCreateFlow(superToken, carol, bob, FLOW_RATE);
-        _helperCreateFlow(superToken, dan, bob, FLOW_RATE);
-
-        _transferAllToSink(alice);
-        _transferAllToSink(carol);
-        _transferAllToSink(dan);
-
-        vm.startPrank(liquidator);
-        uint256 balanceBefore = superToken.balanceOf(liquidator);
-        vm.warp(4 hours); // jump 4 hours
-        BatchLiquidator.FlowLiquidationData[] memory data = new BatchLiquidator.FlowLiquidationData[](3);
-        data[0] = _createCFAFlowLiquidationData(alice, bob);
-        data[1] = _createCFAFlowLiquidationData(carol, bob);
-        data[2] = _createCFAFlowLiquidationData(dan, bob);
-
-        batchLiquidator.deleteFlows(address(superToken), data);
-
-        _assertNoCFAFlow(alice, bob);
-        _assertNoCFAFlow(carol, bob);
-        _assertNoCFAFlow(dan, bob);
-
-        _assertLiquidatorBalanceGreater(liquidator, balanceBefore);
-        vm.stopPrank();
-    }
-
-    function testGDAOnlyBatchLiquidation() public {
-        ISuperfluidPool pool = _helperCreatePool(superToken, alice, alice);
-        _helperUpdateMemberUnits(pool, alice, bob, 1);
-        _helperDistributeFlow(superToken, alice, alice, pool, FLOW_RATE);
-        _helperDistributeFlow(superToken, carol, carol, pool, FLOW_RATE);
-        _helperDistributeFlow(superToken, dan, dan, pool, FLOW_RATE);
-
-        int96 flowRate = sf.gda.getFlowRate(superToken, alice, pool);
-
-        _transferAllToSink(alice);
-        _transferAllToSink(carol);
-        _transferAllToSink(dan);
-
-        vm.startPrank(liquidator);
-        uint256 balanceBefore = superToken.balanceOf(liquidator);
-        vm.warp(4 hours); // jump 4 hours
-        BatchLiquidator.FlowLiquidationData[] memory data = new BatchLiquidator.FlowLiquidationData[](3);
-        data[0] = _createGDAFlowLiquidationData(alice, pool);
-        data[1] = _createGDAFlowLiquidationData(carol, pool);
-        data[2] = _createGDAFlowLiquidationData(dan, pool);
-        batchLiquidator.deleteFlows(address(superToken), data);
-
-        flowRate = sf.gda.getFlowRate(superToken, alice, pool);
-
-        _assertNoGDAFlow(alice, pool);
-        _assertNoGDAFlow(carol, pool);
-        _assertNoGDAFlow(dan, pool);
-
-        _assertLiquidatorBalanceGreater(liquidator, balanceBefore);
-        vm.stopPrank();
-    }
-
-    function testCFAOnlyBatchLiquidationWithToleratedRevert() public {
-        _helperCreateFlow(superToken, alice, bob, FLOW_RATE);
-        _helperCreateFlow(superToken, dan, bob, FLOW_RATE);
-
-        _transferAllToSink(alice);
-        _transferAllToSink(dan);
-
-        vm.startPrank(liquidator);
-        uint256 balanceBefore = superToken.balanceOf(liquidator);
-        vm.warp(4 hours); // jump 4 hours
-        BatchLiquidator.FlowLiquidationData[] memory data = new BatchLiquidator.FlowLiquidationData[](3);
-        data[0] = _createCFAFlowLiquidationData(alice, bob);
-        data[1] = _createCFAFlowLiquidationData(carol, bob);
-        data[2] = _createCFAFlowLiquidationData(dan, bob);
-
-        batchLiquidator.deleteFlows(address(superToken), data);
-        _assertNoCFAFlow(alice, bob);
-        _assertNoCFAFlow(carol, bob);
-        _assertNoCFAFlow(dan, bob);
-
-        _assertLiquidatorBalanceGreater(liquidator, balanceBefore);
-        vm.stopPrank();
-    }
-
-    function testGDAOnlyBatchLiquidationWithToleratedRevert() public {
-        ISuperfluidPool pool = _helperCreatePool(superToken, alice, alice);
-        _helperUpdateMemberUnits(pool, alice, bob, 1);
-        _helperDistributeFlow(superToken, alice, alice, pool, FLOW_RATE);
-        _helperDistributeFlow(superToken, dan, dan, pool, FLOW_RATE);
-
-        int96 flowRate = sf.gda.getFlowRate(superToken, alice, pool);
-
-        _transferAllToSink(alice);
-        _transferAllToSink(dan);
-
-        vm.startPrank(liquidator);
-        uint256 balanceBefore = superToken.balanceOf(liquidator);
-        vm.warp(4 hours); // jump 4 hours
-        BatchLiquidator.FlowLiquidationData[] memory data = new BatchLiquidator.FlowLiquidationData[](3);
-        data[0] = _createGDAFlowLiquidationData(alice, pool);
-        data[1] = _createGDAFlowLiquidationData(carol, pool);
-        data[2] = _createGDAFlowLiquidationData(dan, pool);
-
-        batchLiquidator.deleteFlows(address(superToken), data);
-
-        flowRate = sf.gda.getFlowRate(superToken, alice, pool);
-
-        _assertNoGDAFlow(alice, pool);
-        _assertNoGDAFlow(carol, pool);
-        _assertNoGDAFlow(dan, pool);
-
-        _assertLiquidatorBalanceGreater(liquidator, balanceBefore);
-        vm.stopPrank();
+    function testRevertIfArrayLengthsDontMatch() public {
+        address[] memory senders = new address[](8);
+        address[] memory receivers = new address[](7);
+        vm.expectRevert(BatchLiquidator.ARRAY_SIZES_DIFFERENT.selector);
+        batchLiquidator.deleteFlows(address(superToken), senders, receivers);
     }
 
     function testBatchLiquidation() public {
-        ISuperfluidPool pool = _helperCreatePool(superToken, alice, alice);
-        _helperUpdateMemberUnits(pool, alice, bob, 1);
-        _helperDistributeFlow(superToken, alice, alice, pool, FLOW_RATE);
-
-        _helperCreateFlow(superToken, carol, bob, FLOW_RATE);
-        _helperCreateFlow(superToken, dan, bob, FLOW_RATE);
+        _startStream(alice, bob, FLOW_RATE);
+        _startStream(carol, bob, FLOW_RATE);
+        _startStream(dan, bob, FLOW_RATE);
 
         _transferAllToSink(alice);
         _transferAllToSink(carol);
         _transferAllToSink(dan);
 
         vm.startPrank(liquidator);
-        uint256 balanceBefore = superToken.balanceOf(liquidator);
+        uint256 balance = superToken.balanceOf(liquidator);
         vm.warp(4 hours); // jump 4 hours
-        BatchLiquidator.FlowLiquidationData[] memory data = new BatchLiquidator.FlowLiquidationData[](4);
-        data[0] = _createGDAFlowLiquidationData(alice, pool);
-        data[1] = _createCFAFlowLiquidationData(carol, bob);
-        data[2] = _createCFAFlowLiquidationData(dan, bob);
+        address[] memory senders = new address[](3);
+        address[] memory receivers = new address[](3);
+        senders[0] = alice;
+        senders[1] = carol;
+        senders[2] = dan;
+        receivers[0] = bob;
+        receivers[1] = bob;
+        receivers[2] = bob;
 
-        batchLiquidator.deleteFlows(address(superToken), data);
+        batchLiquidator.deleteFlows(address(superToken), senders, receivers);
+        _assertNoFlow(alice, bob);
+        _assertNoFlow(carol, bob);
+        _assertNoFlow(dan, bob);
 
-        _assertNoGDAFlow(alice, pool);
-        _assertNoCFAFlow(carol, bob);
-        _assertNoCFAFlow(dan, bob);
-
-        _assertLiquidatorBalanceGreater(liquidator, balanceBefore);
+        assertTrue(
+            superToken.balanceOf(liquidator) > balance, "BatchLiquidator: BL - Balance should be greater than before"
+        );
         vm.stopPrank();
     }
 
     function testBatchLiquidationWithToleratedRevert() public {
-        ISuperfluidPool pool = _helperCreatePool(superToken, alice, alice);
-        _helperUpdateMemberUnits(pool, alice, bob, 1);
-        _helperDistributeFlow(superToken, alice, alice, pool, FLOW_RATE);
-
-        _helperCreateFlow(superToken, dan, bob, FLOW_RATE);
+        _startStream(alice, bob, FLOW_RATE);
+        _startStream(dan, bob, FLOW_RATE);
 
         _transferAllToSink(alice);
         _transferAllToSink(dan);
 
         vm.startPrank(liquidator);
-        uint256 balanceBefore = superToken.balanceOf(liquidator);
+        uint256 balance = superToken.balanceOf(liquidator);
         vm.warp(4 hours); // jump 4 hours
-        BatchLiquidator.FlowLiquidationData[] memory data = new BatchLiquidator.FlowLiquidationData[](4);
+        address[] memory senders = new address[](3);
+        address[] memory receivers = new address[](3);
+        senders[0] = alice;
+        senders[1] = carol; // carol has no flow
+        senders[2] = dan;
+        receivers[0] = bob;
+        receivers[1] = bob;
+        receivers[2] = bob;
 
-        data[0] = _createGDAFlowLiquidationData(alice, pool);
-        data[1] = _createCFAFlowLiquidationData(carol, bob);
-        data[2] = _createCFAFlowLiquidationData(dan, bob);
+        batchLiquidator.deleteFlows(address(superToken), senders, receivers);
+        _assertNoFlow(alice, bob);
+        _assertNoFlow(carol, bob);
+        _assertNoFlow(dan, bob);
 
-        batchLiquidator.deleteFlows(address(superToken), data);
-
-        _assertNoGDAFlow(alice, pool);
-        _assertNoCFAFlow(carol, bob);
-        _assertNoCFAFlow(dan, bob);
-
-        _assertLiquidatorBalanceGreater(liquidator, balanceBefore);
+        assertTrue(
+            superToken.balanceOf(liquidator) > balance, "BatchLiquidator: BLR - Balance should be greater than before"
+        );
         vm.stopPrank();
     }
 
-    function testCFALiquidationWithCustomTokenRevert() public {
+    function testLiquidationWithCustomTokenRevert() public {
         NonTransferableST(address(badToken)).mintInternal(alice, 10 ether);
 
         vm.startPrank(alice);
@@ -332,16 +165,17 @@ contract BatchLiquidatorTest is FoundrySuperfluidTester {
         vm.stopPrank();
         vm.startPrank(liquidator);
 
-        BatchLiquidator.FlowLiquidationData memory data = _createCFAFlowLiquidationData(alice, bob);
+        batchLiquidator.deleteFlow(address(badToken), alice, bob);
+        _assertNoFlow(alice, bob);
 
-        batchLiquidator.deleteFlow(address(badToken), data);
-        _assertNoCFAFlow(alice, bob);
-
-        assertTrue(superToken.balanceOf(liquidator) == 0, "BatchLiquidator: SL - Balance should be 0 because of revert");
+        assertTrue(
+            superToken.balanceOf(liquidator) == 0, "BatchLiquidator: SL - Balance should be 0 because of revert"
+        );
         vm.stopPrank();
+
     }
 
-    function testCFABatchLiquidationWithCustomTokenRevert() public {
+    function testBatchLiquidationWithCustomTokenRevert() public {
         NonTransferableST(address(badToken)).mintInternal(alice, 10 ether);
         NonTransferableST(address(badToken)).mintInternal(bob, 10 ether);
 
@@ -359,12 +193,15 @@ contract BatchLiquidatorTest is FoundrySuperfluidTester {
 
         vm.startPrank(liquidator);
 
-        BatchLiquidator.FlowLiquidationData[] memory data = new BatchLiquidator.FlowLiquidationData[](2);
-        data[0] = _createCFAFlowLiquidationData(alice, bob);
-        data[1] = _createCFAFlowLiquidationData(bob, carol);
+        address[] memory senders = new address[](2);
+        address[] memory receivers = new address[](2);
+        senders[0] = alice;
+        senders[1] = bob;
+        receivers[0] = bob;
+        receivers[1] = carol;
 
-        batchLiquidator.deleteFlows(address(superToken), data);
-        _assertNoCFAFlow(alice, bob);
-        _assertNoCFAFlow(bob, carol);
+        batchLiquidator.deleteFlows(address(superToken), senders, receivers);
+        _assertNoFlow(alice, bob);
+        _assertNoFlow(bob, carol);
     }
 }

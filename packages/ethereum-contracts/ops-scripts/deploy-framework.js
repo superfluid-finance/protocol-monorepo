@@ -1360,7 +1360,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         superfluidPoolNewLogicAddress !== ZERO_ADDRESS
     ) {
         console.log(`Creting gov action: gov.updateContracts(${superfluid.address}, ${superfluidNewLogicAddress},
-            [${agreementsToUpdate}], ${superTokenFactoryNewLogicAddress})}, ${superfluidPoolNewLogicAddress})`);
+            [${agreementsToUpdate}], ${superTokenFactoryNewLogicAddress}, ${superfluidPoolNewLogicAddress})`);
 
         await sendGovernanceAction(
             sfObjForGovAndResolver,

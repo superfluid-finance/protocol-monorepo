@@ -224,9 +224,9 @@ async function setResolver(sf, key, value) {
         }
         case "OWNABLE": {
             console.log("Resolver Admin type: Direct Ownership (default)");
-            console.log("Executing admin action...");
+            console.log("Executing resolver action...");
             await resolver.set(key, value);
-            console.log("Admin action executed.");
+            console.log("Resolver action executed.");
             break;
         }
         case "SAFE": {
@@ -256,7 +256,7 @@ async function setResolver(sf, key, value) {
  * @param actionFn function that gets governance methods as argument
  *
  * @note if the caller intends to invoke methods only available in SuperfluidGovernanceII
- * (e.g. UUPSProxiable or Ownable), it must provide the SuperfluidGovernanceII artifact
+ * (e.g. UUPSProxiable), it must provide the SuperfluidGovernanceII artifact
  * in the sf object.
  */
 async function sendGovernanceAction(sf, actionFn) {

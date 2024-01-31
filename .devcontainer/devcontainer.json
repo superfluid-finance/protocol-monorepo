@@ -3,7 +3,7 @@
 {
 	"name": "Node.js & TypeScript",
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-	"image": "mcr.microsoft.com/devcontainers/typescript-node:1-18-bookworm",
+	"image": "mcr.microsoft.com/devcontainers/typescript-node:1-20-bookworm",
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	"features": {
 		// If having issues with Nix then consult:
@@ -21,19 +21,21 @@
 		"ghcr.io/devcontainers/features/docker-in-docker:2": {},
 		"ghcr.io/devcontainers-contrib/features/act:1": {}
 	},
-
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [],
-
 	// Use 'postCreateCommand' to run commands after the container is created.
 	// 1. using nix to create a reproduciable build
 	// 2. install foundry for people don't want to use nix
 	// 3. if you want to use nix further, do "nix develop"
-	"postCreateCommand": "./tasks/fix-devcontainer.sh && nix develop . -c bash <(echo \"yarn install && yarn build\") && curl -L https://foundry.paradigm.xyz | bash & foundryup"
-	
+	"postCreateCommand": [
+		"curl -L https://foundry.paradigm.xyz | bash",
+		"source /home/node/.bashrc && foundryup",
+		"yarn global add npm-run-all",
+		"yarn install && yarn build",
+		"./tasks/fix-devcontainer.sh && nix develop . -c bash <(echo \"yarn install && yarn build\")"
+	]
 	// Configure tool-specific properties.
 	// "customizations": {},
-	
 	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
 	// "remoteUser": "root"
 }

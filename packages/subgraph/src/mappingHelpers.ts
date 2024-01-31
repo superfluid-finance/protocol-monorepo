@@ -1487,9 +1487,9 @@ export function updateAggregateEntitiesTransferData(
  */
 export function updatePoolMemberTotalAmountUntilUpdatedAtFields(pool: Pool, poolMember: PoolMember): PoolMember {
     let amountReceivedDelta = BIG_INT_ZERO;
-    // if the pool has any units, we calculate the delta
+    // if the pool member has any units, we calculate the delta
     // otherwise the delta is going to be 0
-    if (!pool.totalUnits.equals(BIG_INT_ZERO)) {
+    if (!poolMember.units.equals(BIG_INT_ZERO)) {
         const distributedAmountDelta = pool.totalAmountDistributedUntilUpdatedAt
             .minus(poolMember.poolTotalAmountDistributedUntilUpdatedAt);
 

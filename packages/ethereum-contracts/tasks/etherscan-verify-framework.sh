@@ -32,7 +32,7 @@ source "$ADDRESSES_VARS"
 FAILED_VERIFICATIONS=()
 function try_verify() {
     echo # newline for better readability
-    cmd="npx truffle run --network $TRUFFLE_NETWORK verify $1 ${EXTRA_ARGS:+$EXTRA_ARGS}"
+    cmd="npx truffle run --network $TRUFFLE_NETWORK verify $* ${EXTRA_ARGS:+$EXTRA_ARGS}"
     echo "> $cmd"
     $cmd || FAILED_VERIFICATIONS[${#FAILED_VERIFICATIONS[@]}]="$*"
         # NOTE: append using length so that having spaces in the element is not a problem
@@ -65,14 +65,6 @@ EOF
 
 if [ -n "$RESOLVER" ]; then
     try_verify Resolver@"${RESOLVER}"
-fi
-
-if [ -n "$POOL_ADMIN_NFT_LOGIC" ]; then
-    try_verify PoolAdminNFT@"${POOL_ADMIN_NFT_LOGIC}"
-fi
-
-if [ -n "$POOL_MEMBER_NFT_LOGIC" ]; then
-    try_verify PoolMemberNFT@"${POOL_MEMBER_NFT_LOGIC}"
 fi
 
 if [ -n "$SUPERFLUID_HOST_LOGIC" ]; then
@@ -128,6 +120,14 @@ fi
 
 if [ -n "$POOL_MEMBER_NFT_PROXY" ]; then
     try_verify PoolMemberNFT@"${POOL_MEMBER_NFT_PROXY}" --custom-proxy UUPSProxy
+fi
+
+if [ -n "$POOL_ADMIN_NFT_LOGIC" ]; then
+    try_verify PoolAdminNFT@"${POOL_ADMIN_NFT_LOGIC}"
+fi
+
+if [ -n "$POOL_MEMBER_NFT_LOGIC" ]; then
+    try_verify PoolMemberNFT@"${POOL_MEMBER_NFT_LOGIC}"
 fi
 
 if [ -n "$SUPER_TOKEN_LOGIC" ]; then
@@ -195,6 +195,14 @@ for var in $(compgen -v); do
 done
 
 # optional peripery contracts
+
+if [ -n "$CFAV1_FORWARDER" ];then
+    try_verify CFAv1Forwarder@"${CFAV1_FORWARDER}"
+fi
+
+if [ -n "$GDAV1_FORWARDER" ];then
+    try_verify GDAv1Forwarder@"${GDAV1_FORWARDER}"
+fi
 
 if [ -n "$TOGA" ];then
     try_verify TOGA@"${TOGA}"

@@ -212,6 +212,14 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         }
     }
 
+    // forwarders
+    if (config.metadata?.contractsV1?.cfaV1Forwarder) {
+        output += `CFAV1_FORWARDER=${config.metadata.contractsV1.cfaV1Forwarder}\n`;
+    }
+    if (config.metadata?.contractsV1?.gdaV1Forwarder) {
+        output += `GDAV1_FORWARDER=${config.metadata.contractsV1.gdaV1Forwarder}\n`;
+    }
+
     // optional periphery contracts
 
     if (config.metadata?.contractsV1?.toga) {

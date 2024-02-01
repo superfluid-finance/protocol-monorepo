@@ -488,20 +488,28 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         externalLibraryArtifact,
         externalLibraryName,
         outputName,
-        contract
+        contract,
+        allowFailure = false
     ) => {
-        const externalLibrary = await web3tx(
-            externalLibraryArtifact.new,
-            `${externalLibraryName}.new`
-        )();
-        output += `${outputName}=${externalLibrary.address}\n`;
-        if (process.env.IS_HARDHAT) {
-            contract.link(externalLibrary);
-        } else {
-            contract.link(externalLibraryName, externalLibrary.address);
+        try {
+            const externalLibrary = await web3tx(
+                externalLibraryArtifact.new,
+                `${externalLibraryName}.new`
+            )();
+            output += `${outputName}=${externalLibrary.address}\n`;
+            if (process.env.IS_HARDHAT) {
+                contract.link(externalLibrary);
+            } else {
+                contract.link(externalLibraryName, externalLibrary.address);
+            }
+            console.log(externalLibraryName, "address", externalLibrary.address);
+            return externalLibrary;
+        } catch (err) {
+            console.warn("Error: ", err);
+            if (!allowFailure) {
+                throw err;
+            }
         }
-        console.log(externalLibraryName, "address", externalLibrary.address);
-        return externalLibrary;
     };
 
     let slotsBitmapLibraryAddress = ZERO_ADDRESS;
@@ -573,15 +581,26 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 SuperfluidPoolDeployerLibrary,
                 "SuperfluidPoolDeployerLibrary",
                 "SUPERFLUID_POOL_DEPLOYER_LIBRARY",
-                GeneralDistributionAgreementV1
+                GeneralDistributionAgreementV1,
+                protocolReleaseVersion === "test" ? true : false
             );
 
             if (process.env.IS_HARDHAT) {
-                if (slotsBitmapLibraryAddress !== ZERO_ADDRESS) {
-                    const lib = await SlotsBitmapLibrary.at(
-                        slotsBitmapLibraryAddress
-                    );
-                    GeneralDistributionAgreementV1.link(lib);
+                // this fails in test case deployment.test.js:ops-scripts/deploy-super-token.js
+                // where deploy-framework is invoked twice, the second time failing because
+                // hardhat claims the library is already linked. Thus we try/catch here.
+                try {
+                    if (slotsBitmapLibraryAddress !== ZERO_ADDRESS) {
+                        const lib = await SlotsBitmapLibrary.at(
+                            slotsBitmapLibraryAddress
+                        );
+                        GeneralDistributionAgreementV1.link(lib);
+                    }
+                } catch (e) {
+                    console.warn("!!! Cannot link slotsBitmapLibrary", e.toString());
+                    if (protocolReleaseVersion !== "test") {
+                        throw e;
+                    }
                 }
             } else {
                 GeneralDistributionAgreementV1.link(

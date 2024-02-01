@@ -31,6 +31,7 @@ interface SubgraphData {
 }
 export interface NetworkMetaData {
     readonly name: string; // Superfluid canonical network name
+    readonly isDeprecated: boolean;
     readonly isTestnet: boolean;
     readonly networkId: number;
     readonly chainId: number;

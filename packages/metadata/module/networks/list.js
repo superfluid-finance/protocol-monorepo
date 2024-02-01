@@ -130,6 +130,7 @@ export default
     },
     {
         "name": "optimism-goerli",
+        "isDeprecated": true,
         "isTestnet": true,
         "networkId": 420,
         "chainId": 420,
@@ -173,6 +174,7 @@ export default
     },
     {
         "name": "arbitrum-goerli",
+        "isDeprecated": true,
         "isTestnet": true,
         "networkId": 421613,
         "chainId": 421613,
@@ -300,6 +302,7 @@ export default
     },
     {
         "name": "base-goerli",
+        "isDeprecated": true,
         "isTestnet": true,
         "networkId": 84531,
         "chainId": 84531,

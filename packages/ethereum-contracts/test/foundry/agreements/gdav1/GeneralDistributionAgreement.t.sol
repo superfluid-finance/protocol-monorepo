@@ -45,7 +45,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
     SuperfluidPool public freePool;
     uint256 public liquidationPeriod;
 
-    constructor() FoundrySuperfluidTester(7) { }
+    constructor() FoundrySuperfluidTester(10) { }
 
     function setUp() public override {
         super.setUp();
@@ -375,15 +375,15 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         mock.validateStorageLayout();
     }
 
-    function testDistributeFlowUsesMinDeposit(
+    function testDistributeFlowUsesMinDepositWhenFlowDepositIsLess(
         uint64 distributionFlowRate,
-        uint32 minDepositMultiplier,
+        uint32 minDepositFlowRate,
         address member,
         FoundrySuperfluidTester._StackVars_UseBools memory useBools_,
         PoolConfig memory config
     ) public {
         ISuperfluidPool pool = _helperCreatePool(superToken, alice, alice, false, config);
-        vm.assume(distributionFlowRate < minDepositMultiplier);
+        vm.assume(distributionFlowRate < minDepositFlowRate);
         vm.assume(distributionFlowRate > 0);
         vm.assume(member != address(pool));
         vm.assume(member != address(0));
@@ -391,7 +391,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         _addAccount(member);
 
         vm.startPrank(address(sf.governance.owner()));
-        uint256 minimumDeposit = 4 hours * uint256(minDepositMultiplier);
+        uint256 minimumDeposit = 4 hours * uint256(minDepositFlowRate);
         sf.governance.setSuperTokenMinimumDeposit(sf.host, superToken, minimumDeposit);
         vm.stopPrank();
 
@@ -402,15 +402,15 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         assertEq(buffer, minimumDeposit, "GDAv1.t: Min buffer should be used");
     }
 
-    function testDistributeFlowIgnoresMinDeposit(
+    function testDistributeFlowIgnoresMinDepositWhenFlowDepositIsGreater(
         int32 distributionFlowRate,
-        uint32 minDepositMultiplier,
+        uint32 minDepositFlowRate,
         address member,
         FoundrySuperfluidTester._StackVars_UseBools memory useBools_,
         PoolConfig memory config
     ) public {
         ISuperfluidPool pool = _helperCreatePool(superToken, alice, alice, false, config);
-        vm.assume(uint32(distributionFlowRate) >= minDepositMultiplier);
+        vm.assume(uint32(distributionFlowRate) >= minDepositFlowRate);
         vm.assume(distributionFlowRate > 0);
         vm.assume(member != address(0));
         vm.assume(member != address(freePool));
@@ -419,7 +419,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
 
         vm.startPrank(address(sf.governance.owner()));
 
-        uint256 minimumDeposit = 4 hours * uint256(minDepositMultiplier);
+        uint256 minimumDeposit = 4 hours * uint256(minDepositFlowRate);
         sf.governance.setSuperTokenMinimumDeposit(sf.host, superToken, minimumDeposit);
         vm.stopPrank();
 

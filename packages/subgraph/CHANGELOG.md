@@ -9,6 +9,21 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## [1.7.0] - 2024-02-05
 
 ### Added
+- NFT specific event entities
+- GDA event entities
+- GDA HOL entities
+- New properties on aggregate entities to distinguish between CFA and GDA data where applicable
+- `scripts/buildNetworkConfig.ts` added for building network config from metadata in place of hardcoded config json files
+- `getHostedServiceNetworks.ts` added for getting the list of networks in place of hardcoded `networks.json`, improves maintenance + adding
+
+
+### Changed
+
+
+## [1.6.1] - 2023-08-15
+
+### Added
+- `totalNumberOfAccounts` and `totalNumberOfHolders` added to `TokenStatistic` and `TokenStatisticLog` entities
 
 ## [1.6.0] - 2023-07-13
 

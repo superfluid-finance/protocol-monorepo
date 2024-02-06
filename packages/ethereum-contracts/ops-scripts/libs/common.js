@@ -291,7 +291,7 @@ async function sendGovernanceAction(sf, actionFn) {
         case "OWNABLE": {
             console.log("Governance Admin Type: Direct Ownership (default)");
             console.log("Executing governance action...");
-            await actionFn(gov);
+            await actionFn(gov.contract.methods);
             console.log("Governance action executed.");
             break;
         }
@@ -318,8 +318,9 @@ async function sendGovernanceAction(sf, actionFn) {
 // Throws when encountering an unknown contract.
 // TODO: add support for detecting SAFE
 async function autodetectAdminType(sf, account) {
+    console.debug("Auto detecting admin type of", account);
     if (!await hasCode(web3, account)) {
-        console.log("account has no code");
+        console.debug("Account has no code, assuming ownable contract.");
         return "OWNABLE";
     }
 
@@ -328,7 +329,7 @@ async function autodetectAdminType(sf, account) {
         await multis.required();
         return "MULTISIG";
     } catch(e) {
-        console.log("not detecting legacy multisig fingerprint");
+        console.debug("Not detecting legacy multisig fingerprint.");
     }
 
     try {
@@ -337,7 +338,7 @@ async function autodetectAdminType(sf, account) {
         console.log("detected Safe version", safeVersion);
         return "SAFE";
     } catch(e) {
-        console.log("not detecting Safe fingerprint");
+        console.debug("Not detecting Safe fingerprint.");
     }
 
     throw new Error(`Unknown admin contract type of account ${account}`);

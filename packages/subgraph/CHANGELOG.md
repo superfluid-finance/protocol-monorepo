@@ -16,10 +16,6 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - `scripts/buildNetworkConfig.ts` added for building network config from metadata in place of hardcoded config json files
 - `getHostedServiceNetworks.ts` added for getting the list of networks in place of hardcoded `networks.json`, improves maintenance + adding
 
-
-### Changed
-
-
 ## [1.6.1] - 2023-08-15
 
 ### Added

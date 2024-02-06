@@ -39,7 +39,7 @@ import { IResolver } from "../interfaces/utils/IResolver.sol";
 /// @author Superfluid
 /// @notice A contract which splits framework deployment into steps.
 /// @dev This was necessary because of the contract size limit of the deployed contract
-/// which is an issue when deploying the original framework with Hardhat.
+///      which is an issue when deploying the original framework with Hardhat.
 /// https://github.com/NomicFoundation/hardhat/issues/3404#issuecomment-1346849400
 contract SuperfluidFrameworkDeploymentSteps {
     bool public constant DEFAULT_NON_UPGRADEABLE = false;
@@ -48,9 +48,6 @@ contract SuperfluidFrameworkDeploymentSteps {
     uint256 public constant DEFAULT_LIQUIDATION_PERIOD = 4 hours;
     uint256 public constant DEFAULT_PATRICIAN_PERIOD = 30 minutes;
     uint256 public constant DEFAULT_TOGA_MIN_BOND_DURATION = 1 weeks;
-    // TODO we blame solidity that does not suppor this yet
-    // solhint-disable-next-line var-name-mixedcase
-    address[] public DEFAULT_TRUSTED_FORWARDERS = new address[](0);
 
     string public constant RESOLVER_BASE_SUPER_TOKEN_KEY = "supertokens.test.";
     string public constant RESOLVER_BASE_TOKEN_KEY = "tokens.test.";
@@ -83,40 +80,31 @@ contract SuperfluidFrameworkDeploymentSteps {
     Superfluid internal host;
 
     // Agreement Contracts
-    ConstantFlowAgreementV1 internal cfaV1;
-    ConstantFlowAgreementV1 internal cfaV1Logic;
+    ConstantFlowAgreementV1        internal cfaV1;
     InstantDistributionAgreementV1 internal idaV1;
-    InstantDistributionAgreementV1 internal idaV1Logic;
     GeneralDistributionAgreementV1 internal gdaV1;
-    GeneralDistributionAgreementV1 internal gdaV1Logic;
 
     // SuperToken-related Contracts
-    ConstantOutflowNFT internal constantOutflowNFTLogic;
-    ConstantInflowNFT internal constantInflowNFTLogic;
     ConstantOutflowNFT internal constantOutflowNFT;
-    ConstantInflowNFT internal constantInflowNFT;
-    PoolAdminNFT internal poolAdminNFTLogic;
-    PoolMemberNFT internal poolMemberNFTLogic;
-    PoolAdminNFT internal poolAdminNFT;
-    PoolMemberNFT internal poolMemberNFT;
-    ISuperToken internal superTokenLogic;
-    SuperTokenFactory internal superTokenFactory;
-    SuperTokenFactory internal superTokenFactoryLogic;
+    ConstantInflowNFT  internal constantInflowNFT;
+    PoolAdminNFT       internal poolAdminNFT;
+    PoolMemberNFT      internal poolMemberNFT;
 
-    // Peripheral Contracts
-    TestResolver internal testResolver;
-    SuperfluidLoader internal superfluidLoader;
+    ISuperToken       internal superTokenLogic;
+    SuperTokenFactory internal superTokenFactory;
+
+    // Forwarders
     CFAv1Forwarder internal cfaV1Forwarder;
     IDAv1Forwarder internal idaV1Forwarder;
     GDAv1Forwarder internal gdaV1Forwarder;
+
+    // Other Peripheral Contracts
+    TestResolver internal testResolver;
+    SuperfluidLoader internal superfluidLoader;
     BatchLiquidator internal batchLiquidator;
     TOGA internal toga;
 
-    error DEPLOY_AGREEMENTS_REQUIRES_DEPLOY_CORE();
-    error DEPLOY_PERIPHERALS_REQUIRES_DEPLOY_CORE();
-    error DEPLOY_PERIPHERALS_REQUIRES_DEPLOY_AGREEMENTS();
     error DEPLOY_TOGA_REQUIRES_1820();
-    error DEPLOY_SUPER_TOKEN_CONTRACTS_REQUIRES_DEPLOY_CORE();
     error DEPLOY_SUPER_TOKEN_REQUIRES_1820();
     error DEPLOY_SUPER_TOKEN_REQUIRES_DEPLOY_SUPER_TOKEN_CONTRACTS();
     error RESOLVER_LIST_REQUIRES_DEPLOY_PERIPHERALS();
@@ -154,62 +142,45 @@ contract SuperfluidFrameworkDeploymentSteps {
     }
 
     function getNumSteps() public pure returns (uint8) {
-        return 8;
+        return 7;
     }
 
     function executeStep(uint8 step) public {
         if (step != currentStep) revert("Incorrect step");
 
-        // CORE CONTRACTS
-        if (step == 0) {
-            // Deploy Superfluid Governance
-            // Deploy TestGovernance. Needs initialization later.
+        if (step == 0) { // CORE CONTRACT: TestGovernance
+            // Deploy TestGovernance, a Superfluid Governance for testing purpose. It needs initialization later.
             testGovernance = SuperfluidGovDeployerLibrary.deployTestGovernance();
 
             SuperfluidGovDeployerLibrary.transferOwnership(testGovernance, address(this));
-        } else if (step == 1) {
-            // Deploy Host
-            // _deployHost(nonUpgradable, appWhiteListingEnabled);
-            host = SuperfluidHostDeployerLibrary.deploySuperfluidHost(true, false);
+        } else if (step == 1) { // CORE CONTRACT: Superfluid (Host)
+            // Deploy Host and initialize the test governance.
+            host = SuperfluidHostDeployerLibrary.deploy(true, false);
 
-            // _initializeHost();
             host.initialize(testGovernance);
 
-            // _initializeGovernance(
-            //     DEFAULT_REWARD_ADDRESS, DEFAULT_LIQUIDATION_PERIOD, DEFAULT_PATRICIAN_PERIOD,
-            // DEFAULT_TRUSTED_FORWARDERS
-            // );
             testGovernance.initialize(
                 host,
                 DEFAULT_REWARD_ADDRESS,
                 DEFAULT_LIQUIDATION_PERIOD,
                 DEFAULT_PATRICIAN_PERIOD,
-                DEFAULT_TRUSTED_FORWARDERS
+                new address[](0) // no trusted forwarders
             );
-        } else if (step == 2) {
-            // AGREEMENT CONTRACTS
-            // Deploy Superfluid CFA, IDA, GDA
+        } else if (step == 2) { // CORE CONTRACTS: Core Agreements
+            ConstantFlowAgreementV1 cfaV1Logic = SuperfluidCFAv1DeployerLibrary.deploy(host);
+            InstantDistributionAgreementV1 idaV1Logic = SuperfluidIDAv1DeployerLibrary.deploy(host);
+            GeneralDistributionAgreementV1 gdaV1Logic;
+            {
+                // GDA proxy is not created yet, hence this is a bootstrapping workaround.
+                // First deploy the bootstrapping superfluid pool with GDA = address(0),
+                // We will redeploy the pool logic and upgrade this in the beacon later.
+                SuperfluidPool superfluidPoolLogic =
+                    SuperfluidPoolLogicDeployerLibrary.deploy(GeneralDistributionAgreementV1(address(0)));
+                SuperfluidUpgradeableBeacon superfluidPoolBeacon =
+                    ProxyDeployerLibrary.deploySuperfluidUpgradeableBeacon(address(superfluidPoolLogic));
+                gdaV1Logic = SuperfluidGDAV1DeployerLibrary.deploy(host, superfluidPoolBeacon);
+            }
 
-            if (address(host) == address(0)) revert DEPLOY_AGREEMENTS_REQUIRES_DEPLOY_CORE();
-
-            // _deployAgreementContracts();
-            // _deployCFAv1();
-            cfaV1Logic = SuperfluidCFAv1DeployerLibrary.deployConstantFlowAgreementV1(host);
-
-            // _deployIDAv1();
-            idaV1Logic = SuperfluidIDAv1DeployerLibrary.deployInstantDistributionAgreementV1(host);
-
-            // _deployGDAv1();
-            // @note first deploy superfluid pool with GDA = address(0)
-            // @note we will redeploy the pool logic and upgrade this in the beacon later
-            SuperfluidPool superfluidPoolLogic =
-                SuperfluidPoolLogicDeployerLibrary.deploySuperfluidPool(GeneralDistributionAgreementV1(address(0)));
-            SuperfluidUpgradeableBeacon superfluidPoolBeacon =
-                ProxyDeployerLibrary.deploySuperfluidUpgradeableBeacon(address(superfluidPoolLogic));
-            gdaV1Logic =
-                SuperfluidGDAv1DeployerLibrary.deployGeneralDistributionAgreementV1(host, superfluidPoolBeacon);
-
-            // _registerAgreements();
             // we set the canonical address based on host.getAgreementClass() because
             // in the upgradeable case, we create a new proxy contract in the function
             // and set it as the canonical agreement.
@@ -219,143 +190,89 @@ contract SuperfluidFrameworkDeploymentSteps {
             idaV1 = InstantDistributionAgreementV1(address(host.getAgreementClass(idaV1Logic.agreementType())));
             testGovernance.registerAgreementClass(host, address(gdaV1Logic));
             gdaV1 = GeneralDistributionAgreementV1(address(host.getAgreementClass(gdaV1Logic.agreementType())));
-        } else if (step == 3) {
-            // PERIPHERAL CONTRACTS: FORWARDERS
+
+            {
+                SuperfluidPool superfluidPoolLogic = SuperfluidPoolLogicDeployerLibrary.deploy(gdaV1);
+                superfluidPoolLogic.castrate();
+
+                // Deploy SuperfluidPool beacon
+                // @note we upgrade the superfluid beacon to point to the new and correct superfluid pool logic
+                gdaV1Logic.superfluidPoolBeacon().upgradeTo(address(superfluidPoolLogic));
+                gdaV1Logic.superfluidPoolBeacon().transferOwnership(address(host));
+            }
+        } else if (step == 3) {// PERIPHERAL CONTRACTS: NFT Proxy and Logic
+            {
+                constantOutflowNFT = ConstantOutflowNFT(address(ProxyDeployerLibrary.deployUUPSProxy()));
+                constantInflowNFT = ConstantInflowNFT(address(ProxyDeployerLibrary.deployUUPSProxy()));
+
+                ConstantOutflowNFT constantOutflowNFTLogic = SuperfluidFlowNFTLogicDeployerLibrary
+                    .deployConstantOutflowNFT(host, cfaV1, gdaV1, constantInflowNFT);
+                constantOutflowNFTLogic.castrate();
+
+                ConstantInflowNFT constantInflowNFTLogic = SuperfluidFlowNFTLogicDeployerLibrary
+                    .deployConstantInflowNFT(host, cfaV1, gdaV1, constantOutflowNFT);
+                constantInflowNFTLogic.castrate();
+
+                UUPSProxy(payable(address(constantOutflowNFT))).initializeProxy(address(constantOutflowNFTLogic));
+
+                UUPSProxy(payable(address(constantInflowNFT))).initializeProxy(address(constantInflowNFTLogic));
+
+                constantOutflowNFT.initialize("Constant Outflow NFT", "COF");
+
+                constantInflowNFT.initialize("Constant Inflow NFT", "CIF");
+            }
+
+            {
+                poolAdminNFT = PoolAdminNFT(address(ProxyDeployerLibrary.deployUUPSProxy()));
+                PoolAdminNFT poolAdminNFTLogic =
+                    SuperfluidPoolNFTLogicDeployerLibrary.deployPoolAdminNFT(host, gdaV1);
+                poolAdminNFTLogic.castrate();
+                UUPSProxy(payable(address(poolAdminNFT))).initializeProxy(address(poolAdminNFTLogic));
+
+                poolMemberNFT = PoolMemberNFT(address(ProxyDeployerLibrary.deployUUPSProxy()));
+                PoolMemberNFT poolMemberNFTLogic =
+                    SuperfluidPoolNFTLogicDeployerLibrary.deployPoolMemberNFT(host, gdaV1);
+                poolMemberNFTLogic.castrate();
+                UUPSProxy(payable(address(poolMemberNFT))).initializeProxy(address(poolMemberNFTLogic));
+
+                poolAdminNFT.initialize("Pool Admin NFT", "PA");
+                poolMemberNFT.initialize("Pool Member NFT", "PM");
+            }
+        } else if (step == 4) { // PERIPHERAL CONTRACTS: FORWARDERS
             // Deploy CFAv1Forwarder
-            // _deployCFAv1Forwarder()
-            cfaV1Forwarder = CFAv1ForwarderDeployerLibrary.deployCFAv1Forwarder(host);
-            // _enableCFAv1ForwarderAsTrustedForwarder()
+            cfaV1Forwarder = CFAv1ForwarderDeployerLibrary.deploy(host);
             testGovernance.enableTrustedForwarder(host, ISuperfluidToken(address(0)), address(cfaV1Forwarder));
 
             // Deploy IDAv1Forwarder
-            // _deployIDAv1Forwarder();
-            idaV1Forwarder = IDAv1ForwarderDeployerLibrary.deployIDAv1Forwarder(host);
-            // _enableIDAv1ForwarderAsTrustedForwarder();
+            idaV1Forwarder = IDAv1ForwarderDeployerLibrary.deploy(host);
             testGovernance.enableTrustedForwarder(host, ISuperfluidToken(address(0)), address(idaV1Forwarder));
 
             // Deploy GDAv1Forwarder
-            // _deployGDAv1Forwarder();
-            gdaV1Forwarder = GDAv1ForwarderDeployerLibrary.deployGDAv1Forwarder(host);
-            // _enableGDAv1ForwarderAsTrustedForwarder();
+            gdaV1Forwarder = GDAv1ForwarderDeployerLibrary.deploy(host);
             testGovernance.enableTrustedForwarder(host, ISuperfluidToken(address(0)), address(gdaV1Forwarder));
-        } else if (step == 4) {
-            // PERIPHERAL CONTRACTS: SuperfluidPool Logic
-            // Deploy SuperfluidPool
-            // Initialize GDA with SuperfluidPool beacon
-            // _deploySuperfluidPoolLogicAndInitializeGDA();
-
-            /// Deploy SuperfluidPool logic contract
-            // @note we redeploy the superfluid pool here
-            SuperfluidPool superfluidPoolLogic = SuperfluidPoolLogicDeployerLibrary.deploySuperfluidPool(gdaV1);
-
-            // Initialize the logic contract
-            superfluidPoolLogic.castrate();
-
-            // Deploy SuperfluidPool beacon
-            // @note we upgrade the superfluid beacon to point to the new and correct superfluid pool logic
-            gdaV1Logic.superfluidPoolBeacon().upgradeTo(address(superfluidPoolLogic));
-            gdaV1Logic.superfluidPoolBeacon().transferOwnership(address(host));
-        } else if (step == 5) {
-            // PERIPHERAL CONTRACTS: NFT Proxy and Logic
-            // Deploy Superfluid NFTs (Proxy and Logic contracts)
-
-            if (address(host) == address(0)) revert DEPLOY_SUPER_TOKEN_CONTRACTS_REQUIRES_DEPLOY_CORE();
-            // Deploy canonical Constant Outflow NFT proxy contract
-            UUPSProxy constantOutflowNFTProxy = ProxyDeployerLibrary.deployUUPSProxy();
-
-            // Deploy canonical Constant Outflow NFT proxy contract
-            UUPSProxy constantInflowNFTProxy = ProxyDeployerLibrary.deployUUPSProxy();
-
-            // Deploy canonical Pool Admin NFT proxy contract
-            UUPSProxy poolAdminNFTProxy = ProxyDeployerLibrary.deployUUPSProxy();
-
-            // Deploy canonical Pool Member NFT proxy contract
-            UUPSProxy poolMemberNFTProxy = ProxyDeployerLibrary.deployUUPSProxy();
-
-            // Deploy canonical Constant Outflow NFT logic contract
-            constantOutflowNFTLogic = SuperfluidFlowNFTLogicDeployerLibrary.deployConstantOutflowNFT(
-                host, cfaV1, gdaV1Logic, IConstantInflowNFT(address(constantInflowNFTProxy))
-            );
-
-            // Initialize Constant Outflow NFT logic contract
-            constantOutflowNFTLogic.castrate();
-
-            // Deploy canonical Constant Inflow NFT logic contract
-            constantInflowNFTLogic = SuperfluidFlowNFTLogicDeployerLibrary.deployConstantInflowNFT(
-                host, cfaV1, gdaV1Logic, IConstantOutflowNFT(address(constantOutflowNFTProxy))
-            );
-
-            // Initialize Constant Inflow NFT logic contract
-            constantInflowNFTLogic.castrate();
-
-            // Deploy canonical Pool Admin NFT logic contract
-            poolAdminNFTLogic = SuperfluidPoolNFTLogicDeployerLibrary.deployPoolAdminNFT(host, gdaV1Logic);
-
-            // Initialize Pool Admin NFT logic contract
-            poolAdminNFTLogic.castrate();
-
-            // Deploy canonical Pool Member NFT logic contract
-            poolMemberNFTLogic = SuperfluidPoolNFTLogicDeployerLibrary.deployPoolMemberNFT(host, gdaV1Logic);
-
-            // Initialize Pool Member NFT logic contract
-            poolMemberNFTLogic.castrate();
-
-            // Initialize COFNFT proxy contract
-            constantOutflowNFTProxy.initializeProxy(address(constantOutflowNFTLogic));
-
-            // Initialize CIFNFT proxy contract
-            constantInflowNFTProxy.initializeProxy(address(constantInflowNFTLogic));
-
-            // Initialize Pool Admin NFT proxy contract
-            poolAdminNFTProxy.initializeProxy(address(poolAdminNFTLogic));
-
-            // Initialize Pool Member NFT proxy contract
-            poolMemberNFTProxy.initializeProxy(address(poolMemberNFTLogic));
-
-            // // Initialize COFNFT proxy contract
-            IConstantOutflowNFT(address(constantOutflowNFTProxy)).initialize("Constant Outflow NFT", "COF");
-
-            // // Initialize CIFNFT proxy contract
-            IConstantInflowNFT(address(constantInflowNFTProxy)).initialize("Constant Inflow NFT", "CIF");
-
-            // // Initialize Pool Admin NFT proxy contract
-            IPoolAdminNFT(address(poolAdminNFTProxy)).initialize("Pool Admin NFT", "PA");
-
-            // // Initialize Pool Member NFT proxy contract
-            IPoolMemberNFT(address(poolMemberNFTProxy)).initialize("Pool Member NFT", "PM");
-
-            constantOutflowNFT = ConstantOutflowNFT(address(constantOutflowNFTProxy));
-            constantInflowNFT = ConstantInflowNFT(address(constantInflowNFTProxy));
-            poolAdminNFT = PoolAdminNFT(address(poolAdminNFTProxy));
-            poolMemberNFT = PoolMemberNFT(address(poolMemberNFTProxy));
-        } else if (step == 6) {
-            // PERIPHERAL CONTRACTS: SuperToken Logic and SuperTokenFactory Logic
-            // Deploy SuperToken Logic
-            // Deploy SuperToken Factory
-
-            // _deploySuperTokenLogic();
+        } else if (step == 5) {// PERIPHERAL CONTRACTS: SuperToken Logic and SuperTokenFactory Logic
             // Deploy canonical SuperToken logic contract
-            superTokenLogic = SuperToken(
-                SuperTokenDeployerLibrary.deploySuperTokenLogic(
-                    host,
-                    IConstantOutflowNFT(address(constantOutflowNFT)),
-                    IConstantInflowNFT(address(constantInflowNFT)),
-                    IPoolAdminNFT(address(poolAdminNFT)),
-                    IPoolMemberNFT(address(poolMemberNFT))
-                )
-            );
+            superTokenLogic = SuperToken(SuperTokenDeployerLibrary.deploy(
+                host,
+                constantOutflowNFT,
+                constantInflowNFT,
+                poolAdminNFT,
+                poolMemberNFT
+            ));
 
-            // _deploySuperTokenFactory();
-            superTokenFactoryLogic = SuperfluidPeripheryDeployerLibrary.deploySuperTokenFactory(
+            // Deploy SuperToken Factory
+            // Note:
+            // - Logic contract is used because super token factory caches them as an optimization during upgrade. Read
+            //   its code.
+            SuperTokenFactory superTokenFactoryLogic = SuperfluidPeripheryDeployerLibrary.deploySuperTokenFactory(
                 host,
                 superTokenLogic,
-                constantOutflowNFTLogic,
-                constantInflowNFTLogic,
-                poolAdminNFTLogic,
-                poolMemberNFTLogic
+                IConstantOutflowNFT(constantOutflowNFT.getCodeAddress()),
+                IConstantInflowNFT(constantInflowNFT.getCodeAddress()),
+                IPoolAdminNFT(poolAdminNFT.getCodeAddress()),
+                IPoolMemberNFT(poolMemberNFT.getCodeAddress())
             );
 
-            // _setSuperTokenFactoryInHost();
             // 'Update' code with Governance and register SuperTokenFactory with Superfluid
             testGovernance.updateContracts(
                 host, address(0), new address[](0), address(superTokenFactoryLogic), address(0)
@@ -365,20 +282,15 @@ contract SuperfluidFrameworkDeploymentSteps {
             // in the upgradeable case, we create a new proxy contract in the function
             // and set it as the canonical supertokenfactory.
             superTokenFactory = SuperTokenFactory(address(host.getSuperTokenFactory()));
-        } else if (step == 7) {
-            // PERIPHERAL CONTRACTS: Resolver, SuperfluidLoader, TOGA, BatchLiquidator
+        } else if (step == 6) {// PERIPHERAL CONTRACTS: Resolver, SuperfluidLoader, TOGA, BatchLiquidator
             // Deploy TestResolver
             // Deploy SuperfluidLoader and make SuperfluidFrameworkDeployer an admin for the TestResolver
             // Set TestGovernance, Superfluid, SuperfluidLoader and CFAv1Forwarder in TestResolver
-
-            // _deployTestResolver(resolverAdmin);
-            if (address(host) == address(0)) revert DEPLOY_PERIPHERALS_REQUIRES_DEPLOY_CORE();
             testResolver = SuperfluidPeripheryDeployerLibrary.deployTestResolver(address(this));
 
-            // _deploySuperfluidLoader();
-            superfluidLoader = SuperfluidLoaderDeployerLibrary.deploySuperfluidLoader(testResolver);
+            // Deploy superfluid loader
+            superfluidLoader = SuperfluidPeripheryDeployerLibrary.deploySuperfluidLoader(testResolver);
 
-            // _setAddressesInResolver();
             // Register Governance with Resolver
             testResolver.set("TestGovernance.test", address(testGovernance));
 
@@ -400,15 +312,13 @@ contract SuperfluidFrameworkDeploymentSteps {
             // Make SuperfluidFrameworkDeployer deployer an admin for the TestResolver as well
             testResolver.addAdmin(msg.sender);
 
-            // _deployTOGA();
-            if (!_is1820Deployed()) revert DEPLOY_TOGA_REQUIRES_1820();
-            toga = new TOGA(host, DEFAULT_TOGA_MIN_BOND_DURATION);
-            testGovernance.setRewardAddress(host, ISuperfluidToken(address(0)), address(toga));
+            // Deploy batch liquidator
+            batchLiquidator = SuperfluidPeripheryDeployerLibrary.deployBatchLiquidator(host);
 
-            // _deployBatchLiquidator();
-            if (address(cfaV1) == address(0)) revert DEPLOY_PERIPHERALS_REQUIRES_DEPLOY_CORE();
-            if (address(cfaV1) == address(0)) revert DEPLOY_PERIPHERALS_REQUIRES_DEPLOY_AGREEMENTS();
-            batchLiquidator = new BatchLiquidator(address(host));
+            // Deploy TOGA
+            if (!_is1820Deployed()) revert DEPLOY_TOGA_REQUIRES_1820();
+            toga = SuperfluidPeripheryDeployerLibrary.deployTOGA(host, DEFAULT_TOGA_MIN_BOND_DURATION);
+            testGovernance.setRewardAddress(host, ISuperfluidToken(address(0)), address(toga));
         } else {
             revert("Invalid step");
         }
@@ -427,49 +337,30 @@ contract SuperfluidFrameworkDeploymentSteps {
 
 //// External Libraries ////
 
-/// @title SuperfluidGovDeployerLibrary
-/// @author Superfluid
-/// @notice An external library that deploys the Superfluid TestGovernance contract with additional functions
-/// @dev This library is used for testing purposes only, not deployments to test OR production networks
 library SuperfluidGovDeployerLibrary {
-    /// @notice deploys the Superfluid TestGovernance Contract
-    /// @return newly deployed TestGovernance contract
     function deployTestGovernance() external returns (TestGovernance) {
         return new TestGovernance();
     }
 
-    /// @notice transfers ownership of _gov to _newOwner
-    /// @dev _gov must be deployed from this contract
-    /// @param _gov address of the TestGovernance contract
-    /// @param _newOwner the new owner of the governance contract
     function transferOwnership(TestGovernance _gov, address _newOwner) external {
         _gov.transferOwnership(_newOwner);
     }
 }
 
-/// @title SuperfluidHostDeployerLibrary
-/// @author Superfluid
-/// @notice An external library that deploys the Superfluid Host contract with additional functions.
-/// @dev This library is used for testing purposes only, not deployments to test OR production networks
 library SuperfluidHostDeployerLibrary {
-    /// @notice Deploys the Superfluid Host Contract
-    /// @param _nonUpgradable whether the hsot contract is upgradeable or not
-    /// @param _appWhiteListingEnabled whether app white listing is enabled
-    /// @return Superfluid newly deployed Superfluid Host contract
-    function deploySuperfluidHost(bool _nonUpgradable, bool _appWhiteListingEnabled) external returns (Superfluid) {
+    function deploy(bool _nonUpgradable, bool _appWhiteListingEnabled) external returns (Superfluid) {
         return new Superfluid(_nonUpgradable, _appWhiteListingEnabled);
     }
 }
 
-/// @title SuperfluidIDAv1DeployerLibrary
-/// @author Superfluid
-/// @notice An external library that deploys the Superfluid InstantDistributionAgreementV1 contract.
-/// @dev This library is used for testing purposes only, not deployments to test OR production networks
+library SuperfluidCFAv1DeployerLibrary {
+    function deploy(ISuperfluid _host) external returns (ConstantFlowAgreementV1) {
+        return new ConstantFlowAgreementV1(_host);
+    }
+}
+
 library SuperfluidIDAv1DeployerLibrary {
-    /// @notice deploys the Superfluid InstantDistributionAgreementV1 Contract
-    /// @param _host Superfluid host address
-    /// @return newly deployed InstantDistributionAgreementV1 contract
-    function deployInstantDistributionAgreementV1(ISuperfluid _host)
+    function deploy(ISuperfluid _host)
         external
         returns (InstantDistributionAgreementV1)
     {
@@ -477,48 +368,40 @@ library SuperfluidIDAv1DeployerLibrary {
     }
 }
 
-/// @title SuperfluidGDAv1DeployerLibrary
-/// @author Superfluid
-/// @notice An external library that deploys Superfluid GeneralDistributionAgreementV1 contract
-/// @dev This library is used for testing purposes only, not deployments to test OR production networks
-library SuperfluidGDAv1DeployerLibrary {
-    /// @notice deploys the Superfluid GeneralDistributionAgreementV1 Contract
-    /// @param host Superfluid host address
-    /// @param superfluidPoolBeacon beacon proxy for the superfluid pool logic
-    /// @return newly deployed GeneralDistributionAgreementV1 contract
-    function deployGeneralDistributionAgreementV1(ISuperfluid host, SuperfluidUpgradeableBeacon superfluidPoolBeacon)
-        external
-        returns (GeneralDistributionAgreementV1)
+library SuperfluidPoolLogicDeployerLibrary {
+    function deploy(GeneralDistributionAgreementV1 gda) external returns (SuperfluidPool) {
+        return new SuperfluidPool(gda);
+    }
+}
+
+library SuperfluidGDAV1DeployerLibrary {
+    function deploy(ISuperfluid host, SuperfluidUpgradeableBeacon superfluidPoolBeacon) external
+        returns (GeneralDistributionAgreementV1 gdaV1Logic)
     {
-        return new GeneralDistributionAgreementV1(host, superfluidPoolBeacon);
+        gdaV1Logic = new GeneralDistributionAgreementV1(host, superfluidPoolBeacon);
     }
 }
 
-/// @title SuperfluidCFAv1DeployerLibrary
-/// @author Superfluid
-/// @notice An external library that deploys Superfluid ConstantFlowAgreementV1 contract
-/// @dev This library is used for testing purposes only, not deployments to test OR production networks
-library SuperfluidCFAv1DeployerLibrary {
-    /// @notice deploys ConstantFlowAgreementV1 contract
-    /// @param _host address of the Superfluid contract
-    /// @return newly deployed ConstantFlowAgreementV1 contract
-    function deployConstantFlowAgreementV1(ISuperfluid _host) external returns (ConstantFlowAgreementV1) {
-        return new ConstantFlowAgreementV1(_host);
+library CFAv1ForwarderDeployerLibrary {
+    function deploy(ISuperfluid _host) external returns (CFAv1Forwarder) {
+        return new CFAv1Forwarder(_host);
     }
 }
 
-/// @title SuperToken deployer library
-/// @author Superfluid
-/// @notice This is an external library used to deploy SuperToken logic contracts
+library IDAv1ForwarderDeployerLibrary {
+    function deploy(ISuperfluid _host) external returns (IDAv1Forwarder) {
+        return new IDAv1Forwarder(_host);
+    }
+}
+
+library GDAv1ForwarderDeployerLibrary {
+    function deploy(ISuperfluid _host) external returns (GDAv1Forwarder) {
+        return new GDAv1Forwarder(_host);
+    }
+}
+
 library SuperTokenDeployerLibrary {
-    /// @notice Deploy a SuperToken logic contract
-    /// @param host the address of the host contract
-    /// @param constantOutflowNFT the address of the ConstantOutflowNFT contract
-    /// @param constantInflowNFT the address of the ConstantInflowNFT contract
-    /// @param poolAdminNFT the address of the PoolAdminNFT contract
-    /// @param poolMemberNFT the address of the PoolMemberNFT contract
-    /// @return the address of the newly deployed SuperToken logic contract
-    function deploySuperTokenLogic(
+    function deploy(
         ISuperfluid host,
         IConstantOutflowNFT constantOutflowNFT,
         IConstantInflowNFT constantInflowNFT,
@@ -529,142 +412,39 @@ library SuperTokenDeployerLibrary {
     }
 }
 
-/// @title SuperfluidPeripheryDeployerLibrary
-/// @author Superfluid
-/// @notice An external library that deploys Superfluid periphery contracts (Super Token Factory and Test Resolver)
-/// @dev This library is used for testing purposes only, not deployments to test OR production networks
-library SuperfluidPeripheryDeployerLibrary {
-    /// @dev deploys Super Token Factory contract
-    /// @param _host address of the Superfluid contract
-    /// @param _superTokenLogic address of the Super Token logic contract
-    /// @param constantOutflowNFTLogic address of the Constant Outflow NFT logic contract
-    /// @param constantInflowNFTLogic address of the Constant Inflow NFT logic contract
-    /// @param poolAdminNFTLogic address of the Pool Admin NFT logic contract
-    /// @param poolMemberNFTLogic address of the Pool Member NFT logic contract
-    /// @return newly deployed SuperTokenFactory contract
-    function deploySuperTokenFactory(
-        ISuperfluid _host,
-        ISuperToken _superTokenLogic,
-        IConstantOutflowNFT constantOutflowNFTLogic,
-        IConstantInflowNFT constantInflowNFTLogic,
-        IPoolAdminNFT poolAdminNFTLogic,
-        IPoolMemberNFT poolMemberNFTLogic
-    ) external returns (SuperTokenFactory) {
-        return new SuperTokenFactory(
-            _host,
-            _superTokenLogic,
-            constantOutflowNFTLogic,
-            constantInflowNFTLogic,
-            poolAdminNFTLogic,
-            poolMemberNFTLogic
-        );
-    }
-
-    /// @dev deploys Test Resolver contract
-    /// @param _additionalAdmin address of the additional administrator of the Test Resolver contract
-    /// @return newly deployed Test Resolver contract
-    function deployTestResolver(address _additionalAdmin) external returns (TestResolver) {
-        return new TestResolver(_additionalAdmin);
-    }
-}
-
-library CFAv1ForwarderDeployerLibrary {
-    /// @notice deploys the Superfluid CFAv1Forwarder contract
-    /// @param _host Superfluid host address
-    /// @return newly deployed CFAv1Forwarder contract
-    function deployCFAv1Forwarder(ISuperfluid _host) external returns (CFAv1Forwarder) {
-        return new CFAv1Forwarder(_host);
-    }
-}
-
-library IDAv1ForwarderDeployerLibrary {
-    /// @notice deploys the Superfluid IDAv1Forwarder contract
-    /// @param _host Superfluid host address
-    /// @return newly deployed IDAv1Forwarder contract
-    function deployIDAv1Forwarder(ISuperfluid _host) external returns (IDAv1Forwarder) {
-        return new IDAv1Forwarder(_host);
-    }
-}
-
-library GDAv1ForwarderDeployerLibrary {
-    /// @notice deploys the Superfluid GDAv1Forwarder contract
-    /// @param _host Superfluid host address
-    /// @return newly deployed GDAv1Forwarder contract
-    function deployGDAv1Forwarder(ISuperfluid _host) external returns (GDAv1Forwarder) {
-        return new GDAv1Forwarder(_host);
-    }
-}
-
-library SuperfluidLoaderDeployerLibrary {
-    /// @notice deploys the Superfluid SuperfluidLoader contract
-    /// @param _resolver Superfluid resolver address
-    /// @return newly deployed SuperfluidLoader contract
-    function deploySuperfluidLoader(IResolver _resolver) external returns (SuperfluidLoader) {
-        return new SuperfluidLoader(_resolver);
-    }
-}
-
-library SuperfluidPoolLogicDeployerLibrary {
-    /// @notice deploys the Superfluid SuperfluidPool contract
-    /// @return newly deployed SuperfluidPool contract
-    function deploySuperfluidPool(GeneralDistributionAgreementV1 _gda) external returns (SuperfluidPool) {
-        return new SuperfluidPool(_gda);
-    }
-}
-
 library SuperfluidFlowNFTLogicDeployerLibrary {
-    /// @notice deploys the Superfluid ConstantOutflowNFT contract
-    /// @param _host Superfluid host address
-    /// @param _cfa CFAv1 contract address
-    /// @param _gda GDAv1 contract address
-    /// @param _constantInflowNFTProxy address of the ConstantInflowNFT proxy contract
-    /// @return newly deployed ConstantOutflowNFT contract
     function deployConstantOutflowNFT(
-        ISuperfluid _host,
-        IConstantFlowAgreementV1 _cfa,
-        IGeneralDistributionAgreementV1 _gda,
-        IConstantInflowNFT _constantInflowNFTProxy
+        ISuperfluid host,
+        IConstantFlowAgreementV1 cfa,
+        IGeneralDistributionAgreementV1 gda,
+        IConstantInflowNFT constantInflowNFTProxy
     ) external returns (ConstantOutflowNFT) {
-        return new ConstantOutflowNFT(_host, _cfa, _gda, _constantInflowNFTProxy);
+        return new ConstantOutflowNFT(host, cfa, gda, constantInflowNFTProxy);
     }
 
-    /// @notice deploys the Superfluid ConstantInflowNFT contract
-    /// @param _host Superfluid host address
-    /// @param _cfa CFAv1 contract address
-    /// @param _gda GDAv1 contract address
-    /// @param _constantOutflowNFTProxy address of the ConstantOutflowNFT proxy contract
-    /// @return newly deployed ConstantInflowNFT contract
     function deployConstantInflowNFT(
-        ISuperfluid _host,
-        IConstantFlowAgreementV1 _cfa,
-        IGeneralDistributionAgreementV1 _gda,
-        IConstantOutflowNFT _constantOutflowNFTProxy
+        ISuperfluid host,
+        IConstantFlowAgreementV1 cfa,
+        IGeneralDistributionAgreementV1 gda,
+        IConstantOutflowNFT constantOutflowNFTProxy
     ) external returns (ConstantInflowNFT) {
-        return new ConstantInflowNFT(_host, _cfa, _gda, _constantOutflowNFTProxy);
+        return new ConstantInflowNFT(host, cfa, gda, constantOutflowNFTProxy);
     }
 }
 
 library SuperfluidPoolNFTLogicDeployerLibrary {
-    /// @notice deploys the Superfluid PoolAdminNFT contract
-    /// @param _host Superfluid host address
-    /// @param _gda GDAv1 contract address
-    /// @return newly deployed PoolAdminNFT contract
-    function deployPoolAdminNFT(ISuperfluid _host, IGeneralDistributionAgreementV1 _gda)
+    function deployPoolAdminNFT(ISuperfluid host, IGeneralDistributionAgreementV1 gda)
         external
         returns (PoolAdminNFT)
     {
-        return new PoolAdminNFT(_host, _gda);
+        return new PoolAdminNFT(host, gda);
     }
 
-    /// @notice deploys the Superfluid PoolMemberNFT contract
-    /// @param _host Superfluid host address
-    /// @param _gda GDAv1 contract address
-    /// @return newly deployed PoolMemberNFT contract
-    function deployPoolMemberNFT(ISuperfluid _host, IGeneralDistributionAgreementV1 _gda)
+    function deployPoolMemberNFT(ISuperfluid host, IGeneralDistributionAgreementV1 gda)
         external
         returns (PoolMemberNFT)
     {
-        return new PoolMemberNFT(_host, _gda);
+        return new PoolMemberNFT(host, gda);
     }
 }
 
@@ -694,5 +474,47 @@ library TokenDeployerLibrary {
 
     function deployPureSuperToken() external returns (PureSuperToken) {
         return new PureSuperToken();
+    }
+}
+
+library SuperfluidLoaderDeployerLibrary {
+    function deploy(ISuperfluid host, uint256 minBondDuration) external returns (TOGA) {
+        return new TOGA(host, minBondDuration);
+    }
+}
+
+library SuperfluidPeripheryDeployerLibrary {
+    function deploySuperTokenFactory(
+        ISuperfluid host,
+        ISuperToken superTokenLogic,
+        IConstantOutflowNFT constantOutflowNFTLogic,
+        IConstantInflowNFT constantInflowNFTLogic,
+        IPoolAdminNFT poolAdminNFTLogic,
+        IPoolMemberNFT poolMemberNFTLogic
+    ) external returns (SuperTokenFactory) {
+        return new SuperTokenFactory(
+            host,
+            superTokenLogic,
+            constantOutflowNFTLogic,
+            constantInflowNFTLogic,
+            poolAdminNFTLogic,
+            poolMemberNFTLogic
+        );
+    }
+
+    function deployTestResolver(address additionalAdmin) external returns (TestResolver) {
+        return new TestResolver(additionalAdmin);
+    }
+
+    function deploySuperfluidLoader(IResolver resolver) external returns (SuperfluidLoader) {
+        return new SuperfluidLoader(resolver);
+    }
+
+    function deployBatchLiquidator(ISuperfluid host) external returns (BatchLiquidator) {
+        return new BatchLiquidator(address(host));
+    }
+
+    function deployTOGA(ISuperfluid host, uint256 minBondDuration) external returns (TOGA) {
+        return SuperfluidLoaderDeployerLibrary.deploy(host, minBondDuration);
     }
 }

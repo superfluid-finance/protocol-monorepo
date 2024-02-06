@@ -76,7 +76,6 @@ jobs:
 
       - name: "Build and deploy local subgraph"
         run: |
-          yarn lint
           yarn build-and-deploy-local
           # artificial slow down to give the subgraph time to sync
           sleep 30

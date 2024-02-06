@@ -35,9 +35,11 @@ jobs:
           npx tsc --version
 
       - name: "Build contracts"
-        run: yarn build
+        run: |
+          yarn lint
+          yarn build
         working-directory: ./packages/ethereum-contracts
-      
+
       - name: "Build"
         run: npx ts-node scripts/buildNetworkConfig.ts polygon-mainnet
         working-directory: ${{ env.subgraph-working-directory }}

@@ -178,7 +178,7 @@ contract SuperfluidFrameworkDeploymentSteps {
                     SuperfluidPoolLogicDeployerLibrary.deploy(GeneralDistributionAgreementV1(address(0)));
                 SuperfluidUpgradeableBeacon superfluidPoolBeacon =
                     ProxyDeployerLibrary.deploySuperfluidUpgradeableBeacon(address(superfluidPoolLogic));
-                gdaV1Logic = SuperfluidGDAV1DeployerLibrary.deploy(host, superfluidPoolBeacon);
+                gdaV1Logic = SuperfluidGDAv1DeployerLibrary.deploy(host, superfluidPoolBeacon);
             }
 
             // we set the canonical address based on host.getAgreementClass() because
@@ -374,7 +374,7 @@ library SuperfluidPoolLogicDeployerLibrary {
     }
 }
 
-library SuperfluidGDAV1DeployerLibrary {
+library SuperfluidGDAv1DeployerLibrary {
     function deploy(ISuperfluid host, SuperfluidUpgradeableBeacon superfluidPoolBeacon) external
         returns (GeneralDistributionAgreementV1 gdaV1Logic)
     {

@@ -10,7 +10,7 @@ import { BeaconProxiable } from "../../upgradability/BeaconProxiable.sol";
  */
 contract SuperfluidPoolPlaceholder is BeaconProxiable {
     // don't allow to create instances of the placeholder
-    function initialize(address, address, bool ,bool) external {
+    function initialize(address, address, bool ,bool) external pure {
         // solhint-disable-next-line reason-string
         revert();
     }

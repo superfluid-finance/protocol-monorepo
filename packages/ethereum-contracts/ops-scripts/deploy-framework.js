@@ -1383,7 +1383,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
 
         await sendGovernanceAction(
             sfObjForGovAndResolver,
-            (gov) => gov["updateContracts(address,address,address[],address,address)"](
+            (gov) => gov.updateContracts(
                 superfluid.address,
                 superfluidNewLogicAddress,
                 agreementsToUpdate,

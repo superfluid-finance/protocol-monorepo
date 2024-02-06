@@ -291,7 +291,7 @@ async function sendGovernanceAction(sf, actionFn) {
         case "OWNABLE": {
             console.log("Governance Admin Type: Direct Ownership (default)");
             console.log("Executing governance action...");
-            await actionFn(gov.contract.methods);
+            await actionFn(gov);
             console.log("Governance action executed.");
             break;
         }

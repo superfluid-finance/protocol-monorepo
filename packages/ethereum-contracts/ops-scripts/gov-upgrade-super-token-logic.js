@@ -1,7 +1,6 @@
 const async = require("async");
 const fs = require("fs");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
-const {ZERO_ADDRESS} = require("./libs/common");
 
 const MAX_REQUESTS = 20;
 

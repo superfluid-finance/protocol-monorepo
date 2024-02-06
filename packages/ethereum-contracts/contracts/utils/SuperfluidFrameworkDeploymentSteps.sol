@@ -264,7 +264,7 @@ contract SuperfluidFrameworkDeploymentSteps {
             // Note:
             // - Logic contract is used because super token factory caches them as an optimization during upgrade. Read
             //   its code.
-            SuperTokenFactory superTokenFactoryLogic = SuperfluidPeripheryDeployerLibrary.deploySuperTokenFactory(
+            SuperTokenFactory superTokenFactoryLogic = SuperTokenFactoryDeployerLibrary.deploy(
                 host,
                 superTokenLogic,
                 IConstantOutflowNFT(constantOutflowNFT.getCodeAddress()),
@@ -477,14 +477,8 @@ library TokenDeployerLibrary {
     }
 }
 
-library SuperfluidLoaderDeployerLibrary {
-    function deploy(ISuperfluid host, uint256 minBondDuration) external returns (TOGA) {
-        return new TOGA(host, minBondDuration);
-    }
-}
-
-library SuperfluidPeripheryDeployerLibrary {
-    function deploySuperTokenFactory(
+library SuperTokenFactoryDeployerLibrary {
+    function deploy(
         ISuperfluid host,
         ISuperToken superTokenLogic,
         IConstantOutflowNFT constantOutflowNFTLogic,
@@ -501,7 +495,9 @@ library SuperfluidPeripheryDeployerLibrary {
             poolMemberNFTLogic
         );
     }
+}
 
+library SuperfluidPeripheryDeployerLibrary {
     function deployTestResolver(address additionalAdmin) external returns (TestResolver) {
         return new TestResolver(additionalAdmin);
     }
@@ -515,6 +511,6 @@ library SuperfluidPeripheryDeployerLibrary {
     }
 
     function deployTOGA(ISuperfluid host, uint256 minBondDuration) external returns (TOGA) {
-        return SuperfluidLoaderDeployerLibrary.deploy(host, minBondDuration);
+        return new TOGA(host, minBondDuration);
     }
 }

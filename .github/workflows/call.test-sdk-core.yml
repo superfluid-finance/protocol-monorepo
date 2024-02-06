@@ -39,7 +39,9 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: "Build contracts"
-        run: yarn build
+        run: |
+          yarn lint
+          yarn build
         working-directory: ${{ env.ethereum-contracts-working-directory }}
 
       - name: "Start hardhat node"
@@ -49,7 +51,9 @@ jobs:
 
       - name: "Build SDK-Core"
         # build sdk-core because of auto linking to dependency
-        run: yarn build
+        run: |
+          yarn lint
+          yarn build
         working-directory: ${{ env.sdk-core-working-directory }}
 
       - name: "Deploy Framework and Tokens"
@@ -72,6 +76,7 @@ jobs:
 
       - name: "Build and deploy local subgraph"
         run: |
+          yarn lint
           yarn build-and-deploy-local
           # artificial slow down to give the subgraph time to sync
           sleep 30

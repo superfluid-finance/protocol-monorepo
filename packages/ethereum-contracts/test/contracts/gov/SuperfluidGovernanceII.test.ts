@@ -75,9 +75,13 @@ describe("Superfluid Ownable Governance Contract", function () {
             onlyOwnerReason
         );
         await expectCustomError(
-            governance[
-                "updateContracts(address,address,address[],address,address)"
-            ](superfluid.address, ZERO_ADDRESS, [], ZERO_ADDRESS, ZERO_ADDRESS),
+            governance.updateContracts(
+                superfluid.address,
+                ZERO_ADDRESS,
+                [],
+                ZERO_ADDRESS,
+                ZERO_ADDRESS
+            ),
             governance,
             onlyOwnerReason
         );

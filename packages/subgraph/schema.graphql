@@ -2945,12 +2945,19 @@ type SFMeta @entity {
     id: ID!
     timestamp: BigInt!
     blockNumber: BigInt!
+
     """
     Whether the branch is feature/dev/v1.
     """
     configuration: String!
+
     """
     The branch the current deployment is coming from.
     """
     branch: String!
+
+    """
+    The subgraph package.json semver version of the current deployment.
+    """
+    packageVersion: String!
 }

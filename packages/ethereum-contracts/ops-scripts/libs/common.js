@@ -2,6 +2,7 @@ const path = require("path");
 const async = require("async");
 const {promisify} = require("util");
 const readline = require("readline");
+const truffleConfig = require("../../truffle-config");
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
@@ -64,6 +65,40 @@ function detectTruffle() {
         ).length > 0;
     console.log("truffle detected", truffleDetected);
     return truffleDetected;
+}
+
+// extracts the gas related config for the given network from the truffle config
+// returns an object with the relevant fields set in the config (empty if none)
+//
+// NOTE: This implememtation only works for settings provided by a network specific config,
+// not for settings provided by a wildcard (network_id: "*") config.
+function getGasConfig(networkId) {
+    let gasConfig = {};
+
+    const networkConfig = Object.values(truffleConfig.networks)
+        .filter(e => e !== undefined)
+        .find(e => e.network_id === networkId);
+
+    if (networkConfig !== undefined) {
+        // gas limit
+        if (networkConfig.gas !== undefined) {
+            gasConfig.gas = networkConfig.gas;
+        }
+        // legacy gas price
+        if (networkConfig.gasPrice !== undefined) {
+            gasConfig.gasPrice = networkConfig.gasPrice;
+        }
+
+        // EIP-1559 gas price
+        if (networkConfig.maxPriorityFeePerGas !== undefined) {
+            gasConfig.maxPriorityFeePerGas = networkConfig.maxPriorityFeePerGas;
+        }
+        if (networkConfig.maxFeePerGas !== undefined) {
+            gasConfig.maxFeePerGas = networkConfig.maxFeePerGas;
+        }
+    }
+
+    return gasConfig;
 }
 
 /****************************************************************
@@ -189,9 +224,9 @@ async function setResolver(sf, key, value) {
         }
         case "OWNABLE": {
             console.log("Resolver Admin type: Direct Ownership (default)");
-            console.log("Executing admin action...");
+            console.log("Executing resolver action...");
             await resolver.set(key, value);
-            console.log("Admin action executed.");
+            console.log("Resolver action executed.");
             break;
         }
         case "SAFE": {
@@ -221,7 +256,7 @@ async function setResolver(sf, key, value) {
  * @param actionFn function that gets governance methods as argument
  *
  * @note if the caller intends to invoke methods only available in SuperfluidGovernanceII
- * (e.g. UUPSProxiable or Ownable), it must provide the SuperfluidGovernanceII artifact
+ * (e.g. UUPSProxiable), it must provide the SuperfluidGovernanceII artifact
  * in the sf object.
  */
 async function sendGovernanceAction(sf, actionFn) {
@@ -283,8 +318,9 @@ async function sendGovernanceAction(sf, actionFn) {
 // Throws when encountering an unknown contract.
 // TODO: add support for detecting SAFE
 async function autodetectAdminType(sf, account) {
+    console.debug("Auto detecting admin type of", account);
     if (!await hasCode(web3, account)) {
-        console.log("account has no code");
+        console.debug("Account has no code, assuming ownable contract.");
         return "OWNABLE";
     }
 
@@ -293,7 +329,7 @@ async function autodetectAdminType(sf, account) {
         await multis.required();
         return "MULTISIG";
     } catch(e) {
-        console.log("not detecting legacy multisig fingerprint");
+        console.debug("Not detecting legacy multisig fingerprint.");
     }
 
     try {
@@ -302,7 +338,7 @@ async function autodetectAdminType(sf, account) {
         console.log("detected Safe version", safeVersion);
         return "SAFE";
     } catch(e) {
-        console.log("not detecting Safe fingerprint");
+        console.debug("Not detecting Safe fingerprint.");
     }
 
     throw new Error(`Unknown admin contract type of account ${account}`);
@@ -516,6 +552,7 @@ module.exports = {
     extractWeb3Options,
     builtTruffleContractLoader,
     detectTruffle,
+    getGasConfig,
 
     hasCode,
     codeChanged,

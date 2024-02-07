@@ -26,15 +26,13 @@ contract SuperTokenFactoryTest is FoundrySuperfluidTester {
             superToken.POOL_MEMBER_NFT()
         );
         ConstantOutflowNFT newConstantOutflowNFTLogic = new ConstantOutflowNFT(
-            sf.host,
-            IConstantInflowNFT(address(superToken.CONSTANT_INFLOW_NFT()))
+            sf.host, sf.cfa, sf.gda, IConstantInflowNFT(address(superToken.CONSTANT_INFLOW_NFT()))
         );
         ConstantInflowNFT newConstantInflowNFTLogic = new ConstantInflowNFT(
-            sf.host,
-            IConstantOutflowNFT(address(superToken.CONSTANT_OUTFLOW_NFT()))
+            sf.host, sf.cfa, sf.gda, IConstantOutflowNFT(address(superToken.CONSTANT_OUTFLOW_NFT()))
         );
-        PoolAdminNFT newPoolAdminNFTLogic = new PoolAdminNFT(sf.host);
-        PoolMemberNFT newPoolMemberNFTLogic = new PoolMemberNFT(sf.host);
+        PoolAdminNFT newPoolAdminNFTLogic = new PoolAdminNFT(sf.host, sf.gda);
+        PoolMemberNFT newPoolMemberNFTLogic = new PoolMemberNFT(sf.host, sf.gda);
         assertEq(
             UUPSProxiable(address(superToken.CONSTANT_OUTFLOW_NFT())).getCodeAddress(),
             address(sf.superTokenFactory.CONSTANT_OUTFLOW_NFT_LOGIC())

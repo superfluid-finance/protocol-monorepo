@@ -5,14 +5,10 @@ import "forge-std/Test.sol";
 import { IBeacon } from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 import "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
 
-import {
-    ProxyDeployerLibrary,
-    SuperfluidPoolLogicDeployerLibrary,
-    SuperfluidUpgradeableBeacon
-} from "../../../../contracts/utils/SuperfluidFrameworkDeploymentSteps.sol";
 import { ERC1820RegistryCompiled } from "../../../../contracts/libs/ERC1820RegistryCompiled.sol";
-import { SuperfluidFrameworkDeployer } from "../../../../contracts/utils/SuperfluidFrameworkDeployer.sol";
+import { SuperfluidFrameworkDeployer} from "../../../../contracts/utils/SuperfluidFrameworkDeployer.sol";
 import { TestToken } from "../../../../contracts/utils/TestToken.sol";
+import { SuperfluidUpgradeableBeacon } from "../../../../contracts/upgradability/SuperfluidUpgradeableBeacon.sol";
 import { ISuperToken, SuperToken } from "../../../../contracts/superfluid/SuperToken.sol";
 import { ISuperAgreement } from "../../../../contracts/interfaces/superfluid/ISuperAgreement.sol";
 import {
@@ -49,7 +45,7 @@ contract GeneralDistributionAgreementV1Properties is GeneralDistributionAgreemen
 
     address public constant alice = address(0x420);
 
-    constructor() GeneralDistributionAgreementV1(ISuperfluid(address(0))) {
+    constructor() GeneralDistributionAgreementV1(ISuperfluid(address(0)), SuperfluidUpgradeableBeacon(address(0))) {
         // deploy ERC1820 registry
         vm.etch(ERC1820RegistryCompiled.at, ERC1820RegistryCompiled.bin);
         sfDeployer = new SuperfluidFrameworkDeployer();
@@ -57,17 +53,6 @@ contract GeneralDistributionAgreementV1Properties is GeneralDistributionAgreemen
         sf = sfDeployer.getFramework();
 
         (token, superToken) = sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max, address(0));
-
-        // /// Deploy SuperfluidPool logic contract
-        // SuperfluidPool superfluidPoolLogic =
-        //     SuperfluidPoolLogicDeployerLibrary.deploySuperfluidPool(GeneralDistributionAgreementV1(address(this)));
-
-        // // Initialize the logic contract
-        // superfluidPoolLogic.castrate();
-
-        // SuperfluidUpgradeableBeacon superfluidPoolBeacon =
-        //     ProxyDeployerLibrary.deploySuperfluidUpgradeableBeacon(address(superfluidPoolLogic));
-        // this.initialize(superfluidPoolBeacon);
 
         PoolConfig memory poolConfig =
             PoolConfig({ transferabilityForUnitsOwner: true, distributionFromAnyAddress: true });

@@ -2,6 +2,8 @@
 pragma solidity 0.8.19;
 
 import { IERC721Metadata } from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
+import { IGeneralDistributionAgreementV1 } from "../interfaces/agreements/gdav1/IGeneralDistributionAgreementV1.sol";
+import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 import { IConstantOutflowNFT } from "../interfaces/superfluid/IConstantOutflowNFT.sol";
 import { IConstantInflowNFT } from "../interfaces/superfluid/IConstantInflowNFT.sol";
 import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
@@ -15,7 +17,12 @@ contract ConstantInflowNFT is FlowNFTBase, IConstantInflowNFT {
     IConstantOutflowNFT public immutable CONSTANT_OUTFLOW_NFT;
 
     // solhint-disable-next-line no-empty-blocks
-    constructor(ISuperfluid host, IConstantOutflowNFT constantOutflowNFT) FlowNFTBase(host) {
+    constructor(
+        ISuperfluid host,
+        IConstantFlowAgreementV1 cfaV1,
+        IGeneralDistributionAgreementV1 gdaV1,
+        IConstantOutflowNFT constantOutflowNFT
+    ) FlowNFTBase(host, cfaV1, gdaV1) {
         CONSTANT_OUTFLOW_NFT = constantOutflowNFT;
     }
 

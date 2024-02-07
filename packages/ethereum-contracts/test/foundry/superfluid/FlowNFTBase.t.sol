@@ -39,7 +39,7 @@ abstract contract FlowNFTBaseTest is ERC721IntegrationTest {
 
     function setUp() public virtual override {
         super.setUp();
-        flowNFTBaseMock = new FlowNFTBaseMock(sf.host);
+        flowNFTBaseMock = new FlowNFTBaseMock(sf.host, sf.cfa, sf.gda);
         flowNFTBaseMock.initialize(NAME, SYMBOL);
     }
 
@@ -348,27 +348,20 @@ contract CFAv1NFTUpgradabilityTest is FlowNFTBaseTest {
                                 Storage Layout Tests
     //////////////////////////////////////////////////////////////////////////*/
     function testFlowNFTBaseStorageLayout() public {
-        FlowNFTBaseStorageLayoutMock flowNFTBaseStorageLayoutMock = new FlowNFTBaseStorageLayoutMock(
-                sf.host
-            );
+        FlowNFTBaseStorageLayoutMock flowNFTBaseStorageLayoutMock =
+            new FlowNFTBaseStorageLayoutMock(sf.host, sf.cfa, sf.gda);
         flowNFTBaseStorageLayoutMock.validateStorageLayout();
     }
 
     function testConstantInflowNFTStorageLayout() public {
         ConstantInflowNFTStorageLayoutMock constantInflowNFTBaseStorageLayoutMock =
-        new ConstantInflowNFTStorageLayoutMock(
-                sf.host,
-                constantOutflowNFT
-            );
+            new ConstantInflowNFTStorageLayoutMock(sf.host, sf.cfa, sf.gda, constantOutflowNFT);
         constantInflowNFTBaseStorageLayoutMock.validateStorageLayout();
     }
 
     function testConstantOutflowNFTStorageLayout() public {
         ConstantOutflowNFTStorageLayoutMock constantOutflowNFTBaseStorageLayoutMock =
-        new ConstantOutflowNFTStorageLayoutMock(
-                sf.host,
-                constantInflowNFT
-            );
+            new ConstantOutflowNFTStorageLayoutMock(sf.host, sf.cfa, sf.gda, constantInflowNFT);
         constantOutflowNFTBaseStorageLayoutMock.validateStorageLayout();
     }
 
@@ -377,18 +370,12 @@ contract CFAv1NFTUpgradabilityTest is FlowNFTBaseTest {
     //////////////////////////////////////////////////////////////////////////*/
     function testRevertFlowNFTContractsCannotBeUpgradedByNonSuperTokenFactory(address notSuperTokenFactory) public {
         vm.assume(notSuperTokenFactory != address(sf.superTokenFactory));
-        ConstantOutflowNFT newOutflowLogic = new ConstantOutflowNFT(
-            sf.host,
-            constantInflowNFT
-        );
+        ConstantOutflowNFT newOutflowLogic = new ConstantOutflowNFT(sf.host, sf.cfa, sf.gda, constantInflowNFT);
         vm.expectRevert(IFlowNFTBase.CFA_NFT_ONLY_SUPER_TOKEN_FACTORY.selector);
         vm.prank(notSuperTokenFactory);
         constantOutflowNFT.updateCode(address(newOutflowLogic));
 
-        ConstantInflowNFT newInflowLogic = new ConstantInflowNFT(
-            sf.host,
-            constantOutflowNFT
-        );
+        ConstantInflowNFT newInflowLogic = new ConstantInflowNFT(sf.host, sf.cfa, sf.gda, constantOutflowNFT);
         vm.expectRevert(IFlowNFTBase.CFA_NFT_ONLY_SUPER_TOKEN_FACTORY.selector);
         vm.prank(notSuperTokenFactory);
         constantInflowNFT.updateCode(address(newInflowLogic));
@@ -398,17 +385,11 @@ contract CFAv1NFTUpgradabilityTest is FlowNFTBaseTest {
                                     Passing Tests
     //////////////////////////////////////////////////////////////////////////*/
     function testFlowNFTContractsCanBeUpgradedBySuperTokenFactory() public {
-        ConstantOutflowNFT newOutflowLogic = new ConstantOutflowNFT(
-            sf.host,
-            constantInflowNFT
-        );
+        ConstantOutflowNFT newOutflowLogic = new ConstantOutflowNFT(sf.host, sf.cfa, sf.gda, constantInflowNFT);
         vm.prank(address(sf.superTokenFactory));
         constantOutflowNFT.updateCode(address(newOutflowLogic));
 
-        ConstantInflowNFT newInflowLogic = new ConstantInflowNFT(
-            sf.host,
-            constantOutflowNFT
-        );
+        ConstantInflowNFT newInflowLogic = new ConstantInflowNFT(sf.host, sf.cfa, sf.gda, constantOutflowNFT);
         vm.prank(address(sf.superTokenFactory));
         constantInflowNFT.updateCode(address(newInflowLogic));
     }

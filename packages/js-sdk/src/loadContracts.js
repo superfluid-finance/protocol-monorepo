@@ -10,11 +10,11 @@ function defaultContractLoader(name) {
     } else throw Error(`Cannot load contract "${name}"`);
 }
 
-function setTruffleContractDefaults(c, {networkId, from}) {
+function setTruffleContractDefaults(c, {networkId, from, gasConfig}) {
     c.autoGas = true;
     c.estimateGas = 1.25;
     c.setNetwork(networkId);
-    const defaults = {};
+    const defaults = gasConfig || {};
     from && (defaults.from = from);
     c.defaults(defaults);
 }
@@ -26,6 +26,7 @@ const loadContracts = async ({
     additionalContracts,
     contractLoader,
     networkId,
+    gasConfig = undefined,
 }) => {
     if (!networkId) throw Error("networkId not provided");
     // use set to eliminate duplicated entries
@@ -51,6 +52,7 @@ const loadContracts = async ({
                     from
                 );
             }
+            // this is what's being returned
             await Promise.all(
                 allContractNames.map(async (name) => {
                     const _normalizedObject = await contractLoader(name);
@@ -66,6 +68,7 @@ const loadContracts = async ({
                     setTruffleContractDefaults(c, {
                         networkId,
                         from,
+                        gasConfig,
                     });
                 })
             );

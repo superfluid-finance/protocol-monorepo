@@ -3,7 +3,6 @@ pragma solidity 0.8.19;
 
 import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
-import { IBeacon } from "@openzeppelin/contracts/proxy/beacon/IBeacon.sol";
 import "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
 import "../../FoundrySuperfluidTester.sol";
 import {
@@ -11,6 +10,7 @@ import {
     IGeneralDistributionAgreementV1
 } from "../../../../contracts/agreements/gdav1/GeneralDistributionAgreementV1.sol";
 import { SuperTokenV1Library } from "../../../../contracts/apps/SuperTokenV1Library.sol";
+import { SuperfluidUpgradeableBeacon } from "../../../../contracts/upgradability/SuperfluidUpgradeableBeacon.sol";
 import { ISuperToken, SuperToken } from "../../../../contracts/superfluid/SuperToken.sol";
 import { ISuperfluidToken } from "../../../../contracts/interfaces/superfluid/ISuperfluidToken.sol";
 import { ISuperfluidPool, SuperfluidPool } from "../../../../contracts/agreements/gdav1/SuperfluidPool.sol";
@@ -70,17 +70,9 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
                                 GDA Integration Tests
     //////////////////////////////////////////////////////////////////////////*/
 
-    function testInitializeGDA(IBeacon beacon) public {
-        GeneralDistributionAgreementV1 gdaV1 = new GeneralDistributionAgreementV1(sf.host);
-        assertEq(address(gdaV1.superfluidPoolBeacon()), address(0), "GDAv1.t: Beacon address not address(0)");
-        gdaV1.initialize(beacon);
-
+    function testInitializeGDA(SuperfluidUpgradeableBeacon beacon) public {
+        GeneralDistributionAgreementV1 gdaV1 = new GeneralDistributionAgreementV1(sf.host, beacon);
         assertEq(address(gdaV1.superfluidPoolBeacon()), address(beacon), "GDAv1.t: Beacon address not equal");
-    }
-
-    function testRevertReinitializeGDA(IBeacon beacon) public {
-        vm.expectRevert("Initializable: contract is already initialized");
-        sf.gda.initialize(beacon);
     }
 
     function testRevertAppendIndexUpdateByPoolByNonPool(BasicParticle memory p, Time t) public {

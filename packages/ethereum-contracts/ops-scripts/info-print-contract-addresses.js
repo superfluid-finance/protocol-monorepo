@@ -130,7 +130,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     const superfluidPoolBeaconContract = await SuperfluidUpgradeableBeacon.at(
         await gdaContract.superfluidPoolBeacon()
     );
-    output += `SUPERFLUID_POOL_DEPLOYER=${await gdaContract.SUPERFLUID_POOL_DEPLOYER_ADDRESS()}\n`;
+    output += `SUPERFLUID_POOL_DEPLOYER_LIBRARY=${await gdaContract.SUPERFLUID_POOL_DEPLOYER_ADDRESS()}\n`;
     output += `SUPERFLUID_POOL_BEACON=${superfluidPoolBeaconContract.address}\n`;
     output += `SUPERFLUID_POOL_LOGIC=${await superfluidPoolBeaconContract.implementation()}\n`;
 
@@ -167,23 +167,29 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         output += `CONSTANT_INFLOW_NFT_LOGIC=${constantInflowNFTLogicAddress}\n`;
     }
 
-    const poolAdminNFTProxyAddress =
-        await superTokenLogicContract.POOL_ADMIN_NFT();
-    output += `POOL_ADMIN_NFT_PROXY=${poolAdminNFTProxyAddress}\n`;
+    // not yet deployed on all networks
+    // TODO: remove try after rollout
+    try {
+        const poolAdminNFTProxyAddress =
+            await superTokenLogicContract.POOL_ADMIN_NFT();
+        output += `POOL_ADMIN_NFT_PROXY=${poolAdminNFTProxyAddress}\n`;
 
-    const poolAdminNFTLogicAddress = await (
-        await UUPSProxiable.at(poolAdminNFTProxyAddress)
-    ).getCodeAddress();
-    output += `POOL_ADMIN_NFT_LOGIC=${poolAdminNFTLogicAddress}\n`;
+        const poolAdminNFTLogicAddress = await (
+            await UUPSProxiable.at(poolAdminNFTProxyAddress)
+        ).getCodeAddress();
+        output += `POOL_ADMIN_NFT_LOGIC=${poolAdminNFTLogicAddress}\n`;
 
-    const poolMemberNFTProxyAddress =
-        await superTokenLogicContract.POOL_MEMBER_NFT();
-    output += `POOL_MEMBER_NFT_PROXY=${poolMemberNFTProxyAddress}\n`;
+        const poolMemberNFTProxyAddress =
+            await superTokenLogicContract.POOL_MEMBER_NFT();
+        output += `POOL_MEMBER_NFT_PROXY=${poolMemberNFTProxyAddress}\n`;
 
-    const poolMemberNFTLogicAddress = await (
-        await UUPSProxiable.at(poolMemberNFTProxyAddress)
-    ).getCodeAddress();
-    output += `POOL_MEMBER_NFT_LOGIC=${poolMemberNFTLogicAddress}\n`;
+        const poolMemberNFTLogicAddress = await (
+            await UUPSProxiable.at(poolMemberNFTProxyAddress)
+        ).getCodeAddress();
+        output += `POOL_MEMBER_NFT_LOGIC=${poolMemberNFTLogicAddress}\n`;
+    } catch (e) {
+        console.warn("POOL_ADMIN_NFT or POOL_MEMBER_NFT probably not deployed yet");
+    }
 
     if (! skipTokens) {
         await Promise.all(
@@ -204,6 +210,14 @@ module.exports = eval(`(${S.toString()})()`)(async function (
                 sf.tokens[sf.config.nativeTokenSymbol + "x"].address
             }\n`;
         }
+    }
+
+    // forwarders
+    if (config.metadata?.contractsV1?.cfaV1Forwarder) {
+        output += `CFAV1_FORWARDER=${config.metadata.contractsV1.cfaV1Forwarder}\n`;
+    }
+    if (config.metadata?.contractsV1?.gdaV1Forwarder) {
+        output += `GDAV1_FORWARDER=${config.metadata.contractsV1.gdaV1Forwarder}\n`;
     }
 
     // optional periphery contracts

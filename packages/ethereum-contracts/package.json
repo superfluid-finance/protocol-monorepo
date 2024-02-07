@@ -91,7 +91,7 @@
         "@safe-global/safe-service-client": "^2.0.3",
         "@safe-global/safe-web3-lib": "^1.9.4",
         "@superfluid-finance/js-sdk": "0.6.3",
-        "@superfluid-finance/metadata": "1.1.22",
+        "@superfluid-finance/metadata": "1.1.27",
         "async": "^3.2.5",
         "csv-writer": "^1.6.0",
         "ethers": "^5.7.2",
@@ -102,7 +102,7 @@
         "solidity-docgen": "^0.6.0-beta.36",
         "stack-trace": "0.0.10",
         "truffle-flattener": "^1.6.0",
-        "truffle-plugin-verify": "0.6.5"
+        "@d10r/truffle-plugin-verify": "0.6.9"
     },
     "peerDependencies": {
         "ethers": "^5.7.2"

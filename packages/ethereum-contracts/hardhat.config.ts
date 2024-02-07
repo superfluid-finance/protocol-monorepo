@@ -76,6 +76,9 @@ const chainIds = {
 
     "celo-mainnet": 42220,
 
+    "scroll-sepolia": 534351,
+    "scroll-mainnet": 534352,
+
     localhost: 31337,
     hardhat: 31337,
 };
@@ -162,6 +165,14 @@ const config: HardhatUserConfig = {
         "base-goerli": {
             ...createNetworkConfig("base-goerli"),
             url: process.env.BASE_GOERLI_PROVIDER_URL || "",
+        },
+        "scroll-sepolia": {
+            ...createNetworkConfig("scroll-sepolia"),
+            url: process.env.SCROLL_SEPOLIA_PROVIDER_URL || "",
+        },
+        "scroll-mainnet": {
+            ...createNetworkConfig("scroll-mainnet"),
+            url: process.env.SCROLL_MAINNET_PROVIDER_URL || "",
         },
         hardhat: {
             // Fixing an issue that parallel coverage test is not working for unkown reason.

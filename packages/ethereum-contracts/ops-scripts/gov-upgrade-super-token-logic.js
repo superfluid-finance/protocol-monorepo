@@ -1,7 +1,6 @@
 const async = require("async");
 const fs = require("fs");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
-const {ZERO_ADDRESS} = require("./libs/common");
 
 const MAX_REQUESTS = 20;
 
@@ -10,6 +9,7 @@ const {
     extractWeb3Options,
     builtTruffleContractLoader,
     sendGovernanceAction,
+    ZERO_ADDRESS,
 } = require("./libs/common");
 
 /**
@@ -27,6 +27,10 @@ const {
  *                  (overriding env: OUTPUT_FILE)
  * @param {string} options.superTokenLogic override address for the logic to upgrade to instead of the canonical one
  *                  (overriding env: SUPER_TOKEN_LOGIC
+ *
+ * extra env vars:
+ * - EXTRA_PAST_SUPER_TOKEN_LOGICS - comma-separated list of extra past canonical super token logics to be considered
+ *                                   This is a workaround to the subgraph not containing all of them
  *
  * Usage: npx truffle exec ops-scripts/gov-upgrade-super-token-logic.js : ALL | {SUPER_TOKEN_ADDRESS} ...
  */
@@ -85,7 +89,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         await getTokensToBeUpgraded(sf, canonicalSuperTokenLogic, skipTokens) :
         Array.from(args);
 
-    console.log(`${tokensToBeUpgraded.length} tokens to be upgraded)`);
+    console.log(`${tokensToBeUpgraded.length} tokens to be upgraded`);
 
     const superTokenLogicAddr = superTokenLogic !== undefined ?
         superTokenLogic :
@@ -100,7 +104,11 @@ module.exports = eval(`(${S.toString()})()`)(async function (
             console.log(`List of tokens to be upgraded written to ${outputFile}`);
         }
 
-        const batchSize = parseInt(process.env.BATCH_SIZE) || 1000;
+        // example gas use: 4.3M for 218 tokens in the batch
+        // https://polygonscan.com/tx/0xd449062303646e16bf1e5129588a3c3ec22724f29a4777c7af038cbb62b43dc9
+        // we want to keep it below 8M gas
+        // Note that the gas use can fluctuate depending on the actions done in the contracts
+        const batchSize = parseInt(process.env.BATCH_SIZE) || 380;
         for (let offset = 0; offset < tokensToBeUpgraded.length; offset += batchSize) {
             const batch = tokensToBeUpgraded.slice(offset, offset + batchSize);
             console.log(
@@ -155,6 +163,23 @@ async function getTokensToBeUpgraded(sf, canonicalSuperTokenLogic, skipList) {
     const maxItems = parseInt(process.env.MAX_ITEMS) || 1000;
     const skipItems = parseInt(process.env.SKIP_ITEMS) || 0;
 
+    const pastSuperTokenLogics = (await sf.subgraphQuery(`{
+        superTokenLogicCreatedEvents {
+            name
+            tokenLogic
+        }
+    }`)).superTokenLogicCreatedEvents.map((i) => i.tokenLogic);
+
+    const extraPastSuperTokenLogics = (process.env.EXTRA_PAST_SUPER_TOKEN_LOGICS || "").split(",")
+        .map((i) => i.trim())
+        .filter((i) => i !== "");
+
+    console.log(`Extra past SuperToken logic contracts: ${JSON.stringify(extraPastSuperTokenLogics, null, 2)}`);
+    pastSuperTokenLogics.push(...extraPastSuperTokenLogics);
+
+
+    console.log(`Past SuperToken logic contracts we take into account: ${JSON.stringify(pastSuperTokenLogics, null, 2)}`);
+
     const candidateTokens = (await sf.subgraphQuery(`{
         tokens(where: {isSuperToken: true}, first: ${maxItems}, skip: ${skipItems}) {
             id
@@ -175,7 +200,7 @@ async function getTokensToBeUpgraded(sf, canonicalSuperTokenLogic, skipList) {
                 const symbol = await superToken.symbol();
                 if ((await superToken.getHost()) !== sf.host.address) {
                     throw new Error(
-                        "Super token is from a different universe"
+                        `Super token has different host ${superToken.getHost()}`
                     );
                 }
                 const superTokenLogic = await (
@@ -184,24 +209,42 @@ async function getTokensToBeUpgraded(sf, canonicalSuperTokenLogic, skipList) {
 
                 if (superTokenLogic === ZERO_ADDRESS) {
                     console.log(
-                        `SuperToken@${superToken.address} (${symbol}) is likely an uninitalized proxy`
+                        `[SKIP] SuperToken@${superToken.address} (${symbol}) is likely an uninitalized proxy`
                     );
                 } else if (canonicalSuperTokenLogic !== superTokenLogic) {
-                    console.log(
-                        `SuperToken@${superToken.address} (${symbol}) logic needs upgrade from ${superTokenLogic}`
-                    );
-                    return superTokenAddress;
+                    if (!pastSuperTokenLogics.map(e => e.toLowerCase()).includes(superTokenLogic.toLowerCase())) {
+                        // if the previous logic isn't in our list of past canonical supertoken logics, we skip it
+                        // it likely means we don't have upgradability ownership
+                        console.log(
+                            `!!! [SKIP] SuperToken@${superToken.address} (${symbol}) alien previous logic ${superTokenLogic} - please manually check!`
+                        );
+                    } else {
+                        console.log(
+                            `SuperToken@${superToken.address} (${symbol}) logic needs upgrade from ${superTokenLogic}`
+                        );
+                        return superTokenAddress;
+                    }
                 } else {
                     console.log(
-                        `SuperToken@${superToken.address} (${symbol}) logic is up to date`
+                        `[SKIP] SuperToken@${superToken.address} (${symbol}) logic is up to date`
                     );
-                    return undefined;
                 }
             } catch {
                 console.warn(
-                    `[WARN] SuperToken@${superToken.address} is smelly`
+                    `??? [SKIP] SuperToken@${superToken.address} failed to be queried, probably not UUPSProxiable`
                 );
-                return undefined;
+            }
+
+            try {
+                const adminAddr = await superToken.getAdmin();
+                if (adminAddr !== ZERO_ADDRESS) {
+                    console.warn(
+                        `!!! [SKIP] SuperToken@${superToken.address} admin override set to ${adminAddr}`
+                    );
+                }
+            } catch(err) {
+                // TODO: enable logging once we expect this to exist
+                //console.log("### failed to get admin addr:", err.message);
             }
         }
     )).filter((i) => typeof i !== "undefined")

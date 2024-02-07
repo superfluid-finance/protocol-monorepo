@@ -3,13 +3,13 @@
 pragma solidity 0.8.23;
 
 import { PoolNFTBase } from "../agreements/gdav1/PoolNFTBase.sol";
-import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
+import { IGeneralDistributionAgreementV1, ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
 import { PoolMemberNFT } from "../agreements/gdav1/PoolMemberNFT.sol";
 import { PoolAdminNFT } from "../agreements/gdav1/PoolAdminNFT.sol";
 import { IStorageLayoutBase } from "./IStorageLayoutBase.sol";
 
 contract PoolNFTBaseStorageLayoutMock is PoolNFTBase, IStorageLayoutBase {
-    constructor(ISuperfluid host) PoolNFTBase(host) { }
+    constructor(ISuperfluid host, IGeneralDistributionAgreementV1 gdaV1) PoolNFTBase(host, gdaV1) { }
 
     function validateStorageLayout() public virtual {
         uint256 slot;
@@ -72,7 +72,7 @@ contract PoolNFTBaseStorageLayoutMock is PoolNFTBase, IStorageLayoutBase {
 }
 
 contract PoolAdminNFTStorageLayoutMock is PoolAdminNFT, IStorageLayoutBase {
-    constructor(ISuperfluid host) PoolAdminNFT(host) { }
+    constructor(ISuperfluid host, IGeneralDistributionAgreementV1 gdaV1) PoolAdminNFT(host, gdaV1) { }
 
     function validateStorageLayout() public virtual {
         uint256 slot;
@@ -112,7 +112,7 @@ contract PoolAdminNFTStorageLayoutMock is PoolAdminNFT, IStorageLayoutBase {
 }
 
 contract PoolMemberNFTStorageLayoutMock is PoolMemberNFT, IStorageLayoutBase {
-    constructor(ISuperfluid host) PoolMemberNFT(host) { }
+    constructor(ISuperfluid host, IGeneralDistributionAgreementV1 gdaV1) PoolMemberNFT(host, gdaV1) { }
 
     function validateStorageLayout() public virtual {
         uint256 slot;

@@ -110,6 +110,9 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         data: ContractArtifact.bytecode,
         arguments: deployArgs,
     });
+    if (process.env.GAS_PRICE !== undefined) {
+        deployTx.gasPrice = gasPrice;
+    }
 
     const gasLimit = process.env.GAS_LIMIT || (await deployTx.estimateGas());
     console.log("gas limit:", gasLimit);

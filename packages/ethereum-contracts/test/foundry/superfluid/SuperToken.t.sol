@@ -75,20 +75,12 @@ contract SuperTokenIntegrationTest is FoundrySuperfluidTester {
         UUPSProxy paProxy = new UUPSProxy();
         UUPSProxy pmProxy = new UUPSProxy();
 
-        ConstantInflowNFT cifNFTLogic = new ConstantInflowNFT(
-            sf.host,
-            IConstantOutflowNFT(address(cofProxy))
-        );
-        ConstantOutflowNFT cofNFTLogic = new ConstantOutflowNFT(
-            sf.host,
-            IConstantInflowNFT(address(cifProxy))
-        );
-        PoolAdminNFT paNFTLogic = new PoolAdminNFT(
-            sf.host
-        );
-        PoolMemberNFT pmNFTLogic = new PoolMemberNFT(
-            sf.host
-        );
+        ConstantInflowNFT cifNFTLogic =
+            new ConstantInflowNFT(sf.host, sf.cfa, sf.gda, IConstantOutflowNFT(address(cofProxy)));
+        ConstantOutflowNFT cofNFTLogic =
+            new ConstantOutflowNFT(sf.host, sf.cfa, sf.gda, IConstantInflowNFT(address(cifProxy)));
+        PoolAdminNFT paNFTLogic = new PoolAdminNFT(sf.host, sf.gda);
+        PoolMemberNFT pmNFTLogic = new PoolMemberNFT(sf.host, sf.gda);
 
         cifNFTLogic.castrate();
         cofNFTLogic.castrate();
@@ -162,9 +154,7 @@ contract SuperTokenIntegrationTest is FoundrySuperfluidTester {
         vm.stopPrank();
 
         assertEq(
-            localSuperToken.getAdmin(),
-            _admin,
-            "testOnlyHostCanChangeAdminWhenNoAdmin: admin address not set correctly"
+            localSuperToken.getAdmin(), _admin, "testOnlyHostCanChangeAdminWhenNoAdmin: admin address not set correctly"
         );
     }
 
@@ -180,11 +170,7 @@ contract SuperTokenIntegrationTest is FoundrySuperfluidTester {
         localSuperToken.changeAdmin(newAdmin);
         vm.stopPrank();
 
-        assertEq(
-            localSuperToken.getAdmin(),
-            newAdmin,
-            "testOnlyAdminCanChangeAdmin: admin address not set correctly"
-        );
+        assertEq(localSuperToken.getAdmin(), newAdmin, "testOnlyAdminCanChangeAdmin: admin address not set correctly");
     }
 
     function testRevertWhenNonAdminTriesToChangeAdmin(address _admin, address nonAdmin) public {

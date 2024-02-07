@@ -869,7 +869,7 @@ contract SuperTokenLibraryGDASuperAppMock is SuperTokenLibraryGDAMock, SuperAppB
         } else if (functionIndex == uint8(FunctionIndex.CLAIM_ALL)) {
             return token.claimAllWithCtx(ISuperfluidPool(pool), member, ctx);
         } else if (functionIndex == uint8(FunctionIndex.DISTRIBUTE)) {
-            return token.distributeWithCtx(ISuperfluidPool(pool), from, requestedAmount, ctx);
+            return token.distributeWithCtx(from, ISuperfluidPool(pool), requestedAmount, ctx);
         } else if (functionIndex == uint8(FunctionIndex.DISTRIBUTE_FLOW)) {
             return token.distributeFlowWithCtx(from, ISuperfluidPool(pool), requestedFlowRate, ctx);
         } else {

@@ -60,6 +60,16 @@ export type OtherEvents =
     | PPPConfigurationChangedEvent
     | TrustedForwarderChangedEvent
     | SuperTokenMinimumDepositChangedEvent
+    | PoolCreatedEvent
+    | PoolConnectionUpdatedEvent
+    | BufferAdjustedEvent
+    | InstantDistributionUpdatedEvent
+    | FlowDistributionUpdatedEvent
+    | DistributionClaimedEvent
+    | MemberUnitsUpdatedEvent
+    | ApprovalEvent
+    | ApprovalForAllEvent
+    | MetadataUpdateEvent
     | UnknownEvent;
 
 export type AllEvents = AccountEvents | OtherEvents;
@@ -433,6 +443,37 @@ export interface BondIncreasedEvent extends EventBase {
     name: "BondIncreased";
     token: string;
     additionalBond: string;
+}
+
+export interface PoolCreatedEvent extends EventBase {
+    name: "PoolCreatedEvent";
+}
+export interface PoolConnectionUpdatedEvent extends EventBase {
+    name: "PoolConnectionUpdatedEvent";
+}
+export interface BufferAdjustedEvent extends EventBase {
+    name: "BufferAdjustedEvent";
+}
+export interface InstantDistributionUpdatedEvent extends EventBase {
+    name: "InstantDistributionUpdatedEvent";
+}
+export interface FlowDistributionUpdatedEvent extends EventBase {
+    name: "FlowDistributionUpdatedEvent";
+}
+export interface DistributionClaimedEvent extends EventBase {
+    name: "DistributionClaimedEvent";
+}
+export interface MemberUnitsUpdatedEvent extends EventBase {
+    name: "MemberUnitsUpdatedEvent";
+}
+export interface ApprovalEvent extends EventBase {
+    name: "ApprovalEvent";
+}
+export interface ApprovalForAllEvent extends EventBase {
+    name: "ApprovalForAllEvent";
+}
+export interface MetadataUpdateEvent extends EventBase {
+    name: "MetadataUpdateEvent";
 }
 
 export interface UnknownEvent extends EventBase {

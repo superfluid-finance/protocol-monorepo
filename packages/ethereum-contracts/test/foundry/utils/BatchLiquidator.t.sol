@@ -28,7 +28,7 @@ contract NonTransferableST is SuperToken {
             // no-empty-blocks
     { }
 
-    function transferFrom(address holder, address recipient, uint256 amount) public override returns (bool) {
+    function transferFrom(address, address, uint256) public pure override returns (bool) {
         revert();
     }
 

@@ -64,10 +64,9 @@ const ALIASES = {
     "polygon-mumbai": ["mumbai"],
 
     "optimism-mainnet": ["opmainnet"],
-    "optimism-goerli": ["opgoerli"],
+    "optimism-sepolia": ["opsepolia"],
 
     "arbitrum-one": ["arbone"],
-    "arbitrum-goerli": ["arbgoerli"],
 
     "avalanche-c": ["avalanche"],
     "avalanche-fuji": ["avafuji"],
@@ -76,19 +75,24 @@ const ALIASES = {
 
     "celo-mainnet": ["celo"],
 
-    "base-goerli": ["bgoerli"],
-
     "polygon-zkevm-testnet": ["pzkevmtest"],
 
     "base-mainnet": ["base"],
 
+    "scroll-sepolia": ["scrsepolia"],
+    "scroll-mainnet": ["scroll"],
+
     // wildcard for any network
     "any": ["any"],
 
-    // currently unsupported
-    //
+    // currently unsupported or deprecated networks
+
+    "base-goerli": ["bgoerli"],
+
+    "optimism-goerli": ["opgoerli"],
     "optimism-kovan": ["opkovan"],
 
+    "arbitrum-goerli": ["arbgoerli"],
     "arbitrum-rinkeby": ["arbrinkeby"],
 
     "bsc-chapel": ["chapel"],
@@ -117,6 +121,9 @@ function getEnvValue(networkName, key) {
 }
 
 function getProviderUrlByTemplate(networkName) {
+    if (process.env.PROVIDER_URL_OVERRIDE !== undefined) {
+        return process.env.PROVIDER_URL_OVERRIDE;
+    }
     if (process.env.PROVIDER_URL_TEMPLATE !== undefined) {
         if (! process.env.PROVIDER_URL_TEMPLATE.includes("{{NETWORK}}")) {
             console.error("env var PROVIDER_URL_TEMPLATE has invalid value");
@@ -148,9 +155,9 @@ function createNetworkDefaultConfiguration(
                 numberOfAddresses: 10,
                 shareNonce: true,
             }),
-        gasPrice: +getEnvValue(networkName, "GAS_PRICE"),
-        maxFeePerGas: +getEnvValue(networkName, "MAX_FEE_PER_GAS"),
-        maxPriorityFeePerGas: +getEnvValue(networkName, "MAX_PRIORITY_FEE_PER_GAS"),
+        gasPrice: getEnvValue(networkName, "GAS_PRICE"),
+        maxFeePerGas: getEnvValue(networkName, "MAX_FEE_PER_GAS"),
+        maxPriorityFeePerGas: getEnvValue(networkName, "MAX_PRIORITY_FEE_PER_GAS"),
         timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
         skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
         networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
@@ -160,7 +167,7 @@ function createNetworkDefaultConfiguration(
 const E = (module.exports = {
     plugins: [
         //"truffle-security",
-        "truffle-plugin-verify",
+        "@d10r/truffle-plugin-verify",
     ],
     /**
      * Networks define how you connect to your ethereum client and let you set the
@@ -206,8 +213,8 @@ const E = (module.exports = {
         "polygon-mainnet": {
             ...createNetworkDefaultConfiguration("polygon-mainnet"),
             network_id: 137,
-            maxPriorityFeePerGas: 31e9,
-            maxFeePerGas: 1500e9,
+            maxPriorityFeePerGas: 37e9,
+            maxFeePerGas: 500e9,
         },
 
         "polygon-mumbai": {
@@ -235,11 +242,18 @@ const E = (module.exports = {
         "optimism-mainnet": {
             ...createNetworkDefaultConfiguration("optimism-mainnet"),
             network_id: 10,
+            maxPriorityFeePerGas: 1e6, // 0.001 gwei
+            maxFeePerGas: 1e9, // 1 gwei
         },
 
         "optimism-goerli": {
             ...createNetworkDefaultConfiguration("optimism-goerli"),
             network_id: 420,
+        },
+
+        "optimism-sepolia": {
+            ...createNetworkDefaultConfiguration("optimism-sepolia"),
+            network_id: 11155420,
         },
 
         //
@@ -300,6 +314,18 @@ const E = (module.exports = {
         "base-goerli": {
             ...createNetworkDefaultConfiguration("base-goerli"),
             network_id: 84531,
+        },
+
+        //
+        // Scroll: https://docs.scroll.xyz/en/getting-started/overview/
+        //
+        "scroll-mainnet": {
+            ...createNetworkDefaultConfiguration("scroll-mainnet"),
+            network_id: 534352,
+        },
+        "scroll-sepolia": {
+            ...createNetworkDefaultConfiguration("scroll-sepolia"),
+            network_id: 534351,
         },
 
         //
@@ -420,6 +446,7 @@ const E = (module.exports = {
         celoscan: process.env.CELOSCAN_API_KEY,
         basescan: process.env.BASESCAN_API_KEY,
         zkevm_polygonscan: process.env.ZKEVM_POLYGONSCAN_API_KEY,
+        scrollscan: process.env.SCROLLSCAN_API_KEY,
     },
 });
 

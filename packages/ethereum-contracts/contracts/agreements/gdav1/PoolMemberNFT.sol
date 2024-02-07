@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 import { IERC721Metadata } from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import { IPoolMemberNFT } from "../../interfaces/agreements/gdav1/IPoolMemberNFT.sol";
 import { PoolNFTBase } from "./PoolNFTBase.sol";
-import { ISuperfluid } from "../../interfaces/superfluid/ISuperfluid.sol";
+import { IGeneralDistributionAgreementV1, ISuperfluid } from "../../interfaces/superfluid/ISuperfluid.sol";
 import { ISuperfluidPool } from "../../interfaces/agreements/gdav1/ISuperfluidPool.sol";
 import { ISuperfluidToken } from "../../interfaces/superfluid/ISuperfluidToken.sol";
 
@@ -22,7 +22,7 @@ contract PoolMemberNFT is PoolNFTBase, IPoolMemberNFT {
     /// @dev The token id is uint256(keccak256(abi.encode(pool, member)))
     mapping(uint256 => PoolMemberNFTData) internal _poolMemberDataByTokenId;
 
-    constructor(ISuperfluid host) PoolNFTBase(host) { }
+    constructor(ISuperfluid host, IGeneralDistributionAgreementV1 gdaV1) PoolNFTBase(host, gdaV1) { }
 
     // note that this is used so we don't upgrade to wrong logic contract
     function proxiableUUID() public pure override returns (bytes32) {

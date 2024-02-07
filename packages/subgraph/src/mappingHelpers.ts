@@ -37,6 +37,7 @@ import {
     getPoolDistributorID,
     getActiveStreamsDelta,
     getClosedStreamsDelta,
+    MAX_UINT256,
 } from "./utils";
 import { SuperToken as SuperTokenTemplate } from "../generated/templates";
 import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
@@ -646,14 +647,10 @@ if (accountTokenSnapshot == null) {
         accountTokenSnapshot.totalCFANumberOfActiveStreams = 0;
         accountTokenSnapshot.totalGDANumberOfActiveStreams = 0;
         accountTokenSnapshot.activeIncomingStreamCount = 0;
-        accountTokenSnapshot.activeCFAIncomingStreamCount = 0;
-        accountTokenSnapshot.activeGDAIncomingStreamCount = 0;
         accountTokenSnapshot.activeOutgoingStreamCount = 0;
         accountTokenSnapshot.activeCFAOutgoingStreamCount = 0;
         accountTokenSnapshot.activeGDAOutgoingStreamCount = 0;
         accountTokenSnapshot.inactiveIncomingStreamCount = 0;
-        accountTokenSnapshot.inactiveCFAIncomingStreamCount = 0;
-        accountTokenSnapshot.inactiveGDAIncomingStreamCount = 0;
         accountTokenSnapshot.inactiveOutgoingStreamCount = 0;
         accountTokenSnapshot.inactiveCFAOutgoingStreamCount = 0;
         accountTokenSnapshot.inactiveGDAOutgoingStreamCount = 0;
@@ -668,28 +665,17 @@ if (accountTokenSnapshot == null) {
         accountTokenSnapshot.balanceUntilUpdatedAt = BIG_INT_ZERO;
         accountTokenSnapshot.totalNetFlowRate = BIG_INT_ZERO;
         accountTokenSnapshot.totalCFANetFlowRate = BIG_INT_ZERO;
-        accountTokenSnapshot.totalGDANetFlowRate = BIG_INT_ZERO;
         accountTokenSnapshot.totalInflowRate = BIG_INT_ZERO;
-        accountTokenSnapshot.totalCFAInflowRate = BIG_INT_ZERO;
-        accountTokenSnapshot.totalGDAInflowRate = BIG_INT_ZERO;
         accountTokenSnapshot.totalOutflowRate = BIG_INT_ZERO;
         accountTokenSnapshot.totalCFAOutflowRate = BIG_INT_ZERO;
         accountTokenSnapshot.totalGDAOutflowRate = BIG_INT_ZERO;
         accountTokenSnapshot.totalAmountStreamedInUntilUpdatedAt = BIG_INT_ZERO;
-        accountTokenSnapshot.totalCFAAmountStreamedInUntilUpdatedAt =
-            BIG_INT_ZERO;
-        accountTokenSnapshot.totalGDAAmountStreamedInUntilUpdatedAt =
-            BIG_INT_ZERO;
         accountTokenSnapshot.totalAmountStreamedOutUntilUpdatedAt =
             BIG_INT_ZERO;
         accountTokenSnapshot.totalCFAAmountStreamedOutUntilUpdatedAt =
             BIG_INT_ZERO;
-        accountTokenSnapshot.totalGDAAmountStreamedOutUntilUpdatedAt =
-            BIG_INT_ZERO;
         accountTokenSnapshot.totalAmountStreamedUntilUpdatedAt = BIG_INT_ZERO;
         accountTokenSnapshot.totalCFAAmountStreamedUntilUpdatedAt =
-            BIG_INT_ZERO;
-        accountTokenSnapshot.totalGDAAmountStreamedUntilUpdatedAt =
             BIG_INT_ZERO;
         accountTokenSnapshot.totalAmountTransferredUntilUpdatedAt =
             BIG_INT_ZERO;
@@ -739,8 +725,6 @@ export function _createAccountTokenSnapshotLogEntity(
     atsLog.totalCFANumberOfActiveStreams = ats.totalCFANumberOfActiveStreams;
     atsLog.totalGDANumberOfActiveStreams = ats.totalGDANumberOfActiveStreams;
     atsLog.activeIncomingStreamCount = ats.activeIncomingStreamCount;
-    atsLog.activeCFAIncomingStreamCount = ats.activeCFAIncomingStreamCount;
-    atsLog.activeGDAIncomingStreamCount = ats.activeGDAIncomingStreamCount;
     atsLog.activeOutgoingStreamCount = ats.activeOutgoingStreamCount;
     atsLog.activeCFAOutgoingStreamCount = ats.activeCFAOutgoingStreamCount;
     atsLog.activeGDAOutgoingStreamCount = ats.activeGDAOutgoingStreamCount;
@@ -748,8 +732,6 @@ export function _createAccountTokenSnapshotLogEntity(
     atsLog.totalCFANumberOfClosedStreams = ats.totalCFANumberOfClosedStreams;
     atsLog.totalGDANumberOfClosedStreams = ats.totalGDANumberOfClosedStreams;
     atsLog.inactiveIncomingStreamCount = ats.inactiveIncomingStreamCount;
-    atsLog.inactiveCFAIncomingStreamCount = ats.inactiveCFAIncomingStreamCount;
-    atsLog.inactiveGDAIncomingStreamCount = ats.inactiveGDAIncomingStreamCount;
     atsLog.inactiveOutgoingStreamCount = ats.inactiveOutgoingStreamCount;
     atsLog.inactiveCFAOutgoingStreamCount = ats.inactiveCFAOutgoingStreamCount;
     atsLog.inactiveGDAOutgoingStreamCount = ats.inactiveGDAOutgoingStreamCount;
@@ -760,26 +742,16 @@ export function _createAccountTokenSnapshotLogEntity(
     atsLog.balance = ats.balanceUntilUpdatedAt;
     atsLog.totalNetFlowRate = ats.totalNetFlowRate;
     atsLog.totalCFANetFlowRate = ats.totalCFANetFlowRate;
-    atsLog.totalGDANetFlowRate = ats.totalGDANetFlowRate;
     atsLog.totalInflowRate = ats.totalInflowRate;
-    atsLog.totalCFAInflowRate = ats.totalCFAInflowRate;
-    atsLog.totalGDAInflowRate = ats.totalGDAInflowRate;
     atsLog.totalOutflowRate = ats.totalOutflowRate;
     atsLog.totalCFAOutflowRate = ats.totalCFAOutflowRate;
     atsLog.totalGDAOutflowRate = ats.totalGDAOutflowRate;
     atsLog.totalAmountStreamed = ats.totalAmountStreamedUntilUpdatedAt;
     atsLog.totalCFAAmountStreamed = ats.totalCFAAmountStreamedUntilUpdatedAt;
-    atsLog.totalGDAAmountStreamed = ats.totalGDAAmountStreamedUntilUpdatedAt;
     atsLog.totalAmountStreamedIn = ats.totalAmountStreamedInUntilUpdatedAt;
-    atsLog.totalCFAAmountStreamedIn =
-        ats.totalCFAAmountStreamedInUntilUpdatedAt;
     atsLog.totalAmountStreamedOut = ats.totalAmountStreamedOutUntilUpdatedAt;
-    atsLog.totalGDAAmountStreamedIn =
-        ats.totalGDAAmountStreamedInUntilUpdatedAt;
     atsLog.totalCFAAmountStreamedOut =
         ats.totalCFAAmountStreamedOutUntilUpdatedAt;
-    atsLog.totalGDAAmountStreamedOut =
-        ats.totalGDAAmountStreamedOutUntilUpdatedAt;
     atsLog.totalAmountTransferred = ats.totalAmountTransferredUntilUpdatedAt;
     atsLog.totalDeposit = ats.totalDeposit;
     atsLog.totalCFADeposit = ats.totalCFADeposit;
@@ -821,7 +793,6 @@ export function getOrInitTokenStatistic(
         tokenStatistic.totalNumberOfAccounts = 0;
         tokenStatistic.totalAmountStreamedUntilUpdatedAt = BIG_INT_ZERO;
         tokenStatistic.totalCFAAmountStreamedUntilUpdatedAt = BIG_INT_ZERO;
-        tokenStatistic.totalGDAAmountStreamedUntilUpdatedAt = BIG_INT_ZERO;
         tokenStatistic.totalAmountTransferredUntilUpdatedAt = BIG_INT_ZERO;
         tokenStatistic.totalAmountDistributedUntilUpdatedAt = BIG_INT_ZERO;
         tokenStatistic.totalSupply = BIG_INT_ZERO;
@@ -891,8 +862,6 @@ export function _createTokenStatisticLogEntity(
         tokenStatistic.totalAmountStreamedUntilUpdatedAt;
     tokenStatisticLog.totalCFAAmountStreamed =
         tokenStatistic.totalCFAAmountStreamedUntilUpdatedAt;
-    tokenStatisticLog.totalGDAAmountStreamed =
-        tokenStatistic.totalGDAAmountStreamedUntilUpdatedAt;
     tokenStatisticLog.totalAmountTransferred =
         tokenStatistic.totalAmountTransferredUntilUpdatedAt;
     tokenStatisticLog.totalAmountDistributed =
@@ -1139,12 +1108,6 @@ export function updateATSStreamedAndBalanceUntilUpdatedAt(
             accountTokenSnapshot.updatedAtTimestamp,
             accountTokenSnapshot.totalCFANetFlowRate
         );
-    const totalCFAAmountStreamedInSinceLastUpdatedAt =
-        getAmountStreamedSinceLastUpdatedAt(
-            block.timestamp,
-            accountTokenSnapshot.updatedAtTimestamp,
-            accountTokenSnapshot.totalCFAInflowRate
-        );
     const totalCFAAmountStreamedOutSinceLastUpdatedAt =
         getAmountStreamedSinceLastUpdatedAt(
             block.timestamp,
@@ -1158,54 +1121,10 @@ export function updateATSStreamedAndBalanceUntilUpdatedAt(
             totalCFAAmountStreamedSinceLastUpdatedAt
         );
 
-    // update the totalCFAStreamedUntilUpdatedAt (in)
-    accountTokenSnapshot.totalCFAAmountStreamedInUntilUpdatedAt =
-        accountTokenSnapshot.totalCFAAmountStreamedInUntilUpdatedAt.plus(
-            totalCFAAmountStreamedInSinceLastUpdatedAt
-        );
-
     // update the totalCFAStreamedUntilUpdatedAt (out)
     accountTokenSnapshot.totalCFAAmountStreamedOutUntilUpdatedAt =
         accountTokenSnapshot.totalCFAAmountStreamedOutUntilUpdatedAt.plus(
             totalCFAAmountStreamedOutSinceLastUpdatedAt
-        );
-
-    //////////////// GDA streamed amounts ////////////////
-    const totalGDAAmountStreamedSinceLastUpdatedAt =
-        getAmountStreamedSinceLastUpdatedAt(
-            block.timestamp,
-            accountTokenSnapshot.updatedAtTimestamp,
-            accountTokenSnapshot.totalGDANetFlowRate
-        );
-    const totalGDAAmountStreamedInSinceLastUpdatedAt =
-        getAmountStreamedSinceLastUpdatedAt(
-            block.timestamp,
-            accountTokenSnapshot.updatedAtTimestamp,
-            accountTokenSnapshot.totalGDAInflowRate
-        );
-    const totalGDAAmountStreamedOutSinceLastUpdatedAt =
-        getAmountStreamedSinceLastUpdatedAt(
-            block.timestamp,
-            accountTokenSnapshot.updatedAtTimestamp,
-            accountTokenSnapshot.totalGDAOutflowRate
-        );
-
-    // update the totalGDAStreamedUntilUpdatedAt (net)
-    accountTokenSnapshot.totalGDAAmountStreamedUntilUpdatedAt =
-        accountTokenSnapshot.totalGDAAmountStreamedUntilUpdatedAt.plus(
-            totalGDAAmountStreamedSinceLastUpdatedAt
-        );
-
-    // update the totalGDAStreamedUntilUpdatedAt (in)
-    accountTokenSnapshot.totalGDAAmountStreamedInUntilUpdatedAt =
-        accountTokenSnapshot.totalGDAAmountStreamedInUntilUpdatedAt.plus(
-            totalGDAAmountStreamedInSinceLastUpdatedAt
-        );
-
-    // update the totalGDAStreamedUntilUpdatedAt (out)
-    accountTokenSnapshot.totalGDAAmountStreamedOutUntilUpdatedAt =
-        accountTokenSnapshot.totalGDAAmountStreamedOutUntilUpdatedAt.plus(
-            totalGDAAmountStreamedOutSinceLastUpdatedAt
         );
 
     accountTokenSnapshot.save();
@@ -1274,18 +1193,6 @@ export function updateTokenStatsStreamedUntilUpdatedAt(
     tokenStats.totalCFAAmountStreamedUntilUpdatedAt =
         tokenStats.totalCFAAmountStreamedUntilUpdatedAt.plus(
             cfaAmountStreamedSinceLastUpdatedAt
-        );
-
-    //// GDA streamed amounts ////
-    const gdaAmountStreamedSinceLastUpdatedAt =
-        getAmountStreamedSinceLastUpdatedAt(
-            block.timestamp,
-            tokenStats.updatedAtTimestamp,
-            tokenStats.totalGDAOutflowRate
-        );
-    tokenStats.totalGDAAmountStreamedUntilUpdatedAt =
-        tokenStats.totalGDAAmountStreamedUntilUpdatedAt.plus(
-            gdaAmountStreamedSinceLastUpdatedAt
         );
 
     tokenStats.updatedAtTimestamp = block.timestamp;
@@ -1446,9 +1353,6 @@ export function updateSenderATSStreamData(
         senderATS.totalCFADeposit =
             senderATS.totalCFADeposit.plus(depositDelta);
     } else {
-        senderATS.totalGDANetFlowRate =
-            senderATS.totalGDANetFlowRate.minus(flowRateDelta);
-
         // the outflow rate should never go below 0.
         senderATS.totalGDAOutflowRate = senderATS.totalGDAOutflowRate
             .plus(flowRateDelta)
@@ -1488,7 +1392,6 @@ export function updateReceiverATSStreamData(
     flowRateDelta: BigInt,
     isCreate: boolean,
     isDelete: boolean,
-    isCFA: boolean,
     block: ethereum.Block
 ): void {
     const totalNumberOfActiveStreamsDelta = getActiveStreamsDelta(
@@ -1531,55 +1434,17 @@ export function updateReceiverATSStreamData(
         receiverATS.maybeCriticalAtTimestamp
     );
 
-    if (isCFA) {
-        receiverATS.totalCFANetFlowRate =
-            receiverATS.totalCFANetFlowRate.plus(flowRateDelta);
+    receiverATS.totalCFANetFlowRate =
+        receiverATS.totalCFANetFlowRate.plus(flowRateDelta);
 
-        // the inflow rate should never go below 0.
-        receiverATS.totalCFAInflowRate = receiverATS.totalCFAInflowRate
-            .plus(flowRateDelta)
-            .lt(BIG_INT_ZERO)
-            ? newFlowRate
-            : receiverATS.totalCFAInflowRate.plus(flowRateDelta);
+    receiverATS.totalCFANumberOfActiveStreams =
+        receiverATS.totalCFANumberOfActiveStreams +
+        totalNumberOfActiveStreamsDelta;
+        totalNumberOfClosedStreamsDelta;
 
-        receiverATS.totalCFANumberOfActiveStreams =
-            receiverATS.totalCFANumberOfActiveStreams +
-            totalNumberOfActiveStreamsDelta;
-        receiverATS.activeCFAIncomingStreamCount =
-            receiverATS.activeCFAIncomingStreamCount +
-            totalNumberOfActiveStreamsDelta;
-        receiverATS.inactiveCFAIncomingStreamCount =
-            receiverATS.inactiveCFAIncomingStreamCount +
-            totalNumberOfClosedStreamsDelta;
-
-        receiverATS.totalCFANumberOfClosedStreams =
-            receiverATS.totalCFANumberOfClosedStreams +
-            totalNumberOfClosedStreamsDelta;
-    } else {
-        receiverATS.totalGDANetFlowRate =
-            receiverATS.totalGDANetFlowRate.plus(flowRateDelta);
-
-        // the inflow rate should never go below 0.
-        receiverATS.totalGDAInflowRate = receiverATS.totalGDAInflowRate
-            .plus(flowRateDelta)
-            .lt(BIG_INT_ZERO)
-            ? newFlowRate
-            : receiverATS.totalGDAInflowRate.plus(flowRateDelta);
-
-        receiverATS.totalGDANumberOfActiveStreams =
-            receiverATS.totalGDANumberOfActiveStreams +
-            totalNumberOfActiveStreamsDelta;
-        receiverATS.activeGDAIncomingStreamCount =
-            receiverATS.activeGDAIncomingStreamCount +
-            totalNumberOfActiveStreamsDelta;
-        receiverATS.inactiveGDAIncomingStreamCount =
-            receiverATS.inactiveGDAIncomingStreamCount +
-            totalNumberOfClosedStreamsDelta;
-
-        receiverATS.totalGDANumberOfClosedStreams =
-            receiverATS.totalGDANumberOfClosedStreams +
-            totalNumberOfClosedStreamsDelta;
-    }
+    receiverATS.totalCFANumberOfClosedStreams =
+        receiverATS.totalCFANumberOfClosedStreams +
+        totalNumberOfClosedStreamsDelta;
 
     receiverATS.save();
 }
@@ -1614,18 +1479,27 @@ export function updateAggregateEntitiesTransferData(
 /**
  * Updates `totalAmountReceivedUntilUpdatedAt` and `poolTotalAmountDistributedUntilUpdatedAt` fields
  * Requires an explicit save on the PoolMember entity.
- * Requires `pool.totalAmountDistributedUntilUpdatedAt` to be updated prior to calling this function.
+ * Requires `pool.totalAmountDistributedUntilUpdatedAt` is updated *BEFORE* this function is called.
+ * Requires that pool.totalUnits and poolMember.units are updated *AFTER* this function is called.
  * @param pool the pool entity
  * @param poolMember the pool member entity
  * @returns the updated pool member entity to be saved
  */
 export function updatePoolMemberTotalAmountUntilUpdatedAtFields(pool: Pool, poolMember: PoolMember): PoolMember {
-    const amountReceivedDelta = pool.totalUnits.equals(BIG_INT_ZERO)
-        ? BIG_INT_ZERO
-        : pool.totalAmountDistributedUntilUpdatedAt
-              .minus(poolMember.poolTotalAmountDistributedUntilUpdatedAt)
-              .div(pool.totalUnits)
-              .times(poolMember.units);
+    let amountReceivedDelta = BIG_INT_ZERO;
+    // if the pool member has any units, we calculate the delta
+    // otherwise the delta is going to be 0
+    if (!poolMember.units.equals(BIG_INT_ZERO)) {
+        const distributedAmountDelta = pool.totalAmountDistributedUntilUpdatedAt
+            .minus(poolMember.poolTotalAmountDistributedUntilUpdatedAt);
+
+        const isSafeToMultiplyWithoutOverflow = MAX_UINT256.div(poolMember.units).gt(distributedAmountDelta);
+        if (isSafeToMultiplyWithoutOverflow) {
+            amountReceivedDelta = distributedAmountDelta.times(poolMember.units).div(pool.totalUnits);
+        } else {
+            amountReceivedDelta = distributedAmountDelta.div(pool.totalUnits).times(poolMember.units);
+        }
+    }
     poolMember.totalAmountReceivedUntilUpdatedAt =
         poolMember.totalAmountReceivedUntilUpdatedAt.plus(amountReceivedDelta);
     poolMember.poolTotalAmountDistributedUntilUpdatedAt = pool.totalAmountDistributedUntilUpdatedAt;

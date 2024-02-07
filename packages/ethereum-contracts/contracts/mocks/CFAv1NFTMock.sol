@@ -4,7 +4,13 @@
 pragma solidity 0.8.23;
 
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
-import { ISuperfluid, IConstantInflowNFT, IConstantOutflowNFT } from "../interfaces/superfluid/ISuperfluid.sol";
+import {
+    IConstantFlowAgreementV1,
+    IGeneralDistributionAgreementV1,
+    ISuperfluid,
+    IConstantInflowNFT,
+    IConstantOutflowNFT
+} from "../interfaces/superfluid/ISuperfluid.sol";
 import { ConstantOutflowNFT } from "../superfluid/ConstantOutflowNFT.sol";
 import { ConstantInflowNFT } from "../superfluid/ConstantInflowNFT.sol";
 import { FlowNFTBase } from "../superfluid/FlowNFTBase.sol";
@@ -17,7 +23,9 @@ contract FlowNFTBaseMock is FlowNFTBase {
 
     mapping(uint256 => FlowNFTData) internal _flowDataByTokenId;
 
-    constructor(ISuperfluid host) FlowNFTBase(host) { }
+    constructor(ISuperfluid host, IConstantFlowAgreementV1 cfaV1, IGeneralDistributionAgreementV1 gdaV1)
+        FlowNFTBase(host, cfaV1, gdaV1)
+    { }
 
     function proxiableUUID() public pure override returns (bytes32) {
         return keccak256("org.superfluid-finance.contracts.FlowNFTBaseMock.implementation");
@@ -57,7 +65,12 @@ contract FlowNFTBaseMock is FlowNFTBase {
 }
 
 contract ConstantOutflowNFTMock is ConstantOutflowNFT {
-    constructor(ISuperfluid host, IConstantInflowNFT constantInflowNFT) ConstantOutflowNFT(host, constantInflowNFT) { }
+    constructor(
+        ISuperfluid host,
+        IConstantFlowAgreementV1 cfaV1,
+        IGeneralDistributionAgreementV1 gdaV1,
+        IConstantInflowNFT constantInflowNFT
+    ) ConstantOutflowNFT(host, cfaV1, gdaV1, constantInflowNFT) { }
 
     /// @dev a mock mint function that exposes the internal _mint function
     function mockMint(address _superToken, address _to, address _flowReceiver, uint256 _newTokenId) public {
@@ -83,8 +96,10 @@ contract ConstantOutflowNFTMock is ConstantOutflowNFT {
 contract ConstantInflowNFTMock is ConstantInflowNFT {
     constructor(
         ISuperfluid host,
+        IConstantFlowAgreementV1 cfaV1,
+        IGeneralDistributionAgreementV1 gdaV1,
         IConstantOutflowNFT constantOutflowNFT
-    ) ConstantInflowNFT(host, constantOutflowNFT) { }
+    ) ConstantInflowNFT(host, cfaV1, gdaV1, constantOutflowNFT) { }
 
     /// @dev a mock mint function to emit the mint Transfer event
     function mockMint(address _to, uint256 _newTokenId) public {

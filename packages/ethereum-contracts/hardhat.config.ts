@@ -182,7 +182,7 @@ const config: HardhatUserConfig = {
     },
     mocha: {
         timeout: 250000,
-        parallel: !!process.env.HARDHAT_RUN_PARALLEL,
+        parallel: !!+process.env.HARDHAT_RUN_PARALLEL,
         jobs: process.env.HARDHAT_TEST_JOBS
             ? parseInt(process.env.HARDHAT_TEST_JOBS)
             : undefined,

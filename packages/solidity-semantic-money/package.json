@@ -16,7 +16,7 @@
     "check-updates": "ncu --target minor"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "4.9.3"
+    "@openzeppelin/contracts": "4.9.5"
   },
   "repository": {
     "type": "git",

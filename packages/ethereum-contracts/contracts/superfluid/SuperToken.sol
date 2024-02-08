@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.19;
+pragma solidity 0.8.23;
 
 // solhint-disable max-states-count
 // Notes: SuperToken is rich with states, disable this default rule here.

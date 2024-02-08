@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.19;
+pragma solidity 0.8.23;
 
 import { IConstantFlowAgreementV1, IGeneralDistributionAgreementV1, ISuperfluid }
     from "../interfaces/superfluid/ISuperfluid.sol";

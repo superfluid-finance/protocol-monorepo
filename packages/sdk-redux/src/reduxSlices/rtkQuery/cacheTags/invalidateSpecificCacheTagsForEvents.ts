@@ -153,8 +153,9 @@ const getEventSpecificTags = (event: AllEvents, chainId: number) => {
             return [];
         default:
             console.warn(
-                `Unknown event [${(event as any)
-                    ?.name}] in "invalidateCacheTagsForEvents" for @superfluid-finance/sdk-redux. Cache might not be invalidated properly.`
+                `Unknown event [${
+                    (event as any)?.name
+                }] in "invalidateCacheTagsForEvents" for @superfluid-finance/sdk-redux. Cache might not be invalidated properly.`
             );
             return [];
     }

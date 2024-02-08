@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPLv3
 // solhint-disable reason-string
-pragma solidity 0.8.19;
+pragma solidity 0.8.23;
 
 import { PoolNFTBase } from "../agreements/gdav1/PoolNFTBase.sol";
 import { IGeneralDistributionAgreementV1, ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";

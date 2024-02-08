@@ -38,7 +38,7 @@ subtask(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD).setAction(
  */
 const config: HardhatUserConfig = {
     solidity: {
-        version: "0.8.19",
+        version: "0.8.23",
         settings: {
             optimizer: {
                 enabled: true,

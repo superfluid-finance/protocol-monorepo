@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPLv3
 // solhint-disable reason-string
 // solhint-disable not-rely-on-time
-pragma solidity 0.8.19;
+pragma solidity 0.8.23;
 
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import {

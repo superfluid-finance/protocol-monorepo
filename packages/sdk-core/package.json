@@ -64,12 +64,12 @@
         "tsify": "^5.0.4"
     },
     "devDependencies": {
-        "@graphql-codegen/cli": "^5.0.0",
-        "@graphql-codegen/introspection": "^4.0.0",
+        "@graphql-codegen/cli": "^5.0.2",
+        "@graphql-codegen/introspection": "^4.0.2",
         "@graphql-codegen/near-operation-file-preset": "^2.5.0",
-        "@graphql-codegen/typed-document-node": "^5.0.1",
-        "@graphql-codegen/typescript": "^4.0.1",
-        "@graphql-codegen/typescript-operations": "^4.0.1",
+        "@graphql-codegen/typed-document-node": "^5.0.4",
+        "@graphql-codegen/typescript": "^4.0.4",
+        "@graphql-codegen/typescript-operations": "^4.1.2",
         "@graphql-typed-document-node/core": "^3.2.0",
         "ajv": "^8.12.0",
         "ethers": "^5.7.2",

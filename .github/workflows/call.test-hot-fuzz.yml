@@ -33,5 +33,6 @@ jobs:
       - name: Run tests
         run: |
           cd packages/hot-fuzz
-          echo "testLimit: 1000" >> echidna.yaml
           ./hot-fuzz contracts/superfluid-tests/SuperHotFuzz.yaml
+        env:
+          ECHIDNA_TEST_LIMIT: 10000

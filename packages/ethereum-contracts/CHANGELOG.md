@@ -9,6 +9,11 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 - New utility: TrustedMacrosVanilla trusted forwarder.
 
+### Changed
+
+- bump solc to 0.8.23
+
+
 ## [v1.9.0] - 2024-01-09
 
 ### Breaking
@@ -45,6 +50,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Fixes
 - [`dev-scripts/deploy-test-framework.js`](dev-scripts/deploy-test-framework.js) compatible with both ethers-v5 and ethers-v6 now
+- `distribute` and `distributeWithCtx` API made consistent
 
 ## [v1.8.1] - 2023-08-28
 

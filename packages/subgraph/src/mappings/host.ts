@@ -18,7 +18,7 @@ import {
     SuperTokenLogicUpdated,
 } from "../../generated/Host/ISuperfluid";
 import { createEventID, initializeEventEntity } from "../utils";
-import { commitHash, configuration, branch } from "../meta.ignore";
+import { commitHash, configuration, branch, packageVersion } from "../meta.ignore";
 import { ethereum } from "@graphprotocol/graph-ts";
 import { SuperfluidGovernance } from "../../generated/templates";
 
@@ -113,6 +113,7 @@ function initSFMetaOnce(event: ethereum.Event): void {
         sfMeta.blockNumber = event.block.number;
         sfMeta.configuration = configuration;
         sfMeta.branch = branch;
+        sfMeta.packageVersion = packageVersion;
         sfMeta.save();
     }
 }

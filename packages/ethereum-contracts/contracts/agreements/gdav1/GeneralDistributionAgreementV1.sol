@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: AGPLv3
 // solhint-disable not-rely-on-time
-pragma solidity 0.8.19;
+pragma solidity 0.8.23;
 
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
-import { IBeacon } from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 
 import { ISuperfluid, ISuperfluidGovernance } from "../../interfaces/superfluid/ISuperfluid.sol";
 import {
@@ -21,6 +20,7 @@ import {
     IGeneralDistributionAgreementV1,
     PoolConfig
 } from "../../interfaces/agreements/gdav1/IGeneralDistributionAgreementV1.sol";
+import { SuperfluidUpgradeableBeacon } from "../../upgradability/SuperfluidUpgradeableBeacon.sol";
 import { ISuperfluidToken } from "../../interfaces/superfluid/ISuperfluidToken.sol";
 import { IConstantOutflowNFT } from "../../interfaces/superfluid/IConstantOutflowNFT.sol";
 import { ISuperToken } from "../../interfaces/superfluid/ISuperToken.sol";
@@ -94,11 +94,9 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
     bytes32 private constant SUPERTOKEN_MINIMUM_DEPOSIT_KEY =
         keccak256("org.superfluid-finance.superfluid.superTokenMinimumDeposit");
 
-    IBeacon public superfluidPoolBeacon;
+    SuperfluidUpgradeableBeacon public immutable superfluidPoolBeacon;
 
-    constructor(ISuperfluid host) AgreementBase(address(host)) { }
-
-    function initialize(IBeacon superfluidPoolBeacon_) external initializer {
+    constructor(ISuperfluid host, SuperfluidUpgradeableBeacon superfluidPoolBeacon_) AgreementBase(address(host)) {
         superfluidPoolBeacon = superfluidPoolBeacon_;
     }
 
@@ -131,6 +129,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         rtb += fromPools;
 
         buf = uint256(universalIndexData.totalBuffer.toInt256()); // upcasting to uint256 is safe
+        owedBuffer = 0;
     }
 
     /// @dev ISuperAgreement.realtimeBalanceOf implementation
@@ -334,7 +333,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
 
                 _clearPoolConnectionsBitmap(token, msgSender, poolMemberData.poolID);
             }
-            
+
             emit PoolConnectionUpdated(token, pool, msgSender, doConnect, currentContext.userData);
         }
     }

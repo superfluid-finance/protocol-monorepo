@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.19;
+pragma solidity 0.8.23;
 
 // solhint-disable max-states-count
 // Notes: We use reserved slots for upgradable contracts.
@@ -95,22 +95,10 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
     uint256 private _reserve20;
     uint256 internal _reserve21;
 
-    constructor(ISuperfluid host) {
+    constructor(ISuperfluid host, IConstantFlowAgreementV1 cfaV1, IGeneralDistributionAgreementV1 gdaV1) {
         HOST = host;
-        CONSTANT_FLOW_AGREEMENT_V1 = IConstantFlowAgreementV1(
-            address(
-                ISuperfluid(host).getAgreementClass(
-                    keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
-                )
-            )
-        );
-        GENERAL_DISTRIBUTION_AGREEMENT_V1 = IGeneralDistributionAgreementV1(
-            address(
-                ISuperfluid(host).getAgreementClass(
-                    keccak256("org.superfluid-finance.agreements.GeneralDistributionAgreement.v1")
-                )
-            )
-        );
+        CONSTANT_FLOW_AGREEMENT_V1 = cfaV1;
+        GENERAL_DISTRIBUTION_AGREEMENT_V1 = gdaV1;
     }
 
     function initialize(string memory nftName, string memory nftSymbol)

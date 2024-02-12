@@ -3,6 +3,36 @@ All notable changes to the metadata will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [WIP]
+### Added
+- toga and batchLiquidator for scroll-mainnet
+
+## [v1.1.27]
+### Added
+- gdaV1 and gdaV1Forwarder for all testnets
+### Changed
+- loader on those networks (now also loads the gda)
+### Fixed
+- agreement addresses of scroll-mainnet and scroll-sepolia
+
+## [v1.1.26]
+### Added
+- gdaV1 and gdaV1Forwarder for several mainnets
+### Changed
+- loader on those networks (now also loads the gda)
+
+## [v1.1.25]
+### Changed
+- updated gov contract of scroll-mainnet
+### Fixed
+- invalid networks.json
+
+## [v1.1.24]
+### Changed
+- added forwarder addresses for scroll-sepolia, scroll-mainnet
+### Fixed
+- invalid networks.json
+
 ## [v1.1.23]
 ### Added
 - new networks: optimism-sepolia, scroll-sepolia, scroll-mainnet

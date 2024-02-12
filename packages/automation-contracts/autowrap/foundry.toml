@@ -2,7 +2,7 @@
 root = '../../../'
 libs = ['lib']
 src = 'packages/automation-contracts/autowrap'
-solc_version = "0.8.19"
+solc_version = "0.8.23"
 remappings = [
     '@superfluid-finance/solidity-semantic-money/src/=packages/solidity-semantic-money/src/',
     '@superfluid-finance/ethereum-contracts/=packages/ethereum-contracts/',

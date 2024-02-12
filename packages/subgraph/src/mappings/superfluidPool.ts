@@ -53,11 +53,16 @@ export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
     let poolMember = getOrInitPoolMember(event, event.address, event.params.member);
     const hasMembershipWithUnits = membershipWithUnitsExists(poolMember.id);
 
+    let pool = getOrInitPool(event, event.address.toHex());
+
     const previousUnits = poolMember.units;
     const unitsDelta = event.params.newUnits.minus(previousUnits);
-    poolMember.units = event.params.newUnits;
 
-    poolMember.save();
+    pool = updatePoolTotalAmountFlowedAndDistributed(event, pool);
+
+    poolMember = updatePoolMemberTotalAmountUntilUpdatedAtFields(pool, poolMember);
+
+    poolMember.units = event.params.newUnits;
 
     const eventName = "MemberUnitsUpdated";
     updateTokenStatsStreamedUntilUpdatedAt(event.params.token, event.block);
@@ -66,18 +71,12 @@ export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
     updateATSStreamedAndBalanceUntilUpdatedAt(event.params.member, event.params.token, event.block, null);
     _createAccountTokenSnapshotLogEntity(event, event.params.member, event.params.token, eventName);
 
-    let pool = getOrInitPool(event, event.address.toHex());
-    pool = updatePoolTotalAmountFlowedAndDistributed(event, pool);
     if (poolMember.isConnected) {
         pool.totalConnectedUnits = pool.totalConnectedUnits.plus(unitsDelta);
     } else {
         pool.totalDisconnectedUnits = pool.totalDisconnectedUnits.plus(unitsDelta);
     }
     pool.totalUnits = pool.totalUnits.plus(unitsDelta);
-    pool.save();
-
-    poolMember = updatePoolMemberTotalAmountUntilUpdatedAtFields(pool, poolMember);
-    poolMember.save();
 
     // 0 units to > 0 units
     if (previousUnits.equals(BIG_INT_ZERO) && event.params.newUnits.gt(BIG_INT_ZERO)) {
@@ -89,7 +88,6 @@ export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
             // if the member is disconnected with units now, we add one to disconnected
             pool.totalDisconnectedMembers = pool.totalDisconnectedMembers + 1;
         }
-        pool.save();
 
         updateAggregateDistributionAgreementData(
             event.params.member,
@@ -114,7 +112,6 @@ export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
             // if the member is disconnected with no units now, we subtract one from disconnected
             pool.totalDisconnectedMembers = pool.totalDisconnectedMembers - 1;
         }
-        pool.save();
 
         updateAggregateDistributionAgreementData(
             event.params.member,
@@ -129,6 +126,9 @@ export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
             false // isIDA
         );
     }
+
+    poolMember.save();
+    pool.save();
 
     // Create Event Entity
     _createMemberUnitsUpdatedEntity(event, poolMember.id, pool.totalUnits);

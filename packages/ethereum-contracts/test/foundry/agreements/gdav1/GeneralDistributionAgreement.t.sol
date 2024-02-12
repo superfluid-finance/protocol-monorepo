@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.19;
+pragma solidity 0.8.23;
 
 import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
-import { IBeacon } from "@openzeppelin/contracts/proxy/beacon/IBeacon.sol";
 import "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
 import "../../FoundrySuperfluidTester.sol";
 import {
@@ -11,6 +10,7 @@ import {
     IGeneralDistributionAgreementV1
 } from "../../../../contracts/agreements/gdav1/GeneralDistributionAgreementV1.sol";
 import { SuperTokenV1Library } from "../../../../contracts/apps/SuperTokenV1Library.sol";
+import { SuperfluidUpgradeableBeacon } from "../../../../contracts/upgradability/SuperfluidUpgradeableBeacon.sol";
 import { ISuperToken, SuperToken } from "../../../../contracts/superfluid/SuperToken.sol";
 import { ISuperfluidToken } from "../../../../contracts/interfaces/superfluid/ISuperfluidToken.sol";
 import { ISuperfluidPool, SuperfluidPool } from "../../../../contracts/agreements/gdav1/SuperfluidPool.sol";
@@ -45,7 +45,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
     SuperfluidPool public freePool;
     uint256 public liquidationPeriod;
 
-    constructor() FoundrySuperfluidTester(7) { }
+    constructor() FoundrySuperfluidTester(10) { }
 
     function setUp() public override {
         super.setUp();
@@ -70,17 +70,9 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
                                 GDA Integration Tests
     //////////////////////////////////////////////////////////////////////////*/
 
-    function testInitializeGDA(IBeacon beacon) public {
-        GeneralDistributionAgreementV1 gdaV1 = new GeneralDistributionAgreementV1(sf.host);
-        assertEq(address(gdaV1.superfluidPoolBeacon()), address(0), "GDAv1.t: Beacon address not address(0)");
-        gdaV1.initialize(beacon);
-
+    function testInitializeGDA(SuperfluidUpgradeableBeacon beacon) public {
+        GeneralDistributionAgreementV1 gdaV1 = new GeneralDistributionAgreementV1(sf.host, beacon);
         assertEq(address(gdaV1.superfluidPoolBeacon()), address(beacon), "GDAv1.t: Beacon address not equal");
-    }
-
-    function testRevertReinitializeGDA(IBeacon beacon) public {
-        vm.expectRevert("Initializable: contract is already initialized");
-        sf.gda.initialize(beacon);
     }
 
     function testRevertAppendIndexUpdateByPoolByNonPool(BasicParticle memory p, Time t) public {
@@ -243,11 +235,10 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         vm.stopPrank();
     }
 
-    function testRevertIfNotAdminOrGDAUpdatesMemberUnitsViaPool(address caller) public {
-        vm.assume(caller != alice);
-        vm.startPrank(caller);
+    function testRevertIfNotAdminOrGDAUpdatesMemberUnitsViaPool() public {
+        vm.startPrank(bob);
         vm.expectRevert(ISuperfluidPool.SUPERFLUID_POOL_NOT_POOL_ADMIN_OR_GDA.selector);
-        freePool.updateMemberUnits(caller, 69);
+        freePool.updateMemberUnits(bob, 69);
         vm.stopPrank();
     }
 
@@ -384,15 +375,15 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         mock.validateStorageLayout();
     }
 
-    function testDistributeFlowUsesMinDeposit(
+    function testDistributeFlowUsesMinDepositWhenFlowDepositIsLess(
         uint64 distributionFlowRate,
-        uint32 minDepositMultiplier,
+        uint32 minDepositFlowRate,
         address member,
         FoundrySuperfluidTester._StackVars_UseBools memory useBools_,
         PoolConfig memory config
     ) public {
         ISuperfluidPool pool = _helperCreatePool(superToken, alice, alice, false, config);
-        vm.assume(distributionFlowRate < minDepositMultiplier);
+        vm.assume(distributionFlowRate < minDepositFlowRate);
         vm.assume(distributionFlowRate > 0);
         vm.assume(member != address(pool));
         vm.assume(member != address(0));
@@ -400,7 +391,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         _addAccount(member);
 
         vm.startPrank(address(sf.governance.owner()));
-        uint256 minimumDeposit = 4 hours * uint256(minDepositMultiplier);
+        uint256 minimumDeposit = 4 hours * uint256(minDepositFlowRate);
         sf.governance.setSuperTokenMinimumDeposit(sf.host, superToken, minimumDeposit);
         vm.stopPrank();
 
@@ -411,15 +402,15 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         assertEq(buffer, minimumDeposit, "GDAv1.t: Min buffer should be used");
     }
 
-    function testDistributeFlowIgnoresMinDeposit(
+    function testDistributeFlowIgnoresMinDepositWhenFlowDepositIsGreater(
         int32 distributionFlowRate,
-        uint32 minDepositMultiplier,
+        uint32 minDepositFlowRate,
         address member,
         FoundrySuperfluidTester._StackVars_UseBools memory useBools_,
         PoolConfig memory config
     ) public {
         ISuperfluidPool pool = _helperCreatePool(superToken, alice, alice, false, config);
-        vm.assume(uint32(distributionFlowRate) >= minDepositMultiplier);
+        vm.assume(uint32(distributionFlowRate) >= minDepositFlowRate);
         vm.assume(distributionFlowRate > 0);
         vm.assume(member != address(0));
         vm.assume(member != address(freePool));
@@ -428,7 +419,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
 
         vm.startPrank(address(sf.governance.owner()));
 
-        uint256 minimumDeposit = 4 hours * uint256(minDepositMultiplier);
+        uint256 minimumDeposit = 4 hours * uint256(minDepositFlowRate);
         sf.governance.setSuperTokenMinimumDeposit(sf.host, superToken, minimumDeposit);
         vm.stopPrank();
 

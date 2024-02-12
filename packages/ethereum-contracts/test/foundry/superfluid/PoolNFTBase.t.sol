@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.19;
+pragma solidity 0.8.23;
 
 import { IERC165, IERC721, IERC721Metadata } from "@openzeppelin/contracts/interfaces/IERC721Metadata.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
@@ -36,7 +36,7 @@ abstract contract PoolNFTBaseIntegrationTest is ERC721IntegrationTest {
 
     function setUp() public virtual override {
         super.setUp();
-        poolNFTBaseMock = new PoolNFTBaseMock(sf.host);
+        poolNFTBaseMock = new PoolNFTBaseMock(sf.host, sf.gda);
         poolNFTBaseMock.initialize(NAME, SYMBOL);
     }
 
@@ -342,19 +342,20 @@ contract PoolNFTUpgradabilityTest is PoolNFTBaseIntegrationTest {
                                 Storage Layout Tests
     //////////////////////////////////////////////////////////////////////////*/
     function testPoolNFTBaseStorageLayout() public {
-        PoolNFTBaseStorageLayoutMock poolNFTBaseStorageLayoutMock = new PoolNFTBaseStorageLayoutMock(sf.host);
+        PoolNFTBaseStorageLayoutMock poolNFTBaseStorageLayoutMock = new PoolNFTBaseStorageLayoutMock(sf.host, sf.gda);
 
         poolNFTBaseStorageLayoutMock.validateStorageLayout();
     }
 
     function testPoolMemberNFTStorageLayout() public {
-        PoolMemberNFTStorageLayoutMock poolMemberNFTStorageLayoutMock = new PoolMemberNFTStorageLayoutMock(sf.host);
+        PoolMemberNFTStorageLayoutMock poolMemberNFTStorageLayoutMock =
+            new PoolMemberNFTStorageLayoutMock(sf.host, sf.gda);
 
         poolMemberNFTStorageLayoutMock.validateStorageLayout();
     }
 
     function testPoolAdminNFTStorageLayout() public {
-        PoolAdminNFTStorageLayoutMock poolAdminNFTStorageLayoutMock = new PoolAdminNFTStorageLayoutMock(sf.host);
+        PoolAdminNFTStorageLayoutMock poolAdminNFTStorageLayoutMock = new PoolAdminNFTStorageLayoutMock(sf.host, sf.gda);
 
         poolAdminNFTStorageLayoutMock.validateStorageLayout();
     }
@@ -364,16 +365,12 @@ contract PoolNFTUpgradabilityTest is PoolNFTBaseIntegrationTest {
     //////////////////////////////////////////////////////////////////////////*/
     function testRevertPoolNFTContractsCannotBeUpgradedByNonSuperTokenFactory(address notSuperTokenFactory) public {
         vm.assume(notSuperTokenFactory != address(sf.superTokenFactory));
-        PoolAdminNFT newPoolAdminNFT = new PoolAdminNFT(
-            sf.host
-        );
+        PoolAdminNFT newPoolAdminNFT = new PoolAdminNFT(sf.host, sf.gda);
         vm.expectRevert(IPoolNFTBase.POOL_NFT_ONLY_SUPER_TOKEN_FACTORY.selector);
         vm.prank(notSuperTokenFactory);
         poolAdminNFT.updateCode(address(newPoolAdminNFT));
 
-        PoolMemberNFT newPoolMemberNFT = new PoolMemberNFT(
-            sf.host
-        );
+        PoolMemberNFT newPoolMemberNFT = new PoolMemberNFT(sf.host, sf.gda);
         vm.expectRevert(IPoolNFTBase.POOL_NFT_ONLY_SUPER_TOKEN_FACTORY.selector);
         vm.prank(notSuperTokenFactory);
         poolMemberNFT.updateCode(address(newPoolMemberNFT));
@@ -383,15 +380,11 @@ contract PoolNFTUpgradabilityTest is PoolNFTBaseIntegrationTest {
                                     Passing Tests
     //////////////////////////////////////////////////////////////////////////*/
     function testPoolNFTContractsCanBeUpgradedBySuperTokenFactory() public {
-        PoolAdminNFT newPoolAdminNFT = new PoolAdminNFT(
-            sf.host
-        );
+        PoolAdminNFT newPoolAdminNFT = new PoolAdminNFT(sf.host, sf.gda);
         vm.prank(address(sf.superTokenFactory));
         poolAdminNFT.updateCode(address(newPoolAdminNFT));
 
-        PoolMemberNFT newPoolMemberNFT = new PoolMemberNFT(
-            sf.host
-        );
+        PoolMemberNFT newPoolMemberNFT = new PoolMemberNFT(sf.host, sf.gda);
         vm.prank(address(sf.superTokenFactory));
         poolMemberNFT.updateCode(address(newPoolMemberNFT));
     }

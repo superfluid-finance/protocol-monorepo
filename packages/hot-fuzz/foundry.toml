@@ -1,7 +1,7 @@
 [profile.default]
 root = '../..'
 src = 'packages/hot-fuzz/contracts'
-solc_version = "0.8.19"
+solc_version = "0.8.23"
 remappings = [
     '@superfluid-finance/ethereum-contracts/contracts/=packages/ethereum-contracts/contracts/',
     '@superfluid-finance/solidity-semantic-money/src/=packages/solidity-semantic-money/src/',

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.19;
+pragma solidity 0.8.23;
 
 import { FoundrySuperfluidTester, SuperTokenV1Library } from "../FoundrySuperfluidTester.sol";
 import {
@@ -28,7 +28,7 @@ contract NonTransferableST is SuperToken {
             // no-empty-blocks
     { }
 
-    function transferFrom(address holder, address recipient, uint256 amount) public override returns (bool) {
+    function transferFrom(address, address, uint256) public pure override returns (bool) {
         revert();
     }
 

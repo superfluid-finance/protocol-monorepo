@@ -27,7 +27,8 @@ jobs:
           echidna --version
 
       - name: Run Yarn Install
-        run: yarn install
+        run: |
+          yarn install
 
       - name: Run tests
         run: |

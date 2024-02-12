@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.19;
+pragma solidity 0.8.23;
 
 // Notes: We use reserved slots for upgradable contracts.
 // solhint-disable max-states-count
@@ -8,10 +8,9 @@ pragma solidity 0.8.19;
 // solhint-disable-next-line no-unused-import
 import { IERC165, IERC721, IERC721Metadata } from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import { UUPSProxiable } from "../../upgradability/UUPSProxiable.sol";
-import { ISuperfluid } from "../../interfaces/superfluid/ISuperfluid.sol";
+import { IGeneralDistributionAgreementV1, ISuperfluid } from "../../interfaces/superfluid/ISuperfluid.sol";
 import { ISuperTokenFactory } from "../../interfaces/superfluid/ISuperTokenFactory.sol";
 import { IPoolNFTBase } from "../../interfaces/agreements/gdav1/IPoolNFTBase.sol";
-import { IGeneralDistributionAgreementV1 } from "../../interfaces/agreements/gdav1/IGeneralDistributionAgreementV1.sol";
 
 abstract contract PoolNFTBase is UUPSProxiable, IPoolNFTBase {
     string public constant DEFAULT_BASE_URI = "https://nft.superfluid.finance/pool/v2/getmeta";
@@ -68,15 +67,9 @@ abstract contract PoolNFTBase is UUPSProxiable, IPoolNFTBase {
     uint256 private _reserve20;
     uint256 internal _reserve21;
 
-    constructor(ISuperfluid host) {
+    constructor(ISuperfluid host, IGeneralDistributionAgreementV1 gdaV1) {
         HOST = host;
-        GENERAL_DISTRIBUTION_AGREEMENT_V1 = IGeneralDistributionAgreementV1(
-            address(
-                ISuperfluid(host).getAgreementClass(
-                    keccak256("org.superfluid-finance.agreements.GeneralDistributionAgreement.v1")
-                )
-            )
-        );
+        GENERAL_DISTRIBUTION_AGREEMENT_V1 = gdaV1;
     }
 
     function initialize(string memory nftName, string memory nftSymbol)

@@ -27,13 +27,13 @@ module.exports = eval(`(${S.toString()})({
     console.log("======== Authorizing Super App Deployer ========");
     let {protocolReleaseVersion} = options;
 
-    if (args.length > 3 || args.length < 2) {
+    if (args.length > 2 || args.length < 1) {
         throw new Error("Wrong number of arguments");
     }
 
     // default: 2^64 - 1 (far in the future - for practical purposes, never expiring)
     let expirationTs = (BigInt(2) ** BigInt(64) - BigInt(1)).toString();
-    if (args.length === 3) {
+    if (args.length === 2) {
         const expTsStr = args.pop();
         const parsedExpTs = parseInt(expTsStr);
         if (parsedExpTs.toString() !== expTsStr) {

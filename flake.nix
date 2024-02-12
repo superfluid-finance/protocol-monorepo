@@ -43,6 +43,7 @@
       shellcheck
       # used by some scripts
       jq
+      yq
       # test utilities
       lcov
       actionlint

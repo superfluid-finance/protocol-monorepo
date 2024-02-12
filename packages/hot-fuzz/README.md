@@ -33,23 +33,14 @@ yarn add --dev 'https://gitpkg.now.sh/api/pkg?url=superfluid-finance/protocol-mo
 > - https://github.com/yarnpkg/yarn/issues/4725
 > - https://gitpkg.vercel.app/
 
-Also make sure the dependency `@superfluid-finance/ethereum-contracts` is at least version 1.2.2.
+Also make sure the dependency `@superfluid-finance/ethereum-contracts` is from the latest dev branch, since it is still
+under active development.
 
-3. Extend your `truffle-config.js`
+3. Make sure you use foundry and configure it properly:
 
-It is required to link external libraries correctly during the testing. The workaround is provided, all you need to do
-is to slightly change your `truffle-config.js`:
+(TODO.)
 
-```js
-const M = (module.exports = {
-    // networks, compilers, ...
-}
-require("@superfluid-finance/hot-fuzz").hotfuzzPatchTruffleConfig(M);
-```
-
-> :warning: hardhat-config support is currently missing, pull request appreciated!
->
-> Note that there is no harm just to create a minimal truffle-config.js in your project if that helps for now!
+> :warning: there is no truffle or hardhat support at the moment
 
 :star: Congrats! Now you should be all set!
 

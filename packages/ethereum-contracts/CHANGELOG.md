@@ -7,7 +7,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Added
 
-- New utility: TrustedMacrosVanilla trusted forwarder.
+- New utility: MacroForwarder - a trusted forwarder extensible with permission-less macro contracts.
 
 ### Changed
 

@@ -8,7 +8,9 @@ import { ISuperfluid } from "../superfluid/ISuperfluid.sol";
  */
 interface IUserDefinedMacro {
     /**
-     * @dev Build batch operations according the parameters provided by the host contract.
+     * @dev Build batch operations according to the parameters provided.
+     * It's up to the macro contract to map the provided params (can also be empty) to any
+     * valid list of operations.
      * @param  host       The executing host contract.
      * @param  params     The encoded form of the parameters.
      * @return operations The batch operations built.

@@ -6,6 +6,7 @@ const Resolver = artifacts.require("Resolver");
 const SuperfluidLoader = artifacts.require("SuperfluidLoader");
 const CFAv1Forwarder = artifacts.require("CFAv1Forwarder");
 const GDAv1Forwarder = artifacts.require("GDAv1Forwarder");
+const MacroForwarder = artifacts.require("MacroForwarder");
 
 /**
  * @dev Deploy specified contract at a deterministic address (defined by sender, nonce)
@@ -86,6 +87,12 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         deployArgs = [hostAddr];
         console.log(
             `setting up GDAv1Forwarder for chainId ${chainId}, host ${hostAddr}`
+        );
+    } else if (contractName === "MacroForwarder") {
+        ContractArtifact = MacroForwarder;
+        deployArgs = [hostAddr];
+        console.log(
+            `setting up MacroForwarder for chainId ${chainId}, host ${hostAddr}`
         );
     } else {
         throw new Error("Contract unknown / not supported");

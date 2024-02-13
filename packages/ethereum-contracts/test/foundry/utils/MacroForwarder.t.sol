@@ -23,6 +23,7 @@ contract NaugthyMacro {
         if (naughtyCounter >= 0) {
             naughtyCounter++;
         }
+        return new ISuperfluid.Operation[](0);
     }
 }
 

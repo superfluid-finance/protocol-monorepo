@@ -14,13 +14,25 @@ contract MacroForwarder is ForwarderBase {
     constructor(ISuperfluid host) ForwarderBase(host) {}
 
     /**
-     * @dev Run the macro defined by the provided macro contract and params.
+     * @dev A convenience view wrapper for building the batch operations using a macro.
      * @param  m          Target macro.
-     * @param  params     Parameters to run the macro.
+     * @param  params     Parameters to simulate the macro.
+     * @return operations Operations returned by the macro after the simulation.
      */
-    function runMacro(IUserDefinedMacro m, bytes memory params) external returns (bool)
+    function buildBatchOperations(IUserDefinedMacro m, bytes calldata params) public view
+        returns (ISuperfluid.Operation[] memory operations)
     {
-        ISuperfluid.Operation[] memory operations = m.buildBatchOperations(_host, params);
+        operations = m.buildBatchOperations(_host, params);
+    }
+
+    /**
+     * @dev Run the macro defined by the provided macro contract and params.
+     * @param  m      Target macro.
+     * @param  params Parameters to run the macro.
+     */
+    function runMacro(IUserDefinedMacro m, bytes calldata params) external returns (bool)
+    {
+        ISuperfluid.Operation[] memory operations = buildBatchOperations(m, params);
         return _forwardBatchCall(operations);
     }
 }

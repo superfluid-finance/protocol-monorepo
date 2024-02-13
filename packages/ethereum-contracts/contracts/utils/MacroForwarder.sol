@@ -22,7 +22,7 @@ contract MacroForwarder is ForwarderBase {
     function buildBatchOperations(IUserDefinedMacro m, bytes calldata params) public view
         returns (ISuperfluid.Operation[] memory operations)
     {
-        operations = m.buildBatchOperations(_host, params);
+        operations = m.buildBatchOperations(_host, params, msg.sender);
     }
 
     /**

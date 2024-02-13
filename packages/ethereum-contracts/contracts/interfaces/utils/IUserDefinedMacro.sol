@@ -13,8 +13,9 @@ interface IUserDefinedMacro {
      * valid list of operations.
      * @param  host       The executing host contract.
      * @param  params     The encoded form of the parameters.
+     * @param  msgSender  The msg.sender of the call to the MacroForwarder.
      * @return operations The batch operations built.
      */
-    function buildBatchOperations(ISuperfluid host, bytes memory params) external view
+    function buildBatchOperations(ISuperfluid host, bytes memory params, address msgSender) external view
         returns (ISuperfluid.Operation[] memory operations);
 }

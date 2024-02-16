@@ -83,7 +83,7 @@ jobs:
         working-directory: ./packages/ethereum-contracts
         env:
           HARDHAT_TEST_JOBS: 4
-          HARDHAT_RUN_PARALLEL: true
+          HARDHAT_RUN_PARALLEL: 1
 
       ########################################
       ## Coverage Test
@@ -104,7 +104,7 @@ jobs:
           NODE_OPTIONS: --max_old_space_size=4096
           IS_COVERAGE_TEST: true
           HARDHAT_TEST_JOBS: 2
-          HARDHAT_RUN_PARALLEL: false
+          HARDHAT_RUN_PARALLEL: 0
 
       - name: Clean up and merge coverage artifacts
         if: inputs.run-coverage-tests == true

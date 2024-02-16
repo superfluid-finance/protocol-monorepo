@@ -16,7 +16,7 @@ const ProxyDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contr
 const CFAv1ForwarderDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/CFAv1ForwarderDeployerLibrary.json");
 const IDAv1ForwarderDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/IDAv1ForwarderDeployerLibrary.json");
 const GDAv1ForwarderDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/GDAv1ForwarderDeployerLibrary.json");
-const SuperfluidLoaderDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/SuperfluidLoaderDeployerLibrary.json");
+const SuperTokenFactoryDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/SuperTokenFactoryDeployerLibrary.json");
 const SuperfluidFrameworkDeployerArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/utils/SuperfluidFrameworkDeployer.sol/SuperfluidFrameworkDeployer.json");
 const SlotsBitmapLibraryArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/libs/SlotsBitmapLibrary.sol/SlotsBitmapLibrary.json");
 const TokenDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/TokenDeployerLibrary.json");
@@ -227,10 +227,10 @@ const _deployTestFramework = async (provider, signer) => {
             GDAv1ForwarderDeployerLibraryArtifact,
             signer
         );
-    const SuperfluidLoaderDeployerLibrary =
+    const SuperTokenFactoryDeployerLibrary =
         await _getFactoryAndReturnDeployedContract(
-            "SuperfluidLoaderDeployerLibrary",
-            SuperfluidLoaderDeployerLibraryArtifact,
+            "SuperTokenFactoryDeployerLibrary",
+            SuperTokenFactoryDeployerLibraryArtifact,
             signer
         );
     const TokenDeployerLibrary = await _getFactoryAndReturnDeployedContract(
@@ -285,8 +285,8 @@ const _deployTestFramework = async (provider, signer) => {
                 GDAv1ForwarderDeployerLibrary: getContractAddress(
                     GDAv1ForwarderDeployerLibrary
                 ),
-                SuperfluidLoaderDeployerLibrary: getContractAddress(
-                    SuperfluidLoaderDeployerLibrary
+                SuperTokenFactoryDeployerLibrary: getContractAddress(
+                    SuperTokenFactoryDeployerLibrary
                 ),
                 TokenDeployerLibrary: getContractAddress(TokenDeployerLibrary),
             },

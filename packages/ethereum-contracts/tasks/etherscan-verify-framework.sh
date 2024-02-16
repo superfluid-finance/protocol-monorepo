@@ -7,20 +7,24 @@
 # if proxy addresses are provided, verification against up-to-date logic contracts will only succeed
 # once they point to those (after gov upgrade execution)
 
-set -x
-
 CONTRACTS_DIR=build/truffle
 
 TRUFFLE_NETWORK=$1
 ADDRESSES_VARS=$2
-shift 2
-EXTRA_ARGS="$*"
+
+shift 1
 
 if [ -z "$ADDRESSES_VARS" ]; then
+    EXTRA_ARGS="$*"
+    echo "EXTRA_ARGS: $EXTRA_ARGS"
     echo "no addresses provided, fetching myself..."
-    ADDRESSES_VARS="/tmp/$TRUFFLE_NETWORK.addrs"
+    ADDRESSES_VARS="/tmp/superfluid.$TRUFFLE_NETWORK.addrs"
     npx truffle exec --network "$TRUFFLE_NETWORK" ops-scripts/info-print-contract-addresses.js : "$ADDRESSES_VARS" || exit 1
+else
+    shift 1
 fi
+
+EXTRA_ARGS="$*"
 
 # shellcheck disable=SC1090
 source "$ADDRESSES_VARS"
@@ -28,8 +32,9 @@ source "$ADDRESSES_VARS"
 FAILED_VERIFICATIONS=()
 function try_verify() {
     echo # newline for better readability
-    npx truffle run --network "$TRUFFLE_NETWORK" verify "$@" ${EXTRA_ARGS:+$EXTRA_ARGS} ||
-        FAILED_VERIFICATIONS[${#FAILED_VERIFICATIONS[@]}]="$*"
+    cmd="npx truffle run --network $TRUFFLE_NETWORK verify $* ${EXTRA_ARGS:+$EXTRA_ARGS}"
+    echo "> $cmd"
+    $cmd || FAILED_VERIFICATIONS[${#FAILED_VERIFICATIONS[@]}]="$*"
         # NOTE: append using length so that having spaces in the element is not a problem
         # TODO: version 0.6.5 of the plugin seems to not reliably return non-zero if verification fails
 }
@@ -38,6 +43,8 @@ function link_library() {
     local contract_name="$1"
     local library_name="$2"
     local library_address="$3"
+
+    echo "linking $contract_name to $library_name at $library_address"
 
     cp -f "$CONTRACTS_DIR/${contract_name}.json" "$CONTRACTS_DIR/${contract_name}.json.bak"
     jq -s '.[0] * .[1]' \
@@ -60,14 +67,6 @@ if [ -n "$RESOLVER" ]; then
     try_verify Resolver@"${RESOLVER}"
 fi
 
-if [ -n "$POOL_ADMIN_NFT_LOGIC" ]; then
-    try_verify PoolAdminNFT@"${POOL_ADMIN_NFT_LOGIC}"
-fi
-
-if [ -n "$POOL_MEMBER_NFT_LOGIC" ]; then
-    try_verify PoolMemberNFT@"${POOL_MEMBER_NFT_LOGIC}"
-fi
-
 if [ -n "$SUPERFLUID_HOST_LOGIC" ]; then
     # verify the logic contract. May or may not be already set as a proxy implementation
     try_verify Superfluid@"${SUPERFLUID_HOST_LOGIC}"
@@ -78,7 +77,7 @@ if [ -n "$SUPERFLUID_HOST_PROXY" ]; then
 fi
 
 if [ -n "$SUPERFLUID_GOVERNANCE" ]; then
-    if [ -n "$IS_TESTNET" ];then
+    if [ -n "$IS_TESTNET" ]; then
         try_verify TestGovernance@"${SUPERFLUID_GOVERNANCE}"
     else
         if [ -n "$SUPERFLUID_GOVERNANCE_LOGIC" ]; then
@@ -123,6 +122,14 @@ if [ -n "$POOL_MEMBER_NFT_PROXY" ]; then
     try_verify PoolMemberNFT@"${POOL_MEMBER_NFT_PROXY}" --custom-proxy UUPSProxy
 fi
 
+if [ -n "$POOL_ADMIN_NFT_LOGIC" ]; then
+    try_verify PoolAdminNFT@"${POOL_ADMIN_NFT_LOGIC}"
+fi
+
+if [ -n "$POOL_MEMBER_NFT_LOGIC" ]; then
+    try_verify PoolMemberNFT@"${POOL_MEMBER_NFT_LOGIC}"
+fi
+
 if [ -n "$SUPER_TOKEN_LOGIC" ]; then
     try_verify SuperToken@"${SUPER_TOKEN_LOGIC}"
 fi
@@ -145,13 +152,15 @@ fi
 if [ -n "$IDA_PROXY" ]; then
     try_verify InstantDistributionAgreementV1@"${IDA_PROXY}" --custom-proxy UUPSProxy
 fi
+mv -f $CONTRACTS_DIR/InstantDistributionAgreementV1.json.bak $CONTRACTS_DIR/InstantDistributionAgreementV1.json
 
-if [ -n "$SUPERFLUID_POOL_DEPLOYER" ]; then
-    try_verify SuperfluidPoolDeployerLibrary@"${SUPERFLUID_POOL_DEPLOYER}"
+if [ -n "$SUPERFLUID_POOL_DEPLOYER_LIBRARY" ]; then
+    try_verify SuperfluidPoolDeployerLibrary@"${SUPERFLUID_POOL_DEPLOYER_LIBRARY}"
 fi
 
-link_library "GeneralDistributionAgreementV1" "SlotsBitmapLibrary" "${GDA_SLOTS_BITMAP_LIBRARY}"
-link_library "GeneralDistributionAgreementV1" "SuperfluidPoolDeployerLibrary" "${SUPERFLUID_POOL_DEPLOYER}"
+# this will fail with 'Library address is not prefixed with "0x"' if a library address is not set
+link_library "GeneralDistributionAgreementV1" "SlotsBitmapLibrary" "${SLOTS_BITMAP_LIBRARY}"
+link_library "GeneralDistributionAgreementV1" "SuperfluidPoolDeployerLibrary" "${SUPERFLUID_POOL_DEPLOYER_LIBRARY}"
 if [ -n "$GDA_LOGIC" ]; then
     try_verify GeneralDistributionAgreementV1@"${GDA_LOGIC}"
 fi
@@ -159,6 +168,7 @@ fi
 if [ -n "$GDA_PROXY" ]; then
     try_verify GeneralDistributionAgreementV1@"${GDA_PROXY}" --custom-proxy UUPSProxy
 fi
+mv -f $CONTRACTS_DIR/GeneralDistributionAgreementV1.json.bak $CONTRACTS_DIR/GeneralDistributionAgreementV1.json
 
 if [ -n "$SUPERFLUID_POOL_BEACON" ]; then
     try_verify SuperfluidUpgradeableBeacon@"${SUPERFLUID_POOL_BEACON}"
@@ -168,7 +178,7 @@ if [ -n "$SUPERFLUID_POOL_LOGIC" ]; then
     try_verify SuperfluidPool@"${SUPERFLUID_POOL_LOGIC}"
 fi
 
-mv -f $CONTRACTS_DIR/InstantDistributionAgreementV1.json.bak $CONTRACTS_DIR/InstantDistributionAgreementV1.json
+# super tokens
 
 if [ -n "$SUPER_TOKEN_NATIVE_COIN" ];then
     # special case: verify only the proxy
@@ -176,7 +186,23 @@ if [ -n "$SUPER_TOKEN_NATIVE_COIN" ];then
     try_verify SuperToken@"${SUPER_TOKEN_NATIVE_COIN}" --custom-proxy SETHProxy
 fi
 
+# testnet tokens
+for var in $(compgen -v); do
+    if [[ $var == NON_SUPER_TOKEN_* ]]; then
+        addr=${!var}
+        try_verify TestToken@"$addr"
+    fi
+done
+
 # optional peripery contracts
+
+if [ -n "$CFAV1_FORWARDER" ];then
+    try_verify CFAv1Forwarder@"${CFAV1_FORWARDER}"
+fi
+
+if [ -n "$GDAV1_FORWARDER" ];then
+    try_verify GDAv1Forwarder@"${GDAV1_FORWARDER}"
+fi
 
 if [ -n "$TOGA" ];then
     try_verify TOGA@"${TOGA}"

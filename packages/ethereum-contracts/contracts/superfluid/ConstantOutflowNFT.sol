@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: AGPLv3
 // solhint-disable not-rely-on-time
-pragma solidity 0.8.19;
+pragma solidity 0.8.23;
 
 import { IERC721Metadata } from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import { ISuperfluidToken } from "../interfaces/superfluid/ISuperfluidToken.sol";
+import { IGeneralDistributionAgreementV1 } from "../interfaces/agreements/gdav1/IGeneralDistributionAgreementV1.sol";
+import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 import { IConstantInflowNFT } from "../interfaces/superfluid/IConstantInflowNFT.sol";
 import { IConstantOutflowNFT } from "../interfaces/superfluid/IConstantOutflowNFT.sol";
 import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
@@ -22,7 +24,12 @@ contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
     mapping(uint256 => FlowNFTData) internal _flowDataByTokenId;
 
     // solhint-disable-next-line no-empty-blocks
-    constructor(ISuperfluid host, IConstantInflowNFT constantInflowNFT) FlowNFTBase(host) {
+    constructor(
+        ISuperfluid host,
+        IConstantFlowAgreementV1 cfaV1,
+        IGeneralDistributionAgreementV1 gdaV1,
+        IConstantInflowNFT constantInflowNFT
+    ) FlowNFTBase(host, cfaV1, gdaV1) {
         CONSTANT_INFLOW_NFT = constantInflowNFT;
     }
 

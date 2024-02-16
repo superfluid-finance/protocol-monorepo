@@ -3,6 +3,10 @@ All notable changes to the metadata will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [WIP]
+### Added
+- toga and batchLiquidator for scroll-mainnet
+
 ## [v1.1.27]
 ### Added
 - gdaV1 and gdaV1Forwarder for all testnets

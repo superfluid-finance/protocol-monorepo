@@ -64,11 +64,9 @@ const ALIASES = {
     "polygon-mumbai": ["mumbai"],
 
     "optimism-mainnet": ["opmainnet"],
-    "optimism-goerli": ["opgoerli"],
     "optimism-sepolia": ["opsepolia"],
 
     "arbitrum-one": ["arbone"],
-    "arbitrum-goerli": ["arbgoerli"],
 
     "avalanche-c": ["avalanche"],
     "avalanche-fuji": ["avafuji"],
@@ -76,8 +74,6 @@ const ALIASES = {
     "bsc-mainnet": ["bsc"],
 
     "celo-mainnet": ["celo"],
-
-    "base-goerli": ["bgoerli"],
 
     "polygon-zkevm-testnet": ["pzkevmtest"],
 
@@ -90,9 +86,13 @@ const ALIASES = {
     "any": ["any"],
 
     // currently unsupported or deprecated networks
-    //
+
+    "base-goerli": ["bgoerli"],
+
+    "optimism-goerli": ["opgoerli"],
     "optimism-kovan": ["opkovan"],
 
+    "arbitrum-goerli": ["arbgoerli"],
     "arbitrum-rinkeby": ["arbrinkeby"],
 
     "bsc-chapel": ["chapel"],
@@ -121,6 +121,9 @@ function getEnvValue(networkName, key) {
 }
 
 function getProviderUrlByTemplate(networkName) {
+    if (process.env.PROVIDER_URL_OVERRIDE !== undefined) {
+        return process.env.PROVIDER_URL_OVERRIDE;
+    }
     if (process.env.PROVIDER_URL_TEMPLATE !== undefined) {
         if (! process.env.PROVIDER_URL_TEMPLATE.includes("{{NETWORK}}")) {
             console.error("env var PROVIDER_URL_TEMPLATE has invalid value");
@@ -152,9 +155,9 @@ function createNetworkDefaultConfiguration(
                 numberOfAddresses: 10,
                 shareNonce: true,
             }),
-        gasPrice: +getEnvValue(networkName, "GAS_PRICE"),
-        maxFeePerGas: +getEnvValue(networkName, "MAX_FEE_PER_GAS"),
-        maxPriorityFeePerGas: +getEnvValue(networkName, "MAX_PRIORITY_FEE_PER_GAS"),
+        gasPrice: getEnvValue(networkName, "GAS_PRICE"),
+        maxFeePerGas: getEnvValue(networkName, "MAX_FEE_PER_GAS"),
+        maxPriorityFeePerGas: getEnvValue(networkName, "MAX_PRIORITY_FEE_PER_GAS"),
         timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
         skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
         networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
@@ -210,8 +213,8 @@ const E = (module.exports = {
         "polygon-mainnet": {
             ...createNetworkDefaultConfiguration("polygon-mainnet"),
             network_id: 137,
-            maxPriorityFeePerGas: 31e9,
-            maxFeePerGas: 1500e9,
+            maxPriorityFeePerGas: 37e9,
+            maxFeePerGas: 500e9,
         },
 
         "polygon-mumbai": {
@@ -239,6 +242,8 @@ const E = (module.exports = {
         "optimism-mainnet": {
             ...createNetworkDefaultConfiguration("optimism-mainnet"),
             network_id: 10,
+            maxPriorityFeePerGas: 1e6, // 0.001 gwei
+            maxFeePerGas: 1e9, // 1 gwei
         },
 
         "optimism-goerli": {
@@ -413,7 +418,7 @@ const E = (module.exports = {
             // Fetch exact version from solc-bin (default: truffle's version)
             // If SOLC environment variable is provided, assuming it is available as "solc", use it instead.
             // Ref, this maybe possible in the future: https://github.com/trufflesuite/truffle/pull/6007
-            version: process.env.SOLC ? "native" : "0.8.19",
+            version: process.env.SOLC ? "native" : "0.8.23",
             settings: {
                 // See the solidity docs for advice about optimization and evmVersion
                 optimizer: {

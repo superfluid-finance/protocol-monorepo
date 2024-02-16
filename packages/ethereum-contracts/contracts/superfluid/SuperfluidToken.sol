@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.19;
+pragma solidity 0.8.23;
 
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {
     ISuperfluid,
     ISuperAgreement,
     ISuperfluidGovernance,
     ISuperfluidToken
 } from "../interfaces/superfluid/ISuperfluid.sol";
-import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
-import { EventsEmitter } from "../libs/EventsEmitter.sol";
 import { FixedSizeData } from "../libs/FixedSizeData.sol";
 
 /**
@@ -349,7 +349,8 @@ abstract contract SuperfluidToken is ISuperfluidToken
 
             _sharedSettledBalances[rewardAmountReceiver] += rewardAmount.toInt256();
             _sharedSettledBalances[targetAccount] += targetAccountBalanceDelta;
-            EventsEmitter.emitTransfer(targetAccount, rewardAmountReceiver, rewardAmount);
+
+            emit IERC20.Transfer(targetAccount, rewardAmountReceiver, rewardAmount);
         } else {
             // LESS LIKELY BRANCH: target account is bailed out
             // NOTE: useDefaultRewardAccount being true is undefined behavior
@@ -358,8 +359,9 @@ abstract contract SuperfluidToken is ISuperfluidToken
             _sharedSettledBalances[rewardAccount] -= (rewardAmount.toInt256() + targetAccountBalanceDelta);
             _sharedSettledBalances[liquidatorAccount] += rewardAmount.toInt256();
             _sharedSettledBalances[targetAccount] += targetAccountBalanceDelta;
-            EventsEmitter.emitTransfer(rewardAccount, liquidatorAccount, rewardAmount);
-            EventsEmitter.emitTransfer(rewardAccount, targetAccount, uint256(targetAccountBalanceDelta));
+
+            emit IERC20.Transfer(rewardAccount, liquidatorAccount, rewardAmount);
+            emit IERC20.Transfer(rewardAccount, targetAccount, uint256(targetAccountBalanceDelta));
         }
 
         emit AgreementLiquidatedV2(

@@ -16,6 +16,6 @@
         "@openzeppelin/contracts": "4.9.3"
     },
     "devDependencies": {
-        "@superfluid-finance/metadata": "1.1.27"
+        "@superfluid-finance/metadata": "^1.1.27"
     }
 }

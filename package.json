@@ -23,7 +23,7 @@
         "build-for-contracts-dev": "set -ex;for i in metadata ethereum-contracts js-sdk;do yarn workspace @superfluid-finance/$i build;done",
         "clean": "rm -rf node_modules; rm -rf packages/*/node_modules; yarn workspace @superfluid-finance/ethereum-contracts clean",
         "test": "set -ex;for i in ethereum-contracts;do yarn workspace @superfluid-finance/$i test;done",
-        "manage-versions": "lerna version --exact --no-git-tag-version --preid rc",
+        "manage-versions": "lerna version --no-git-tag-version --preid rc",
         "check-updates": "run-s check-updates:*",
         "check-updates:root": "ncu --target minor --dep dev -u",
         "check-updates:workspaces": "yarn workspaces run check-updates -u",

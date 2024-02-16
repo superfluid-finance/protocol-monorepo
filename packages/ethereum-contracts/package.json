@@ -86,12 +86,13 @@
         "hardhat": "^2.19.4"
     },
     "devDependencies": {
+        "@d10r/truffle-plugin-verify": "0.6.9",
         "@nomiclabs/hardhat-truffle5": "^2.0.7",
         "@safe-global/safe-core-sdk": "^3.3.5",
         "@safe-global/safe-service-client": "^2.0.3",
         "@safe-global/safe-web3-lib": "^1.9.4",
-        "@superfluid-finance/js-sdk": "0.6.3",
-        "@superfluid-finance/metadata": "1.1.27",
+        "@superfluid-finance/js-sdk": "^0.6.3",
+        "@superfluid-finance/metadata": "^1.1.27",
         "async": "^3.2.5",
         "csv-writer": "^1.6.0",
         "ethers": "^5.7.2",
@@ -101,8 +102,7 @@
         "solidity-coverage": "0.8.5",
         "solidity-docgen": "^0.6.0-beta.36",
         "stack-trace": "0.0.10",
-        "truffle-flattener": "^1.6.0",
-        "@d10r/truffle-plugin-verify": "0.6.9"
+        "truffle-flattener": "^1.6.0"
     },
     "peerDependencies": {
         "ethers": "^5.7.2"

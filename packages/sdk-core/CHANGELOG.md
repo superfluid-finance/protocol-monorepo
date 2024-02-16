@@ -8,6 +8,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Changed
 -   Map the name from subgraph to an unknown event, instead of "\_Unknown".
+-   Don't lock metadata version to a specific version, use semver (^).
 
 ## [0.6.12] - 2023-10-23
 

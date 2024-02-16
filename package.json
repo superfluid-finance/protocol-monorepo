@@ -32,7 +32,7 @@
         "shell:spec": "nix develop .#spec",
         "shell:whitehat": "nix develop .#whitehat",
         "shell:full": "nix develop .#full",
-        "manage-versions": "lerna version --exact --no-git-tag-version --preid rc"
+        "manage-versions": "lerna version --no-git-tag-version --preid rc"
     },
     "devDependencies": {
         "@nomicfoundation/hardhat-chai-matchers": "^1.0.6",

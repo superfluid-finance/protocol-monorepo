@@ -12,7 +12,8 @@
         "pre-commit:lint": "yarn lint",
         "check-updates": "ncu --target minor"
     },
-    "dependencies": {
+    "devDependencies": {
+        "@superfluid-finance/metadata": "^1.1.27",
         "@openzeppelin/contracts": "4.9.5",
         "@superfluid-finance/ethereum-contracts": "1.9.0",
         "@superfluid-finance/metadata": "1.1.27"

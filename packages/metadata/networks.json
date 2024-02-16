@@ -10,6 +10,7 @@
         "humanReadableName": "Goerli",
         "nativeTokenSymbol": "ETH",
         "nativeTokenWrapper": "0x5943f705abb6834cad767e6e4bb258bc48d9c947",
+        "duneName": "goerli",
         "contractsV1": {
             "resolver": "0x071077b24943D4DC09a6A57B8aFfE2BdE9bD4B89",
             "host": "0x22ff293e14F1EC3A09B137e9e06084AFd63adDF9",
@@ -73,6 +74,7 @@
         "humanReadableName": "Polygon Mumbai",
         "nativeTokenSymbol": "MATIC",
         "nativeTokenWrapper": "0x96B82B65ACF7072eFEb00502F45757F254c2a0D4",
+        "duneName": "",
         "contractsV1": {
             "resolver": "0x2feFd8B23e4770B674b0d2fAda5EE8a2bE0B525F",
             "host": "0xEB796bdb90fFA0f28255275e16936D25d3418603",
@@ -138,6 +140,7 @@
         "humanReadableName": "Optimism Goerli",
         "nativeTokenSymbol": "ETH",
         "nativeTokenWrapper": "0xE01F8743677Da897F4e7De9073b57Bf034FC2433",
+        "duneName": "",
         "contractsV1": {
             "resolver": "0x21d4E9fbB9DB742E6ef4f29d189a7C18B0b59136",
             "host": "0xE40983C2476032A0915600b9472B3141aA5B5Ba9",
@@ -182,6 +185,7 @@
         "humanReadableName": "Arbitrum Goerli",
         "nativeTokenSymbol": "ETH",
         "nativeTokenWrapper": "0xE01F8743677Da897F4e7De9073b57Bf034FC2433",
+        "duneName": "",
         "contractsV1": {
             "resolver": "0x21d4E9fbB9DB742E6ef4f29d189a7C18B0b59136",
             "host": "0xE40983C2476032A0915600b9472B3141aA5B5Ba9",
@@ -224,6 +228,7 @@
         "humanReadableName": "Avalanche Fuji",
         "nativeTokenSymbol": "AVAX",
         "nativeTokenWrapper": "0xfFD0f6d73ee52c68BF1b01C8AfA2529C97ca17F3",
+        "duneName": "",
         "contractsV1": {
             "resolver": "0xf0ec6A8842Ca72Aec8A4D4573E731242389e18A8",
             "host": "0x85Fe79b998509B77BF10A8BD4001D58475D29386",
@@ -271,6 +276,7 @@
         "humanReadableName": "Sepolia",
         "nativeTokenSymbol": "ETH",
         "nativeTokenWrapper": "0x30a6933Ca9230361972E413a15dC8114c952414e",
+        "duneName": "",
         "contractsV1": {
             "resolver": "0x6813edE4E78ecb830d380d0F7F684c12aAc95F02",
             "host": "0x109412E3C84f0539b43d39dB691B08c90f58dC7c",
@@ -310,6 +316,7 @@
         "humanReadableName": "Base Goerli",
         "nativeTokenSymbol": "ETH",
         "nativeTokenWrapper": "0x7fFCE315B2014546bA461d54eDed7AAc70DF4f53",
+        "duneName": "",
         "contractsV1": {
             "resolver": "0x598D5dB9902cbBd6e8Ee9CDb3A231377cdA2f018",
             "host": "0x507c3a7C6Ccc253884A2e3a3ee2A211cC7E796a6",
@@ -349,6 +356,7 @@
         "humanReadableName": "Polygon zkEVM Testnet",
         "nativeTokenSymbol": "ETH",
         "nativeTokenWrapper": "0x6345Aa6cec42a85160CF436810F97661e28c1876",
+        "duneName": "",
         "contractsV1": {
             "resolver": "0x642332562BC60a4Bd9681E7bb1588f7456A497aC",
             "host": "0xe64f81d5dDdA1c7172e5C6d964E8ef1BD82D8704",
@@ -387,6 +395,7 @@
         "humanReadableName": "Optimism Sepolia",
         "nativeTokenSymbol": "ETH",
         "nativeTokenWrapper": "0x0043d7c85C8b96a49A72A92C0B48CdC4720437d7",
+        "duneName": "",
         "contractsV1": {
             "resolver": "0x554c06487bEc8c890A0345eb05a5292C1b1017Bd",
             "host": "0xd399e2Fb5f4cf3722a11F65b88FAB6B2B8621005",
@@ -424,6 +433,7 @@
         "humanReadableName": "Scroll Sepolia",
         "nativeTokenSymbol": "ETH",
         "nativeTokenWrapper": "0x58f0A7c6c143074f5D824c2f27a85f6dA311A6FB",
+        "duneName": "",
         "contractsV1": {
             "resolver": "0xB62446a3006d86f6e9eAa36da773c311E7B8AF91",
             "host": "0x42b05a6016B9eED232E13fd56a8F0725693DBF8e",
@@ -458,6 +468,7 @@
         "humanReadableName": "Gnosis Chain",
         "nativeTokenSymbol": "xDAI",
         "nativeTokenWrapper": "0x59988e47A3503AaFaA0368b9deF095c818Fdca01",
+        "duneName": "gnosis",
         "contractsV1": {
             "resolver": "0x9634Fa35188C59DD3B0ADa0Dd9adD7e4ECefc0a9",
             "host": "0x2dFe937cD98Ab92e59cF3139138f18c823a4efE7",
@@ -521,6 +532,7 @@
         "humanReadableName": "Polygon",
         "nativeTokenSymbol": "MATIC",
         "nativeTokenWrapper": "0x3aD736904E9e65189c3000c7DD2c8AC8bB7cD4e3",
+        "duneName": "polygon",
         "contractsV1": {
             "resolver": "0x8bDCb5613153f41B2856F71Bd7A7e0432F6dbe58",
             "host": "0x3E14dC1b13c488a8d5D310918780c983bD5982E7",
@@ -582,6 +594,7 @@
         "humanReadableName": "Optimism",
         "nativeTokenSymbol": "ETH",
         "nativeTokenWrapper": "0x4ac8bD1bDaE47beeF2D1c6Aa62229509b962Aa0d",
+        "duneName": "optimism",
         "contractsV1": {
             "resolver": "0x743B5f46BC86caF41bE4956d9275721E0531B186",
             "host": "0x567c4B141ED61923967cA25Ef4906C8781069a10",
@@ -642,6 +655,7 @@
         "humanReadableName": "Arbitrum One",
         "nativeTokenSymbol": "ETH",
         "nativeTokenWrapper": "0xe6C8d111337D0052b9D88BF5d7D55B7f8385ACd3",
+        "duneName": "arbitrum",
         "contractsV1": {
             "resolver": "0x609b9d9d6Ee9C3200745A79B9d3398DBd63d509F",
             "host": "0xCf8Acb4eF033efF16E8080aed4c7D5B9285D2192",
@@ -702,6 +716,7 @@
         "humanReadableName": "Avalanche C",
         "nativeTokenSymbol": "AVAX",
         "nativeTokenWrapper": "0xBE916845D8678b5d2F7aD79525A62D7c08ABba7e",
+        "duneName": "avalanche_c",
         "contractsV1": {
             "resolver": "0x24a3F04F70B7f07B9673EadD3e146391BcfEa5c1",
             "host": "0x60377C7016E4cdB03C87EF474896C11cB560752C",
@@ -762,6 +777,7 @@
         "humanReadableName": "BNB Smart Chain",
         "nativeTokenSymbol": "BNB",
         "nativeTokenWrapper": "0x529A4116F160c833c61311569D6B33dFF41fD657",
+        "duneName": "bnb",
         "contractsV1": {
             "resolver": "0x69604aA4e9e8BF44A73C680997205Edb03A92E41",
             "host": "0xd1e2cFb6441680002Eb7A44223160aB9B67d7E6E",
@@ -822,6 +838,7 @@
         "humanReadableName": "Ethereum",
         "nativeTokenSymbol": "ETH",
         "nativeTokenWrapper": "0xC22BeA0Be9872d8B7B3933CEc70Ece4D53A900da",
+        "duneName": "ethereum",
         "contractsV1": {
             "resolver": "0xeE4cD028f5fdaAdeA99f8fc38e8bA8A57c90Be53",
             "host": "0x4E583d9390082B65Bef884b629DFA426114CED6d",
@@ -878,6 +895,7 @@
         "humanReadableName": "Celo",
         "nativeTokenSymbol": "CELO",
         "nativeTokenWrapper": "0x671425Ae1f272Bc6F79beC3ed5C4b00e9c628240",
+        "duneName": "celo",
         "contractsV1": {
             "resolver": "0x05eE721BD4D803d6d477Aa7607395452B65373FF",
             "host": "0xA4Ff07cF81C02CFD356184879D953970cA957585",
@@ -917,6 +935,7 @@
         "humanReadableName": "Base",
         "nativeTokenSymbol": "ETH",
         "nativeTokenWrapper": "0x46fd5cfB4c12D87acD3a13e92BAa53240C661D93",
+        "duneName": "base",
         "contractsV1": {
             "resolver": "0x6a214c324553F96F04eFBDd66908685525Da0E0d",
             "host": "0x4C073B3baB6d8826b8C5b229f3cfdC1eC6E47E74",
@@ -955,6 +974,7 @@
         "humanReadableName": "Scroll",
         "nativeTokenSymbol": "ETH",
         "nativeTokenWrapper": "0x483C1716b6133cdA01237ebBF19c5a92898204B7",
+        "duneName": "scroll",
         "contractsV1": {
             "resolver": "0xb25a19c0e7d10c8D37E5b63Ed3213b67f7ebfF80",
             "host": "0x0F86a21F6216c061B222c224e315d9FC34520bb7",

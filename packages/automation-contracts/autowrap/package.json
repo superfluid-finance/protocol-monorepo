@@ -13,8 +13,9 @@
         "check-updates": "ncu --target minor"
     },
     "dependencies": {
-        "@openzeppelin/contracts": "4.9.3",
-        "@superfluid-finance/ethereum-contracts": "1.9.0",
+        "@openzeppelin/contracts": "4.9.3"
+    },
+    "devDependencies": {
         "@superfluid-finance/metadata": "1.1.27"
     }
 }

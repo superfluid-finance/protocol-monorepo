@@ -6,7 +6,13 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## Unreleased
 
 ### Added
+
+- New utility: MacroForwarder - a trusted forwarder extensible with permission-less macro contracts.
+
+### Changed
+
 - bump solc to 0.8.23
+
 
 ## [v1.9.0] - 2024-01-09
 

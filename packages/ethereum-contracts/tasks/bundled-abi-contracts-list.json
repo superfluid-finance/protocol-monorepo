@@ -23,5 +23,6 @@
     "TestToken",
     "IPureSuperToken",
     "IResolver", "Resolver", "TestResolver",
-    "SuperfluidLoader"
+    "SuperfluidLoader",
+    "IUserDefinedMacro"
 ]

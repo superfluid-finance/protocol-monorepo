@@ -147,7 +147,7 @@ function _assertFlowOperatorData(AssertFlowOperatorData memory data) internal {
 }
 ```
 
-It is also recommended to create an pass structs to the helper functions to make the test code more readable. For example:
+It is also recommended to create and pass structs to the helper functions to make the test code more readable. For example:
 
 ```solidity
 // this is easier to understand what is going on before reading the _assertFlowOperatorData function

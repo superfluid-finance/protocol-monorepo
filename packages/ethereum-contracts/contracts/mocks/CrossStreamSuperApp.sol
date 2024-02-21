@@ -2,7 +2,7 @@
 pragma solidity 0.8.23;
 
 import { ISuperfluid, ISuperToken } from "../interfaces/superfluid/ISuperfluid.sol";
-import { SuperAppBaseFlow } from "../apps/SuperAppBaseFlow.sol";
+import { CFASuperAppBase } from "../apps/CFASuperAppBase.sol";
 import { SuperTokenV1Library } from "../apps/SuperTokenV1Library.sol";
 
 using SuperTokenV1Library for ISuperToken;
@@ -12,12 +12,13 @@ using SuperTokenV1Library for ISuperToken;
 /// @dev A super app used for testing "cross-stream" flows in callbacks
 /// and its behavior surrounding the internal protocol accounting.
 /// That is, two senders sending a flow to the super app
-contract CrossStreamSuperApp is SuperAppBaseFlow {
+contract CrossStreamSuperApp is CFASuperAppBase {
     address public flowRecipient;
     address public prevSender;
     int96 public prevFlowRate;
 
-    constructor(ISuperfluid host_, address z_) SuperAppBaseFlow(host_, true, true, true, "") {
+    constructor(ISuperfluid host_, address z_) CFASuperAppBase(host_) {
+        _initialize(true, true, true, true);
         flowRecipient = z_;
     }
 

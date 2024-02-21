@@ -9,7 +9,7 @@ module.exports = {
         // we skip the coverage for the SuperAppBase contracts because
         // we override the functions in child contracts
         "apps/SuperAppBase.sol",
-        "apps/SuperAppBaseFlow.sol",
+        "apps/CFASuperAppBase.sol",
         "apps/SuperfluidLoaderLibrary.sol",
 
         // we skip the coverage for these contracts because they are

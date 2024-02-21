@@ -43,8 +43,9 @@ module.exports = eval(`(${S.toString()})({
         console.log("Expiration timestamp", expirationTs);
         console.log("Expiration date", new Date(expirationTs * 1000)); // print human readable
     }
-    // for historical reasons, we have "registration keys" and now hardcode those to "k1"
-    const registrationKey = "k1";
+    // for historical reasons, we have "registration keys" and now hardcode those to "k1" by default
+    const registrationKey = process.env.REGISTRATION_KEY !== undefined ? process.env.REGISTRATION_KEY : "k1";
+    console.log("Registration key", registrationKey);
     const deployer = args.pop();
     console.log("Deployer", deployer);
 

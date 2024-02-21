@@ -2,10 +2,10 @@
 pragma solidity 0.8.23;
 
 import { ISuperfluid, ISuperToken } from "../interfaces/superfluid/ISuperfluid.sol";
-import { SuperAppBaseFlow } from "../apps/SuperAppBaseFlow.sol";
+import { CFASuperAppBase } from "../apps/CFASuperAppBase.sol";
 import { SuperTokenV1Library } from "../apps/SuperTokenV1Library.sol";
 
-contract SuperAppBaseFlowTester is SuperAppBaseFlow {
+contract CFASuperAppBaseTester is CFASuperAppBase {
     using SuperTokenV1Library for ISuperToken;
 
     int96 public oldFlowRateHolder;
@@ -17,9 +17,16 @@ contract SuperAppBaseFlowTester is SuperAppBaseFlow {
     // irreversibly set to true once the setter is invoked
     bool internal _restrictAcceptedSuperTokens;
 
-    constructor(ISuperfluid host, bool activateOnCreated, bool activateOnUpdated, bool activateOnDeleted)
-        SuperAppBaseFlow(host, activateOnCreated, activateOnUpdated, activateOnDeleted, "")
+    constructor(
+        ISuperfluid host,
+        bool activateOnCreated,
+        bool activateOnUpdated,
+        bool activateOnDeleted,
+        bool selfRegister
+    )
+        CFASuperAppBase(host)
     {
+        _initialize(activateOnCreated, activateOnUpdated, activateOnDeleted, selfRegister);
         lastUpdateHolder = 0; // appeasing linter
     }
 

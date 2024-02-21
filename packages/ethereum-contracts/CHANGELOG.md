@@ -5,6 +5,14 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Unreleased
 
+### Breaking
+
+- The abstract base contract`SuperAppBaseFlow` was renamed to `CFASuperAppBase`.
+Initialization is now split between constructor and a method `_initialize`, with self-registration
+made optional.
+This allows the contract to be used with a SuperApp factory pattern (disable self-registration on networks with permissioned SuperApps) and for logic contracts in the context of the proxy pattern.
+Note: this will NOT break any deployed contracts, only affects undeployed Super Apps in case the ethereum-contracts dependency is updated.
+
 ### Added
 
 - New utility: MacroForwarder - a trusted forwarder extensible with permission-less macro contracts.

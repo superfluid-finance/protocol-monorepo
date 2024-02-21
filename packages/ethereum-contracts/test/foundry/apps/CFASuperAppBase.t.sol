@@ -73,6 +73,7 @@ contract CFASuperAppBaseTest is FoundrySuperfluidTester {
         (CFASuperAppBaseTester mySuperApp, uint256 configWord) =
             _deploySuperAppAndGetConfig(activateOnCreated, activateOnUpdated, activateOnDeleted, selfRegister);
         if (!selfRegister) {
+            // this would revert if already registered
             sf.host.registerApp(mySuperApp, configWord);
         }
         (bool isSuperApp,, uint256 noopMask) = sf.host.getAppManifest(ISuperApp(mySuperApp));

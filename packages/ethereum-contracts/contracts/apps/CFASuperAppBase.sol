@@ -4,7 +4,18 @@ pragma solidity >= 0.8.11;
 import { ISuperfluid, ISuperToken, ISuperApp, SuperAppDefinitions } from "../interfaces/superfluid/ISuperfluid.sol";
 import { SuperTokenV1Library } from "./SuperTokenV1Library.sol";
 
-abstract contract SuperAppBaseFlow is ISuperApp {
+/**
+ * @title abstract base contract for SuperApps using CFA callbacks
+ * @author Superfluid
+ * @dev This contract provides a more convenient API for implementing CFA callbacks.
+ * It allows to write more concise and readable SuperApps when the full flexibility
+ * of the low-level agreement callbacks isn't needed.
+ * The API is tailored for the most common use cases, with the "beforeX" and "afterX" callbacks being
+ * abstrated into a single "onX" callback for create|update|delete flows.
+ * For use cases requiring more flexibility (specifically if more data needs to be provided by the before callbacks)
+ * it's recommended to implement the low-level callbacks directly instead of using this base contract.
+ */
+abstract contract CFASuperAppBase is ISuperApp {
     using SuperTokenV1Library for ISuperToken;
 
     bytes32 public constant CFAV1_TYPE = keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1");
@@ -21,36 +32,53 @@ abstract contract SuperAppBaseFlow is ISuperApp {
     error NotAcceptedSuperToken();
 
     /**
-     * @dev Initializes the contract by setting the expected Superfluid Host.
-     *      and register which callbacks the Host can engage when appropriate.
+     * @dev Creates the contract and ties it to a Superfluid Host.
+     * @notice You also need to call `_initialize()` after construction.
      */
-    constructor(
-        ISuperfluid host_,
+    constructor(ISuperfluid host_) {
+        HOST = host_;
+    }
+
+    /**
+     * @dev Initializes the SuperApp with the provided settings
+     * @param activateOnCreated activates the callbacks for `createFlow`
+     * @param activateOnUpdated activates the callbacks for `updateFlow`
+     * @param activateOnDeleted activates the callbacks for `deleteFlow`
+     * @param selfRegister if true, the App shall register itself with the host.
+     * If false, the caller is reposible for calling `registerApp` on the host contract.
+     * No callbacks will be received as long as the App is not registered.
+     * @return configWord the `configWord` used or to be used in the `registerApp` call
+     *
+     * Note that if the App self-registers on a network with permissioned SuperApp registration,
+     * the tx.origin needs to be whitelisted for that transaction to succeed.
+     * Fore more details, see https://github.com/superfluid-finance/protocol-monorepo/wiki/Super-App-White-listing-Guide
+     */
+    function _initialize(
         bool activateOnCreated,
         bool activateOnUpdated,
         bool activateOnDeleted,
-        string memory registrationKey
-    ) {
-        HOST = host_;
-
-        uint256 callBackDefinitions = SuperAppDefinitions.APP_LEVEL_FINAL
+        bool selfRegister
+    ) internal returns (uint256 configWord) {
+        configWord = SuperAppDefinitions.APP_LEVEL_FINAL
             | SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP;
 
         if (!activateOnCreated) {
-            callBackDefinitions |= SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP;
+            configWord |= SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP;
         }
 
         if (!activateOnUpdated) {
-            callBackDefinitions |= SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP
+            configWord |= SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP
                 | SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP;
         }
 
         if (!activateOnDeleted) {
-            callBackDefinitions |= SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP
+            configWord |= SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP
                 | SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP;
         }
 
-        host_.registerAppWithKey(callBackDefinitions, registrationKey);
+        if (selfRegister) {
+            HOST.registerApp(configWord);
+        }
     }
 
     /**

@@ -18,15 +18,10 @@ contract CFASuperAppBaseTester is CFASuperAppBase {
     bool internal _restrictAcceptedSuperTokens;
 
     constructor(
-        ISuperfluid host,
-        bool activateOnCreated,
-        bool activateOnUpdated,
-        bool activateOnDeleted,
-        bool selfRegister
+        ISuperfluid host
     )
         CFASuperAppBase(host)
     {
-        _initialize(activateOnCreated, activateOnUpdated, activateOnDeleted, selfRegister);
         lastUpdateHolder = 0; // appeasing linter
     }
 

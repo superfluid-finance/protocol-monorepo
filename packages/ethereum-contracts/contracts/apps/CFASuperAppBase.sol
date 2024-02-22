@@ -32,52 +32,58 @@ abstract contract CFASuperAppBase is ISuperApp {
     error NotAcceptedSuperToken();
 
     /**
-     * @dev Creates the contract and ties it to a Superfluid Host.
-     * @notice You also need to call `_initialize()` after construction.
+     * @dev Creates the contract tied to the provided Superfluid host
+     * @param host_ the Superfluid host the SuperApp belongs to
+     * @notice You also need to register the app with the host in order to enable callbacks.
+     * This can be done either by calling `selfRegister()` or by calling `host.registerApp()`.
      */
     constructor(ISuperfluid host_) {
         HOST = host_;
     }
 
     /**
-     * @dev Initializes the SuperApp with the provided settings
-     * @param activateOnCreated activates the callbacks for `createFlow`
-     * @param activateOnUpdated activates the callbacks for `updateFlow`
-     * @param activateOnDeleted activates the callbacks for `deleteFlow`
-     * @param selfRegister if true, the App shall register itself with the host.
-     * If false, the caller is reposible for calling `registerApp` on the host contract.
-     * No callbacks will be received as long as the App is not registered.
-     * @return configWord the `configWord` used or to be used in the `registerApp` call
+     * @dev Registers the SuperApp with its Superfluid host contract (self-registration)
+     * @param activateOnCreated if true, callbacks for `createFlow` will be activated
+     * @param activateOnUpdated if true, callbacks for `updateFlow` will be activated
+     * @param activateOnDeleted if true, callbacks for `deleteFlow` will be activated
      *
-     * Note that if the App self-registers on a network with permissioned SuperApp registration,
-     * the tx.origin needs to be whitelisted for that transaction to succeed.
-     * Fore more details, see https://github.com/superfluid-finance/protocol-monorepo/wiki/Super-App-White-listing-Guide
+     * Note: if the App self-registers on a network with permissioned SuperApp registration,
+     * self-registration can be used only if the tx.origin (EOA) is whitelisted as deployer.
+     * If a whitelisted factory is used, it needs to call `host.registerApp()` itself.
+     * For more details, see https://github.com/superfluid-finance/protocol-monorepo/wiki/Super-App-White-listing-Guide
      */
-    function _initialize(
+    function selfRegister(
         bool activateOnCreated,
         bool activateOnUpdated,
-        bool activateOnDeleted,
-        bool selfRegister
-    ) internal returns (uint256 configWord) {
+        bool activateOnDeleted
+    ) public {
+        HOST.registerApp(getConfigWord(activateOnCreated, activateOnUpdated, activateOnDeleted));
+    }
+
+    /**
+     * @dev Convenience function to get the `configWord` for app registration when not using self-registration
+     * @param activateOnCreated if true, callbacks for `createFlow` will be activated
+     * @param activateOnUpdated if true, callbacks for `updateFlow` will be activated
+     * @param activateOnDeleted if true, callbacks for `deleteFlow` will be activated
+     * @return configWord the `configWord` encoding the provided settings
+     */
+    function getConfigWord(
+        bool activateOnCreated,
+        bool activateOnUpdated,
+        bool activateOnDeleted
+    ) public pure returns (uint256 configWord) {
         configWord = SuperAppDefinitions.APP_LEVEL_FINAL
             | SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP;
-
         if (!activateOnCreated) {
             configWord |= SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP;
         }
-
         if (!activateOnUpdated) {
             configWord |= SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP
                 | SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP;
         }
-
         if (!activateOnDeleted) {
             configWord |= SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP
                 | SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP;
-        }
-
-        if (selfRegister) {
-            HOST.registerApp(configWord);
         }
     }
 

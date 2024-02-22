@@ -26,7 +26,8 @@ contract CFASuperAppBaseTest is FoundrySuperfluidTester {
     function setUp() public virtual override {
         super.setUp();
         vm.startPrank(admin);
-        superApp = new CFASuperAppBaseTester(sf.host, true, true, true, true);
+        superApp = new CFASuperAppBaseTester(sf.host);
+        superApp.selfRegister(true, true, true);
         superAppAddress = address(superApp);
         otherSuperToken = sfDeployer.deployPureSuperToken("FTT", "FTT", 1e27);
         otherSuperToken.transfer(alice, 1e21);
@@ -58,28 +59,35 @@ contract CFASuperAppBaseTest is FoundrySuperfluidTester {
         return callBackDefinitions;
     }
 
-    function _deploySuperAppAndGetConfig(bool activateOnCreated, bool activateOnUpdated, bool activateOnDeleted, bool selfRegister)
+    function _deploySuperAppAndGetConfig(bool activateOnCreated, bool activateOnUpdated, bool activateOnDeleted)
         internal
         returns (CFASuperAppBaseTester, uint256 configWord)
     {
-        CFASuperAppBaseTester mySuperApp =
-            new CFASuperAppBaseTester(sf.host, activateOnCreated, activateOnUpdated, activateOnDeleted, selfRegister);
+        CFASuperAppBaseTester mySuperApp = new CFASuperAppBaseTester(sf.host);
+        mySuperApp.selfRegister(activateOnCreated, activateOnUpdated, activateOnDeleted);
         uint256 appConfig = _genManifest(activateOnCreated, activateOnUpdated, activateOnDeleted);
         return (mySuperApp, appConfig);
     }
 
-    function testOnFlagsSetAppManifest(bool activateOnCreated, bool activateOnUpdated, bool activateOnDeleted, bool selfRegister) public {
+    function testOnFlagsSetAppManifest(bool activateOnCreated, bool activateOnUpdated, bool activateOnDeleted) public {
         //all onOperations
         (CFASuperAppBaseTester mySuperApp, uint256 configWord) =
-            _deploySuperAppAndGetConfig(activateOnCreated, activateOnUpdated, activateOnDeleted, selfRegister);
-        if (!selfRegister) {
-            // this would revert if already registered
-            sf.host.registerApp(mySuperApp, configWord);
-        }
+            _deploySuperAppAndGetConfig(activateOnCreated, activateOnUpdated, activateOnDeleted);
+
         (bool isSuperApp,, uint256 noopMask) = sf.host.getAppManifest(ISuperApp(mySuperApp));
         configWord = configWord & SuperAppDefinitions.AGREEMENT_CALLBACK_NOOP_BITMASKS;
         assertTrue(isSuperApp, "SuperAppBase: is superApp incorrect");
         assertEq(noopMask, configWord, "SuperAppBase: noopMask != configWord");
+    }
+
+    function testRegistrationByFactory(bool activateOnCreated, bool activateOnUpdated, bool activateOnDeleted) public {
+        CFASuperAppBaseTester mySuperApp = new CFASuperAppBaseTester(sf.host);
+        sf.host.registerApp(
+            mySuperApp,
+            mySuperApp.getConfigWord(activateOnCreated, activateOnUpdated, activateOnDeleted)
+        );
+        (bool isSuperApp,,) = sf.host.getAppManifest(ISuperApp(mySuperApp));
+        assertTrue(isSuperApp, "SuperAppBase: is superApp incorrect");
     }
 
     function testAllowAllSuperTokensByDefault() public {

@@ -18,7 +18,7 @@ contract CrossStreamSuperApp is CFASuperAppBase {
     int96 public prevFlowRate;
 
     constructor(ISuperfluid host_, address z_) CFASuperAppBase(host_) {
-        _initialize(true, true, true, true);
+        selfRegister(true, true, true);
         flowRecipient = z_;
     }
 

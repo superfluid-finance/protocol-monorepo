@@ -37,7 +37,7 @@ contract FlowSplitter is CFASuperAppBase {
         ISuperToken _acceptedSuperToken,
         ISuperfluid _host
     ) CFASuperAppBase(_host) {
-        _initialize(true, true, true, true);
+        selfRegister(true, true, true);
         mainReceiver = _mainReceiver;
         sideReceiver = _sideReceiver;
         sideReceiverPortion = _sideReceiverPortion;

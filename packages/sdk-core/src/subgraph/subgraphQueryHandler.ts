@@ -224,7 +224,7 @@ export abstract class SubgraphQueryHandler<
 
         const response = await this.querySubgraph(subgraphClient, {
             where: {
-                id: query.id.toLowerCase(),
+                id: query.id,
             },
             skip: 0,
             take: 1,

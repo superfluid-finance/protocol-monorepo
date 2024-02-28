@@ -1379,11 +1379,17 @@ contract ConstantFlowAgreementV1 is
             newDeposit = (oldFlowData.deposit.toInt256() + depositDelta).toUint256();
 
             // calc depositDelta and newDeposit with minimum deposit rule applied
-            if (newDeposit < minimumDeposit && flowParams.flowRate > 0) {
-                depositDelta = minimumDeposit.toInt256()
-                    - oldFlowData.deposit.toInt256()
-                    + oldFlowData.owedDeposit.toInt256();
-                newDeposit = minimumDeposit;
+            if (newDeposit < minimumDeposit) {
+                if (flowParams.flowRate > oldFlowData.flowRate) {
+                    // only if the flowrate increases, do we allow to increase the deposit
+                    depositDelta = minimumDeposit.toInt256()
+                        - oldFlowData.deposit.toInt256()
+                        + oldFlowData.owedDeposit.toInt256();
+                    newDeposit = minimumDeposit;
+                } else {
+                    // otherwise we keep the deposit unchanged
+                    newDeposit = oldFlowData.deposit.toInt256();
+                }
             }
 
             // credit should be of the same token

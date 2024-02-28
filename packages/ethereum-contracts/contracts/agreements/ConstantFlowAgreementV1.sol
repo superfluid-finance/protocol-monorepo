@@ -1388,7 +1388,7 @@ contract ConstantFlowAgreementV1 is
                     newDeposit = minimumDeposit;
                 } else {
                     // otherwise we keep the deposit unchanged
-                    newDeposit = oldFlowData.deposit.toInt256();
+                    newDeposit = oldFlowData.deposit;
                 }
             }
 

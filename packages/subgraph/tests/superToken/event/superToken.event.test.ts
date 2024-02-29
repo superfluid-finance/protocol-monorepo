@@ -289,7 +289,7 @@ describe("SuperToken Mapper Unit Tests", () => {
                 BIG_INT_ZERO, // totalCFAAmountStreamedUntilUpdatedAt
                 BIG_INT_ZERO, // totalAmountTransferredUntilUpdatedAt
                 BIG_INT_ZERO, // totalAmountDistributedUntilUpdatedAt
-                BigInt.fromI32(1000000), // totalSupply = 100
+                BIG_INT_ZERO, // totalSupply = 0
                 3, // totalNumberOfAccounts
                 3 // totalNumberOfHolders
             );
@@ -383,7 +383,7 @@ describe("SuperToken Mapper Unit Tests", () => {
                 BIG_INT_ZERO, // totalCFAAmountStreamedUntilUpdatedAt
                 value, // totalAmountTransferredUntilUpdatedAt
                 BIG_INT_ZERO, // totalAmountDistributedUntilUpdatedAt
-                BigInt.fromI32(1000000), // totalSupply = 100
+                BIG_INT_ZERO, // totalSupply = 0
                 2, // totalNumberOfAccounts,
                 2 // totalNumberOfHolders
             );
@@ -529,7 +529,7 @@ describe("SuperToken Mapper Unit Tests", () => {
                 BIG_INT_ZERO, // totalCFAAmountStreamedUntilUpdatedAt
                 value, // totalAmountTransferredUntilUpdatedAt
                 BIG_INT_ZERO, // totalAmountDistributedUntilUpdatedAt
-                BigInt.fromI32(1000000), // totalSupply = 100
+                BIG_INT_ZERO, // totalSupply = 0
                 2, // totalNumberOfAccounts,
                 2 // totalNumberOfHolders
             ); 
@@ -578,7 +578,7 @@ describe("SuperToken Mapper Unit Tests", () => {
                 BIG_INT_ZERO, // totalCFAAmountStreamedUntilUpdatedAt
                 value.times(BigInt.fromI32(2)), // totalAmountTransferredUntilUpdatedAt
                 BIG_INT_ZERO, // totalAmountDistributedUntilUpdatedAt
-                BigInt.fromI32(1000000), // totalSupply = 100
+                BIG_INT_ZERO, // totalSupply = 100
                 2, // totalNumberOfAccounts,
                 1 // totalNumberOfHolders
             );

@@ -10,7 +10,6 @@ import {
     Pool,
     PoolDistributor,
     PoolMember,
-    ResolverEntry,
     Stream,
     StreamRevision,
     Token,
@@ -460,30 +459,6 @@ export function getOrInitSubscription(
     subscription.updatedAtTimestamp = currentTimestamp;
     subscription.updatedAtBlockNumber = block.number;
     return subscription as IndexSubscription;
-}
-
-export function getOrInitResolverEntry(
-    id: string,
-    target: Address,
-    block: ethereum.Block
-): ResolverEntry {
-    let resolverEntry = ResolverEntry.load(id);
-
-    if (resolverEntry == null) {
-        resolverEntry = new ResolverEntry(id);
-        resolverEntry.createdAtBlockNumber = block.number;
-        resolverEntry.createdAtTimestamp = block.timestamp;
-        resolverEntry.targetAddress = target;
-
-        const superToken = Token.load(target.toHex());
-        resolverEntry.isToken = superToken != null;
-    }
-    resolverEntry.updatedAtBlockNumber = block.number;
-    resolverEntry.updatedAtTimestamp = block.timestamp;
-    resolverEntry.isListed = target.notEqual(ZERO_ADDRESS);
-
-    resolverEntry.save();
-    return resolverEntry as ResolverEntry;
 }
 
 export function getOrInitPool(event: ethereum.Event, poolId: string): Pool {

@@ -503,7 +503,8 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         }
 
         {
-            _adjustBuffer(token, address(pool), from, flowVars.distributionFlowHash, actualFlowRate);
+            _adjustBuffer(token, address(pool), from, flowVars.distributionFlowHash,
+                          flowVars.oldFlowRate, actualFlowRate);
         }
 
         // ensure sender has enough balance to execute transaction
@@ -656,7 +657,14 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         }
     }
 
-    function _adjustBuffer(ISuperfluidToken token, address pool, address from, bytes32 flowHash, FlowRate newFlowRate)
+    function _adjustBuffer(
+        ISuperfluidToken token,
+        address pool,
+        address from,
+        bytes32 flowHash,
+        FlowRate oldFlowRate,
+        FlowRate newFlowRate
+    )
         internal
     {
         // not using oldFlowRate in this model
@@ -676,7 +684,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
 
         // application of minimum deposit
         if (Value.unwrap(newBufferAmount).toUint256() < minimumDeposit && FlowRate.unwrap(newFlowRate) > 0) {
-            if (FlowRate.unwrap(newFlowRate) > flowDistributionData.flowRate) {
+            if (FlowRate.unwrap(newFlowRate) > FlowRate.unwrap(oldFlowRate)) {
                 // only apply if the flowrate increases
                 newBufferAmount = Value.wrap(minimumDeposit.toInt256());
             } else {

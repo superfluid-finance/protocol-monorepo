@@ -1389,6 +1389,8 @@ contract ConstantFlowAgreementV1 is
                 } else {
                     // otherwise we keep the deposit unchanged
                     newDeposit = oldFlowData.deposit;
+                    depositDelta = 0;
+                    // TODO: what about appCreditBase ?
                 }
             }
 

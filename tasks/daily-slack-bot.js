@@ -1454,7 +1454,7 @@ async function sendMessageToSlack(data) {
 
 async function getSuperTokenLogicAddress(network) {
     const rpcUrl = "https://rpc-endpoints.superfluid.dev/" + network.name;
-    const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
+    const provider = new ethers.JsonRpcProvider(rpcUrl);
     const contract = new ethers.Contract(
         network.contractsV1.superTokenFactory,
         superTokenFactoryABI,
@@ -1469,7 +1469,7 @@ async function getSuperTokenLogicAddress(network) {
 
 async function getGovernanceAddress(network) {
     const rpcUrl = "https://rpc-endpoints.superfluid.dev/" + network.name;
-    const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
+    const provider = new ethers.JsonRpcProvider(rpcUrl);
     const contract = new ethers.Contract(
         network.contractsV1.host,
         hostABI,

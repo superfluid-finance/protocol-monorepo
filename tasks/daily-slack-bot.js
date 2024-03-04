@@ -30,28 +30,16 @@ const greenImage =
 //Using graph to get the token list, so please use non-checksum addresses for ignoring tokens
 const whiteListedAddresses = [
     "0xb63e38d21b31719e6df314d3d2c351df0d4a9162", // Polygon Mainnet IDLEx
-    "0xe01f8743677da897f4e7de9073b57bf034fc2433", // Optimism Goerli and Arbitrum Goerli ETHx, read and write as proxy still works fine
     "0x00a27a8cf40d419fe581643f5c7d671e158ca4c3", // Old 2021 contract
     "0x42c3f8648bb518ae5fd74a79b4df6406171095ae", // Old 2021 contract
     "0xeb5748f9798b11af79f892f344f585e3a88aa784" // Old 2021 contract
 ]
 
 const networkSpecificData = {
-    "eth-goerli": {
-        url: "https://api-goerli.etherscan.io/api",
-        key: process.env.ETHERSCAN_API_KEY,
-    },
+    // testnets
     "polygon-mumbai": {
         url: "https://api-testnet.polygonscan.com/api",
         key: process.env.POLYGONSCAN_API_KEY,
-    },
-    "optimism-goerli": {
-        url: "https://api-goerli-optimistic.etherscan.io/api",
-        key: process.env.OPTIMISTIC_API_KEY,
-    },
-    "arbitrum-goerli": {
-        url: "https://api-goerli.arbiscan.io/api",
-        key: process.env.ARBISCAN_API_KEY,
     },
     "avalanche-fuji": {
         url: "https://api-testnet.snowtrace.io/api",
@@ -61,6 +49,7 @@ const networkSpecificData = {
         url: "https://api-sepolia.etherscan.io/api",
         key: process.env.ETHERSCAN_API_KEY,
     },
+    // mainnets
     "xdai-mainnet": {
         url: "https://api.gnosisscan.io/api",
         key: process.env.GNOSISSCAN_API_KEY,
@@ -93,9 +82,13 @@ const networkSpecificData = {
         url: "https://api.celoscan.io/api",
         key: process.env.CELOSCAN_API_KEY,
     },
-    "polygon-zkevm-testnet": {
-        url: "https://api-testnet-zkevm.polygonscan.com/api",
-        key: process.env.ZKEVM_POLYGONSCAN_API_KEY,
+    "base-mainnet": {
+        url: "https://api.basescan.io/api",
+        key: process.env.BASESCAN_API_KEY,
+    },
+    "scroll-mainnet": {
+        url: "https://api.scrollscan.io/api",
+        key: process.env.SCROLLSCAN_API_KEY,
     }
 };
 
@@ -209,7 +202,7 @@ async function checkNetworkContractVerification(network) {
             delete contractsToCheck[contractName];
         }
     }
-    
+
     let networkMessage = "";
     for (const [contractName, address] of Object.entries(contractsToCheck)) {
         networkMessage += await checkIndividualContractVerification(

@@ -55,7 +55,6 @@ try {
 
 const ALIASES = {
     "eth-mainnet": ["mainnet"],
-    "eth-goerli": ["goerli"],
     "eth-sepolia": ["sepolia"],
 
     "xdai-mainnet": ["xdai"],
@@ -75,8 +74,6 @@ const ALIASES = {
 
     "celo-mainnet": ["celo"],
 
-    "polygon-zkevm-testnet": ["pzkevmtest"],
-
     "base-mainnet": ["base"],
 
     "scroll-sepolia": ["scrsepolia"],
@@ -86,6 +83,10 @@ const ALIASES = {
     "any": ["any"],
 
     // currently unsupported or deprecated networks
+
+    "polygon-zkevm-testnet": ["pzkevmtest"],
+
+    "eth-goerli": ["goerli"],
 
     "base-goerli": ["bgoerli"],
 

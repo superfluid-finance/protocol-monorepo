@@ -345,7 +345,7 @@ async function autodetectAdminType(sf, account) {
 }
 
 // returns the Safe Tx Service URL or throws if none available
-// source: https://github.com/safe-global/safe-docs/blob/main/safe-core-api/available-services.md
+// source: https://github.com/safe-global/safe-docs/blob/main/pages/api-supported-networks.md?plain=1
 function getSafeTxServiceUrl(chainId) {
     const safeChainNames = {
         // mainnets
@@ -356,10 +356,10 @@ function getSafeTxServiceUrl(chainId) {
         137: "polygon",
         8453: "base",
         42161: "arbitrum",
+        42220: "celo",
         43114: "avalanche",
         // testnets
-        5: "goerli",
-        84531: "base-testnet"
+        11155111: "sepolia"
     };
     if (safeChainNames[chainId] === undefined) {
         throw new Error(`no Safe tx service url known for chainId ${chainId}`);

@@ -3,6 +3,7 @@ export default
 [
     {
         "name": "eth-goerli",
+        "isDeprecated": true,
         "isTestnet": true,
         "networkId": 5,
         "chainId": 5,

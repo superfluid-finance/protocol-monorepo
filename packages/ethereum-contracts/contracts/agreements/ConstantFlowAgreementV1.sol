@@ -20,6 +20,8 @@ import { AgreementLibrary } from "./AgreementLibrary.sol";
 import { SafeGasLibrary } from "../libs/SafeGasLibrary.sol";
 import { SolvencyHelperLibrary } from "../libs/SolvencyHelperLibrary.sol";
 
+import { console, console2 } from "forge-std/Test.sol";
+
 /**
  * @title ConstantFlowAgreementV1 contract
  * @author Superfluid
@@ -460,12 +462,27 @@ contract ConstantFlowAgreementV1 is
     function _handleOnCreateHook(
         _StackVars_createOrUpdateFlow memory flowVars
     ) internal {
-        uint256 gasLeftBefore = gasleft();
+
+
 
         address constantOutflowNFTAddress = _canCallNFTHook(flowVars.token);
 
         if (constantOutflowNFTAddress != address(0)) {
-            try
+            uint256 gasLeftBefore = gasleft();
+
+            (bool success, bytes memory returnedData) = constantOutflowNFTAddress.call(
+                abi.encodeWithSelector(
+                    IConstantOutflowNFT.onCreate.selector,
+                    flowVars.token,
+                    flowVars.sender,
+                    flowVars.receiver
+                )
+            );
+            if (!success) {
+                SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
+            }
+
+            /*try
                 IConstantOutflowNFT(constantOutflowNFTAddress).onCreate(
                     flowVars.token,
                     flowVars.sender,
@@ -475,8 +492,9 @@ contract ConstantFlowAgreementV1 is
             {
 
             } catch {
-                SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
-            }
+                if (gasleft() <= gasLeftBefore / 64) revert();
+                //SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
+            }*/
         }
     }
 
@@ -565,11 +583,13 @@ contract ConstantFlowAgreementV1 is
         internal
         returns(bytes memory newCtx)
     {
+        console2.log("  _updateFlow from %s to %s", flowVars.sender, flowVars.receiver);
         (, FlowParams memory flowParams) = _createOrUpdateFlowCheck(flowVars, currentContext);
 
         if (!exist) revert CFA_FLOW_DOES_NOT_EXIST();
 
         if (ISuperfluid(msg.sender).isApp(ISuperApp(flowVars.receiver))) {
+            console2.log("  _updateFlow to app");
             newCtx = _changeFlowToApp(
                 flowVars.receiver,
                 flowVars.token, flowParams, oldFlowData,
@@ -1202,13 +1222,16 @@ contract ConstantFlowAgreementV1 is
 
             // NOTE: we do not provide additionalAppCreditAmount when cbStates.appCreditGranted is 0
             // (closing streams)
-            uint256 additionalAppCreditAmount = cbStates.appCreditGranted == 0
+            uint256 additionalAppCreditAmount = oldFlowData.deposit == 0
                 ? 0
                 : AgreementLibrary.max(
                     DEFAULT_MINIMUM_DEPOSIT,
                     minimumDeposit
                 );
-            cbStates.appCreditGranted = cbStates.appCreditGranted + additionalAppCreditAmount;
+
+            console.log("  appCreditGranted: %s", oldFlowData.deposit);
+            console.log("  additionalAppCreditAmount: %s", additionalAppCreditAmount);
+            cbStates.appCreditGranted = oldFlowData.deposit + additionalAppCreditAmount;
 
             cbStates.appCreditUsed = oldFlowData.owedDeposit.toInt256();
 
@@ -1384,6 +1407,7 @@ contract ConstantFlowAgreementV1 is
                     - oldFlowData.deposit.toInt256()
                     + oldFlowData.owedDeposit.toInt256();
                 newDeposit = minimumDeposit;
+                appCreditBase = minimumDeposit;
             }
 
             // credit should be of the same token

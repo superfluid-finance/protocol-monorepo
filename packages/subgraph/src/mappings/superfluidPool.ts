@@ -54,7 +54,6 @@ export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
     pool = updatePoolTotalAmountFlowedAndDistributed(event, pool);
     poolMember = updatePoolMemberTotalAmountUntilUpdatedAtFields(pool, poolMember);
     
-    const hasMembershipWithUnits = membershipWithUnitsExists(poolMember.id);
     const previousUnits = poolMember.units;
     const unitsDelta = event.params.newUnits.minus(previousUnits);
     poolMember.units = event.params.newUnits;
@@ -81,7 +80,7 @@ export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
         updateAggregateDistributionAgreementData(
             event.params.member,
             event.params.token,
-            hasMembershipWithUnits,
+            true, // has units
             poolMember.isConnected,
             true, // only place we increment subWithUnits
             false, // not deleting
@@ -107,7 +106,7 @@ export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
         updateAggregateDistributionAgreementData(
             event.params.member,
             event.params.token,
-            hasMembershipWithUnits,
+            false, // has units
             poolMember.isConnected,
             false, // don't increment memberWithUnits
             false, // not disconnecting membership

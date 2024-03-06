@@ -19,7 +19,6 @@ import {
     daiXName,
     daiXSymbol,
     DEFAULT_DECIMALS,
-    FAKE_SUPER_TOKEN_TOTAL_SUPPLY,
     FALSE,
     maticXAddress,
     maticXName,
@@ -233,7 +232,7 @@ describe("SuperTokenFactory Mapper Unit Tests", () => {
                 maticXAddress,
                 SuperTokenCreatedEvent.block.timestamp,
                 SuperTokenCreatedEvent.block.number,
-                FAKE_SUPER_TOKEN_TOTAL_SUPPLY  // totalSupply = 100
+                BIG_INT_ZERO  // totalSupply = 0
             );
 
         });

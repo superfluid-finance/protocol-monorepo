@@ -14,43 +14,76 @@ describe("PoolMember not updating when units changed", () => {
         const poolMemberAccountAddress = Address.fromString(charlie);
         const poolMemberId = getPoolMemberID(poolAddress, poolMemberAccountAddress);
 
-        const flowRate = BigInt.fromI32(69);
-        const oldUnits = BigInt.fromI32(100);
-        const newUnits = BigInt.fromI32(200);
-
-        const memberUnitsUpdatedEvent = createMemberUnitsUpdatedEvent(
+        mockedGetAppManifest(poolMemberAccountAddress.toHexString(), false, false, BIG_INT_ZERO);
+        
+        // Initialize pool member for the first time
+        const firstEvent = createMemberUnitsUpdatedEvent(
             superTokenAddress,
             poolMemberAccountAddress.toHexString(),
-            oldUnits,
-            newUnits
+            BigInt.fromI32(0), // old units
+            BigInt.fromI32(0) // new units
         );
-        memberUnitsUpdatedEvent.block.number = BigInt.fromI32(300);
-        memberUnitsUpdatedEvent.address = poolAddress;
-
-        mockedGetAppManifest(poolMemberAccountAddress.toHexString(), false, false, BIG_INT_ZERO);
+        firstEvent.address = poolAddress;
 
         mockedRealtimeBalanceOf(
             superTokenAddress,
             poolMemberAccountAddress.toHexString(),
-            memberUnitsUpdatedEvent.block.timestamp,
-            FAKE_INITIAL_BALANCE.minus(flowRate),
-            flowRate,
+            firstEvent.block.timestamp,
+            FAKE_INITIAL_BALANCE,
+            BigInt.fromI32(0),
             BIG_INT_ZERO
         );
 
+        handleMemberUnitsUpdated(firstEvent);
+        // ---
+
+
+        const newUnits = BigInt.fromI32(100);
+        const blockNumber = BigInt.fromI32(200)
+        const timestamp = BigInt.fromI32(300)
+
+        const secondEvent = createMemberUnitsUpdatedEvent(
+            superTokenAddress,
+            poolMemberAccountAddress.toHexString(),
+            BigInt.fromI32(0), // old units
+            newUnits
+        );
+        secondEvent.block.timestamp = timestamp
+        secondEvent.address = poolAddress;
+        secondEvent.block.number = blockNumber;
+
+        mockedRealtimeBalanceOf(
+            superTokenAddress,
+            poolMemberAccountAddress.toHexString(),
+            secondEvent.block.timestamp,
+            FAKE_INITIAL_BALANCE,
+            BigInt.fromI32(0),
+            BIG_INT_ZERO
+        );
+        
         // Act
-        handleMemberUnitsUpdated(memberUnitsUpdatedEvent);
+        handleMemberUnitsUpdated(secondEvent);
 
-        memberUnitsUpdatedEvent.block.number = BigInt.fromI32(420);
+        // Assert
+        assert.fieldEquals(
+            "PoolMember",
+            poolMemberId,
+            "units",
+            newUnits.toString()
+        );
 
-        handleMemberUnitsUpdated(memberUnitsUpdatedEvent);
+        assert.fieldEquals(
+            "PoolMember",
+            poolMemberId,
+            "updatedAtTimestamp",
+            timestamp.toString()
+        );
 
-        // // Assert
         assert.fieldEquals(
             "PoolMember",
             poolMemberId,
             "updatedAtBlockNumber",
-            memberUnitsUpdatedEvent.block.number.toString()
+            blockNumber.toString()
         );
     });
 });

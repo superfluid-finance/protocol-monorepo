@@ -45,6 +45,6 @@ describe("ALEPH Total Supply Bug", () => {
         handleCustomSuperTokenCreated(customSuperTokenCreatedEvent);
         handleMinted(mintedEvent);
 
-        assert.fieldEquals("TokenStatistic", superToken, "totalSupply", "453452345");
+        assert.fieldEquals("TokenStatistic", superToken, "totalSupply", totalSupply.toString());
     });
 });

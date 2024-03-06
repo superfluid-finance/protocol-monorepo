@@ -8,7 +8,7 @@ import {
     _createAccountTokenSnapshotLogEntity,
     _createTokenStatisticLogEntity,
     getOrInitPool,
-    getOrInitPoolMember,
+    getOrInitOrUpdatePoolMember,
     updateATSStreamedAndBalanceUntilUpdatedAt,
     updateAggregateDistributionAgreementData,
     updatePoolMemberTotalAmountUntilUpdatedAtFields,
@@ -28,7 +28,7 @@ export function handleDistributionClaimed(event: DistributionClaimed): void {
     pool.save();
 
     // Update PoolMember
-    let poolMember = getOrInitPoolMember(event, event.address, event.params.member);
+    let poolMember = getOrInitOrUpdatePoolMember(event, event.address, event.params.member);
     poolMember.totalAmountClaimed = event.params.totalClaimed;
 
     poolMember = updatePoolMemberTotalAmountUntilUpdatedAtFields(pool, poolMember);
@@ -48,28 +48,16 @@ export function handleDistributionClaimed(event: DistributionClaimed): void {
 }
 
 export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
-    // - PoolMember
-    // - units
-    let poolMember = getOrInitPoolMember(event, event.address, event.params.member);
-    const hasMembershipWithUnits = membershipWithUnitsExists(poolMember.id);
-
     let pool = getOrInitPool(event, event.address.toHex());
-
-    const previousUnits = poolMember.units;
-    const unitsDelta = event.params.newUnits.minus(previousUnits);
+    let poolMember = getOrInitOrUpdatePoolMember(event, event.address, event.params.member);
 
     pool = updatePoolTotalAmountFlowedAndDistributed(event, pool);
-
     poolMember = updatePoolMemberTotalAmountUntilUpdatedAtFields(pool, poolMember);
-
+    
+    const hasMembershipWithUnits = membershipWithUnitsExists(poolMember.id);
+    const previousUnits = poolMember.units;
+    const unitsDelta = event.params.newUnits.minus(previousUnits);
     poolMember.units = event.params.newUnits;
-
-    const eventName = "MemberUnitsUpdated";
-    updateTokenStatsStreamedUntilUpdatedAt(event.params.token, event.block);
-    _createTokenStatisticLogEntity(event, event.params.token, eventName);
-
-    updateATSStreamedAndBalanceUntilUpdatedAt(event.params.member, event.params.token, event.block, null);
-    _createAccountTokenSnapshotLogEntity(event, event.params.member, event.params.token, eventName);
 
     if (poolMember.isConnected) {
         pool.totalConnectedUnits = pool.totalConnectedUnits.plus(unitsDelta);
@@ -79,7 +67,8 @@ export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
     pool.totalUnits = pool.totalUnits.plus(unitsDelta);
 
     // 0 units to > 0 units
-    if (previousUnits.equals(BIG_INT_ZERO) && event.params.newUnits.gt(BIG_INT_ZERO)) {
+    const didPoolMemberBecomeActive =  previousUnits.equals(BIG_INT_ZERO) && event.params.newUnits.gt(BIG_INT_ZERO)
+    if (didPoolMemberBecomeActive) {
         pool.totalMembers = pool.totalMembers + 1;
         // if the member is connected with units now, we add one to connected
         if (poolMember.isConnected) {
@@ -102,8 +91,10 @@ export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
             false // isIDA
         );
     }
+
     // > 0 units to 0 units
-    if (previousUnits.gt(BIG_INT_ZERO) && poolMember.units.equals(BIG_INT_ZERO)) {
+    const didPoolMemberBecomeInactive = previousUnits.gt(BIG_INT_ZERO) && poolMember.units.equals(BIG_INT_ZERO)
+    if (didPoolMemberBecomeInactive) {
         pool.totalMembers = pool.totalMembers - 1;
         // if the member is connected with no units now, we subtract one from connected
         if (poolMember.isConnected) {
@@ -132,6 +123,14 @@ export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
 
     // Create Event Entity
     _createMemberUnitsUpdatedEntity(event, poolMember.id, pool.totalUnits);
+
+    // Other entity updates
+    const eventName = "MemberUnitsUpdated";
+    updateTokenStatsStreamedUntilUpdatedAt(event.params.token, event.block);
+    _createTokenStatisticLogEntity(event, event.params.token, eventName);
+
+    updateATSStreamedAndBalanceUntilUpdatedAt(event.params.member, event.params.token, event.block, null);
+    _createAccountTokenSnapshotLogEntity(event, event.params.member, event.params.token, eventName);
 }
 
 function _createDistributionClaimedEntity(event: DistributionClaimed, poolMemberId: string): DistributionClaimedEvent {

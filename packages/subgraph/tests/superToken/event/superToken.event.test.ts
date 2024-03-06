@@ -18,7 +18,7 @@ import {
 } from "../../../src/mappings/superToken";
 import { BIG_INT_ONE, BIG_INT_ZERO, encode, ZERO_ADDRESS } from "../../../src/utils";
 import { assertEmptyTokenStatisticProperties, assertEventBaseProperties, assertTokenStatisticProperties } from "../../assertionHelpers";
-import { alice, bob, cfaV1Address, charlie, DEFAULT_DECIMALS, delta, FAKE_INITIAL_BALANCE, maticXName, maticXSymbol } from "../../constants";
+import { alice, bob, cfaV1Address, charlie, DEFAULT_DECIMALS, delta, FAKE_INITIAL_BALANCE, maticXName, maticXSymbol, TRUE } from "../../constants";
 import { getETHAddress, getETHUnsignedBigInt, stringToBytes } from "../../converters";
 import { createStream, createStreamRevision } from "../../mockedEntities";
 import { mockedGetAppManifest, mockedGetHost, mockedHandleSuperTokenInitRPCCalls, mockedRealtimeBalanceOf } from "../../mockedFunctions";
@@ -28,6 +28,7 @@ import {
     createBurnedEvent,
     createMintedEvent,
     createSentEvent,
+    createSuperTokenApprovalEvent,
     createTokenDowngradedEvent,
     createTokenUpgradedEvent,
     createTransferEvent,
@@ -335,6 +336,28 @@ describe("SuperToken Mapper Unit Tests", () => {
             );
             assert.fieldEquals("TokenDowngradedEvent", id, "account", account);
             assert.fieldEquals("TokenDowngradedEvent", id, "amount", amount.toString());
+        });
+
+        test("handleApproval() - Should create a new ApprovalEvent entity", () => {
+            const owner = alice;
+            const spender = bob;
+            const value = BigInt.fromI32(100);
+
+            const superTokenApprovalEvent = createSuperTokenApprovalEvent(
+                owner,
+                spender,
+                value
+            );
+
+            const id = assertEventBaseProperties(
+                superTokenApprovalEvent,
+                "TokenUpgraded"
+            );
+            assert.fieldEquals("ApprovalEvent", id, "owner", owner);
+            assert.fieldEquals("ApprovalEvent", id, "spender", spender);
+            assert.fieldEquals("ApprovalEvent", id, "amount", value.toString());
+            assert.fieldEquals("ApprovalEvent", id, "isNFTApproval", TRUE);
+            assert.fieldEquals("ApprovalEvent", id, "tokenId", "0");
         });
 
         test("handleTransfer() - Should create a new TransferEvent entity", () => {

@@ -10,7 +10,7 @@ import {
     MetadataUpdateEvent,
     TransferEvent,
 } from "../../generated/schema";
-import { createEventID, initializeEventEntity } from "../utils";
+import { BIG_INT_ONE, createEventID, initializeEventEntity } from "../utils";
 
 export function handleApproval(event: Approval): void {
     const eventId = createEventID("Approval", event);
@@ -19,6 +19,8 @@ export function handleApproval(event: Approval): void {
     ev.owner = event.params.owner.toHex();
     ev.to = event.params.approved.toHex();
     ev.tokenId = event.params.tokenId;
+    ev.amount = BIG_INT_ONE.neg();
+    ev.isNFTApproval = true;
 
     ev.save();
 }

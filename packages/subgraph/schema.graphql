@@ -1475,13 +1475,29 @@ type ApprovalEvent implements Event @entity(immutable: true) {
     logIndex: BigInt!
     order: BigInt!
 
+    """
+    The address that will be granting allowance to transfer ERC20/NFT.
+    """
     owner: Account!
 
     """
-    The address that will be granted allowance to transfer the NFT.
+    The address that will be granted allowance to transfer ERC20/NFT.
     """
     to: Account!
+
     """
+    Indicates whether the event was emitted for the approval of an NFT.
+    """
+    isNFTApproval: Boolean!
+
+    """
+    If `amount` is non-zero, this event was emitted for the approval of an ERC20.
+    Tne amount of ERC20 tokens that will be granted allowance to transfer.
+    """
+    amount: BigInt!
+    
+    """
+    If `tokenId` is non-zero, this event was emitted for the approval of an NFT.
     The id of the NFT that will be granted allowance to transfer.
     The id is: uint256(keccak256(abi.encode(block.chainid, superToken, sender, receiver)))
     """

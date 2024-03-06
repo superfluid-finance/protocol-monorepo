@@ -1950,7 +1950,7 @@ contract FoundrySuperfluidTester is Test {
 
         // Assert Outflow NFT is minted to distributor
         // Assert Inflow NFT is minted to pool
-        _assertFlowNftState(superToken_, address(pool_), from, requestedFlowRate);
+        _assertFlowNftState(superToken_, from, address(pool_), requestedFlowRate);
 
         {
             if (members.length == 0) return;

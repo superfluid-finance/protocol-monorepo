@@ -1950,7 +1950,6 @@ contract FoundrySuperfluidTester is Test {
 
         // Assert Outflow NFT is minted to distributor
         // Assert Inflow NFT is minted to pool
-        //_assertFlowNftOnDistributeFlow(superToken_, pool_, from, requestedFlowRate);
         _assertFlowNftState(superToken_, address(pool_), from, requestedFlowRate);
 
         {
@@ -2320,35 +2319,6 @@ contract FoundrySuperfluidTester is Test {
             );
         } else {
             // zero flowrate: NFT doesn't exist (never minted or already burned)
-            vm.expectRevert(IFlowNFTBase.CFA_NFT_INVALID_TOKEN_ID.selector);
-            constantOutflowNFT.ownerOf(tokenId);
-
-            vm.expectRevert(IFlowNFTBase.CFA_NFT_INVALID_TOKEN_ID.selector);
-            constantInflowNFT.ownerOf(tokenId);
-        }
-    }
-
-    function _assertFlowNftOnDistributeFlow(
-        ISuperfluidToken _superToken,
-        ISuperfluidPool _pool,
-        address _distributor,
-        int96 _newFlowRate
-    ) internal {
-        IConstantOutflowNFT constantOutflowNFT = SuperToken(address(_superToken)).CONSTANT_OUTFLOW_NFT();
-        IConstantInflowNFT constantInflowNFT = SuperToken(address(_superToken)).CONSTANT_INFLOW_NFT();
-        uint256 tokenId = constantOutflowNFT.getTokenId(address(_superToken), address(_distributor), address(_pool));
-        if (_newFlowRate > 0) {
-            assertEq(
-                constantOutflowNFT.ownerOf(tokenId),
-                _distributor,
-                "_assertFlowNftOnDistributeFlow: distributor doesn't own outflow NFT"
-            );
-            assertEq(
-                constantInflowNFT.ownerOf(tokenId),
-                address(_pool),
-                "_assertFlowNftOnDistributeFlow: distributor doesn't own inflow NFT"
-            );
-        } else {
             vm.expectRevert(IFlowNFTBase.CFA_NFT_INVALID_TOKEN_ID.selector);
             constantOutflowNFT.ownerOf(tokenId);
 

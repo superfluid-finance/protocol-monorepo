@@ -460,69 +460,40 @@ contract ConstantFlowAgreementV1 is
     function _handleOnCreateHook(
         _StackVars_createOrUpdateFlow memory flowVars
     ) internal {
-        uint256 gasLeftBefore = gasleft();
-
         address constantOutflowNFTAddress = _canCallNFTHook(flowVars.token);
 
         if (constantOutflowNFTAddress != address(0)) {
-            try
-                IConstantOutflowNFT(constantOutflowNFTAddress).onCreate(
-                    flowVars.token,
-                    flowVars.sender,
-                    flowVars.receiver
-                )
-            // solhint-disable-next-line no-empty-blocks
-            {
-
-            } catch {
-                SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
-            }
+            IConstantOutflowNFT(constantOutflowNFTAddress).onCreate(
+                flowVars.token,
+                flowVars.sender,
+                flowVars.receiver
+            );
         }
     }
 
     function _handleOnUpdateHook(
         _StackVars_createOrUpdateFlow memory flowVars
     ) internal {
-        uint256 gasLeftBefore = gasleft();
-
         address constantOutflowNFTAddress = _canCallNFTHook(flowVars.token);
-
         if (constantOutflowNFTAddress != address(0)) {
-            try
-                IConstantOutflowNFT(constantOutflowNFTAddress).onUpdate(
-                    flowVars.token,
-                    flowVars.sender,
-                    flowVars.receiver
-                )
-            // solhint-disable-next-line no-empty-blocks
-            {
-
-            } catch {
-                SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
-            }
+            IConstantOutflowNFT(constantOutflowNFTAddress).onUpdate(
+                flowVars.token,
+                flowVars.sender,
+                flowVars.receiver
+            );
         }
     }
 
     function _handleOnDeleteHook(
         _StackVars_createOrUpdateFlow memory flowVars
     ) internal {
-        uint256 gasLeftBefore = gasleft();
-
         address constantOutflowNFTAddress = _canCallNFTHook(flowVars.token);
-
         if (constantOutflowNFTAddress != address(0)) {
-            try
-                IConstantOutflowNFT(constantOutflowNFTAddress).onDelete(
-                    flowVars.token,
-                    flowVars.sender,
-                    flowVars.receiver
-                )
-            // solhint-disable-next-line no-empty-blocks
-            {
-
-            } catch {
-                SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
-            }
+            IConstantOutflowNFT(constantOutflowNFTAddress).onDelete(
+                flowVars.token,
+                flowVars.sender,
+                flowVars.receiver
+            );
         }
     }
 

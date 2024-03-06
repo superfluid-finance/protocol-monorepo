@@ -17,7 +17,6 @@ import {
 import { AgreementBase } from "./AgreementBase.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { AgreementLibrary } from "./AgreementLibrary.sol";
-import { SafeGasLibrary } from "../libs/SafeGasLibrary.sol";
 import { SolvencyHelperLibrary } from "../libs/SolvencyHelperLibrary.sol";
 
 /**

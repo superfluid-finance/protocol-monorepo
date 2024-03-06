@@ -30,7 +30,7 @@ describe("ALEPH Total Supply Bug", () => {
         mockedTokenName(superToken, "tokenName");
         mockedTokenSymbol(superToken, "tokenSymbol");
         mockedTokenDecimals(superToken, 18);
-        
+
         // unused mocked function call after change in this commit (removing total supply RPC call in getOrInitSuperToken)
         mockedTokenTotalSupply(superToken, totalSupply);
 
@@ -45,6 +45,6 @@ describe("ALEPH Total Supply Bug", () => {
         handleCustomSuperTokenCreated(customSuperTokenCreatedEvent);
         handleMinted(mintedEvent);
 
-        assert.fieldEquals("TokenStatistic", superToken, "totalSupply", totalSupply.toString());
+        assert.fieldEquals("TokenStatistic", superToken, "totalSupply", "453452345");
     });
 });

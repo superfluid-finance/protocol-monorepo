@@ -32,4 +32,5 @@ jobs:
           BSCSCAN_API_KEY: ${{ secrets.BSCSCAN_API_KEY }}
           CELOSCAN_API_KEY: ${{ secrets.CELOSCAN_API_KEY }}
           GNOSISSCAN_API_KEY: ${{ secrets.GNOSISSCAN_API_KEY}}
-          ZKEVM_POLYGONSCAN_API_KEY: ${{ secrets.ZKEVM_POLYGONSCAN_API_KEY }}
+          BASESCAN_API_KEY: ${{ secrets.BASESCAN_API_KEY}}
+          SCROLLSCAN_API_KEY: ${{ secrets.SCROLLSCAN_API_KEY}}

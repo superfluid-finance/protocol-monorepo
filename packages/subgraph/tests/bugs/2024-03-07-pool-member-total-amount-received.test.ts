@@ -24,8 +24,8 @@ import { handleMemberUnitsUpdated } from "../../src/mappings/superfluidPool";
     member A 100 tokens
     member B 50 tokens
  */
-describe("PoolMember not updating when units changed", () => {
-    test("emit MemberUnitsUpdated event", () => {
+describe("PoolMember ending up with wrong `totalAmountReceivedUntilUpdatedAt`", () => {
+    test("create elaborate scenario with 2 distributions and 2 pool members", () => {
         const superTokenAddress = maticXAddress;
         
         // # Arrange State 1

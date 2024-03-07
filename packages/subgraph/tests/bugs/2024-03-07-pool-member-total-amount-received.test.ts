@@ -8,11 +8,28 @@ import { createInstantDistributionUpdatedEvent, createMemberUnitsUpdatedEvent } 
 import { mockedGetAppManifest, mockedRealtimeBalanceOf } from "../mockedFunctions";
 import { handleMemberUnitsUpdated } from "../../src/mappings/superfluidPool";
 
+/**
+ * Problem description
+    1. Create pool
+    2. Add member A and update A units to 100
+    3. Distribute 100 tokens
+    4. Add member B and update B units to 100
+    4. Distribute 100 tokens
+
+    Expected result:
+    member A 150 tokens
+    member B 50 tokens
+
+    Actual result:
+    member A 100 tokens
+    member B 50 tokens
+ */
 describe("PoolMember not updating when units changed", () => {
     test("emit MemberUnitsUpdated event", () => {
         const superTokenAddress = maticXAddress;
         
-        // # Arrange Pool
+        // # Arrange State 1
+        // ## Arrange Pool
         const poolAddress = Address.fromString(superfluidPool);
         const poolAdminAndDistributorAddress = Address.fromString(delta);
         let pool = new Pool(poolAddress.toHexString());
@@ -32,13 +49,13 @@ describe("PoolMember not updating when units changed", () => {
         pool.totalAmountDistributedUntilUpdatedAt = BigInt.fromI32(0);
         pool.totalAmountFlowedDistributedUntilUpdatedAt = BigInt.fromI32(0);
         pool.totalAmountInstantlyDistributedUntilUpdatedAt = BigInt.fromI32(0);
-        pool.totalConnectedUnits = BigInt.fromI32(1000);
+        pool.totalConnectedUnits = BigInt.fromI32(100);
         pool.totalDisconnectedUnits = BigInt.fromI32(0);
-        pool.totalUnits = BigInt.fromI32(1000);
+        pool.totalUnits = BigInt.fromI32(100);
         pool.save();
         // ---
 
-        // # Arrange PoolMember 1
+        // ## Arrange PoolMember 1
         const aliceAddress = Address.fromString(alice_);
         const aliceId = getPoolMemberID(poolAddress, aliceAddress);
         const alice = new PoolMember(aliceId)
@@ -48,7 +65,7 @@ describe("PoolMember not updating when units changed", () => {
         alice.updatedAtBlockNumber = BigInt.fromI32(1);
 
         alice.account = aliceAddress.toHexString();
-        alice.units = BigInt.fromI32(1000);
+        alice.units = BigInt.fromI32(100);
         alice.totalAmountReceivedUntilUpdatedAt = BigInt.fromI32(0);
         alice.poolTotalAmountDistributedUntilUpdatedAt = BigInt.fromI32(0);
         alice.isConnected = true;
@@ -57,7 +74,7 @@ describe("PoolMember not updating when units changed", () => {
         alice.save();
         // # ---
 
-        // # Arrange Distributor
+        // ## Arrange Distributor
         const poolDistributor = new PoolDistributor(poolAdminAndDistributorAddress.toHexString());
         poolDistributor.createdAtTimestamp = BigInt.fromI32(1);
         poolDistributor.createdAtBlockNumber = BigInt.fromI32(1);
@@ -73,7 +90,7 @@ describe("PoolMember not updating when units changed", () => {
         poolDistributor.save();
         // ---
 
-        // # First distribution
+        // # First distribution (State 2)
         const instantDistributionEvent = createInstantDistributionUpdatedEvent(
             superTokenAddress,
             poolAddress.toHexString(),
@@ -112,7 +129,8 @@ describe("PoolMember not updating when units changed", () => {
         );
         // # ---
 
-        // # Arrange PoolMember 2 (new member)
+        // # Arrange State 3
+        // ## Arrange PoolMember 2 (new member)
         const bobAddress = Address.fromString(bob_);
         const bobId = getPoolMemberID(poolAddress, bobAddress);
         const bob = new PoolMember(bobId)
@@ -122,7 +140,7 @@ describe("PoolMember not updating when units changed", () => {
         bob.updatedAtBlockNumber = BigInt.fromI32(1);
 
         bob.account = bobAddress.toHexString();
-        bob.units = BigInt.fromI32(1000);
+        bob.units = BigInt.fromI32(100);
         bob.totalAmountReceivedUntilUpdatedAt = BigInt.fromI32(0);
         bob.poolTotalAmountDistributedUntilUpdatedAt = BigInt.fromI32(100);
         bob.isConnected = true;
@@ -131,7 +149,7 @@ describe("PoolMember not updating when units changed", () => {
         bob.save();
         // # ---
 
-        // # Update Pool for member 2
+        // ## Update Pool for member 2
         pool = Pool.load(poolAddress.toHexString())!;
         pool.updatedAtTimestamp = BigInt.fromI32(2);
         pool.updatedAtBlockNumber = BigInt.fromI32(2);
@@ -139,11 +157,11 @@ describe("PoolMember not updating when units changed", () => {
         pool.totalConnectedMembers = 2;
         pool.totalDisconnectedMembers = 0;
         pool.totalConnectedUnits = BigInt.fromI32(2000);
-        pool.totalUnits = BigInt.fromI32(2000);
+        pool.totalUnits = BigInt.fromI32(200);
         pool.save();
         // ---
 
-        // # Second distribution (we can use the first event again)
+        // # Second distribution (we can use the first event again) (State 4)
         handleInstantDistributionUpdated(instantDistributionEvent);
         
         assert.fieldEquals(
@@ -156,7 +174,7 @@ describe("PoolMember not updating when units changed", () => {
             "Pool",
             poolAddress.toHexString(),
             "totalUnits",
-            "2000"
+            "200"
         );
         // # ---
 
@@ -164,8 +182,8 @@ describe("PoolMember not updating when units changed", () => {
         const updateBobUnitsEvent = createMemberUnitsUpdatedEvent(
             superTokenAddress,
             bobAddress.toHexString(),
-            BigInt.fromI32(1000), // old units
-            BigInt.fromI32(1000) // new units
+            BigInt.fromI32(100), // old units
+            BigInt.fromI32(100) // new units
         );
         // Note, the units can stay the same, we just want to trigger an update.
         updateBobUnitsEvent.address = poolAddress;
@@ -181,6 +199,7 @@ describe("PoolMember not updating when units changed", () => {
             BIG_INT_ZERO
         );
 
+        // Act 1
         handleMemberUnitsUpdated(updateBobUnitsEvent);
 
         assert.fieldEquals(
@@ -193,7 +212,7 @@ describe("PoolMember not updating when units changed", () => {
             "Pool",
             poolAddress.toHexString(),
             "totalUnits",
-            "2000"
+            "200"
         );
         assert.fieldEquals(
             "PoolMember",
@@ -223,15 +242,15 @@ describe("PoolMember not updating when units changed", () => {
             BIG_INT_ZERO
         );
 
+        // Act 2
         handleMemberUnitsUpdated(updateAliceUnitsEvent);
 
         assert.fieldEquals(
             "PoolMember",
             aliceId,
             "totalAmountReceivedUntilUpdatedAt",
-            "150" // 100
+            "150" // 100 from first + 50 from second
         );
-
     })
 });
  

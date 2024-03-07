@@ -124,7 +124,7 @@ describe("PoolMember not updating when units changed", () => {
         bob.account = bobAddress.toHexString();
         bob.units = BigInt.fromI32(1000);
         bob.totalAmountReceivedUntilUpdatedAt = BigInt.fromI32(0);
-        bob.poolTotalAmountDistributedUntilUpdatedAt = BigInt.fromI32(0);
+        bob.poolTotalAmountDistributedUntilUpdatedAt = BigInt.fromI32(100);
         bob.isConnected = true;
         bob.totalAmountClaimed = BigInt.fromI32(0);
         bob.pool = poolAddress.toHexString();
@@ -225,12 +225,13 @@ describe("PoolMember not updating when units changed", () => {
 
         handleMemberUnitsUpdated(updateAliceUnitsEvent);
 
-        // assert.fieldEquals(
-        //     "PoolMember",
-        //     aliceId,
-        //     "totalAmountReceivedUntilUpdatedAt",
-        //     "150"
-        // );
+        assert.fieldEquals(
+            "PoolMember",
+            aliceId,
+            "totalAmountReceivedUntilUpdatedAt",
+            "150" // 100
+        );
+
     })
 });
  

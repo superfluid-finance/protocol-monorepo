@@ -12,7 +12,6 @@ import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISu
 import {
     IndexSubscription,
     Token,
-    TokenStatistic,
     PoolMember,
 } from "../generated/schema";
 
@@ -135,25 +134,6 @@ export function getTokenInfoAndReturn(token: Token): Token {
     token.decimals = decimalsResult.reverted ? 0 : decimalsResult.value;
 
     return token;
-}
-
-/**
- * Gets and sets the total supply for TokenStatistic of a SuperToken upon initial creation
- * @param tokenStatistic
- * @param tokenAddress
- * @returns TokenStatistic
- */
-export function getInitialTotalSupplyForSuperToken(
-    tokenStatistic: TokenStatistic,
-    tokenAddress: Address
-): TokenStatistic {
-    const tokenContract = SuperToken.bind(tokenAddress);
-    const totalSupplyResult = tokenContract.try_totalSupply();
-    if (totalSupplyResult.reverted) {
-        return tokenStatistic;
-    }
-    tokenStatistic.totalSupply = totalSupplyResult.value;
-    return tokenStatistic;
 }
 
 /**

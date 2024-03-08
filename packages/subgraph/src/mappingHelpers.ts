@@ -29,7 +29,6 @@ import {
     getStreamID,
     getStreamRevisionID,
     getSubscriptionID,
-    getInitialTotalSupplyForSuperToken,
     ZERO_ADDRESS,
     handleTokenRPCCalls,
     getPoolMemberID,
@@ -128,10 +127,6 @@ export function getOrInitSuperToken(
         // Note: we initialize and create tokenStatistic whenever we create a
         // token as well.
         let tokenStatistic = getOrInitTokenStatistic(tokenAddress, block);
-        tokenStatistic = getInitialTotalSupplyForSuperToken(
-            tokenStatistic,
-            tokenAddress
-        );
         tokenStatistic.save();
 
         // Per our TokenStatistic Invariant: whenever we create TokenStatistic, we must create TokenStatisticLog

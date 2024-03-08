@@ -1468,7 +1468,10 @@ type ApprovalEvent implements Event @entity(immutable: true) {
     name: String!
 
     """
-    Empty addresses array.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `isNFTApproval` ? `nft address` : `token` (superToken)
+    addresses[1] = `owner`
+    addresses[2] = `to`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -1513,7 +1516,10 @@ type ApprovalForAllEvent implements Event @entity(immutable: true) {
     name: String!
 
     """
-    Empty addresses array.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = NFT address
+    addresses[1] = `owner`
+    addresses[2] = `operator`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!

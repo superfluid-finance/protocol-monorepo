@@ -37,6 +37,23 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
     using SafeCast for uint256;
     using SafeCast for int256;
 
+    // Structs
+    struct PoolIndexData {
+        uint128 totalUnits;
+        uint32 wrappedSettledAt;
+        int96 wrappedFlowRate;
+        int256 wrappedSettledValue;
+    }
+
+    struct MemberData {
+        uint128 ownedUnits;
+        uint32 syncedSettledAt;
+        int96 syncedFlowRate;
+        int256 syncedSettledValue;
+        int256 settledValue;
+        int256 claimedValue;
+    }
+
     GeneralDistributionAgreementV1 public immutable GDA;
 
     ISuperfluidToken public superToken;

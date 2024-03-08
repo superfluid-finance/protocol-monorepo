@@ -833,6 +833,10 @@ library SuperTokenV1Library {
         (lastUpdated, flowRate, deposit, owedDeposit) = cfa.getFlow(token, sender, receiver);
     }
 
+    /* function getGDAFlowInfo(ISuperToken token, address distributor, ISuperfluidPool pool) */
+    /* { */
+    /* } */
+
     /**
      * @dev get net flow rate for given account for given token (CFA + GDA)
      * @param token Super token address

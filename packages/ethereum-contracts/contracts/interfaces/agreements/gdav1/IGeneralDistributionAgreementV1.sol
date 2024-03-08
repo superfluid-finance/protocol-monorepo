@@ -19,35 +19,6 @@ struct PoolConfig {
  * @author Superfluid
  */
 abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
-    // Structs
-    struct UniversalIndexData {
-        int96 flowRate;
-        uint32 settledAt;
-        uint256 totalBuffer;
-        bool isPool;
-        int256 settledValue;
-    }
-
-    struct FlowDistributionData {
-        uint32 lastUpdated;
-        int96 flowRate;
-        uint256 buffer; // stored as uint96
-    }
-
-    struct PoolMemberData {
-        address pool;
-        uint32 poolID; // the slot id in the pool's subs bitmap
-    }
-
-    struct StackVarsLiquidation {
-        ISuperfluidToken token;
-        int256 availableBalance;
-        address sender;
-        bytes32 distributionFlowHash;
-        int256 signedTotalGDADeposit;
-        address liquidator;
-    }
-
 
     // Custom Errors
     error GDA_DISTRIBUTE_FOR_OTHERS_NOT_ALLOWED();          // 0xf67d263e
@@ -130,6 +101,18 @@ abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
         view
         virtual
         returns (int96);
+
+    function getFlow(ISuperfluidToken token, address from, ISuperfluidPool to)
+        external
+        view
+        virtual
+        returns (uint256 lastUpdated, int96 flowRate, uint256 deposit);
+
+    function getAccountFlow(ISuperfluidPool token, address account)
+        external
+        view
+        virtual
+        returns (uint256 timestamp, int96 flowRate, uint256 deposit);
 
     /// @notice Executes an optimistic estimation of what the actual flow distribution flow rate may be.
     /// The actual flow distribution flow rate is the flow rate that will be sent from `from`.

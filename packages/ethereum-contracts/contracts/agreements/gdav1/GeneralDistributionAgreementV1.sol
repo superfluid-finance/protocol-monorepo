@@ -32,6 +32,7 @@ import { SafeGasLibrary } from "../../libs/SafeGasLibrary.sol";
 import { AgreementBase } from "../AgreementBase.sol";
 import { AgreementLibrary } from "../AgreementLibrary.sol";
 
+
 /**
  * @title General Distribution Agreement
  * @author Superfluid
@@ -79,6 +80,25 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
     using SafeCast for uint256;
     using SafeCast for int256;
     using SemanticMoney for BasicParticle;
+
+    struct UniversalIndexData {
+        int96 flowRate;
+        uint32 settledAt;
+        uint256 totalBuffer;
+        bool isPool;
+        int256 settledValue;
+    }
+
+    struct PoolMemberData {
+        address pool;
+        uint32 poolID; // the slot id in the pool's subs bitmap
+    }
+
+    struct FlowDistributionData {
+        uint32 lastUpdated;
+        int96 flowRate;
+        uint256 buffer; // stored as uint96
+    }
 
     address public constant SLOTS_BITMAP_LIBRARY_ADDRESS = address(SlotsBitmapLibrary);
 
@@ -168,6 +188,18 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
     {
         (, FlowDistributionData memory data) = _getFlowDistributionData(token, _getFlowDistributionHash(from, to));
         return data.flowRate;
+    }
+
+    function getFlow(ISuperfluidToken token, address from, ISuperfluidPool to)
+        external
+        view
+        override
+        returns (uint256 lastUpdated, int96 flowRate, uint256 deposit)
+    {
+        (, FlowDistributionData memory data) = _getFlowDistributionData(token, _getFlowDistributionHash(from, to));
+        lastUpdated = data.lastUpdated;
+        flowRate = data.flowRate;
+        deposit = data.buffer;
     }
 
     /// @inheritdoc IGeneralDistributionAgreementV1
@@ -428,6 +460,15 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         FlowRate oldFlowRate;
     }
 
+    struct _StackVars_Liquidation {
+        ISuperfluidToken token;
+        int256 availableBalance;
+        address sender;
+        bytes32 distributionFlowHash;
+        int256 signedTotalGDADeposit;
+        address liquidator;
+    }
+
     /// @inheritdoc IGeneralDistributionAgreementV1
     function distributeFlow(
         ISuperfluidToken token,
@@ -482,7 +523,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
                     // liquidation case, requestedFlowRate == 0
                     (int256 availableBalance,,) = token.realtimeBalanceOf(from, flowVars.currentContext.timestamp);
                     // StackVarsLiquidation used to handle good ol' stack too deep
-                    StackVarsLiquidation memory liquidationData;
+                    _StackVars_Liquidation memory liquidationData;
                     {
                         liquidationData.token = token;
                         liquidationData.sender = from;
@@ -612,7 +653,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         }
     }
 
-    function _makeLiquidationPayouts(StackVarsLiquidation memory data) internal {
+    function _makeLiquidationPayouts(_StackVars_Liquidation memory data) internal {
         (, FlowDistributionData memory flowDistributionData) =
             _getFlowDistributionData(ISuperfluidToken(data.token), data.distributionFlowHash);
         int256 signedSingleDeposit = flowDistributionData.buffer.toInt256();

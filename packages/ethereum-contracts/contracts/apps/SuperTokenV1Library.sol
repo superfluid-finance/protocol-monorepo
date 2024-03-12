@@ -833,6 +833,23 @@ library SuperTokenV1Library {
         (lastUpdated, flowRate, deposit, owedDeposit) = cfa.getFlow(token, sender, receiver);
     }
 
+    /**
+     * @dev get flow info of a distributor to a pool for given token
+     * @param token The token used in flow
+     * @param distributor The sitributor of the flow
+     * @param pool The GDA pool 
+     * @return lastUpdated Timestamp of flow creation or last flowrate change
+     * @return flowRate The flow rate
+     * @return deposit The amount of deposit the flow
+     */
+    function getGDAFlowInfo(ISuperToken token, address distributor, ISuperfluidPool pool)
+        internal view
+        returns(uint256 lastUpdated, int96 flowRate, uint256 deposit)
+    {
+        (, IGeneralDistributionAgreementV1 gda) = _getHostAndGDA(token);
+        return gda.getFlow(token, distributor, pool);
+    }
+
     /* function getGDAFlowInfo(ISuperToken token, address distributor, ISuperfluidPool pool) */
     /* { */
     /* } */
@@ -897,7 +914,72 @@ library SuperTokenV1Library {
     }
 
     /**
-     * @dev calculate buffer for a flow rate
+     * @dev get the aggregated flow info of the account (CFA + GDA)
+     * @param token Super token address
+     * @param account Account to query
+     * @return cfaLastUpdated Timestamp of the last change of the CFA net flow
+     * @return gdaLastUpdated Timestamp of the last change of the GDA net flow
+     * @return flowRate The net flow rate of token for account
+     * @return deposit The sum of all deposits for account's flows
+     * @return owedDeposit The sum of all owed deposits for account's flows
+     */
+    function getAccountFlowInfo(ISuperToken token, address account)
+        internal
+        view
+        returns (uint256 cfaLastUpdated, uint256 gdaLastUpdated, int96 flowRate, uint256 deposit, uint256 owedDeposit)
+    {
+        (, IConstantFlowAgreementV1 cfa) = _getHostAndCFA(token);
+        (, IGeneralDistributionAgreementV1 gda) = _getHostAndGDA(token);
+
+        (uint256 lastUpdatedCFA, int96 cfaNetFlowRate, uint256 cfaDeposit, uint256 cfaOwedDeposit) =
+            cfa.getAccountFlowInfo(token, account);
+        (uint256 lastUpdatedGDA, int96 gdaNetFlowRate, uint256 gdaDeposit) = gda.getAccountFlowInfo(token, account);
+        int96 accountNetFlowRate = cfaNetFlowRate + gdaNetFlowRate;
+        uint256 accountDeposit = cfaDeposit + gdaDeposit;
+
+        return (lastUpdatedCFA, lastUpdatedGDA, accountNetFlowRate, accountDeposit, cfaOwedDeposit);
+    }
+
+    /**
+     * @dev get the aggregated CFA flow info of the account
+     * @param token Super token address
+     * @param account Account to query
+     * @return lastUpdated Timestamp of the last change of the net flow
+     * @return flowRate The net flow rate of token for account
+     * @return deposit The sum of all deposits for account's flows
+     * @return owedDeposit The sum of all owed deposits for account's flows
+     */
+    function getCFAAccountFlowInfo(ISuperToken token, address account)
+        internal
+        view
+        returns (uint256 lastUpdated, int96 flowRate, uint256 deposit, uint256 owedDeposit)
+    {
+        (, IConstantFlowAgreementV1 cfa) = _getHostAndCFA(token);
+        return cfa.getAccountFlowInfo(token, account);
+    }
+
+    /**
+     * @dev get the aggregated GDA flow info of the account
+     * @param token Super token address
+     * @param account Account to query
+     * @return lastUpdated Timestamp of the last change of the net flow
+     * @return flowRate The net flow rate of token for account
+     * @return deposit The sum of all deposits for account's flows
+     * @return owedDeposit The sum of all owed deposits for account's flows
+     */
+    function getGDAAccountFlowInfo(ISuperToken token, address account)
+        internal
+        view
+        returns (uint256 lastUpdated, int96 flowRate, uint256 deposit, uint256 owedDeposit)
+    {
+        (, IGeneralDistributionAgreementV1 gda) = _getHostAndGDA(token);
+        (lastUpdated, flowRate, deposit) = gda.getAccountFlowInfo(token, account);
+    }
+
+    /**
+     * @notice calculate buffer for a CFA/GDA flow rate
+     * @dev Even though we are using the CFA, the logic for calculating buffer is the same in the GDA
+     *      and a change in the buffer logic in either means it is a BREAKING change
      * @param token The token used in flow
      * @param flowRate The flowrate to calculate the needed buffer for
      * @return bufferAmount The buffer amount based on flowRate, liquidationPeriod and minimum deposit

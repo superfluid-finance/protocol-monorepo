@@ -460,6 +460,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         FlowRate oldFlowRate;
     }
 
+    // solhint-disable-next-line contract-name-camelcase
     struct _StackVars_Liquidation {
         ISuperfluidToken token;
         int256 availableBalance;

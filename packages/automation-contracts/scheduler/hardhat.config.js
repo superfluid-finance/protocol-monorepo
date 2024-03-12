@@ -25,11 +25,6 @@ module.exports = {
             url: "http://127.0.0.1:8545/",
             chainId: 31337,
         },
-        goerli: {
-            url: process.env.GOERLI_URL || "",
-            accounts:
-                process.env.GOERLI_PRIVATE_KEY !== undefined ? [process.env.GOERLI_PRIVATE_KEY] : [],
-        },
         mumbai: {
             url: process.env.MUMBAI_URL || "",
             accounts:

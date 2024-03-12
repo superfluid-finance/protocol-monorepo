@@ -19,7 +19,7 @@ import {
     _createTokenStatisticLogEntity,
     getOrInitPool,
     getOrInitPoolDistributor,
-    getOrInitPoolMember,
+    getOrInitOrUpdatePoolMember,
     getOrInitTokenStatistic,
     settlePDPoolMemberMU,
     settlePoolParticle,
@@ -85,7 +85,7 @@ export function handlePoolConnectionUpdated(
     event: PoolConnectionUpdated
 ): void {
     // Update Pool Member Entity
-    let poolMember = getOrInitPoolMember(
+    let poolMember = getOrInitOrUpdatePoolMember(
         event,
         event.params.pool,
         event.params.account
@@ -162,6 +162,9 @@ export function handlePoolConnectionUpdated(
         false // isIDA
     );
 
+    // Create Event Entity
+    _createPoolConnectionUpdatedEntity(event, poolMember.id);
+
     // Create ATS and Token Statistic Log Entities
     const eventName = "PoolConnectionUpdated";
     _createAccountTokenSnapshotLogEntity(
@@ -172,9 +175,6 @@ export function handlePoolConnectionUpdated(
     );
 
     _createTokenStatisticLogEntity(event, event.params.token, eventName);
-
-    // Create Event Entity
-    _createPoolConnectionUpdatedEntity(event, poolMember.id);
 }
 
 export function handleBufferAdjusted(event: BufferAdjusted): void {

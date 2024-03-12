@@ -503,7 +503,7 @@ describe("SuperToken Mapper Unit Tests", () => {
                 "operatorData",
                 operatorData.toHexString()
             );
-        });
+        }); 
 
         test("TokenStatistic::totalNumberOfHolders should decrease its count when a user transfers tokens and the balance reaches 0.", () => {
             const from = alice;

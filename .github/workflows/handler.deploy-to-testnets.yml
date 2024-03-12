@@ -29,11 +29,11 @@ jobs:
     defaults:
       run:
         shell: nix develop -c bash -xe {0}
-  
+
     strategy:
       fail-fast: false
       matrix:
-          network: [eth-goerli, eth-sepolia, polygon-mumbai, optimism-goerli, arbitrum-goerli, avalanche-fuji, base-goerli, polygon-zkevm-testnet]
+          network: [eth-sepolia, polygon-mumbai, optimism-sepolia, avalanche-fuji, scroll-sepolia]
 
     steps:
       - uses: actions/checkout@v3

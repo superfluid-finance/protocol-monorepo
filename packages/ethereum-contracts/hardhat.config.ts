@@ -55,16 +55,13 @@ subtask(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS).setAction(
 
 const chainIds = {
     "eth-mainnet": 1,
-    "eth-goerli": 5,
     "eth-sepolia": 11155111,
 
     "xdai-mainnet": 100,
 
     "optimism-mainnet": 10,
-    "optimism-goerli": 420,
 
     "arbitrum-one": 42161,
-    "arbitrum-goerli": 421613,
 
     "polygon-mainnet": 137,
     "polygon-mumbai": 80001,
@@ -114,10 +111,6 @@ const config: HardhatUserConfig = {
             ...createNetworkConfig("bsc-mainnet"),
             url: process.env.BSC_MAINNET_PROVIDER_URL || "",
         },
-        "eth-goerli": {
-            ...createNetworkConfig("eth-goerli"),
-            url: process.env.ETH_GOERLI_PROVIDER_URL || "",
-        },
         "xdai-mainnet": {
             ...createNetworkConfig("xdai-mainnet"),
             url: process.env.XDAI_MAINNET_PROVIDER_URL || "",
@@ -126,17 +119,9 @@ const config: HardhatUserConfig = {
             ...createNetworkConfig("optimism-mainnet"),
             url: process.env.OPTIMISM_MAINNET_PROVIDER_URL || "",
         },
-        "optimism-goerli": {
-            ...createNetworkConfig("optimism-goerli"),
-            url: process.env.OPTIMISM_GOERLI_PROVIDER_URL || "",
-        },
         "arbitrum-one": {
             ...createNetworkConfig("arbitrum-one"),
             url: process.env.ARBITRUM_ONE_PROVIDER_URL || "",
-        },
-        "arbitrum-goerli": {
-            ...createNetworkConfig("arbitrum-goerli"),
-            url: process.env.ARBITRUM_GOERLI_PROVIDER_URL || "",
         },
         "polygon-mainnet": {
             ...createNetworkConfig("polygon-mainnet"),
@@ -161,10 +146,6 @@ const config: HardhatUserConfig = {
         "eth-sepolia": {
             ...createNetworkConfig("eth-sepolia"),
             url: process.env.ETH_SEPOLIA_PROVIDER_URL || "",
-        },
-        "base-goerli": {
-            ...createNetworkConfig("base-goerli"),
-            url: process.env.BASE_GOERLI_PROVIDER_URL || "",
         },
         "scroll-sepolia": {
             ...createNetworkConfig("scroll-sepolia"),

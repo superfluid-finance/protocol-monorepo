@@ -81,24 +81,6 @@ const ALIASES = {
 
     // wildcard for any network
     "any": ["any"],
-
-    // currently unsupported or deprecated networks
-
-    "polygon-zkevm-testnet": ["pzkevmtest"],
-
-    "eth-goerli": ["goerli"],
-
-    "base-goerli": ["bgoerli"],
-
-    "optimism-goerli": ["opgoerli"],
-    "optimism-kovan": ["opkovan"],
-
-    "arbitrum-goerli": ["arbgoerli"],
-    "arbitrum-rinkeby": ["arbrinkeby"],
-
-    "bsc-chapel": ["chapel"],
-
-    "celo-alfajores": ["alfajores"],
 };
 
 const DEFAULT_NETWORK_TIMEOUT = 60000;
@@ -197,11 +179,6 @@ const E = (module.exports = {
             maxFeePerGas: 50e9,
         },
 
-        "eth-goerli": {
-            ...createNetworkDefaultConfiguration("eth-goerli"),
-            network_id: 5,
-        },
-
         "eth-sepolia": {
             ...createNetworkDefaultConfiguration("eth-sepolia"),
             network_id: 11155111,
@@ -223,11 +200,6 @@ const E = (module.exports = {
             network_id: 80001,
         },
 
-        "polygon-zkevm-testnet": {
-            ...createNetworkDefaultConfiguration("polygon-zkevm-testnet"),
-            network_id: 1442,
-        },
-
 
         //
         // xDAI: https://www.xdaichain.com/for-users/wallets/metamask/metamask-setup
@@ -247,11 +219,6 @@ const E = (module.exports = {
             maxFeePerGas: 1e9, // 1 gwei
         },
 
-        "optimism-goerli": {
-            ...createNetworkDefaultConfiguration("optimism-goerli"),
-            network_id: 420,
-        },
-
         "optimism-sepolia": {
             ...createNetworkDefaultConfiguration("optimism-sepolia"),
             network_id: 11155420,
@@ -263,11 +230,6 @@ const E = (module.exports = {
         "arbitrum-one": {
             ...createNetworkDefaultConfiguration("arbitrum-one"),
             network_id: 42161,
-        },
-
-        "arbitrum-goerli": {
-            ...createNetworkDefaultConfiguration("arbitrum-goerli"),
-            network_id: 421613,
         },
 
         //
@@ -298,10 +260,6 @@ const E = (module.exports = {
             ...createNetworkDefaultConfiguration("celo-mainnet"),
             network_id: 42220,
         },
-        "celo-alfajores": {
-            ...createNetworkDefaultConfiguration("celo-alfajores"),
-            network_id: 44787,
-        },
 
         //
         // Base: https://base.org/
@@ -311,10 +269,6 @@ const E = (module.exports = {
             network_id: 8453,
             maxPriorityFeePerGas: 1e6, // 0.001 gwei - even 0 may do
             maxFeePerGas: 1e9, // 1 gwei
-        },
-        "base-goerli": {
-            ...createNetworkDefaultConfiguration("base-goerli"),
-            network_id: 84531,
         },
 
         //
@@ -335,15 +289,6 @@ const E = (module.exports = {
         "any": {
             ...createNetworkDefaultConfiguration("any"),
             network_id: "*",
-        },
-
-        //
-        // Currently unsupported networks
-        //
-
-        "bsc-chapel": {
-            ...createNetworkDefaultConfiguration("bsc-chapel"),
-            network_id: 97,
         },
 
         /// For truffle development environment

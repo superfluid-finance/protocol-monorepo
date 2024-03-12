@@ -1,8 +1,4 @@
 export const chainIds = [
-    3, // ROPSTEN
-    4, // RINKEBY
-    5, // GOERLI
-    42, // KOVAN
     // 100, // XDAI //TODO(KK): No infura support
     137, // MATIC
     80001, // MUMBAI
@@ -14,22 +10,6 @@ export type Network = {
 };
 
 export const networks: Network[] = [
-    {
-        name: "ropsten",
-        chainId: 3,
-    },
-    {
-        name: "rinkeby",
-        chainId: 4,
-    },
-    {
-        name: "goerli",
-        chainId: 5,
-    },
-    {
-        name: "kovan",
-        chainId: 42,
-    },
     {
         name: "matic",
         chainId: 137,

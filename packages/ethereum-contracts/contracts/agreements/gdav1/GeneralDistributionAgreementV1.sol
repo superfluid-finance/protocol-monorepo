@@ -190,6 +190,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         return data.flowRate;
     }
 
+    /// @inheritdoc IGeneralDistributionAgreementV1
     function getFlow(ISuperfluidToken token, address from, ISuperfluidPool to)
         external
         view
@@ -200,6 +201,19 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         lastUpdated = data.lastUpdated;
         flowRate = data.flowRate;
         deposit = data.buffer;
+    }
+
+    /// @inheritdoc IGeneralDistributionAgreementV1
+    function getAccountFlowInfo(ISuperfluidToken token, address account)
+        external
+        view
+        override
+        returns (uint256 timestamp, int96 flowRate, uint256 deposit)
+    {
+        UniversalIndexData memory universalIndexData = _getUIndexData(abi.encode(token), account);
+        timestamp = universalIndexData.settledAt;
+        flowRate = universalIndexData.flowRate;
+        deposit = universalIndexData.totalBuffer;
     }
 
     /// @inheritdoc IGeneralDistributionAgreementV1
@@ -912,7 +926,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         bytes memory, // eff,
         address pool
     ) internal view override returns (PDPoolIndex memory) {
-        ISuperfluidPool.PoolIndexData memory data = SuperfluidPool(pool).getIndex();
+        SuperfluidPool.PoolIndexData memory data = SuperfluidPool(pool).getIndex();
         return SuperfluidPool(pool).poolIndexDataToPDPoolIndex(data);
     }
 

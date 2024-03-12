@@ -102,13 +102,26 @@ abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
         virtual
         returns (int96);
 
+    /// @dev Gets the GDA flow data between `from` and `to` of `token`
+    /// @param token The token address
+    /// @param from The sender address
+    /// @param to The receiver address
+    /// @return lastUpdated The timestamp of when the flow was last updated
+    /// @return flowRate The flow rate
+    /// @return deposit The amount of deposit the flow
     function getFlow(ISuperfluidToken token, address from, ISuperfluidPool to)
         external
         view
         virtual
         returns (uint256 lastUpdated, int96 flowRate, uint256 deposit);
 
-    function getAccountFlow(ISuperfluidPool token, address account)
+    /// @dev Gets the aggregated GDA flow info of `account` for `token`
+    /// @param token The token address
+    /// @param account The account address
+    /// @return timestamp The timestamp of when the flow was last updated for account
+    /// @return flowRate The net flow rate of token for account
+    /// @return deposit The sum of all deposits for account's flows
+    function getAccountFlowInfo(ISuperfluidToken token, address account)
         external
         view
         virtual

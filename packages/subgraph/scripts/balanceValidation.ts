@@ -14,9 +14,9 @@ import { DataIntegrityAccountTokenSnapshot } from "./dataIntegrity/interfaces";
  */
 async function main() {
     const endpointA =
-        "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-feature-goerli";
+        "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-feature-mumbai";
     const endpointB =
-        "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-goerli";
+        "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-mumbai";
     const endpointARecentBlock = await getMostRecentIndexedBlockNumber(
         endpointA
     );

@@ -63,9 +63,10 @@ export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
 
     // @note TODO update the pool.perUnitFlowRate
     // @note TODO update the poolMember.perUnitFlowRate
-        const existingPoolFlowRate = pool.perUnitFlowRate.times(pool.totalUnits);
-        let newPerUnitFlowRate;
-        let remainderRate;
+    const existingPoolFlowRate = pool.perUnitFlowRate.times(pool.totalUnits);
+    let newPerUnitFlowRate: BigInt;
+    let remainderRate: BigInt;
+
     if (!newTotalUnits.equals(BIG_INT_ZERO)) {
         newPerUnitFlowRate = existingPoolFlowRate.div(newTotalUnits);
         remainderRate = existingPoolFlowRate.minus(newPerUnitFlowRate.times(newTotalUnits));

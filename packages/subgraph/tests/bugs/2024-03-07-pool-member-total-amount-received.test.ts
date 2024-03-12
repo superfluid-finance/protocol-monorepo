@@ -1,8 +1,8 @@
-import { assert, describe, test } from "matchstick-as";
+import { assert, describe, log, test } from "matchstick-as";
 import { Pool, PoolDistributor, PoolMember } from "../../generated/schema"
 import { Address, BigInt, Bytes } from "@graphprotocol/graph-ts";
 import { FAKE_INITIAL_BALANCE, alice as alice_, bob as bob_, charlie, delta, echo, maticXAddress, superfluidPool } from "../constants";
-import { BIG_INT_ZERO, getPoolMemberID } from "../../src/utils";
+import { BIG_INT_ONE, BIG_INT_ZERO, getPoolMemberID } from "../../src/utils";
 import { handleInstantDistributionUpdated } from "../../src/mappings/gdav1";
 import { createInstantDistributionUpdatedEvent, createMemberUnitsUpdatedEvent } from "../gdav1/gdav1.helper";
 import { mockedGetAppManifest, mockedRealtimeBalanceOf } from "../mockedFunctions";
@@ -33,24 +33,27 @@ describe("PoolMember ending up with wrong `totalAmountReceivedUntilUpdatedAt`", 
         const poolAddress = Address.fromString(superfluidPool);
         const poolAdminAndDistributorAddress = Address.fromString(delta);
         let pool = new Pool(poolAddress.toHexString());
-        pool.createdAtTimestamp = BigInt.fromI32(1);
-        pool.createdAtBlockNumber = BigInt.fromI32(1);
-        pool.updatedAtTimestamp = BigInt.fromI32(1);
-        pool.updatedAtBlockNumber = BigInt.fromI32(1);
+        pool.createdAtTimestamp = BIG_INT_ONE;
+        pool.createdAtBlockNumber = BIG_INT_ONE;
+        pool.updatedAtTimestamp = BIG_INT_ONE;
+        pool.updatedAtBlockNumber = BIG_INT_ONE;
         
         pool.totalMembers = 1;
         pool.totalConnectedMembers = 1;
         pool.totalDisconnectedMembers = 0;
-        pool.adjustmentFlowRate = BigInt.fromI32(0);
-        pool.flowRate = BigInt.fromI32(0);
+        pool.adjustmentFlowRate = BIG_INT_ZERO;
+        pool.flowRate = BIG_INT_ZERO;
         pool.admin = poolAdminAndDistributorAddress.toHexString();
-        pool.totalBuffer = BigInt.fromI32(0);
+        pool.totalBuffer = BIG_INT_ZERO;
         pool.token = superTokenAddress;
-        pool.totalAmountDistributedUntilUpdatedAt = BigInt.fromI32(0);
-        pool.totalAmountFlowedDistributedUntilUpdatedAt = BigInt.fromI32(0);
-        pool.totalAmountInstantlyDistributedUntilUpdatedAt = BigInt.fromI32(0);
+        pool.perUnitFlowRate = BIG_INT_ZERO;
+        pool.perUnitSettledValue = BIG_INT_ZERO;
+        pool.totalAmountDistributedUntilUpdatedAt = BIG_INT_ZERO;
+        pool.totalAmountFlowedDistributedUntilUpdatedAt = BIG_INT_ZERO;
+        pool.totalAmountInstantlyDistributedUntilUpdatedAt = BIG_INT_ZERO;
+        pool.totalFlowAdjustmentAmountDistributedUntilUpdatedAt = BIG_INT_ZERO;
         pool.totalConnectedUnits = BigInt.fromI32(100);
-        pool.totalDisconnectedUnits = BigInt.fromI32(0);
+        pool.totalDisconnectedUnits = BIG_INT_ZERO;
         pool.totalUnits = BigInt.fromI32(100);
         pool.save();
         // ---
@@ -59,34 +62,36 @@ describe("PoolMember ending up with wrong `totalAmountReceivedUntilUpdatedAt`", 
         const aliceAddress = Address.fromString(alice_);
         const aliceId = getPoolMemberID(poolAddress, aliceAddress);
         const alice = new PoolMember(aliceId)
-        alice.createdAtTimestamp = BigInt.fromI32(1);
-        alice.createdAtBlockNumber = BigInt.fromI32(1);
-        alice.updatedAtTimestamp = BigInt.fromI32(1);
-        alice.updatedAtBlockNumber = BigInt.fromI32(1);
+        alice.createdAtTimestamp = BIG_INT_ONE;
+        alice.createdAtBlockNumber = BIG_INT_ONE;
+        alice.updatedAtTimestamp = BIG_INT_ONE;
+        alice.updatedAtBlockNumber = BIG_INT_ONE;
 
         alice.account = aliceAddress.toHexString();
         alice.units = BigInt.fromI32(100);
-        alice.totalAmountReceivedUntilUpdatedAt = BigInt.fromI32(0);
-        alice.poolTotalAmountDistributedUntilUpdatedAt = BigInt.fromI32(0);
+        alice.totalAmountReceivedUntilUpdatedAt = BIG_INT_ZERO;
+        alice.poolTotalAmountDistributedUntilUpdatedAt = BIG_INT_ZERO;
+        alice.syncedPerUnitFlowRate = BIG_INT_ZERO;
+        alice.syncedPerUnitSettledValue = BIG_INT_ZERO;
         alice.isConnected = true;
-        alice.totalAmountClaimed = BigInt.fromI32(0);
+        alice.totalAmountClaimed = BIG_INT_ZERO;
         alice.pool = poolAddress.toHexString();
         alice.save();
         // # ---
 
         // ## Arrange Distributor
         const poolDistributor = new PoolDistributor(poolAdminAndDistributorAddress.toHexString());
-        poolDistributor.createdAtTimestamp = BigInt.fromI32(1);
-        poolDistributor.createdAtBlockNumber = BigInt.fromI32(1);
-        poolDistributor.updatedAtTimestamp = BigInt.fromI32(1);
-        poolDistributor.updatedAtBlockNumber = BigInt.fromI32(1);
+        poolDistributor.createdAtTimestamp = BIG_INT_ONE;
+        poolDistributor.createdAtBlockNumber = BIG_INT_ONE;
+        poolDistributor.updatedAtTimestamp = BIG_INT_ONE;
+        poolDistributor.updatedAtBlockNumber = BIG_INT_ONE;
         poolDistributor.account = charlie;
-        poolDistributor.totalBuffer = BigInt.fromI32(0);
-        poolDistributor.flowRate = BigInt.fromI32(0);
+        poolDistributor.totalBuffer = BIG_INT_ZERO;
+        poolDistributor.flowRate = BIG_INT_ZERO;
         poolDistributor.pool = poolAddress.toHexString();
-        poolDistributor.totalAmountDistributedUntilUpdatedAt = BigInt.fromI32(0);
-        poolDistributor.totalAmountFlowedDistributedUntilUpdatedAt = BigInt.fromI32(0);
-        poolDistributor.totalAmountInstantlyDistributedUntilUpdatedAt = BigInt.fromI32(0);
+        poolDistributor.totalAmountDistributedUntilUpdatedAt = BIG_INT_ZERO;
+        poolDistributor.totalAmountFlowedDistributedUntilUpdatedAt = BIG_INT_ZERO;
+        poolDistributor.totalAmountInstantlyDistributedUntilUpdatedAt = BIG_INT_ZERO;
         poolDistributor.save();
         // ---
 
@@ -100,16 +105,16 @@ describe("PoolMember ending up with wrong `totalAmountReceivedUntilUpdatedAt`", 
             BigInt.fromI32(100), // actual amount
             Bytes.fromHexString("0x")
         );
-        instantDistributionEvent.block.timestamp = BigInt.fromI32(1);
+        instantDistributionEvent.block.timestamp = BIG_INT_ONE;
         instantDistributionEvent.address = poolAddress;
             
         mockedGetAppManifest(poolAdminAndDistributorAddress.toHexString(), false, false, BIG_INT_ZERO);
         mockedRealtimeBalanceOf(
             superTokenAddress,
             poolAdminAndDistributorAddress.toHexString(),
-            BigInt.fromI32(1),
+            BIG_INT_ONE,
             FAKE_INITIAL_BALANCE,
-            BigInt.fromI32(0),
+            BIG_INT_ZERO,
             BIG_INT_ZERO
         );
             
@@ -129,24 +134,54 @@ describe("PoolMember ending up with wrong `totalAmountReceivedUntilUpdatedAt`", 
         );
         // # ---
 
-        // # Arrange State 3
-        // ## Arrange PoolMember 2 (new member)
         const bobAddress = Address.fromString(bob_);
         const bobId = getPoolMemberID(poolAddress, bobAddress);
-        const bob = new PoolMember(bobId)
-        bob.createdAtTimestamp = BigInt.fromI32(1);
-        bob.createdAtBlockNumber = BigInt.fromI32(1);
-        bob.updatedAtTimestamp = BigInt.fromI32(1);
-        bob.updatedAtBlockNumber = BigInt.fromI32(1);
+        let updateBobUnitsEvent = createMemberUnitsUpdatedEvent(
+            superTokenAddress,
+            bobAddress.toHexString(),
+            BigInt.fromI32(100), // old units
+            BigInt.fromI32(100) // new units
+        );
 
-        bob.account = bobAddress.toHexString();
-        bob.units = BigInt.fromI32(100);
-        bob.totalAmountReceivedUntilUpdatedAt = BigInt.fromI32(0);
-        bob.poolTotalAmountDistributedUntilUpdatedAt = BigInt.fromI32(100);
-        bob.isConnected = true;
-        bob.totalAmountClaimed = BigInt.fromI32(0);
-        bob.pool = poolAddress.toHexString();
-        bob.save();
+        updateBobUnitsEvent.address = poolAddress;
+        updateBobUnitsEvent.block.timestamp = BigInt.fromI32(2);
+
+        mockedGetAppManifest(bobAddress.toHexString(), false, false, BIG_INT_ZERO);
+        mockedRealtimeBalanceOf(
+            superTokenAddress,
+            bobAddress.toHexString(),
+            BigInt.fromI32(2),
+            FAKE_INITIAL_BALANCE,
+            BIG_INT_ZERO,
+            BIG_INT_ZERO
+        );
+
+        handleMemberUnitsUpdated(updateBobUnitsEvent);
+        // Note, the units can stay the same, we just want to trigger an update.
+
+        // # Arrange State 3
+        // ## Arrange PoolMember 2 (new member)
+        // const bobId = getPoolMemberID(poolAddress, bobAddress);
+        // const bob = new PoolMember(bobId)
+        // bob.createdAtTimestamp = BIG_INT_ONE;
+        // bob.createdAtBlockNumber = BIG_INT_ONE;
+        // bob.updatedAtTimestamp = BIG_INT_ONE;
+        // bob.updatedAtBlockNumber = BIG_INT_ONE;
+
+        // bob.account = bobAddress.toHexString();
+        // bob.units = BigInt.fromI32(100);
+        // bob.totalAmountReceivedUntilUpdatedAt = BIG_INT_ZERO;
+        // bob.poolTotalAmountDistributedUntilUpdatedAt = BigInt.fromI32(100);
+        // bob.isConnected = true;
+        // bob.totalAmountClaimed = BIG_INT_ZERO;
+        // bob.pool = poolAddress.toHexString();
+
+        // // get pool to use the synced per unit flow rate and settled value
+        // pool = Pool.load(poolAddress.toHexString())!;
+        // bob.syncedPerUnitFlowRate = pool.perUnitFlowRate;
+        // bob.syncedPerUnitSettledValue = pool.perUnitSettledValue;
+        
+        // bob.save();
         // # ---
 
         // ## Update Pool for member 2
@@ -156,7 +191,7 @@ describe("PoolMember ending up with wrong `totalAmountReceivedUntilUpdatedAt`", 
         pool.totalMembers = 2;
         pool.totalConnectedMembers = 2;
         pool.totalDisconnectedMembers = 0;
-        pool.totalConnectedUnits = BigInt.fromI32(2000);
+        pool.totalConnectedUnits = BigInt.fromI32(200);
         pool.totalUnits = BigInt.fromI32(200);
         pool.save();
         // ---
@@ -179,7 +214,7 @@ describe("PoolMember ending up with wrong `totalAmountReceivedUntilUpdatedAt`", 
         // # ---
 
         // # Update PoolMember 2's units to get the `totalAmountReceivedUntilUpdatedAt`
-        const updateBobUnitsEvent = createMemberUnitsUpdatedEvent(
+        updateBobUnitsEvent = createMemberUnitsUpdatedEvent(
             superTokenAddress,
             bobAddress.toHexString(),
             BigInt.fromI32(100), // old units
@@ -195,13 +230,14 @@ describe("PoolMember ending up with wrong `totalAmountReceivedUntilUpdatedAt`", 
             bobAddress.toHexString(),
             BigInt.fromI32(2),
             FAKE_INITIAL_BALANCE,
-            BigInt.fromI32(0),
+            BIG_INT_ZERO,
             BIG_INT_ZERO
         );
 
         // Act 1
+        log.debug("Act 1", []);
         handleMemberUnitsUpdated(updateBobUnitsEvent);
-
+        
         assert.fieldEquals(
             "Pool",
             poolAddress.toHexString(),
@@ -238,7 +274,7 @@ describe("PoolMember ending up with wrong `totalAmountReceivedUntilUpdatedAt`", 
             aliceAddress.toHexString(),
             BigInt.fromI32(3),
             FAKE_INITIAL_BALANCE,
-            BigInt.fromI32(0),
+            BIG_INT_ZERO,
             BIG_INT_ZERO
         );
 

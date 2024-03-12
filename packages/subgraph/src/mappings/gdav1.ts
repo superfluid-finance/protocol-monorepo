@@ -34,6 +34,7 @@ import {
 import {
     BIG_INT_ZERO,
     createEventID,
+    divideOrZero,
     initializeEventEntity,
     membershipWithUnitsExists,
 } from "../utils";
@@ -234,9 +235,7 @@ export function handleFlowDistributionUpdated(
     // in the two functions
     pool = updatePoolTotalAmountFlowedAndDistributed(event, pool);
     pool = settlePoolParticle(pool, event.block);
-    pool.perUnitFlowRate = event.params.newDistributorToPoolFlowRate.div(
-        pool.totalUnits
-    );
+    pool.perUnitFlowRate = divideOrZero(event.params.newDistributorToPoolFlowRate, pool.totalUnits);
     pool.flowRate = event.params.newTotalDistributionFlowRate;
     pool.adjustmentFlowRate = event.params.adjustmentFlowRate;
     pool.save();
@@ -325,9 +324,7 @@ export function handleInstantDistributionUpdated(
     pool = updatePoolTotalAmountFlowedAndDistributed(event, pool);
     pool = settlePoolParticle(pool, event.block);
     // @note a speculations on what needs to be done
-    pool.perUnitSettledValue = pool.perUnitSettledValue.plus(
-        event.params.actualAmount.div(pool.totalUnits)
-    );
+    pool.perUnitSettledValue = pool.perUnitSettledValue.plus(divideOrZero(event.params.actualAmount, pool.totalUnits));
     const previousTotalAmountDistributed =
         pool.totalAmountDistributedUntilUpdatedAt;
     pool.totalAmountInstantlyDistributedUntilUpdatedAt =

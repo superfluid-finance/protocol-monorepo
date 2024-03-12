@@ -721,12 +721,12 @@ describe("Superfluid Ownable Governance Contract", function () {
             );
             await governance
                 .connect(aliceSigner)
-                ["setConfig(address,address,bytes32,address)"](
-                    superfluid.address,
-                    FAKE_TOKEN_ADDRESS1,
-                    SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY,
-                    FAKE_ADDRESS2
-                );
+            ["setConfig(address,address,bytes32,address)"](
+                superfluid.address,
+                FAKE_TOKEN_ADDRESS1,
+                SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY,
+                FAKE_ADDRESS2
+            );
 
             assert.equal(
                 await governance.getRewardAddress(
@@ -801,12 +801,12 @@ describe("Superfluid Ownable Governance Contract", function () {
             );
             await governance
                 .connect(aliceSigner)
-                ["setConfig(address,address,bytes32,uint256)"](
-                    superfluid.address,
-                    FAKE_TOKEN_ADDRESS1,
-                    SUPERTOKEN_MINIMUM_DEPOSIT_KEY,
-                    123456
-                );
+            ["setConfig(address,address,bytes32,uint256)"](
+                superfluid.address,
+                FAKE_TOKEN_ADDRESS1,
+                SUPERTOKEN_MINIMUM_DEPOSIT_KEY,
+                123456
+            );
 
             assert.equal(
                 (

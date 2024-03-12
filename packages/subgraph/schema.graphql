@@ -1757,6 +1757,11 @@ type Pool @entity {
     totalAmountInstantlyDistributedUntilUpdatedAt: BigInt!
     totalAmountFlowedDistributedUntilUpdatedAt: BigInt!
     totalAmountDistributedUntilUpdatedAt: BigInt!
+    totalFlowAdjustmentAmountDistributedUntilUpdatedAt: BigInt!
+
+    perUnitSettledValue: BigInt!
+    perUnitFlowRate: BigInt!
+
     """
     A member is any account which has more than 0 units in the pool.
     """
@@ -1811,6 +1816,9 @@ type PoolMember @entity {
     totalAmountClaimed: BigInt!
     poolTotalAmountDistributedUntilUpdatedAt: BigInt!
     totalAmountReceivedUntilUpdatedAt: BigInt!
+
+    syncedPerUnitSettledValue: BigInt!
+    syncedPerUnitFlowRate: BigInt!
 
     account: Account!
     pool: Pool!

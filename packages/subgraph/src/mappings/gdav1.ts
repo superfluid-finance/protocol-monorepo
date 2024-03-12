@@ -21,10 +21,11 @@ import {
     getOrInitPoolDistributor,
     getOrInitPoolMember,
     getOrInitTokenStatistic,
+    settlePDPoolMemberMU,
+    settlePoolParticle,
     updateATSStreamedAndBalanceUntilUpdatedAt,
     updateAggregateDistributionAgreementData,
     updatePoolDistributorTotalAmountFlowedAndDistributed,
-    updatePoolMemberTotalAmountUntilUpdatedAtFields,
     updatePoolTotalAmountFlowedAndDistributed,
     updateSenderATSStreamData,
     updateTokenStatisticStreamData,
@@ -98,6 +99,8 @@ export function handlePoolConnectionUpdated(
 
     // Update Pool Entity
     let pool = getOrInitPool(event, event.params.pool.toHex());
+    // @note we modify pool and poolMember here in memory, but do not save
+    settlePDPoolMemberMU(pool, poolMember, event.block);
     pool = updatePoolTotalAmountFlowedAndDistributed(event, pool);
     if (poolMember.units.gt(BIG_INT_ZERO)) {
         if (memberConnectedStatusUpdated) {
@@ -126,9 +129,6 @@ export function handlePoolConnectionUpdated(
             }
         }
     }
-
-    // Update totalAmountDistributedUntilUpdatedAt
-    poolMember = updatePoolMemberTotalAmountUntilUpdatedAtFields(pool, poolMember);
     
     pool.save();
     poolMember.save();
@@ -229,7 +229,14 @@ export function handleFlowDistributionUpdated(
 
     // Update Pool
     let pool = getOrInitPool(event, event.params.pool.toHex());
+
+    // @note that we are duplicating update of updatedAtTimestamp/BlockNumber here
+    // in the two functions
     pool = updatePoolTotalAmountFlowedAndDistributed(event, pool);
+    pool = settlePoolParticle(pool, event.block);
+    pool.perUnitFlowRate = event.params.newDistributorToPoolFlowRate.div(
+        pool.totalUnits
+    );
     pool.flowRate = event.params.newTotalDistributionFlowRate;
     pool.adjustmentFlowRate = event.params.adjustmentFlowRate;
     pool.save();
@@ -312,7 +319,15 @@ export function handleInstantDistributionUpdated(
 
     // Update Pool
     let pool = getOrInitPool(event, event.params.pool.toHex());
+
+    // @note that we are duplicating update of updatedAtTimestamp/BlockNumber here
+    // in the two functions
     pool = updatePoolTotalAmountFlowedAndDistributed(event, pool);
+    pool = settlePoolParticle(pool, event.block);
+    // @note a speculations on what needs to be done
+    pool.perUnitSettledValue = pool.perUnitSettledValue.plus(
+        event.params.actualAmount.div(pool.totalUnits)
+    );
     const previousTotalAmountDistributed =
         pool.totalAmountDistributedUntilUpdatedAt;
     pool.totalAmountInstantlyDistributedUntilUpdatedAt =

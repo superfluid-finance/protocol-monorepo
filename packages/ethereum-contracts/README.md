@@ -35,7 +35,7 @@ If you're building a smart contract that uses Superfluid protocol, or even your 
 ### Installation
 
 Prerequisites:
-- [node.js v16+](https://nodejs.org/en/download)
+- [node.js v18+](https://nodejs.org/en/download)
 - [yarn](https://classic.yarnpkg.com/en/docs/install)
 - [forge](https://book.getfoundry.sh/getting-started/installation)
 
@@ -250,7 +250,7 @@ If you want contribute to Superfluid protocol contracts instead of just interfac
 
 ### Setup Development Environment
 
-Prerequisites: You need node.js v16+ and yarn installed.
+Prerequisites: You need node.js v18+ and yarn installed.
 
 First, check out this repository and cd into it.
 ```sh
@@ -271,7 +271,7 @@ cd packages/ethereum-contracts/
 ```
 
 Then prepare an `.env` file (see `.env.template`).
-The most important config items are RPC endpoint (`<X>_PROVIDER_URL`) and a sender account (`<X>_MNEMONIC`), _<X>_ being a network specific prefix - e.g. `GOERLI_PROVIDER_URL`.
+The most important config items are RPC endpoint (`<X>_PROVIDER_URL`) and a sender account (`<X>_MNEMONIC`), _<X>_ being a network specific prefix - e.g. `OPTIMISM_MAINNET_PROVIDER_URL`.
 If you provide an actual mnemonic, the key derived at `m/44'/60'/0'/0/0` will be used. You can instead also set private keys (hex format) for `<X>_MNEMONIC`.
 
 In order to get an overview of available config items, look for instances of `process.env` in [truffle-config.js](truffle-config.js) and in files in the [scripts](scripts) folder.

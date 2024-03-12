@@ -58,17 +58,3 @@ jobs:
             --network ${{ github.event.inputs.network }} \
             ops-scripts/resolver-list-super-token.js \
             : ${{ github.event.inputs.token_address }}
-
-      # workaround for OG networks with a Resolver not emitting events
-      - name: Trigger Transfer Event
-        if: >
-          github.event.inputs.network == 'polygon-mainnet' ||
-          github.event.inputs.network == 'xdai-mainnet' ||
-          github.event.inputs.network == 'polygon-mumbai' ||
-          github.event.inputs.network == 'eth-goerli'
-        run: |
-          cd packages/ethereum-contracts
-          npx truffle exec \
-            --network ${{ github.event.inputs.network }} \
-            ops-scripts/tmp-trigger-token-transfer.js \
-            : ${{ github.event.inputs.token_address }}

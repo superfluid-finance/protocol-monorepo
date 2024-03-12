@@ -25,12 +25,10 @@ The Vesting Scheduler allows you to schedule the vesting of tokens to a receiver
 ```bash
 # .env-example
 
-GOERLI_PRIVATE_KEY=
 MUMBAI_PRIVATE_KEY=
 POLYGON_PRIVATE_KEY=
 BSC_PRIVATE_KEY=
 
-GOERLI_URL=
 MUMBAI_URL=
 POLYGON_URL=
 BSC_URL=
@@ -60,7 +58,6 @@ npx hardhat deploy --network <network>
 #### Testnets
 |          | FlowScheduler                                                                                                                        | VestingScheduler                                                                                                                     |
 |----------|--------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|
-| Goerli   | [0xA6134E107FCAEAab6140CB8fb92Dbf5bd9EF6C86](https://goerli.etherscan.io/address/0xA6134E107FCAEAab6140CB8fb92Dbf5bd9EF6C86#code)    | [0xb61f8A2CbBd1be5FE437509b51dc2B9BA710c47b](https://goerli.etherscan.io/address/0xb61f8A2CbBd1be5FE437509b51dc2B9BA710c47b#code)    |
 | Mumbai   | [0xF18825d412C061aEfEFB4dF46a1c077636dA50bf](https://mumbai.polygonscan.com/address/0xF18825d412C061aEfEFB4dF46a1c077636dA50bf#code) | [0xD4fCe2a08fd2fA7495BEd900F2fb6c6deDBf8632](https://mumbai.polygonscan.com/address/0xD4fCe2a08fd2fA7495BEd900F2fb6c6deDBf8632#code) |
 
 #### Mainnets

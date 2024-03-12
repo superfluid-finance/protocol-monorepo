@@ -536,7 +536,7 @@ export function updatePoolTotalAmountFlowedAndDistributed(
     return pool;
 }
 
-export function getOrInitPoolMember(
+export function getOrInitOrUpdatePoolMember(
     event: ethereum.Event,
     poolAddress: Address,
     poolMemberAddress: Address
@@ -548,19 +548,19 @@ export function getOrInitPoolMember(
         poolMember = new PoolMember(poolMemberID);
         poolMember.createdAtTimestamp = event.block.timestamp;
         poolMember.createdAtBlockNumber = event.block.number;
-        poolMember.updatedAtTimestamp = event.block.timestamp;
-        poolMember.updatedAtBlockNumber = event.block.number;
-
+        
         poolMember.units = BIG_INT_ZERO;
         poolMember.isConnected = false;
         poolMember.totalAmountClaimed = BIG_INT_ZERO;
         poolMember.poolTotalAmountDistributedUntilUpdatedAt = BIG_INT_ZERO;
         poolMember.totalAmountReceivedUntilUpdatedAt = BIG_INT_ZERO;
-
+        
         poolMember.account = poolMemberAddress.toHex();
         poolMember.pool = poolAddress.toHex();
     }
-
+    poolMember.updatedAtTimestamp = event.block.timestamp;
+    poolMember.updatedAtBlockNumber = event.block.number;
+    
     return poolMember;
 }
 

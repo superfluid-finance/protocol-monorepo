@@ -9,6 +9,7 @@ import {
 import {
     handleAgreementLiquidatedBy,
     handleAgreementLiquidatedV2,
+    handleApproval,
     handleBurned,
     handleMinted,
     handleSent,
@@ -18,7 +19,7 @@ import {
 } from "../../../src/mappings/superToken";
 import { BIG_INT_ONE, BIG_INT_ZERO, encode, ZERO_ADDRESS } from "../../../src/utils";
 import { assertEmptyTokenStatisticProperties, assertEventBaseProperties, assertTokenStatisticProperties } from "../../assertionHelpers";
-import { alice, bob, cfaV1Address, charlie, DEFAULT_DECIMALS, delta, FAKE_INITIAL_BALANCE, maticXName, maticXSymbol, TRUE } from "../../constants";
+import { alice, bob, cfaV1Address, charlie, DEFAULT_DECIMALS, delta, FAKE_INITIAL_BALANCE, FALSE, maticXName, maticXSymbol, TRUE } from "../../constants";
 import { getETHAddress, getETHUnsignedBigInt, stringToBytes } from "../../converters";
 import { createStream, createStreamRevision } from "../../mockedEntities";
 import { mockedGetAppManifest, mockedGetHost, mockedHandleSuperTokenInitRPCCalls, mockedRealtimeBalanceOf } from "../../mockedFunctions";
@@ -349,14 +350,16 @@ describe("SuperToken Mapper Unit Tests", () => {
                 value
             );
 
+            handleApproval(superTokenApprovalEvent);
+
             const id = assertEventBaseProperties(
                 superTokenApprovalEvent,
-                "TokenUpgraded"
+                "Approval"
             );
             assert.fieldEquals("ApprovalEvent", id, "owner", owner);
-            assert.fieldEquals("ApprovalEvent", id, "spender", spender);
+            assert.fieldEquals("ApprovalEvent", id, "to", spender);
             assert.fieldEquals("ApprovalEvent", id, "amount", value.toString());
-            assert.fieldEquals("ApprovalEvent", id, "isNFTApproval", TRUE);
+            assert.fieldEquals("ApprovalEvent", id, "isNFTApproval", FALSE);
             assert.fieldEquals("ApprovalEvent", id, "tokenId", "0");
         });
 

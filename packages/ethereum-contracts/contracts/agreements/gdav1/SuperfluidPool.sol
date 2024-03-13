@@ -403,12 +403,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
 
         // update pool's disconnected units
         if (!GDA.isMemberConnected(ISuperfluidPool(address(this)), memberAddr)) {
-            // trigger the side effect of claiming all if not connected
-            // @note claiming is a bit surprising here given the function name
-            int256 claimedAmount = _claimAll(memberAddr, time);
-
-            // update pool's disconnected units
-            _shiftDisconnectedUnits(wrappedUnits - mu.m.owned_units, Value.wrap(claimedAmount), t);
+            _shiftDisconnectedUnits(wrappedUnits - mu.m.owned_units, Value.wrap(0), t);
         }
 
         // update pool member's units

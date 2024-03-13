@@ -54,8 +54,8 @@ describe("PoolMember ending up with wrong `totalAmountReceivedUntilUpdatedAt`", 
             poolAddress.toHexString(),
             poolAdminAndDistributorAddress.toHexString(),
             echo,
-            BigInt.fromI32(100), // requested amount 
-            BigInt.fromI32(100), // actual amount
+            BigInt.fromI32(1000), // requested amount 
+            BigInt.fromI32(1000), // actual amount
             Bytes.fromHexString("0x")
         );
         firstDistributionEvent.block.timestamp = poolCreatedEvent.block.timestamp;
@@ -68,7 +68,7 @@ describe("PoolMember ending up with wrong `totalAmountReceivedUntilUpdatedAt`", 
             "Pool",
             poolAddress.toHexString(),
             "totalAmountDistributedUntilUpdatedAt",
-            "100"
+            "1000"
         );
         assert.fieldEquals(
             "Pool",
@@ -118,8 +118,8 @@ describe("PoolMember ending up with wrong `totalAmountReceivedUntilUpdatedAt`", 
             poolAddress.toHexString(),
             poolAdminAndDistributorAddress.toHexString(),
             echo,
-            BigInt.fromI32(100), // requested amount 
-            BigInt.fromI32(100), // actual amount
+            BigInt.fromI32(1000), // requested amount 
+            BigInt.fromI32(1000), // actual amount
             Bytes.fromHexString("0x")
         );
         secondDistributionEvent.block.timestamp = poolCreatedEvent.block.timestamp;
@@ -132,7 +132,7 @@ describe("PoolMember ending up with wrong `totalAmountReceivedUntilUpdatedAt`", 
             "Pool",
             poolAddress.toHexString(),
             "totalAmountDistributedUntilUpdatedAt",
-            "200"
+            "2000"
         );
         assert.fieldEquals(
             "Pool",
@@ -173,7 +173,7 @@ describe("PoolMember ending up with wrong `totalAmountReceivedUntilUpdatedAt`", 
             "PoolMember",
             bobId,
             "totalAmountReceivedUntilUpdatedAt",
-            "50"
+            "500"
         );
         assert.fieldEquals(
             "PoolMember",
@@ -200,7 +200,7 @@ describe("PoolMember ending up with wrong `totalAmountReceivedUntilUpdatedAt`", 
             "PoolMember",
             aliceId,
             "totalAmountReceivedUntilUpdatedAt",
-            "150"
+            "1500"
         );
         assert.fieldEquals(
             "PoolMember",

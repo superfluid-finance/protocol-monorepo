@@ -8,6 +8,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - toga and batchLiquidator for scroll-mainnet
 ### Changed
 - removed eth-goerli and Görli based networks: optimism-goerli, arbitrun-goerli, base-goerli, polygon-zkevm-testnet
+### Fixed
+- Removed subgraph hosted endpoint entries which don't exist / aren't deployed
 
 ## [v1.1.27]
 ### Added

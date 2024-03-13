@@ -570,6 +570,9 @@ export function getOrInitOrUpdatePoolMember(
     poolMember.updatedAtTimestamp = event.block.timestamp;
     poolMember.updatedAtBlockNumber = event.block.number;
     
+    poolMember.updatedAtTimestamp = event.block.timestamp;
+    poolMember.updatedAtBlockNumber = event.block.number;
+    
     return poolMember;
 }
 

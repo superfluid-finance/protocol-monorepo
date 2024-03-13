@@ -442,8 +442,6 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             `TestGovernance.${protocolReleaseVersion}`,
             governance.address
         );
-
-
     }
 
     // replace with new governance

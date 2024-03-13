@@ -216,8 +216,7 @@ export default
         "explorer": "https://sepolia.scrollscan.com/",
         "subgraphV1": {
             "cliName": "scroll-sepolia",
-            "name": "protocol-v1-scroll-sepolia",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-scroll-sepolia"
+            "name": "protocol-v1-scroll-sepolia"
         },
         "publicRPCs": ["https://sepolia-rpc.scroll.io"]
     },

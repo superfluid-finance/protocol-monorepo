@@ -305,27 +305,6 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
 
     // =========== BOOTSTRAPPING (initial deployment) ===========
 
-    // deploy new governance contract
-    let governanceInitializationRequired = false;
-    let governance;
-    if (!config.disableTestGovernance && !process.env.NO_NEW_GOVERNANCE) {
-        governance = await deployAndRegisterContractIf(
-            TestGovernance,
-            `TestGovernance.${protocolReleaseVersion}`,
-            async (contractAddress) =>
-                await codeChanged(web3, TestGovernance, contractAddress),
-            async () => {
-                governanceInitializationRequired = true;
-                const c = await web3tx(
-                    TestGovernance.new,
-                    "TestGovernance.new"
-                )();
-                output += `SUPERFLUID_GOVERNANCE=${c.address}\n`;
-                return c;
-            }
-        );
-    }
-
     // deploy superfluid loader
     await deployAndRegisterContractIf(
         SuperfluidLoader,
@@ -341,6 +320,23 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         }
     );
 
+    // deploy new TestGovernance contract
+    // (only on testnets, devnets and initial mainnet deployment)
+    let testGovernanceInitRequired = false;
+    let governance;
+    if (!config.disableTestGovernance && !process.env.NO_NEW_GOVERNANCE) {
+        const prevGovAddr = await resolver.get.call(`TestGovernance.${protocolReleaseVersion}`);
+        if (await codeChanged(web3, TestGovernance, prevGovAddr)) {
+            console.log(`TestGovernance needs new deployment.`);
+            const c = await web3tx(TestGovernance.new,"TestGovernance.new")();
+            governance = await TestGovernance.at(c.address);
+            testGovernanceInitRequired = true;
+            output += `SUPERFLUID_GOVERNANCE=${c.address}\n`;
+        }
+        // defer resolver update to after the initialization
+        // this avoids testnet bricking in case script execution is interrupted
+    }
+
     // deploy new superfluid host contract
     const SuperfluidLogic = useMocks ? SuperfluidMock : Superfluid;
     const superfluid = await deployAndRegisterContractIf(
@@ -348,7 +344,6 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         `Superfluid.${protocolReleaseVersion}`,
         async (contractAddress) => !(await hasCode(web3, contractAddress)),
         async () => {
-            governanceInitializationRequired = true;
             let superfluidAddress;
             const superfluidLogic = await web3tx(
                 SuperfluidLogic.new,
@@ -410,8 +405,8 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         console.log("Governance address", governance.address);
     }
 
-    // initialize the new governance
-    if (governanceInitializationRequired) {
+    // initialize the new TestGovernance
+    if (testGovernanceInitRequired) {
         const accounts = await web3.eth.getAccounts();
         const trustedForwarders = [];
         if (config.trustedForwarders) {
@@ -423,7 +418,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         if (config.gdaFwd) {
             trustedForwarders.push(config.gdaFwd);
         }
-        console.log(`initializing governance with config: ${JSON.stringify({
+        console.log(`initializing TestGovernance with config: ${JSON.stringify({
             liquidationPeriod: config.liquidationPeriod,
             patricianPeriod: config.patricityPeriod,
             trustedForwarders
@@ -440,6 +435,15 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             // trustedForwarders
             trustedForwarders
         );
+
+        // update the resolver
+        await setResolver(
+            sfObjForGovAndResolver,
+            `TestGovernance.${protocolReleaseVersion}`,
+            governance.address
+        );
+
+
     }
 
     // replace with new governance

@@ -577,9 +577,6 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
 
     let gdaIsLinked = false;
     const deployGDAv1 = async (superfluidPoolBeaconAddr) => {
-        // TODO: why do we want to allow this to fail? Do we really?
-        //try {
-            // deploy and link SuperfluidPoolDeployerLibrary
         if (!gdaIsLinked) {
             await deployExternalLibraryAndLink(
                 SuperfluidPoolDeployerLibrary,
@@ -613,16 +610,6 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 );
             }
             gdaIsLinked = true;
-        }
-        /*} catch (err) {
-            console.error(err);
-        }*/
-        if (superfluidPoolBeaconAddr === undefined) {
-            // update case, we cat get from previous deployment
-            const GDAv1 = await GeneralDistributionAgreementV1.at(
-                await superfluid.getAgreementClass.call(GDAv1_TYPE)
-            );
-            superfluidPoolBeaconAddr = await GDAv1.superfluidPoolBeacon.call();
         }
 
         const agreement = await web3tx(
@@ -827,11 +814,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 )
             ).getCodeAddress(),
             async () => (await deployCFAv1()).address,
-            [
-                // See SuperToken constructor parameter
-                superfluidConstructorParam,
-                ZERO_ADDRESS.toLowerCase().slice(2).padStart(64, "0"),
-            ]
+            [ superfluidConstructorParam ]
         );
         if (cfaNewLogicAddress !== ZERO_ADDRESS) {
             agreementsToUpdate.push(cfaNewLogicAddress);
@@ -846,27 +829,26 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 )
             ).getCodeAddress(),
             async () => (await deployIDAv1()).address,
-            [
-                // See SuperToken constructor parameter
-                superfluidConstructorParam,
-            ]
+            [ superfluidConstructorParam ]
         );
         if (idaNewLogicAddress !== ZERO_ADDRESS) {
             agreementsToUpdate.push(idaNewLogicAddress);
         }
         // deploy new GDA logic
+        const gdaAddr = await (await UUPSProxiable.at(
+            await superfluid.getAgreementClass.call(GDAv1_TYPE)
+        )).getCodeAddress();
+        const superfluidPoolBeaconAddr = await (
+            await GeneralDistributionAgreementV1.at(gdaAddr)
+        ).superfluidPoolBeacon.call();
         const gdaNewLogicAddress = await deployContractIfCodeChanged(
             web3,
             GeneralDistributionAgreementV1,
-            await (
-                await UUPSProxiable.at(
-                    await superfluid.getAgreementClass.call(GDAv1_TYPE)
-                )
-            ).getCodeAddress(),
-            async () => (await deployGDAv1()).address,
+            gdaAddr,
+            async () => (await deployGDAv1(superfluidPoolBeaconAddr)).address,
             [
-                // See SuperToken constructor parameter
                 superfluidConstructorParam,
+                ap(superfluidPoolBeaconAddr)
             ]
         );
         if (gdaNewLogicAddress !== ZERO_ADDRESS) {

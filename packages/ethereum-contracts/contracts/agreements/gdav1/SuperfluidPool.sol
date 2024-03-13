@@ -401,6 +401,11 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
 
         PDPoolMemberMU memory mu = PDPoolMemberMU(pdPoolIndex, pdPoolMember);
 
+        // update pool's disconnected units
+        if (!GDA.isMemberConnected(ISuperfluidPool(address(this)), memberAddr)) {
+            _shiftDisconnectedUnits(wrappedUnits - mu.m.owned_units, Value.wrap(0), t);
+        }
+
         // update pool member's units
         {
             BasicParticle memory p;

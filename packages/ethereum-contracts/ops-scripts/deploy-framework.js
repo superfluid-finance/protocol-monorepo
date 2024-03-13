@@ -332,6 +332,8 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             governance = await TestGovernance.at(c.address);
             testGovernanceInitRequired = true;
             output += `SUPERFLUID_GOVERNANCE=${c.address}\n`;
+        } else {
+            governance = await TestGovernance.at(prevGovAddr);
         }
         // defer resolver update to after the initialization
         // this avoids testnet bricking in case script execution is interrupted

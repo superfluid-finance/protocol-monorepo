@@ -9,7 +9,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Changed
 - removed eth-goerli and Görli based networks: optimism-goerli, arbitrun-goerli, base-goerli, polygon-zkevm-testnet
 ### Fixed
-- Removed subgraph hosted endpoint entries which don't exist / aren't deployed
+- Removed subgraph hosted endpoint entry for scroll-sepolia which doesn't exist
 
 ## [v1.1.27]
 ### Added

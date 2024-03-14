@@ -80,7 +80,7 @@ Open another terminal window and navigate to `packages/ethereum-contracts` and r
 yarn build
 ```
 
-Now go to to `packages/ethereum-contracts` and run the following command to deploy contracts:
+Now go to `packages/ethereum-contracts` and run the following command to deploy contracts:
 
 ```bash
 npx hardhat run dev-scripts/run-deploy-contracts-and-token.js

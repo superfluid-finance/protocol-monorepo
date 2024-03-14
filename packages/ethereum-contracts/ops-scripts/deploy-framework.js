@@ -305,27 +305,6 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
 
     // =========== BOOTSTRAPPING (initial deployment) ===========
 
-    // deploy new governance contract
-    let governanceInitializationRequired = false;
-    let governance;
-    if (!config.disableTestGovernance && !process.env.NO_NEW_GOVERNANCE) {
-        governance = await deployAndRegisterContractIf(
-            TestGovernance,
-            `TestGovernance.${protocolReleaseVersion}`,
-            async (contractAddress) =>
-                await codeChanged(web3, TestGovernance, contractAddress),
-            async () => {
-                governanceInitializationRequired = true;
-                const c = await web3tx(
-                    TestGovernance.new,
-                    "TestGovernance.new"
-                )();
-                output += `SUPERFLUID_GOVERNANCE=${c.address}\n`;
-                return c;
-            }
-        );
-    }
-
     // deploy superfluid loader
     await deployAndRegisterContractIf(
         SuperfluidLoader,
@@ -341,6 +320,25 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         }
     );
 
+    // deploy new TestGovernance contract
+    // (only on testnets, devnets and initial mainnet deployment)
+    let testGovernanceInitRequired = false;
+    let governance;
+    if (!config.disableTestGovernance && !process.env.NO_NEW_GOVERNANCE) {
+        const prevGovAddr = await resolver.get.call(`TestGovernance.${protocolReleaseVersion}`);
+        if (resetSuperfluidFramework || await codeChanged(web3, TestGovernance, prevGovAddr)) {
+            console.log(`TestGovernance needs new deployment.`);
+            const c = await web3tx(TestGovernance.new,"TestGovernance.new")();
+            governance = await TestGovernance.at(c.address);
+            testGovernanceInitRequired = true;
+            output += `SUPERFLUID_GOVERNANCE=${c.address}\n`;
+        } else {
+            governance = await TestGovernance.at(prevGovAddr);
+        }
+        // defer resolver update to after the initialization
+        // this avoids testnet bricking in case script execution is interrupted
+    }
+
     // deploy new superfluid host contract
     const SuperfluidLogic = useMocks ? SuperfluidMock : Superfluid;
     const superfluid = await deployAndRegisterContractIf(
@@ -348,7 +346,6 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         `Superfluid.${protocolReleaseVersion}`,
         async (contractAddress) => !(await hasCode(web3, contractAddress)),
         async () => {
-            governanceInitializationRequired = true;
             let superfluidAddress;
             const superfluidLogic = await web3tx(
                 SuperfluidLogic.new,
@@ -410,8 +407,8 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         console.log("Governance address", governance.address);
     }
 
-    // initialize the new governance
-    if (governanceInitializationRequired) {
+    // initialize the new TestGovernance
+    if (testGovernanceInitRequired) {
         const accounts = await web3.eth.getAccounts();
         const trustedForwarders = [];
         if (config.trustedForwarders) {
@@ -423,7 +420,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         if (config.gdaFwd) {
             trustedForwarders.push(config.gdaFwd);
         }
-        console.log(`initializing governance with config: ${JSON.stringify({
+        console.log(`initializing TestGovernance with config: ${JSON.stringify({
             liquidationPeriod: config.liquidationPeriod,
             patricianPeriod: config.patricityPeriod,
             trustedForwarders
@@ -439,6 +436,13 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             config.patricianPeriod,
             // trustedForwarders
             trustedForwarders
+        );
+
+        // update the resolver
+        await setResolver(
+            sfObjForGovAndResolver,
+            `TestGovernance.${protocolReleaseVersion}`,
+            governance.address
         );
     }
 
@@ -573,9 +577,6 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
 
     let gdaIsLinked = false;
     const deployGDAv1 = async (superfluidPoolBeaconAddr) => {
-        // TODO: why do we want to allow this to fail? Do we really?
-        //try {
-            // deploy and link SuperfluidPoolDeployerLibrary
         if (!gdaIsLinked) {
             await deployExternalLibraryAndLink(
                 SuperfluidPoolDeployerLibrary,
@@ -609,16 +610,6 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 );
             }
             gdaIsLinked = true;
-        }
-        /*} catch (err) {
-            console.error(err);
-        }*/
-        if (superfluidPoolBeaconAddr === undefined) {
-            // update case, we cat get from previous deployment
-            const GDAv1 = await GeneralDistributionAgreementV1.at(
-                await superfluid.getAgreementClass.call(GDAv1_TYPE)
-            );
-            superfluidPoolBeaconAddr = await GDAv1.superfluidPoolBeacon.call();
         }
 
         const agreement = await web3tx(
@@ -823,11 +814,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 )
             ).getCodeAddress(),
             async () => (await deployCFAv1()).address,
-            [
-                // See SuperToken constructor parameter
-                superfluidConstructorParam,
-                ZERO_ADDRESS.toLowerCase().slice(2).padStart(64, "0"),
-            ]
+            [ superfluidConstructorParam ]
         );
         if (cfaNewLogicAddress !== ZERO_ADDRESS) {
             agreementsToUpdate.push(cfaNewLogicAddress);
@@ -842,27 +829,26 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 )
             ).getCodeAddress(),
             async () => (await deployIDAv1()).address,
-            [
-                // See SuperToken constructor parameter
-                superfluidConstructorParam,
-            ]
+            [ superfluidConstructorParam ]
         );
         if (idaNewLogicAddress !== ZERO_ADDRESS) {
             agreementsToUpdate.push(idaNewLogicAddress);
         }
         // deploy new GDA logic
+        const gdaAddr = await (await UUPSProxiable.at(
+            await superfluid.getAgreementClass.call(GDAv1_TYPE)
+        )).getCodeAddress();
+        const superfluidPoolBeaconAddr = await (
+            await GeneralDistributionAgreementV1.at(gdaAddr)
+        ).superfluidPoolBeacon.call();
         const gdaNewLogicAddress = await deployContractIfCodeChanged(
             web3,
             GeneralDistributionAgreementV1,
-            await (
-                await UUPSProxiable.at(
-                    await superfluid.getAgreementClass.call(GDAv1_TYPE)
-                )
-            ).getCodeAddress(),
-            async () => (await deployGDAv1()).address,
+            gdaAddr,
+            async () => (await deployGDAv1(superfluidPoolBeaconAddr)).address,
             [
-                // See SuperToken constructor parameter
                 superfluidConstructorParam,
+                ap(superfluidPoolBeaconAddr)
             ]
         );
         if (gdaNewLogicAddress !== ZERO_ADDRESS) {

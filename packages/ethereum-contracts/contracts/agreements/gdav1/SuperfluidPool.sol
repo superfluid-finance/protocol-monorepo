@@ -26,6 +26,36 @@ import { BeaconProxiable } from "../../upgradability/BeaconProxiable.sol";
 import { IPoolMemberNFT } from "../../interfaces/agreements/gdav1/IPoolMemberNFT.sol";
 import { SafeGasLibrary } from "../../libs/SafeGasLibrary.sol";
 
+using SafeCast for uint256;
+using SafeCast for int256;
+
+function toSemanticMoneyUnit(uint128 units) pure returns (Unit) {
+    // @note safe upcasting from uint128 to uint256
+    // and use of safecast library for downcasting from uint256 to int128
+    return Unit.wrap(uint256(units).toInt256().toInt128());
+}
+
+function poolIndexDataToWrappedParticle(ISuperfluidPool.PoolIndexData memory data)
+    pure
+    returns (BasicParticle memory wrappedParticle)
+{
+    wrappedParticle = BasicParticle({
+        _settled_at: Time.wrap(data.wrappedSettledAt),
+        _flow_rate: FlowRate.wrap(int128(data.wrappedFlowRate)), // upcast from int96 is safe
+        _settled_value: Value.wrap(data.wrappedSettledValue)
+    });
+}
+
+function poolIndexDataToPDPoolIndex(ISuperfluidPool.PoolIndexData memory data)
+    pure
+    returns (PDPoolIndex memory pdPoolIndex)
+{
+    pdPoolIndex = PDPoolIndex({
+        total_units: toSemanticMoneyUnit(data.totalUnits),
+        _wrapped_particle: poolIndexDataToWrappedParticle(data)
+    });
+}
+
 /**
  * @title SuperfluidPool
  * @author Superfluid
@@ -34,8 +64,6 @@ import { SafeGasLibrary } from "../../libs/SafeGasLibrary.sol";
  */
 contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
     using SemanticMoney for BasicParticle;
-    using SafeCast for uint256;
-    using SafeCast for int256;
 
     GeneralDistributionAgreementV1 public immutable GDA;
 
@@ -242,29 +270,6 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
         else return (_index.wrappedFlowRate * uint256(units).toInt256()).toInt96();
     }
 
-    function _poolIndexDataToWrappedParticle(PoolIndexData memory data)
-        internal
-        pure
-        returns (BasicParticle memory wrappedParticle)
-    {
-        wrappedParticle = BasicParticle({
-            _settled_at: Time.wrap(data.wrappedSettledAt),
-            _flow_rate: FlowRate.wrap(int128(data.wrappedFlowRate)), // upcast from int96 is safe
-            _settled_value: Value.wrap(data.wrappedSettledValue)
-        });
-    }
-
-    function poolIndexDataToPDPoolIndex(PoolIndexData memory data)
-        public
-        pure
-        returns (PDPoolIndex memory pdPoolIndex)
-    {
-        pdPoolIndex = PDPoolIndex({
-            total_units: _toSemanticMoneyUnit(data.totalUnits),
-            _wrapped_particle: _poolIndexDataToWrappedParticle(data)
-        });
-    }
-
     function _pdPoolIndexToPoolIndexData(PDPoolIndex memory pdPoolIndex)
         internal
         pure
@@ -284,7 +289,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
         returns (PDPoolMember memory pdPoolMember)
     {
         pdPoolMember = PDPoolMember({
-            owned_units: _toSemanticMoneyUnit(memberData.ownedUnits),
+            owned_units: toSemanticMoneyUnit(memberData.ownedUnits),
             _synced_particle: BasicParticle({
                 _settled_at: Time.wrap(memberData.syncedSettledAt),
                 _flow_rate: FlowRate.wrap(int128(memberData.syncedFlowRate)), // upcast from int96 is safe
@@ -292,12 +297,6 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
             }),
             _settled_value: Value.wrap(memberData.settledValue)
         });
-    }
-
-    function _toSemanticMoneyUnit(uint128 units) internal pure returns (Unit) {
-        // @note safe upcasting from uint128 to uint256
-        // and use of safecast library for downcasting from uint256 to int128
-        return Unit.wrap(uint256(units).toInt256().toInt128());
     }
 
     function _pdPoolMemberToMemberData(PDPoolMember memory pdPoolMember, int256 claimedValue)
@@ -411,7 +410,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
 
         uint32 time = uint32(ISuperfluid(superToken.getHost()).getNow());
         Time t = Time.wrap(time);
-        Unit wrappedUnits = _toSemanticMoneyUnit(newUnits);
+        Unit wrappedUnits = toSemanticMoneyUnit(newUnits);
 
         PDPoolIndex memory pdPoolIndex = poolIndexDataToPDPoolIndex(_index);
         MemberData memory memberData = _membersData[memberAddr];

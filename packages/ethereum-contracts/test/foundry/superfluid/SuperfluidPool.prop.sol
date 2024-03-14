@@ -4,7 +4,11 @@ pragma solidity 0.8.23;
 import "forge-std/Test.sol";
 import "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
 import { GeneralDistributionAgreementV1 } from "../../../contracts/agreements/gdav1/GeneralDistributionAgreementV1.sol";
-import { SuperfluidPool } from "../../../contracts/agreements/gdav1/SuperfluidPool.sol";
+import {
+    poolIndexDataToWrappedParticle,
+    poolIndexDataToPDPoolIndex,
+    SuperfluidPool
+} from "../../../contracts/agreements/gdav1/SuperfluidPool.sol";
 
 /// @title SuperfluidPool Property Tests
 /// @author Superfluid
@@ -51,7 +55,7 @@ contract SuperfluidPoolProperties is SuperfluidPool, Test {
     }
 
     function testPoolIndexDataToWrappedParticle(PoolIndexData memory data) public {
-        BasicParticle memory wrappedParticle = _poolIndexDataToWrappedParticle(data);
+        BasicParticle memory wrappedParticle = poolIndexDataToWrappedParticle(data);
         _helperAssertWrappedParticle(data, wrappedParticle);
     }
 

@@ -14,7 +14,7 @@ import {
     FlowRate
 } from "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
 import { TokenMonad } from "@superfluid-finance/solidity-semantic-money/src/TokenMonad.sol";
-import { SuperfluidPool } from "./SuperfluidPool.sol";
+import { poolIndexDataToPDPoolIndex, SuperfluidPool } from "./SuperfluidPool.sol";
 import { SuperfluidPoolDeployerLibrary } from "./SuperfluidPoolDeployerLibrary.sol";
 import {
     IGeneralDistributionAgreementV1,
@@ -926,8 +926,8 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         bytes memory, // eff,
         address pool
     ) internal view override returns (PDPoolIndex memory) {
-        SuperfluidPool.PoolIndexData memory data = SuperfluidPool(pool).getIndex();
-        return SuperfluidPool(pool).poolIndexDataToPDPoolIndex(data);
+        ISuperfluidPool.PoolIndexData memory data = SuperfluidPool(pool).getIndex();
+        return poolIndexDataToPDPoolIndex(data);
     }
 
     function _setPDPIndex(bytes memory eff, address pool, PDPoolIndex memory p)

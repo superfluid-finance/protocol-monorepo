@@ -8,6 +8,22 @@ import { ISuperfluidToken } from "../../superfluid/ISuperfluidToken.sol";
  * @dev The interface for any super token pool regardless of the distribution schemes.
  */
 interface ISuperfluidPool is IERC20 {
+    // Structs
+    struct PoolIndexData {
+        uint128 totalUnits;
+        uint32 wrappedSettledAt;
+        int96 wrappedFlowRate;
+        int256 wrappedSettledValue;
+    }
+
+    struct MemberData {
+        uint128 ownedUnits;
+        uint32 syncedSettledAt;
+        int96 syncedFlowRate;
+        int256 syncedSettledValue;
+        int256 settledValue;
+        int256 claimedValue;
+    }
 
     // Custom Errors
 
@@ -49,9 +65,9 @@ interface ISuperfluidPool is IERC20 {
     /// @notice The total number of units of disconnected members
     function getTotalDisconnectedUnits() external view returns (uint128);
 
-    /// @notice The total number of units for `memberAddress`
-    /// @param memberAddress The address of the member
-    function getUnits(address memberAddress) external view returns (uint128);
+    /// @notice The total number of units for `memberAddr`
+    /// @param memberAddr The address of the member
+    function getUnits(address memberAddr) external view returns (uint128);
 
     /// @notice The total flow rate of the pool
     function getTotalFlowRate() external view returns (int96);
@@ -66,9 +82,23 @@ interface ISuperfluidPool is IERC20 {
     /// @param time The time to query
     function getDisconnectedBalance(uint32 time) external view returns (int256 balance);
 
+    /// @notice Gets the index data of the pool
+    /// @return poolIndex The index data
+    function getIndex() external view returns (PoolIndexData memory poolIndex);
+
+    /// @notice Gets the member data for `memberAddr` for the pool
+    /// @param memberAddr The address of the member
+    /// @return memberData The member data
+    function getMemberData(address memberAddr) external view returns (MemberData memory memberData);
+
+    /// @notice The total amount received by `memberAddr` in the pool
+    /// @param memberAddr The address of the member
+    /// @return totalAmountReceived The total amount received by the member
+    function getTotalAmountReceivedByMember(address memberAddr) external view returns (uint256 totalAmountReceived);
+
     /// @notice The flow rate a member is receiving from the pool
-    /// @param memberAddress The address of the member
-    function getMemberFlowRate(address memberAddress) external view returns (int96);
+    /// @param memberAddr The address of the member
+    function getMemberFlowRate(address memberAddr) external view returns (int96);
 
     /// @notice The claimable balance for `memberAddr` at `time` in the pool
     /// @param memberAddr The address of the member

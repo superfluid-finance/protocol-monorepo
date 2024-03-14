@@ -326,7 +326,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     let governance;
     if (!config.disableTestGovernance && !process.env.NO_NEW_GOVERNANCE) {
         const prevGovAddr = await resolver.get.call(`TestGovernance.${protocolReleaseVersion}`);
-        if (await codeChanged(web3, TestGovernance, prevGovAddr)) {
+        if (resetSuperfluidFramework || await codeChanged(web3, TestGovernance, prevGovAddr)) {
             console.log(`TestGovernance needs new deployment.`);
             const c = await web3tx(TestGovernance.new,"TestGovernance.new")();
             governance = await TestGovernance.at(c.address);

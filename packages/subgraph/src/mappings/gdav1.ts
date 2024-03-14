@@ -101,8 +101,8 @@ export function handlePoolConnectionUpdated(
     // Update Pool Entity
     let pool = getOrInitPool(event, event.params.pool.toHex());
     // @note we modify pool and poolMember here in memory, but do not save
-    settlePDPoolMemberMU(pool, poolMember, event.block);
     pool = updatePoolTotalAmountFlowedAndDistributed(event, pool);
+    settlePDPoolMemberMU(pool, poolMember, event.block);
     if (poolMember.units.gt(BIG_INT_ZERO)) {
         if (memberConnectedStatusUpdated) {
             // disconnected -> connected case

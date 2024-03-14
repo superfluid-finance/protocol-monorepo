@@ -36,7 +36,6 @@ import {
     getPoolDistributorID,
     getActiveStreamsDelta,
     getClosedStreamsDelta,
-    MAX_UINT256,
 } from "./utils";
 import { SuperToken as SuperTokenTemplate } from "../generated/templates";
 import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
@@ -46,7 +45,6 @@ import {
     getResolverAddress,
 } from "./addresses";
 import { FlowUpdated } from "../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
-import { log } from "matchstick-as";
 
 /**************************************************************************
  * HOL initializer functions
@@ -524,9 +522,6 @@ export function updatePoolTotalAmountFlowedAndDistributed(
 ): Pool {
     const timeDelta = event.block.timestamp.minus(pool.updatedAtTimestamp);
     const amountFlowedSinceLastUpdate = pool.flowRate.times(timeDelta);
-
-    pool.updatedAtBlockNumber = event.block.number;
-    pool.updatedAtTimestamp = event.block.timestamp;
 
     pool.totalAmountFlowedDistributedUntilUpdatedAt =
         pool.totalAmountFlowedDistributedUntilUpdatedAt.plus(
@@ -1507,9 +1502,7 @@ export function monetaryUnitPoolMemberRTB(pool: Pool, poolMember: PoolMember, cu
         currentTimestamp,
         poolMember.updatedAtTimestamp
     );
-    log.debug("poolPerUnitRTB {}", [poolPerUnitRTB.toString()]);
-    log.debug("poolMemberPerUnitRTB {}", [poolMemberPerUnitRTB.toString()]);
-    log.debug("poolMember.units {}", [poolMember.units.toString()]);
+
     return poolMember.totalAmountReceivedUntilUpdatedAt.plus(
         poolPerUnitRTB.minus(poolMemberPerUnitRTB).times(poolMember.units)
     );
@@ -1558,7 +1551,6 @@ export function syncPoolMemberParticle(pool: Pool, poolMember: PoolMember): Pool
 }
 
 export function settlePDPoolMemberMU(pool: Pool, poolMember: PoolMember, block: ethereum.Block): void {
-    log.debug("pool.perUnitSettledValue {}", [pool.perUnitSettledValue.toString()]);
     pool = settlePoolParticle(pool, block);
     poolMember.totalAmountReceivedUntilUpdatedAt = monetaryUnitPoolMemberRTB(pool, poolMember, block.timestamp);
     poolMember = syncPoolMemberParticle(pool, poolMember);

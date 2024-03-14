@@ -28,8 +28,8 @@ export function handleDistributionClaimed(event: DistributionClaimed): void {
     poolMember.totalAmountClaimed = event.params.totalClaimed;
 
     // settle pool and pool member
-    settlePDPoolMemberMU(pool, poolMember, event.block);
     pool = updatePoolTotalAmountFlowedAndDistributed(event, pool);
+    settlePDPoolMemberMU(pool, poolMember, event.block);
     
     // Update PoolMember
     poolMember.totalAmountClaimed = event.params.totalClaimed;
@@ -58,8 +58,8 @@ export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
     const unitsDelta = event.params.newUnits.minus(previousUnits);
     const newTotalUnits = pool.totalUnits.plus(unitsDelta);
 
-    settlePDPoolMemberMU(pool, poolMember, event.block);
     pool = updatePoolTotalAmountFlowedAndDistributed(event, pool);
+    settlePDPoolMemberMU(pool, poolMember, event.block);
 
     // @note TODO update the pool.perUnitFlowRate
     // @note TODO update the poolMember.perUnitFlowRate

@@ -1,13 +1,18 @@
-import { assert, describe, test } from "matchstick-as";
+import { assert, beforeEach, clearStore, describe, test } from "matchstick-as";
 import { Address, BigInt, Bytes } from "@graphprotocol/graph-ts";
 import { alice as alice_, bob as bob_, delta, echo, maticXAddress, superfluidPool } from "../constants";
 import { getPoolMemberID } from "../../src/utils";
-import { handleFlowDistributionUpdated, handleInstantDistributionUpdated } from "../../src/mappings/gdav1";
+import { handleFlowDistributionUpdated, handleInstantDistributionUpdated, handlePoolCreated } from "../../src/mappings/gdav1";
 import { createFlowDistributionUpdatedEvent, createInstantDistributionUpdatedEvent, createMemberUnitsUpdatedEvent, createPoolAndReturnPoolCreatedEvent } from "../gdav1/gdav1.helper";
 import { mockedAppManifestAndRealtimeBalanceOf } from "../mockedFunctions";
 import { handleMemberUnitsUpdated } from "../../src/mappings/superfluidPool";
+import { Pool } from "../../generated/schema";
 
 describe("PoolMember ending up with wrong `totalAmountReceivedUntilUpdatedAt`", () => {
+    beforeEach(() => {
+        clearStore();
+    });
+
     /**
      * Problem description
         1. Create pool
@@ -204,7 +209,7 @@ describe("PoolMember ending up with wrong `totalAmountReceivedUntilUpdatedAt`", 
             "units",
             "100"
         );
-    })
+    });
     /**
      * Problem description
         1. Create pool
@@ -233,6 +238,14 @@ describe("PoolMember ending up with wrong `totalAmountReceivedUntilUpdatedAt`", 
         const poolCreatedEvent = createPoolAndReturnPoolCreatedEvent(poolAdminAndDistributorAddress.toHexString(), superTokenAddress, poolAddress.toHexString());
         assert.stringEquals(poolCreatedEvent.block.timestamp.toString(), BigInt.fromI32(1).toString());
 
+        handlePoolCreated(poolCreatedEvent);
+        
+        const pool = Pool.load(poolAddress.toHexString());
+
+        if (pool) {
+            pool.updatedAtTimestamp = poolCreatedEvent.block.timestamp;
+        }
+
         // ## Arrange PoolMember 1
         const aliceAddress = Address.fromString(alice_);
         const aliceId = getPoolMemberID(poolAddress, aliceAddress);
@@ -249,6 +262,10 @@ describe("PoolMember ending up with wrong `totalAmountReceivedUntilUpdatedAt`", 
         handleMemberUnitsUpdated(aliceCreatedEvent);
 
         // # First flow rate
+        if (pool) {
+            pool.updatedAtTimestamp = aliceCreatedEvent.block.timestamp;
+        }
+
         const firstFlowRateEvent = createFlowDistributionUpdatedEvent(
             superTokenAddress,
             poolAddress.toHexString(),
@@ -266,6 +283,11 @@ describe("PoolMember ending up with wrong `totalAmountReceivedUntilUpdatedAt`", 
             
         mockedAppManifestAndRealtimeBalanceOf(superTokenAddress, poolAdminAndDistributorAddress.toHexString(), firstFlowRateEvent.block.timestamp);
         handleFlowDistributionUpdated(firstFlowRateEvent);
+
+        // # First flow rate
+        if (pool) {
+            pool.updatedAtTimestamp = firstFlowRateEvent.block.timestamp;
+        }
 
         // TODO: This fails, how has this already flown???
         assert.fieldEquals(
@@ -316,6 +338,10 @@ describe("PoolMember ending up with wrong `totalAmountReceivedUntilUpdatedAt`", 
         mockedAppManifestAndRealtimeBalanceOf(superTokenAddress, bobAddress.toHexString(), createBobEvent.block.timestamp);
         handleMemberUnitsUpdated(createBobEvent);
         
+        if (pool) {
+            pool.updatedAtTimestamp = createBobEvent.block.timestamp;
+        }
+
         assert.fieldEquals(
             "Pool",
             poolAddress.toHexString(),
@@ -348,6 +374,10 @@ describe("PoolMember ending up with wrong `totalAmountReceivedUntilUpdatedAt`", 
         mockedAppManifestAndRealtimeBalanceOf(superTokenAddress, poolAdminAndDistributorAddress.toHexString(), secondFlowRateEvent.block.timestamp);
         handleFlowDistributionUpdated(secondFlowRateEvent);
 
+        if (pool) {
+            pool.updatedAtTimestamp = secondFlowRateEvent.block.timestamp;
+        }
+
         assert.fieldEquals(
             "Pool",
             poolAddress.toHexString(),
@@ -364,7 +394,7 @@ describe("PoolMember ending up with wrong `totalAmountReceivedUntilUpdatedAt`", 
             "PoolMember",
             bobId,
             "totalAmountReceivedUntilUpdatedAt",
-            "500" // Bob just joined, shouldn't have any received
+            "0" // it's 500 if we query on-chain, but 0 here because update member units hasn't been called again since
         );
         assert.fieldEquals(
             "PoolMember",
@@ -376,7 +406,7 @@ describe("PoolMember ending up with wrong `totalAmountReceivedUntilUpdatedAt`", 
             "PoolMember",
             aliceId,
             "totalAmountReceivedUntilUpdatedAt",
-            "1500"
+            "0" // it's 1500 if we query on-chain, but 0 here because update member units hasn't been called again since
         );
         // ---
 
@@ -393,8 +423,11 @@ describe("PoolMember ending up with wrong `totalAmountReceivedUntilUpdatedAt`", 
         updateBobEvent.block.timestamp = BigInt.fromI32(4); // 4 - 1 = 3 seconds of flow
 
         mockedAppManifestAndRealtimeBalanceOf(superTokenAddress, bobAddress.toHexString(), updateBobEvent.block.timestamp);
-        handleMemberUnitsUpdated(createBobEvent);
+        handleMemberUnitsUpdated(updateBobEvent);
 
+        if (pool) {
+            pool.updatedAtTimestamp = updateBobEvent.block.timestamp;
+        }
         assert.fieldEquals(
             "Pool",
             poolAddress.toHexString(),
@@ -428,6 +461,9 @@ describe("PoolMember ending up with wrong `totalAmountReceivedUntilUpdatedAt`", 
         mockedAppManifestAndRealtimeBalanceOf(superTokenAddress, aliceAddress.toHexString(), updateAliceEvent.block.timestamp);
         handleMemberUnitsUpdated(updateAliceEvent);
 
+        if (pool) {
+            pool.updatedAtTimestamp = updateAliceEvent.block.timestamp;
+        }
         assert.fieldEquals(
             "PoolMember",
             aliceId,

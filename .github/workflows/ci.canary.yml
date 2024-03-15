@@ -281,7 +281,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        network: [avalanche-fuji]
+        network: [optimism-sepolia]
 
     defaults:
       run:
@@ -307,5 +307,5 @@ jobs:
           tasks/etherscan-verify-framework.sh ${{ matrix.network }} addresses.vars
         env:
           RELEASE_VERSION: canary
-          AVALANCHE_FUJI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
-          AVALANCHE_FUJI_PROVIDER_URL: ${{ secrets.AVALANCHE_FUJI_PROVIDER_URL }}
+          OPTIMISM_SEPOLIA_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC }}
+          OPTIMISM_SEPOLIA_PROVIDER_URL: ${{ secrets.OPTIMISM_SEPOLIA_PROVIDER_URL }}

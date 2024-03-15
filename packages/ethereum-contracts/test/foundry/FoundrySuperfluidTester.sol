@@ -1619,11 +1619,11 @@ contract FoundrySuperfluidTester is Test {
 
         assertEq(pool_.getUnits(member_), newUnits_, "GDAv1.t: Members' units incorrectly set");
 
-        // Assert that pending balance is claimed if user is disconnected
+        // Assert that pending balance didn't change if user is disconnected
         if (!isConnected) {
             (int256 balanceAfter,,,) = poolSuperToken.realtimeBalanceOfNow(member_);
             assertEq(
-                balanceAfter, balanceBefore + claimableBalance, "_helperUpdateMemberUnits: Pending balance not claimed"
+                balanceAfter, balanceBefore, "_helperUpdateMemberUnits: Pending balance changed"
             );
         }
 

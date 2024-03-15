@@ -35,7 +35,7 @@ function toSemanticMoneyUnit(uint128 units) pure returns (Unit) {
     return Unit.wrap(uint256(units).toInt256().toInt128());
 }
 
-function poolIndexDataToWrappedParticle(ISuperfluidPool.PoolIndexData memory data)
+function poolIndexDataToWrappedParticle(SuperfluidPool.PoolIndexData memory data)
     pure
     returns (BasicParticle memory wrappedParticle)
 {
@@ -46,7 +46,7 @@ function poolIndexDataToWrappedParticle(ISuperfluidPool.PoolIndexData memory dat
     });
 }
 
-function poolIndexDataToPDPoolIndex(ISuperfluidPool.PoolIndexData memory data)
+function poolIndexDataToPDPoolIndex(SuperfluidPool.PoolIndexData memory data)
     pure
     returns (PDPoolIndex memory pdPoolIndex)
 {
@@ -64,6 +64,24 @@ function poolIndexDataToPDPoolIndex(ISuperfluidPool.PoolIndexData memory data)
  */
 contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
     using SemanticMoney for BasicParticle;
+
+    // Structs
+    struct PoolIndexData {
+        uint128 totalUnits;
+        uint32 wrappedSettledAt;
+        int96 wrappedFlowRate;
+        int256 wrappedSettledValue;
+    }
+
+    struct MemberData {
+        uint128 ownedUnits;
+        uint32 syncedSettledAt;
+        int96 syncedFlowRate;
+        int256 syncedSettledValue;
+        int256 settledValue;
+        int256 claimedValue;
+    }
+
 
     GeneralDistributionAgreementV1 public immutable GDA;
 
@@ -104,7 +122,8 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
         return keccak256("org.superfluid-finance.contracts.SuperfluidPool.implementation");
     }
 
-    function getIndex() external view returns (PoolIndexData memory) {
+    /// @dev This function is only meant to be called by the GDAv1 contract
+    function poolOperatorGetIndex() external view returns (PoolIndexData memory) {
         return _index;
     }
 
@@ -240,11 +259,6 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
         PDPoolIndex memory pdPoolIndex = poolIndexDataToPDPoolIndex(_index);
         PDPoolMember memory pdPoolMember = _memberDataToPDPoolMember(_disconnectedMembers);
         return Value.unwrap(PDPoolMemberMU(pdPoolIndex, pdPoolMember).rtb(Time.wrap(time)));
-    }
-
-    /// @inheritdoc ISuperfluidPool
-    function getMemberData(address memberAddr) external view override returns (MemberData memory memberData) {
-        return _membersData[memberAddr];
     }
 
     /// @inheritdoc ISuperfluidPool

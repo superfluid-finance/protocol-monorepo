@@ -926,7 +926,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         bytes memory, // eff,
         address pool
     ) internal view override returns (PDPoolIndex memory) {
-        ISuperfluidPool.PoolIndexData memory data = SuperfluidPool(pool).getIndex();
+        SuperfluidPool.PoolIndexData memory data = SuperfluidPool(pool).poolOperatorGetIndex();
         return poolIndexDataToPDPoolIndex(data);
     }
 

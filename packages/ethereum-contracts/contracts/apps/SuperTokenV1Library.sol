@@ -897,7 +897,7 @@ library SuperTokenV1Library {
     }
 
     /**
-     * @dev get the aggregated flow info of the account
+     * @dev get the aggregated flow info of the account (CFA + GDA)
      * @param token Super token address
      * @param account Account to query
      * @return lastUpdated Timestamp of the last change of the net flow
@@ -906,38 +906,32 @@ library SuperTokenV1Library {
      * @return owedDeposit The sum of all owed deposits for account's flows
      */
     function getNetFlowInfo(ISuperToken token, address account)
-        internal view
-        returns (uint256 lastUpdated, int96 flowRate, uint256 deposit, uint256 owedDeposit)
-    {
-        (, IConstantFlowAgreementV1 cfa) = _getHostAndCFA(token);
-        return cfa.getAccountFlowInfo(token, account);
-    }
-
-    /**
-     * @dev get the aggregated flow info of the account (CFA + GDA)
-     * @param token Super token address
-     * @param account Account to query
-     * @return cfaLastUpdated Timestamp of the last change of the CFA net flow
-     * @return gdaLastUpdated Timestamp of the last change of the GDA net flow
-     * @return flowRate The net flow rate of token for account
-     * @return deposit The sum of all deposits for account's flows
-     * @return owedDeposit The sum of all owed deposits for account's flows
-     */
-    function getAccountFlowInfo(ISuperToken token, address account)
         internal
         view
-        returns (uint256 cfaLastUpdated, uint256 gdaLastUpdated, int96 flowRate, uint256 deposit, uint256 owedDeposit)
+        returns (uint256 lastUpdated, int96 flowRate, uint256 deposit, uint256 owedDeposit)
     {
         (, IConstantFlowAgreementV1 cfa) = _getHostAndCFA(token);
         (, IGeneralDistributionAgreementV1 gda) = _getHostAndGDA(token);
 
-        (uint256 lastUpdatedCFA, int96 cfaNetFlowRate, uint256 cfaDeposit, uint256 cfaOwedDeposit) =
-            cfa.getAccountFlowInfo(token, account);
-        (uint256 lastUpdatedGDA, int96 gdaNetFlowRate, uint256 gdaDeposit) = gda.getAccountFlowInfo(token, account);
-        int96 accountNetFlowRate = cfaNetFlowRate + gdaNetFlowRate;
-        uint256 accountDeposit = cfaDeposit + gdaDeposit;
+        {
+            (uint256 lastUpdatedCFA, int96 cfaNetFlowRate, uint256 cfaDeposit, uint256 cfaOwedDeposit) =
+                cfa.getAccountFlowInfo(token, account);
 
-        return (lastUpdatedCFA, lastUpdatedGDA, accountNetFlowRate, accountDeposit, cfaOwedDeposit);
+            lastUpdated = lastUpdatedCFA;
+            flowRate += cfaNetFlowRate;
+            deposit += cfaDeposit;
+            owedDeposit += cfaOwedDeposit;
+        }
+        
+        {
+            (uint256 lastUpdatedGDA, int96 gdaNetFlowRate, uint256 gdaDeposit) = gda.getAccountFlowInfo(token, account);
+
+            if (lastUpdatedGDA > lastUpdated) {
+                lastUpdated = lastUpdatedGDA;
+            }
+            flowRate += gdaNetFlowRate;
+            deposit += gdaDeposit;
+        }
     }
 
     /**
@@ -949,7 +943,7 @@ library SuperTokenV1Library {
      * @return deposit The sum of all deposits for account's flows
      * @return owedDeposit The sum of all owed deposits for account's flows
      */
-    function getCFAAccountFlowInfo(ISuperToken token, address account)
+    function getCFANetFlowInfo(ISuperToken token, address account)
         internal
         view
         returns (uint256 lastUpdated, int96 flowRate, uint256 deposit, uint256 owedDeposit)
@@ -967,13 +961,42 @@ library SuperTokenV1Library {
      * @return deposit The sum of all deposits for account's flows
      * @return owedDeposit The sum of all owed deposits for account's flows
      */
-    function getGDAAccountFlowInfo(ISuperToken token, address account)
+    function getGDANetFlowInfo(ISuperToken token, address account)
         internal
         view
         returns (uint256 lastUpdated, int96 flowRate, uint256 deposit, uint256 owedDeposit)
     {
         (, IGeneralDistributionAgreementV1 gda) = _getHostAndGDA(token);
         (lastUpdated, flowRate, deposit) = gda.getAccountFlowInfo(token, account);
+    }
+
+    /**
+     * @dev get the adjustment flow rate for a pool
+     * @param token Super token address
+     * @param pool The pool to query
+     * @return poolAdjustmentFlowRate The adjustment flow rate of the pool
+     */
+    function getPoolAdjustmentFlowRate(ISuperToken token, ISuperfluidPool pool)
+        internal
+        view
+        returns (int96 poolAdjustmentFlowRate)
+    {
+        (, IGeneralDistributionAgreementV1 gda) = _getHostAndGDA(token);
+        return gda.getPoolAdjustmentFlowRate(address(pool));
+    }
+
+    /**
+     * @dev Get the total amount of tokens received by a member via instant and flowing distributions
+     * @param pool The pool to query
+     * @param memberAddr The member to query
+     * @return totalAmountReceived The total amount received by the member
+     */
+    function getTotalAmountReceivedByMember(ISuperfluidPool pool, address memberAddr)
+        internal
+        view
+        returns (uint256 totalAmountReceived)
+    {
+        return pool.getTotalAmountReceivedByMember(memberAddr);
     }
 
     /**

@@ -36,7 +36,6 @@ import {
     getPoolDistributorID,
     getActiveStreamsDelta,
     getClosedStreamsDelta,
-    MAX_UINT256,
 } from "./utils";
 import { SuperToken as SuperTokenTemplate } from "../generated/templates";
 import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
@@ -499,6 +498,11 @@ export function getOrInitPool(event: ethereum.Event, poolId: string): Pool {
         pool.totalAmountInstantlyDistributedUntilUpdatedAt = BIG_INT_ZERO;
         pool.totalAmountFlowedDistributedUntilUpdatedAt = BIG_INT_ZERO;
         pool.totalAmountDistributedUntilUpdatedAt = BIG_INT_ZERO;
+        pool.totalFlowAdjustmentAmountDistributedUntilUpdatedAt = BIG_INT_ZERO;
+
+        pool.perUnitSettledValue = BIG_INT_ZERO;
+        pool.perUnitFlowRate = BIG_INT_ZERO;
+
         pool.totalMembers = 0;
         pool.totalConnectedMembers = 0;
         pool.totalDisconnectedMembers = 0;
@@ -518,9 +522,6 @@ export function updatePoolTotalAmountFlowedAndDistributed(
 ): Pool {
     const timeDelta = event.block.timestamp.minus(pool.updatedAtTimestamp);
     const amountFlowedSinceLastUpdate = pool.flowRate.times(timeDelta);
-
-    pool.updatedAtBlockNumber = event.block.number;
-    pool.updatedAtTimestamp = event.block.timestamp;
 
     pool.totalAmountFlowedDistributedUntilUpdatedAt =
         pool.totalAmountFlowedDistributedUntilUpdatedAt.plus(
@@ -554,10 +555,16 @@ export function getOrInitOrUpdatePoolMember(
         poolMember.totalAmountClaimed = BIG_INT_ZERO;
         poolMember.poolTotalAmountDistributedUntilUpdatedAt = BIG_INT_ZERO;
         poolMember.totalAmountReceivedUntilUpdatedAt = BIG_INT_ZERO;
-        
+
+        poolMember.syncedPerUnitSettledValue = BIG_INT_ZERO;
+        poolMember.syncedPerUnitFlowRate = BIG_INT_ZERO;
+
         poolMember.account = poolMemberAddress.toHex();
         poolMember.pool = poolAddress.toHex();
     }
+    poolMember.updatedAtTimestamp = event.block.timestamp;
+    poolMember.updatedAtBlockNumber = event.block.number;
+    
     poolMember.updatedAtTimestamp = event.block.timestamp;
     poolMember.updatedAtBlockNumber = event.block.number;
     
@@ -1471,33 +1478,80 @@ export function updateAggregateEntitiesTransferData(
     tokenStatistic.save();
 }
 
-/**
- * Updates `totalAmountReceivedUntilUpdatedAt` and `poolTotalAmountDistributedUntilUpdatedAt` fields
- * Requires an explicit save on the PoolMember entity.
- * Requires `pool.totalAmountDistributedUntilUpdatedAt` is updated *BEFORE* this function is called.
- * Requires that pool.totalUnits and poolMember.units are updated *AFTER* this function is called.
- * @param pool the pool entity
- * @param poolMember the pool member entity
- * @returns the updated pool member entity to be saved
- */
-export function updatePoolMemberTotalAmountUntilUpdatedAtFields(pool: Pool, poolMember: PoolMember): PoolMember {
-    let amountReceivedDelta = BIG_INT_ZERO;
-    // if the pool member has any units, we calculate the delta
-    // otherwise the delta is going to be 0
-    if (!poolMember.units.equals(BIG_INT_ZERO)) {
-        const distributedAmountDelta = pool.totalAmountDistributedUntilUpdatedAt
-            .minus(poolMember.poolTotalAmountDistributedUntilUpdatedAt);
 
-        const isSafeToMultiplyWithoutOverflow = MAX_UINT256.div(poolMember.units).gt(distributedAmountDelta);
-        if (isSafeToMultiplyWithoutOverflow) {
-            amountReceivedDelta = distributedAmountDelta.times(poolMember.units).div(pool.totalUnits);
-        } else {
-            amountReceivedDelta = distributedAmountDelta.div(pool.totalUnits).times(poolMember.units);
-        }
-    }
-    poolMember.totalAmountReceivedUntilUpdatedAt =
-        poolMember.totalAmountReceivedUntilUpdatedAt.plus(amountReceivedDelta);
-    poolMember.poolTotalAmountDistributedUntilUpdatedAt = pool.totalAmountDistributedUntilUpdatedAt;
+export function particleRTB(
+    perUnitSettledValue: BigInt,
+    perUnitFlowRate: BigInt,
+    currentTimestamp: BigInt,
+    lastUpdatedTimestamp: BigInt
+): BigInt {
+    const amountFlowedPerUnit = perUnitFlowRate.times(currentTimestamp.minus(lastUpdatedTimestamp));
+    return perUnitSettledValue.plus(amountFlowedPerUnit);
+}
+
+export function monetaryUnitPoolMemberRTB(pool: Pool, poolMember: PoolMember, currentTimestamp: BigInt): BigInt {
+    const poolPerUnitRTB = particleRTB(
+        pool.perUnitSettledValue,
+        pool.perUnitFlowRate,
+        currentTimestamp,
+        pool.updatedAtTimestamp
+    );
+    const poolMemberPerUnitRTB = particleRTB(
+        poolMember.syncedPerUnitSettledValue,
+        poolMember.syncedPerUnitFlowRate,
+        currentTimestamp,
+        poolMember.updatedAtTimestamp
+    );
+
+    return poolMember.totalAmountReceivedUntilUpdatedAt.plus(
+        poolPerUnitRTB.minus(poolMemberPerUnitRTB).times(poolMember.units)
+    );
+}
+
+/**
+ * Updates the pool.perUnitSettledValue to the up to date value based on the current block,
+ * and updates the updatedAtTimestamp and updatedAtBlockNumber.
+ * @param pool pool entity
+ * @param block current block
+ * @returns updated pool entity
+ */
+export function settlePoolParticle(pool: Pool, block: ethereum.Block): Pool {
+    pool.perUnitSettledValue = particleRTB(
+        pool.perUnitSettledValue,
+        pool.perUnitFlowRate,
+        block.timestamp,
+        pool.updatedAtTimestamp
+    );
+    pool.updatedAtTimestamp = block.timestamp;
+    pool.updatedAtBlockNumber = block.number;
+
+    return pool;
+}
+
+export function settlePoolMemberParticle(poolMember: PoolMember, block: ethereum.Block): PoolMember {
+    poolMember.syncedPerUnitSettledValue = particleRTB(
+        poolMember.syncedPerUnitSettledValue,
+        poolMember.syncedPerUnitFlowRate,
+        block.timestamp,
+        poolMember.updatedAtTimestamp
+    );
+    poolMember.updatedAtTimestamp = block.timestamp;
+    poolMember.updatedAtBlockNumber = block.number;
 
     return poolMember;
+}
+
+export function syncPoolMemberParticle(pool: Pool, poolMember: PoolMember): PoolMember {
+    poolMember.syncedPerUnitSettledValue = pool.perUnitSettledValue;
+    poolMember.syncedPerUnitFlowRate = pool.perUnitFlowRate;
+    poolMember.updatedAtTimestamp = pool.updatedAtTimestamp;
+    poolMember.updatedAtBlockNumber = pool.updatedAtBlockNumber;
+
+    return poolMember;
+}
+
+export function settlePDPoolMemberMU(pool: Pool, poolMember: PoolMember, block: ethereum.Block): void {
+    pool = settlePoolParticle(pool, block);
+    poolMember.totalAmountReceivedUntilUpdatedAt = monetaryUnitPoolMemberRTB(pool, poolMember, block.timestamp);
+    poolMember = syncPoolMemberParticle(pool, poolMember);
 }

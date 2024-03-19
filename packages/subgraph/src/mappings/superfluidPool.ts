@@ -9,9 +9,9 @@ import {
     _createTokenStatisticLogEntity,
     getOrInitPool,
     getOrInitOrUpdatePoolMember,
+    settlePDPoolMemberMU,
     updateATSStreamedAndBalanceUntilUpdatedAt,
     updateAggregateDistributionAgreementData,
-    updatePoolMemberTotalAmountUntilUpdatedAtFields,
     updatePoolTotalAmountFlowedAndDistributed,
     updateTokenStatsStreamedUntilUpdatedAt,
 } from "../mappingHelpers";
@@ -24,14 +24,17 @@ export function handleDistributionClaimed(event: DistributionClaimed): void {
 
     // Update Pool
     let pool = getOrInitPool(event, event.address.toHex());
-    pool = updatePoolTotalAmountFlowedAndDistributed(event, pool);
-    pool.save();
-
-    // Update PoolMember
     let poolMember = getOrInitOrUpdatePoolMember(event, event.address, event.params.member);
     poolMember.totalAmountClaimed = event.params.totalClaimed;
 
-    poolMember = updatePoolMemberTotalAmountUntilUpdatedAtFields(pool, poolMember);
+    // settle pool and pool member
+    pool = updatePoolTotalAmountFlowedAndDistributed(event, pool);
+    settlePDPoolMemberMU(pool, poolMember, event.block);
+    
+    // Update PoolMember
+    poolMember.totalAmountClaimed = event.params.totalClaimed;
+    
+    pool.save();
     poolMember.save();
 
     // Update Token Statistics
@@ -51,11 +54,30 @@ export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
     let pool = getOrInitPool(event, event.address.toHex());
     let poolMember = getOrInitOrUpdatePoolMember(event, event.address, event.params.member);
 
-    pool = updatePoolTotalAmountFlowedAndDistributed(event, pool);
-    poolMember = updatePoolMemberTotalAmountUntilUpdatedAtFields(pool, poolMember);
-    
     const previousUnits = poolMember.units;
     const unitsDelta = event.params.newUnits.minus(previousUnits);
+    const newTotalUnits = pool.totalUnits.plus(unitsDelta);
+
+    pool = updatePoolTotalAmountFlowedAndDistributed(event, pool);
+    settlePDPoolMemberMU(pool, poolMember, event.block);
+
+    // @note TODO update the pool.perUnitFlowRate
+    // @note TODO update the poolMember.perUnitFlowRate
+    const existingPoolFlowRate = pool.perUnitFlowRate.times(pool.totalUnits);
+    let newPerUnitFlowRate: BigInt;
+    let remainderRate: BigInt;
+
+    if (!newTotalUnits.equals(BIG_INT_ZERO)) {
+        newPerUnitFlowRate = existingPoolFlowRate.div(newTotalUnits);
+        remainderRate = existingPoolFlowRate.minus(newPerUnitFlowRate.times(newTotalUnits));
+    } else {
+        remainderRate = existingPoolFlowRate;
+        newPerUnitFlowRate = BIG_INT_ZERO;
+    }
+    pool.perUnitFlowRate = newPerUnitFlowRate;
+    pool.totalUnits = newTotalUnits;
+
+    poolMember.syncedPerUnitFlowRate = poolMember.syncedPerUnitFlowRate.plus(remainderRate);
     poolMember.units = event.params.newUnits;
 
     if (poolMember.isConnected) {
@@ -63,7 +85,6 @@ export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
     } else {
         pool.totalDisconnectedUnits = pool.totalDisconnectedUnits.plus(unitsDelta);
     }
-    pool.totalUnits = pool.totalUnits.plus(unitsDelta);
 
     // 0 units to > 0 units
     const didPoolMemberBecomeActive =  previousUnits.equals(BIG_INT_ZERO) && event.params.newUnits.gt(BIG_INT_ZERO)

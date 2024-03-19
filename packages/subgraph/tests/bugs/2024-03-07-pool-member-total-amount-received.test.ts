@@ -1,127 +1,87 @@
-import { assert, describe, test } from "matchstick-as";
-import { Pool, PoolDistributor, PoolMember } from "../../generated/schema"
+import { assert, beforeEach, clearStore, describe, test } from "matchstick-as";
 import { Address, BigInt, Bytes } from "@graphprotocol/graph-ts";
-import { FAKE_INITIAL_BALANCE, alice as alice_, bob as bob_, charlie, delta, echo, maticXAddress, superfluidPool } from "../constants";
-import { BIG_INT_ZERO, getPoolMemberID } from "../../src/utils";
-import { handleInstantDistributionUpdated } from "../../src/mappings/gdav1";
-import { createInstantDistributionUpdatedEvent, createMemberUnitsUpdatedEvent } from "../gdav1/gdav1.helper";
-import { mockedGetAppManifest, mockedRealtimeBalanceOf } from "../mockedFunctions";
+import { alice as alice_, bob as bob_, delta, echo, maticXAddress, superfluidPool } from "../constants";
+import { getPoolMemberID } from "../../src/utils";
+import { handleFlowDistributionUpdated, handleInstantDistributionUpdated, handlePoolCreated } from "../../src/mappings/gdav1";
+import { createFlowDistributionUpdatedEvent, createInstantDistributionUpdatedEvent, createMemberUnitsUpdatedEvent, createPoolAndReturnPoolCreatedEvent } from "../gdav1/gdav1.helper";
+import { mockedAppManifestAndRealtimeBalanceOf } from "../mockedFunctions";
 import { handleMemberUnitsUpdated } from "../../src/mappings/superfluidPool";
+import { Pool } from "../../generated/schema";
 
-/**
- * Problem description
-    1. Create pool
-    2. Add member A and update A units to 100
-    3. Distribute 100 tokens
-    4. Add member B and update B units to 100
-    4. Distribute 100 tokens
-
-    Expected result:
-    member A 150 tokens
-    member B 50 tokens
-
-    Actual result:
-    member A 100 tokens
-    member B 50 tokens
- */
 describe("PoolMember ending up with wrong `totalAmountReceivedUntilUpdatedAt`", () => {
-    test("create elaborate scenario with 2 distributions and 2 pool members", () => {
-        return; // ignore test for CI (as the test is failing for now)
+    beforeEach(() => {
+        clearStore();
+    });
 
+    /**
+     * Problem description
+        1. Create pool
+        2. Add member A and update A units to 100
+        3. Distribute 1000 tokens
+        4. Add member B and update B units to 100
+        5. Distribute 1000 tokens
+
+        Expected result:
+        member A 1500 tokens
+        member B 500 tokens
+    */
+    test("create elaborate scenario with 2 instant distributions and 2 pool members", () => {
         const superTokenAddress = maticXAddress;
-        
+        const poolAdminAndDistributorAddress = Address.fromString(delta);
+        const poolAddress = Address.fromString(superfluidPool);
+
         // # Arrange State 1
         // ## Arrange Pool
-        const poolAddress = Address.fromString(superfluidPool);
-        const poolAdminAndDistributorAddress = Address.fromString(delta);
-        let pool = new Pool(poolAddress.toHexString());
-        pool.createdAtTimestamp = BigInt.fromI32(1);
-        pool.createdAtBlockNumber = BigInt.fromI32(1);
-        pool.updatedAtTimestamp = BigInt.fromI32(1);
-        pool.updatedAtBlockNumber = BigInt.fromI32(1);
+        const poolCreatedEvent = createPoolAndReturnPoolCreatedEvent(poolAdminAndDistributorAddress.toHexString(), superTokenAddress, poolAddress.toHexString());
         
-        pool.totalMembers = 1;
-        pool.totalConnectedMembers = 1;
-        pool.totalDisconnectedMembers = 0;
-        pool.adjustmentFlowRate = BigInt.fromI32(0);
-        pool.flowRate = BigInt.fromI32(0);
-        pool.admin = poolAdminAndDistributorAddress.toHexString();
-        pool.totalBuffer = BigInt.fromI32(0);
-        pool.token = superTokenAddress;
-        pool.totalAmountDistributedUntilUpdatedAt = BigInt.fromI32(0);
-        pool.totalAmountFlowedDistributedUntilUpdatedAt = BigInt.fromI32(0);
-        pool.totalAmountInstantlyDistributedUntilUpdatedAt = BigInt.fromI32(0);
-        pool.totalConnectedUnits = BigInt.fromI32(100);
-        pool.totalDisconnectedUnits = BigInt.fromI32(0);
-        pool.totalUnits = BigInt.fromI32(100);
-        pool.save();
-        // ---
-
         // ## Arrange PoolMember 1
         const aliceAddress = Address.fromString(alice_);
         const aliceId = getPoolMemberID(poolAddress, aliceAddress);
-        const alice = new PoolMember(aliceId)
-        alice.createdAtTimestamp = BigInt.fromI32(1);
-        alice.createdAtBlockNumber = BigInt.fromI32(1);
-        alice.updatedAtTimestamp = BigInt.fromI32(1);
-        alice.updatedAtBlockNumber = BigInt.fromI32(1);
+        const aliceCreatedEvent = createMemberUnitsUpdatedEvent(
+            superTokenAddress,
+            aliceAddress.toHexString(),
+            BigInt.fromI32(0), // old units
+            BigInt.fromI32(100) // new units
+        );
+        aliceCreatedEvent.address = poolAddress;
+        aliceCreatedEvent.block.timestamp = poolCreatedEvent.block.timestamp;
 
-        alice.account = aliceAddress.toHexString();
-        alice.units = BigInt.fromI32(100);
-        alice.totalAmountReceivedUntilUpdatedAt = BigInt.fromI32(0);
-        alice.poolTotalAmountDistributedUntilUpdatedAt = BigInt.fromI32(0);
-        alice.isConnected = true;
-        alice.totalAmountClaimed = BigInt.fromI32(0);
-        alice.pool = poolAddress.toHexString();
-        alice.save();
-        // # ---
+        mockedAppManifestAndRealtimeBalanceOf(superTokenAddress, aliceAddress.toHexString(), aliceCreatedEvent.block.timestamp);
+        handleMemberUnitsUpdated(aliceCreatedEvent);
 
-        // ## Arrange Distributor
-        const poolDistributor = new PoolDistributor(poolAdminAndDistributorAddress.toHexString());
-        poolDistributor.createdAtTimestamp = BigInt.fromI32(1);
-        poolDistributor.createdAtBlockNumber = BigInt.fromI32(1);
-        poolDistributor.updatedAtTimestamp = BigInt.fromI32(1);
-        poolDistributor.updatedAtBlockNumber = BigInt.fromI32(1);
-        poolDistributor.account = charlie;
-        poolDistributor.totalBuffer = BigInt.fromI32(0);
-        poolDistributor.flowRate = BigInt.fromI32(0);
-        poolDistributor.pool = poolAddress.toHexString();
-        poolDistributor.totalAmountDistributedUntilUpdatedAt = BigInt.fromI32(0);
-        poolDistributor.totalAmountFlowedDistributedUntilUpdatedAt = BigInt.fromI32(0);
-        poolDistributor.totalAmountInstantlyDistributedUntilUpdatedAt = BigInt.fromI32(0);
-        poolDistributor.save();
-        // ---
-
-        // # First distribution (State 2)
-        const instantDistributionEvent = createInstantDistributionUpdatedEvent(
+        // # First distribution
+        const firstDistributionEvent = createInstantDistributionUpdatedEvent(
             superTokenAddress,
             poolAddress.toHexString(),
             poolAdminAndDistributorAddress.toHexString(),
             echo,
-            BigInt.fromI32(100), // requested amount 
-            BigInt.fromI32(100), // actual amount
+            BigInt.fromI32(1000), // requested amount 
+            BigInt.fromI32(1000), // actual amount
             Bytes.fromHexString("0x")
         );
-        instantDistributionEvent.block.timestamp = BigInt.fromI32(1);
-        instantDistributionEvent.address = poolAddress;
+        firstDistributionEvent.block.timestamp = poolCreatedEvent.block.timestamp;
+        firstDistributionEvent.address = poolAddress;
             
-        mockedGetAppManifest(poolAdminAndDistributorAddress.toHexString(), false, false, BIG_INT_ZERO);
-        mockedRealtimeBalanceOf(
-            superTokenAddress,
-            poolAdminAndDistributorAddress.toHexString(),
-            BigInt.fromI32(1),
-            FAKE_INITIAL_BALANCE,
-            BigInt.fromI32(0),
-            BIG_INT_ZERO
-        );
-            
-        handleInstantDistributionUpdated(instantDistributionEvent);
+        mockedAppManifestAndRealtimeBalanceOf(superTokenAddress, poolAdminAndDistributorAddress.toHexString(), firstDistributionEvent.block.timestamp);
+        handleInstantDistributionUpdated(firstDistributionEvent);
 
         assert.fieldEquals(
             "Pool",
             poolAddress.toHexString(),
             "totalAmountDistributedUntilUpdatedAt",
+            "1000"
+        );
+        assert.fieldEquals(
+            "Pool",
+            poolAddress.toHexString(),
+            "totalUnits",
             "100"
+        );
+        assert.fieldEquals(
+            "Pool",
+            poolAddress.toHexString(),
+            "totalMembers",
+            "1"
         );
         assert.fieldEquals(
             "PoolMember",
@@ -129,86 +89,51 @@ describe("PoolMember ending up with wrong `totalAmountReceivedUntilUpdatedAt`", 
             "totalAmountReceivedUntilUpdatedAt",
             "0"
         );
-        // # ---
+        assert.fieldEquals(
+            "PoolMember",
+            aliceId,
+            "units",
+            "100"
+        );
+        // --- 
 
-        // # Arrange State 3
+        // # Arrange State 2
         // ## Arrange PoolMember 2 (new member)
         const bobAddress = Address.fromString(bob_);
         const bobId = getPoolMemberID(poolAddress, bobAddress);
-        const bob = new PoolMember(bobId)
-        bob.createdAtTimestamp = BigInt.fromI32(1);
-        bob.createdAtBlockNumber = BigInt.fromI32(1);
-        bob.updatedAtTimestamp = BigInt.fromI32(1);
-        bob.updatedAtBlockNumber = BigInt.fromI32(1);
-
-        bob.account = bobAddress.toHexString();
-        bob.units = BigInt.fromI32(100);
-        bob.totalAmountReceivedUntilUpdatedAt = BigInt.fromI32(0);
-        bob.poolTotalAmountDistributedUntilUpdatedAt = BigInt.fromI32(100);
-        bob.isConnected = true;
-        bob.totalAmountClaimed = BigInt.fromI32(0);
-        bob.pool = poolAddress.toHexString();
-        bob.save();
-        // # ---
-
-        // ## Update Pool for member 2
-        pool = Pool.load(poolAddress.toHexString())!;
-        pool.updatedAtTimestamp = BigInt.fromI32(2);
-        pool.updatedAtBlockNumber = BigInt.fromI32(2);
-        pool.totalMembers = 2;
-        pool.totalConnectedMembers = 2;
-        pool.totalDisconnectedMembers = 0;
-        pool.totalConnectedUnits = BigInt.fromI32(2000);
-        pool.totalUnits = BigInt.fromI32(200);
-        pool.save();
-        // ---
-
-        // # Second distribution (we can use the first event again) (State 4)
-        handleInstantDistributionUpdated(instantDistributionEvent);
-        
-        assert.fieldEquals(
-            "Pool",
-            poolAddress.toHexString(),
-            "totalAmountDistributedUntilUpdatedAt",
-            "200"
-        );
-        assert.fieldEquals(
-            "Pool",
-            poolAddress.toHexString(),
-            "totalUnits",
-            "200"
-        );
-        // # ---
-
-        // # Update PoolMember 2's units to get the `totalAmountReceivedUntilUpdatedAt`
-        const updateBobUnitsEvent = createMemberUnitsUpdatedEvent(
+        let createBobEvent = createMemberUnitsUpdatedEvent(
             superTokenAddress,
             bobAddress.toHexString(),
-            BigInt.fromI32(100), // old units
+            BigInt.fromI32(0), // old units
             BigInt.fromI32(100) // new units
         );
-        // Note, the units can stay the same, we just want to trigger an update.
-        updateBobUnitsEvent.address = poolAddress;
-        updateBobUnitsEvent.block.timestamp = BigInt.fromI32(2);
+        createBobEvent.address = poolAddress;
+        createBobEvent.block.timestamp = BigInt.fromI32(2);
 
-        mockedGetAppManifest(bobAddress.toHexString(), false, false, BIG_INT_ZERO);
-        mockedRealtimeBalanceOf(
+        mockedAppManifestAndRealtimeBalanceOf(superTokenAddress, bobAddress.toHexString(), createBobEvent.block.timestamp);
+        handleMemberUnitsUpdated(createBobEvent);
+
+        // # Second distribution
+        const secondDistributionEvent = createInstantDistributionUpdatedEvent(
             superTokenAddress,
-            bobAddress.toHexString(),
-            BigInt.fromI32(2),
-            FAKE_INITIAL_BALANCE,
-            BigInt.fromI32(0),
-            BIG_INT_ZERO
+            poolAddress.toHexString(),
+            poolAdminAndDistributorAddress.toHexString(),
+            echo,
+            BigInt.fromI32(1000), // requested amount 
+            BigInt.fromI32(1000), // actual amount
+            Bytes.fromHexString("0x")
         );
-
-        // Act 1
-        handleMemberUnitsUpdated(updateBobUnitsEvent);
+        secondDistributionEvent.block.timestamp = poolCreatedEvent.block.timestamp;
+        secondDistributionEvent.address = poolAddress;
+            
+        mockedAppManifestAndRealtimeBalanceOf(superTokenAddress, poolAdminAndDistributorAddress.toHexString(), secondDistributionEvent.block.timestamp);
+        handleInstantDistributionUpdated(secondDistributionEvent);
 
         assert.fieldEquals(
             "Pool",
             poolAddress.toHexString(),
             "totalAmountDistributedUntilUpdatedAt",
-            "200"
+            "2000"
         );
         assert.fieldEquals(
             "Pool",
@@ -220,38 +145,336 @@ describe("PoolMember ending up with wrong `totalAmountReceivedUntilUpdatedAt`", 
             "PoolMember",
             bobId,
             "totalAmountReceivedUntilUpdatedAt",
-            "50"
+            "0"
+        );
+        assert.fieldEquals(
+            "PoolMember",
+            bobId,
+            "units",
+            "100"
+        );
+        // ---
+
+        // Arrange State 3
+        // # Update PoolMember 2's units to get the `totalAmountReceivedUntilUpdatedAt`
+        const updateBobEvent = createMemberUnitsUpdatedEvent(
+            superTokenAddress,
+            bobAddress.toHexString(),
+            BigInt.fromI32(100), // old units
+            BigInt.fromI32(100) // new units
+        );
+        // Note, the units can stay the same, we just want to trigger an update.
+        updateBobEvent.address = poolAddress;
+        updateBobEvent.block.timestamp = BigInt.fromI32(3);
+
+        mockedAppManifestAndRealtimeBalanceOf(superTokenAddress, bobAddress.toHexString(), updateBobEvent.block.timestamp);
+        handleMemberUnitsUpdated(createBobEvent);
+
+        assert.fieldEquals(
+            "PoolMember",
+            bobId,
+            "totalAmountReceivedUntilUpdatedAt",
+            "500"
+        );
+        assert.fieldEquals(
+            "PoolMember",
+            bobId,
+            "units",
+            "100"
         );
 
         // # Update PoolMember 1's units to get the `totalAmountReceivedUntilUpdatedAt`
-        const updateAliceUnitsEvent = createMemberUnitsUpdatedEvent(
+        const updateAliceEvent = createMemberUnitsUpdatedEvent(
             superTokenAddress,
             aliceAddress.toHexString(),
-            BigInt.fromI32(10), // old units
-            BigInt.fromI32(10) // new units
+            BigInt.fromI32(100), // old units
+            BigInt.fromI32(100) // new units
         );
         // Note, the units can stay the same, we just want to trigger an update.
-        updateAliceUnitsEvent.address = poolAddress;
-        updateAliceUnitsEvent.block.timestamp = BigInt.fromI32(3);
+        updateAliceEvent.address = poolAddress;
+        updateAliceEvent.block.timestamp = BigInt.fromI32(3);
 
-        mockedGetAppManifest(aliceAddress.toHexString(), false, false, BIG_INT_ZERO);
-        mockedRealtimeBalanceOf(
-            superTokenAddress,
-            aliceAddress.toHexString(),
-            BigInt.fromI32(3),
-            FAKE_INITIAL_BALANCE,
-            BigInt.fromI32(0),
-            BIG_INT_ZERO
-        );
-
-        // Act 2
-        handleMemberUnitsUpdated(updateAliceUnitsEvent);
+        mockedAppManifestAndRealtimeBalanceOf(superTokenAddress, aliceAddress.toHexString(), updateAliceEvent.block.timestamp);
+        handleMemberUnitsUpdated(updateAliceEvent);
 
         assert.fieldEquals(
             "PoolMember",
             aliceId,
             "totalAmountReceivedUntilUpdatedAt",
-            "150" // 100 from first + 50 from second
+            "1500"
+        );
+        assert.fieldEquals(
+            "PoolMember",
+            aliceId,
+            "units",
+            "100"
+        );
+    });
+    /**
+     * Problem description
+        1. Create pool
+        2. Add member A and update A units to 100
+        3. Flow 1000 tokens (elapse 1 second)
+        4. Add member B and update B units to 100
+        5. Flow 1000 tokens (elapse 1 second)
+        6. Update flow rate to 2000 tokens
+        7. Flow 2000 tokens (elapse 1 second)
+
+        Expected result:
+        member A 2500 tokens
+        member B 1500 tokens
+
+        Actual result:
+        member A 100 tokens
+        member B 50 tokens
+    */
+    test("create elaborate scenario with 2 flowing distributions and 2 pool members", () => {
+        const superTokenAddress = maticXAddress;
+        const poolAdminAndDistributorAddress = Address.fromString(delta);
+        const poolAddress = Address.fromString(superfluidPool);
+
+        // # Arrange State 1
+        // ## Arrange Pool
+        const poolCreatedEvent = createPoolAndReturnPoolCreatedEvent(poolAdminAndDistributorAddress.toHexString(), superTokenAddress, poolAddress.toHexString());
+        assert.stringEquals(poolCreatedEvent.block.timestamp.toString(), BigInt.fromI32(1).toString());
+
+        handlePoolCreated(poolCreatedEvent);
+        
+        const pool = Pool.load(poolAddress.toHexString());
+
+        if (pool) {
+            pool.updatedAtTimestamp = poolCreatedEvent.block.timestamp;
+        }
+
+        // ## Arrange PoolMember 1
+        const aliceAddress = Address.fromString(alice_);
+        const aliceId = getPoolMemberID(poolAddress, aliceAddress);
+        const aliceCreatedEvent = createMemberUnitsUpdatedEvent(
+            superTokenAddress,
+            aliceAddress.toHexString(),
+            BigInt.fromI32(0), // old units
+            BigInt.fromI32(100) // new units
+        );
+        aliceCreatedEvent.address = poolAddress;
+        aliceCreatedEvent.block.timestamp = poolCreatedEvent.block.timestamp; // 1
+
+        mockedAppManifestAndRealtimeBalanceOf(superTokenAddress, aliceAddress.toHexString(), aliceCreatedEvent.block.timestamp);
+        handleMemberUnitsUpdated(aliceCreatedEvent);
+
+        // # First flow rate
+        if (pool) {
+            pool.updatedAtTimestamp = aliceCreatedEvent.block.timestamp;
+        }
+
+        const firstFlowRateEvent = createFlowDistributionUpdatedEvent(
+            superTokenAddress,
+            poolAddress.toHexString(),
+            poolAdminAndDistributorAddress.toHexString(),
+            echo,
+            BigInt.fromI32(0), // oldFlowRate
+            BigInt.fromI32(1000), // newDistributorToPoolFlowRate
+            BigInt.fromI32(1000), // newTotalDistributionFlowRate
+            poolAdminAndDistributorAddress.toHexString(), // adjustmentFlowRecipient
+            BigInt.fromI32(0),
+            Bytes.fromHexString("0x")
+        );
+        firstFlowRateEvent.block.timestamp = poolCreatedEvent.block.timestamp; // 1
+        firstFlowRateEvent.address = poolAddress;
+            
+        mockedAppManifestAndRealtimeBalanceOf(superTokenAddress, poolAdminAndDistributorAddress.toHexString(), firstFlowRateEvent.block.timestamp);
+        handleFlowDistributionUpdated(firstFlowRateEvent);
+
+        // # First flow rate
+        if (pool) {
+            pool.updatedAtTimestamp = firstFlowRateEvent.block.timestamp;
+        }
+
+        // TODO: This fails, how has this already flown???
+        assert.fieldEquals(
+            "Pool",
+            poolAddress.toHexString(),
+            "totalAmountDistributedUntilUpdatedAt",
+            "0" // nothing is flowed yet
+        );
+        assert.fieldEquals(
+            "Pool",
+            poolAddress.toHexString(),
+            "totalUnits",
+            "100"
+        );
+        assert.fieldEquals(
+            "Pool",
+            poolAddress.toHexString(),
+            "totalMembers",
+            "1"
+        );
+        assert.fieldEquals(
+            "PoolMember",
+            aliceId,
+            "totalAmountReceivedUntilUpdatedAt",
+            "0"
+        );
+        assert.fieldEquals(
+            "PoolMember",
+            aliceId,
+            "units",
+            "100"
+        );
+        // --- 
+
+        // # Arrange State 2
+        // ## Arrange PoolMember 2 (new member)
+        const bobAddress = Address.fromString(bob_);
+        const bobId = getPoolMemberID(poolAddress, bobAddress);
+        let createBobEvent = createMemberUnitsUpdatedEvent(
+            superTokenAddress,
+            bobAddress.toHexString(),
+            BigInt.fromI32(0), // old units
+            BigInt.fromI32(100) // new units
+        );
+        createBobEvent.address = poolAddress;
+        createBobEvent.block.timestamp = BigInt.fromI32(2); // Skip 1 second to let it flow to Alice
+        
+        mockedAppManifestAndRealtimeBalanceOf(superTokenAddress, bobAddress.toHexString(), createBobEvent.block.timestamp);
+        handleMemberUnitsUpdated(createBobEvent);
+        
+        if (pool) {
+            pool.updatedAtTimestamp = createBobEvent.block.timestamp;
+        }
+
+        assert.fieldEquals(
+            "Pool",
+            poolAddress.toHexString(),
+            "totalAmountDistributedUntilUpdatedAt",
+            "1000"
+        );
+        assert.fieldEquals(
+            "PoolMember",
+            bobId,
+            "totalAmountReceivedUntilUpdatedAt",
+            "0" // Bob just joined, shouldn't have any received
+        );
+
+        // # Second flow rate
+        const secondFlowRateEvent = createFlowDistributionUpdatedEvent(
+            superTokenAddress,
+            poolAddress.toHexString(),
+            poolAdminAndDistributorAddress.toHexString(),
+            echo,
+            BigInt.fromI32(1000), // oldFlowRate
+            BigInt.fromI32(2000), // newDistributorToPoolFlowRate
+            BigInt.fromI32(2000), // newTotalDistributionFlowRate
+            poolAdminAndDistributorAddress.toHexString(), // adjustmentFlowRecipient
+            BigInt.fromI32(0),
+            Bytes.fromHexString("0x")
+        );
+        secondFlowRateEvent.block.timestamp = BigInt.fromI32(3); // One second skipped, 2 seconds flown to Alice, 1 second to Bob
+        secondFlowRateEvent.address = poolAddress;
+            
+        mockedAppManifestAndRealtimeBalanceOf(superTokenAddress, poolAdminAndDistributorAddress.toHexString(), secondFlowRateEvent.block.timestamp);
+        handleFlowDistributionUpdated(secondFlowRateEvent);
+
+        if (pool) {
+            pool.updatedAtTimestamp = secondFlowRateEvent.block.timestamp;
+        }
+
+        assert.fieldEquals(
+            "Pool",
+            poolAddress.toHexString(),
+            "totalAmountDistributedUntilUpdatedAt",
+            "2000" // Only for first flow rate
+        );
+        assert.fieldEquals(
+            "Pool",
+            poolAddress.toHexString(),
+            "totalUnits",
+            "200"
+        );
+        assert.fieldEquals(
+            "PoolMember",
+            bobId,
+            "totalAmountReceivedUntilUpdatedAt",
+            "0" // it's 500 if we query on-chain, but 0 here because update member units hasn't been called again since
+        );
+        assert.fieldEquals(
+            "PoolMember",
+            bobId,
+            "units",
+            "100"
+        );
+        assert.fieldEquals(
+            "PoolMember",
+            aliceId,
+            "totalAmountReceivedUntilUpdatedAt",
+            "0" // it's 1500 if we query on-chain, but 0 here because update member units hasn't been called again since
+        );
+        // ---
+
+        // Arrange State 3
+        // # Update PoolMember 2's units to get the `totalAmountReceivedUntilUpdatedAt`
+        const updateBobEvent = createMemberUnitsUpdatedEvent(
+            superTokenAddress,
+            bobAddress.toHexString(),
+            BigInt.fromI32(100), // old units
+            BigInt.fromI32(100) // new units
+        );
+        // Note, the units can stay the same, we just want to trigger an update.
+        updateBobEvent.address = poolAddress;
+        updateBobEvent.block.timestamp = BigInt.fromI32(4); // 4 - 1 = 3 seconds of flow
+
+        mockedAppManifestAndRealtimeBalanceOf(superTokenAddress, bobAddress.toHexString(), updateBobEvent.block.timestamp);
+        handleMemberUnitsUpdated(updateBobEvent);
+
+        if (pool) {
+            pool.updatedAtTimestamp = updateBobEvent.block.timestamp;
+        }
+        assert.fieldEquals(
+            "Pool",
+            poolAddress.toHexString(),
+            "totalAmountDistributedUntilUpdatedAt",
+            "4000"
+        );
+        assert.fieldEquals(
+            "PoolMember",
+            bobId,
+            "totalAmountReceivedUntilUpdatedAt",
+            "1500" // 50% of 2000
+        );
+        assert.fieldEquals(
+            "PoolMember",
+            bobId,
+            "units",
+            "100"
+        );
+
+        // # Update PoolMember 1's units to get the `totalAmountReceivedUntilUpdatedAt`
+        const updateAliceEvent = createMemberUnitsUpdatedEvent(
+            superTokenAddress,
+            aliceAddress.toHexString(),
+            BigInt.fromI32(100), // old units
+            BigInt.fromI32(100) // new units
+        );
+        // Note, the units can stay the same, we just want to trigger an update.
+        updateAliceEvent.address = poolAddress;
+        updateAliceEvent.block.timestamp = updateBobEvent.block.timestamp; // 4
+
+        mockedAppManifestAndRealtimeBalanceOf(superTokenAddress, aliceAddress.toHexString(), updateAliceEvent.block.timestamp);
+        handleMemberUnitsUpdated(updateAliceEvent);
+
+        if (pool) {
+            pool.updatedAtTimestamp = updateAliceEvent.block.timestamp;
+        }
+        assert.fieldEquals(
+            "PoolMember",
+            aliceId,
+            "totalAmountReceivedUntilUpdatedAt",
+            "2500"
+        );
+        assert.fieldEquals(
+            "PoolMember",
+            aliceId,
+            "units",
+            "100"
         );
     })
 });

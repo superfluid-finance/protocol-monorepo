@@ -552,7 +552,17 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
 
             _helperUpdateMemberUnits(pool, alice, members[i], memberUnits[i], useBools_);
         }
+        uint256 actualAmount = sf.gda.estimateDistributionActualAmount(superToken, alice, pool, distributionAmount);
         _helperDistributeViaGDA(superToken, alice, alice, pool, distributionAmount, useBools_.useForwarder);
+
+        uint128 perUnitDistributionAmount = uint128(actualAmount / pool.getTotalUnits());
+        for (uint256 i = 0; i < members.length; ++i) {
+            if (sf.gda.isPool(superToken, members[i]) || members[i] == address(0)) continue;
+
+            uint128 memberUnits = pool.getUnits(members[i]);
+
+            assertEq(perUnitDistributionAmount * memberUnits, pool.getTotalAmountReceivedByMember(members[i]));
+        }
     }
 
     function testDistributeToConnectedMembers(
@@ -577,7 +587,17 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
             _helperUpdateMemberUnits(pool, alice, members[i], memberUnits[i], useBools_);
             _addAccount(members[i]);
         }
+        uint256 actualAmount = sf.gda.estimateDistributionActualAmount(superToken, alice, pool, distributionAmount);
         _helperDistributeViaGDA(superToken, alice, alice, pool, distributionAmount, useBools_.useForwarder);
+
+        uint128 perUnitDistributionAmount = uint128(actualAmount / pool.getTotalUnits());
+        for (uint256 i = 0; i < members.length; ++i) {
+            if (sf.gda.isPool(superToken, members[i]) || members[i] == address(0)) continue;
+
+            uint128 memberUnits = pool.getUnits(members[i]);
+
+            assertEq(perUnitDistributionAmount * memberUnits, pool.getTotalAmountReceivedByMember(members[i]));
+        }
     }
 
     function testDistributeFlowToConnectedMembers(

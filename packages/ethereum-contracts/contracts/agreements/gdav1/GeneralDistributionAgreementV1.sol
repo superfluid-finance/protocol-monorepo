@@ -14,7 +14,7 @@ import {
     FlowRate
 } from "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
 import { TokenMonad } from "@superfluid-finance/solidity-semantic-money/src/TokenMonad.sol";
-import { SuperfluidPool } from "./SuperfluidPool.sol";
+import { poolIndexDataToPDPoolIndex, SuperfluidPool } from "./SuperfluidPool.sol";
 import { SuperfluidPoolDeployerLibrary } from "./SuperfluidPoolDeployerLibrary.sol";
 import {
     IGeneralDistributionAgreementV1,
@@ -31,6 +31,7 @@ import { SolvencyHelperLibrary } from "../../libs/SolvencyHelperLibrary.sol";
 import { SafeGasLibrary } from "../../libs/SafeGasLibrary.sol";
 import { AgreementBase } from "../AgreementBase.sol";
 import { AgreementLibrary } from "../AgreementLibrary.sol";
+
 
 /**
  * @title General Distribution Agreement
@@ -79,6 +80,25 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
     using SafeCast for uint256;
     using SafeCast for int256;
     using SemanticMoney for BasicParticle;
+
+    struct UniversalIndexData {
+        int96 flowRate;
+        uint32 settledAt;
+        uint256 totalBuffer;
+        bool isPool;
+        int256 settledValue;
+    }
+
+    struct PoolMemberData {
+        address pool;
+        uint32 poolID; // the slot id in the pool's subs bitmap
+    }
+
+    struct FlowDistributionData {
+        uint32 lastUpdated;
+        int96 flowRate;
+        uint256 buffer; // stored as uint96
+    }
 
     address public constant SLOTS_BITMAP_LIBRARY_ADDRESS = address(SlotsBitmapLibrary);
 
@@ -168,6 +188,32 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
     {
         (, FlowDistributionData memory data) = _getFlowDistributionData(token, _getFlowDistributionHash(from, to));
         return data.flowRate;
+    }
+
+    /// @inheritdoc IGeneralDistributionAgreementV1
+    function getFlow(ISuperfluidToken token, address from, ISuperfluidPool to)
+        external
+        view
+        override
+        returns (uint256 lastUpdated, int96 flowRate, uint256 deposit)
+    {
+        (, FlowDistributionData memory data) = _getFlowDistributionData(token, _getFlowDistributionHash(from, to));
+        lastUpdated = data.lastUpdated;
+        flowRate = data.flowRate;
+        deposit = data.buffer;
+    }
+
+    /// @inheritdoc IGeneralDistributionAgreementV1
+    function getAccountFlowInfo(ISuperfluidToken token, address account)
+        external
+        view
+        override
+        returns (uint256 timestamp, int96 flowRate, uint256 deposit)
+    {
+        UniversalIndexData memory universalIndexData = _getUIndexData(abi.encode(token), account);
+        timestamp = universalIndexData.settledAt;
+        flowRate = universalIndexData.flowRate;
+        deposit = universalIndexData.totalBuffer;
     }
 
     /// @inheritdoc IGeneralDistributionAgreementV1
@@ -428,6 +474,16 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         FlowRate oldFlowRate;
     }
 
+    // solhint-disable-next-line contract-name-camelcase
+    struct _StackVars_Liquidation {
+        ISuperfluidToken token;
+        int256 availableBalance;
+        address sender;
+        bytes32 distributionFlowHash;
+        int256 signedTotalGDADeposit;
+        address liquidator;
+    }
+
     /// @inheritdoc IGeneralDistributionAgreementV1
     function distributeFlow(
         ISuperfluidToken token,
@@ -482,7 +538,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
                     // liquidation case, requestedFlowRate == 0
                     (int256 availableBalance,,) = token.realtimeBalanceOf(from, flowVars.currentContext.timestamp);
                     // StackVarsLiquidation used to handle good ol' stack too deep
-                    StackVarsLiquidation memory liquidationData;
+                    _StackVars_Liquidation memory liquidationData;
                     {
                         liquidationData.token = token;
                         liquidationData.sender = from;
@@ -612,7 +668,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         }
     }
 
-    function _makeLiquidationPayouts(StackVarsLiquidation memory data) internal {
+    function _makeLiquidationPayouts(_StackVars_Liquidation memory data) internal {
         (, FlowDistributionData memory flowDistributionData) =
             _getFlowDistributionData(ISuperfluidToken(data.token), data.distributionFlowHash);
         int256 signedSingleDeposit = flowDistributionData.buffer.toInt256();
@@ -870,8 +926,8 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         bytes memory, // eff,
         address pool
     ) internal view override returns (PDPoolIndex memory) {
-        ISuperfluidPool.PoolIndexData memory data = SuperfluidPool(pool).getIndex();
-        return SuperfluidPool(pool).poolIndexDataToPDPoolIndex(data);
+        SuperfluidPool.PoolIndexData memory data = SuperfluidPool(pool).poolOperatorGetIndex();
+        return poolIndexDataToPDPoolIndex(data);
     }
 
     function _setPDPIndex(bytes memory eff, address pool, PDPoolIndex memory p)

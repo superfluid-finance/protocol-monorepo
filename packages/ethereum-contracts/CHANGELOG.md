@@ -12,14 +12,27 @@ Initialization is now split between constructor and a method `_initialize`, with
 made optional.
 This allows the contract to be used with a SuperApp factory pattern (disable self-registration on networks with permissioned SuperApps) and for logic contracts in the context of the proxy pattern.
 Note: this will NOT break any deployed contracts, only affects undeployed Super Apps in case the ethereum-contracts dependency is updated.
+- `UniversalIndexData`, `PoolMemberData` and `FlowDistributionData` structs moved from `IGeneralDistributionAgreementV1.sol` to `GeneralDistributionAgreementV1.sol`
+- `PoolIndexData`, `MemberData` structs moved from `ISuperfluidPool.sol` to `SuperfluidPool.sol`
 
 ### Added
 
 - New utility: MacroForwarder - a trusted forwarder extensible with permission-less macro contracts.
+- New protocol contract view functions:
+  - `gdaV1.getFlow`
+  - `gdaV1.getAccountFlowInfo`
+  - `pool.poolOperatorGetIndex`
+  - `pool.getTotalAmountReceivedByMember`
+- New SuperTokenV1Library functions:
+  - `getGDAFlowInfo`
+  - `getGDANetFlowInfo`
+  - `getPoolAdjustmentFlowRate`
+  - `getTotalAmountReceivedByMember`
 
 ### Changed
 
 - bump solc to 0.8.23
+- `superTokenV1Library.getNetFlowInfo` sums CFA and GDA net flow info
 
 
 ## [v1.9.0] - 2024-01-09

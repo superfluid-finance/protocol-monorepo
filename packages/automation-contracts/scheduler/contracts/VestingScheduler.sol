@@ -61,7 +61,7 @@ contract VestingScheduler is IVestingScheduler, SuperAppBase {
         if (cliffDate == 0 && cliffAmount != 0) revert CliffInvalid();
 
         uint32 cliffAndFlowDate = cliffDate == 0 ? startDate : cliffDate;
-        if (cliffAndFlowDate <= block.timestamp ||
+        if (cliffAndFlowDate < block.timestamp ||
             cliffAndFlowDate >= endDate ||
             cliffAndFlowDate + START_DATE_VALID_AFTER >= endDate - END_DATE_VALID_BEFORE ||
             endDate - cliffAndFlowDate < MIN_VESTING_DURATION

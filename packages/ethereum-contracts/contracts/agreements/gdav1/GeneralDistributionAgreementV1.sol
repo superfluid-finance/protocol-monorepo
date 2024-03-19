@@ -576,35 +576,22 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
             address constantOutflowNFTAddress = _getConstantOutflowNFTAddress(token);
 
             if (constantOutflowNFTAddress != address(0)) {
-                uint256 gasLeftBefore;
                 // create flow (mint)
                 if (requestedFlowRate > 0 && FlowRate.unwrap(flowVars.oldFlowRate) == 0) {
-                    gasLeftBefore = gasleft();
                     // solhint-disable-next-line no-empty-blocks
-                    try IConstantOutflowNFT(constantOutflowNFTAddress).onCreate(token, from, address(pool)) { }
-                    catch {
-                        SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
-                    }
+                    IConstantOutflowNFT(constantOutflowNFTAddress).onCreate(token, from, address(pool));
                 }
 
                 // update flow (update metadata)
                 if (requestedFlowRate > 0 && FlowRate.unwrap(flowVars.oldFlowRate) > 0) {
-                    gasLeftBefore = gasleft();
                     // solhint-disable-next-line no-empty-blocks
-                    try IConstantOutflowNFT(constantOutflowNFTAddress).onUpdate(token, from, address(pool)) { }
-                    catch {
-                        SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
-                    }
+                    IConstantOutflowNFT(constantOutflowNFTAddress).onUpdate(token, from, address(pool));
                 }
 
                 // delete flow (burn)
                 if (requestedFlowRate == 0) {
-                    gasLeftBefore = gasleft();
                     // solhint-disable-next-line no-empty-blocks
-                    try IConstantOutflowNFT(constantOutflowNFTAddress).onDelete(token, from, address(pool)) { }
-                    catch {
-                        SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
-                    }
+                    IConstantOutflowNFT(constantOutflowNFTAddress).onDelete(token, from, address(pool));
                 }
             }
         }

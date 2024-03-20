@@ -6,6 +6,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Added
+-   Added `getTotalAmountReceivedByMember`
+
 ### Changed
 
 -   Map the name from subgraph to an unknown event, instead of "\_Unknown".

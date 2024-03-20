@@ -7,13 +7,12 @@ import {
 } from 'wagmi';
 import {
   polygon,
-  polygonMumbai,
-  goerli
+  polygonMumbai
 } from 'wagmi/chains'
 import { publicProvider } from 'wagmi/providers/public';
 
 export const { chains, provider } = configureChains(
-  [polygon, polygonMumbai, goerli],
+  [polygon, polygonMumbai],
   [
     publicProvider()
   ]

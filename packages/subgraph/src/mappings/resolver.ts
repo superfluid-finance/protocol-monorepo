@@ -18,7 +18,7 @@ import { createEventID, initializeEventEntity, ZERO_ADDRESS } from "../utils";
 export function handleRoleAdminChanged(event: RoleAdminChanged): void {
     const eventId = createEventID("RoleAdminChanged", event);
     const ev = new RoleAdminChangedEvent(eventId);
-    initializeEventEntity(ev, event, []);
+    initializeEventEntity(ev, event, [event.params.previousAdminRole, event.params.newAdminRole]);
 
     ev.role = event.params.role;
     ev.previousAdminRole = event.params.previousAdminRole;
@@ -29,7 +29,7 @@ export function handleRoleAdminChanged(event: RoleAdminChanged): void {
 export function handleRoleGranted(event: RoleGranted): void {
     const eventId = createEventID("RoleGranted", event);
     const ev = new RoleGrantedEvent(eventId);
-    initializeEventEntity(ev, event, []);
+    initializeEventEntity(ev, event, [event.params.account, event.params.sender]);
 
     ev.role = event.params.role;
     ev.account = event.params.account;
@@ -39,7 +39,7 @@ export function handleRoleGranted(event: RoleGranted): void {
 export function handleRoleRevoked(event: RoleRevoked): void {
     const eventId = createEventID("RoleRevoked", event);
     const ev = new RoleRevokedEvent(eventId);
-    initializeEventEntity(ev, event, []);
+    initializeEventEntity(ev, event, [event.params.account, event.params.sender]);
 
     ev.role = event.params.role;
     ev.account = event.params.account;

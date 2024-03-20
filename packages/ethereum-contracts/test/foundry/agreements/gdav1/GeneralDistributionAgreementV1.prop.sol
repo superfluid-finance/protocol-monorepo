@@ -12,9 +12,7 @@ import { SuperfluidUpgradeableBeacon } from "../../../../contracts/upgradability
 import { ISuperToken, SuperToken } from "../../../../contracts/superfluid/SuperToken.sol";
 import { ISuperAgreement } from "../../../../contracts/interfaces/superfluid/ISuperAgreement.sol";
 import {
-    GeneralDistributionAgreementV1,
-    ISuperfluid,
-    ISuperfluidPool
+    GeneralDistributionAgreementV1, ISuperfluid, ISuperfluidPool
 } from "../../../../contracts/agreements/gdav1/GeneralDistributionAgreementV1.sol";
 import {
     IGeneralDistributionAgreementV1,
@@ -124,7 +122,7 @@ contract GeneralDistributionAgreementV1Properties is GeneralDistributionAgreemen
 
         vm.warp(1000);
 
-        (bool exist, IGeneralDistributionAgreementV1.FlowDistributionData memory setFlowDistributionData) =
+        (bool exist, FlowDistributionData memory setFlowDistributionData) =
             _getFlowDistributionData(superToken, flowHash);
 
         assertEq(true, exist, "flow distribution data does not exist");
@@ -156,14 +154,11 @@ contract GeneralDistributionAgreementV1Properties is GeneralDistributionAgreemen
         vm.startPrank(address(this));
         superToken.updateAgreementData(
             poolMemberId,
-            _encodePoolMemberData(
-                IGeneralDistributionAgreementV1.PoolMemberData({ poolID: poolID, pool: address(_pool) })
-            )
+            _encodePoolMemberData(PoolMemberData({ poolID: poolID, pool: address(_pool) }))
         );
         vm.stopPrank();
 
-        (bool exist, IGeneralDistributionAgreementV1.PoolMemberData memory setPoolMemberData) =
-            _getPoolMemberData(superToken, poolMember, _pool);
+        (bool exist, PoolMemberData memory setPoolMemberData) = _getPoolMemberData(superToken, poolMember, _pool);
 
         assertEq(true, exist, "pool member data does not exist");
         assertEq(poolID, setPoolMemberData.poolID, "poolID not equal");
@@ -333,11 +328,10 @@ contract GeneralDistributionAgreementV1Properties is GeneralDistributionAgreemen
     function testEncodeDecodeFlowDistributionData(int96 flowRate, uint96 buffer) public {
         vm.assume(flowRate >= 0);
         vm.assume(buffer >= 0);
-        IGeneralDistributionAgreementV1.FlowDistributionData memory original = IGeneralDistributionAgreementV1
-            .FlowDistributionData({ flowRate: flowRate, lastUpdated: uint32(block.timestamp), buffer: buffer });
+        FlowDistributionData memory original =
+            FlowDistributionData({ flowRate: flowRate, lastUpdated: uint32(block.timestamp), buffer: buffer });
         bytes32[] memory encoded = _encodeFlowDistributionData(original);
-        (, IGeneralDistributionAgreementV1.FlowDistributionData memory decoded) =
-            _decodeFlowDistributionData(uint256(encoded[0]));
+        (, FlowDistributionData memory decoded) = _decodeFlowDistributionData(uint256(encoded[0]));
 
         assertEq(original.flowRate, decoded.flowRate, "flowRate not equal");
         assertEq(original.buffer, decoded.buffer, "buffer not equal");
@@ -346,10 +340,9 @@ contract GeneralDistributionAgreementV1Properties is GeneralDistributionAgreemen
 
     function testEncodeDecodePoolMemberData(address pool, uint32 poolID) public {
         vm.assume(pool != address(0));
-        IGeneralDistributionAgreementV1.PoolMemberData memory original =
-            IGeneralDistributionAgreementV1.PoolMemberData({ pool: pool, poolID: poolID });
+        PoolMemberData memory original = PoolMemberData({ pool: pool, poolID: poolID });
         bytes32[] memory encoded = _encodePoolMemberData(original);
-        (, IGeneralDistributionAgreementV1.PoolMemberData memory decoded) = _decodePoolMemberData(uint256(encoded[0]));
+        (, PoolMemberData memory decoded) = _decodePoolMemberData(uint256(encoded[0]));
 
         assertEq(original.pool, decoded.pool, "pool not equal");
         assertEq(original.poolID, decoded.poolID, "poolID not equal");

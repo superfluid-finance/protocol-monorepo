@@ -26,6 +26,36 @@ import { BeaconProxiable } from "../../upgradability/BeaconProxiable.sol";
 import { IPoolMemberNFT } from "../../interfaces/agreements/gdav1/IPoolMemberNFT.sol";
 import { SafeGasLibrary } from "../../libs/SafeGasLibrary.sol";
 
+using SafeCast for uint256;
+using SafeCast for int256;
+
+function toSemanticMoneyUnit(uint128 units) pure returns (Unit) {
+    // @note safe upcasting from uint128 to uint256
+    // and use of safecast library for downcasting from uint256 to int128
+    return Unit.wrap(uint256(units).toInt256().toInt128());
+}
+
+function poolIndexDataToWrappedParticle(SuperfluidPool.PoolIndexData memory data)
+    pure
+    returns (BasicParticle memory wrappedParticle)
+{
+    wrappedParticle = BasicParticle({
+        _settled_at: Time.wrap(data.wrappedSettledAt),
+        _flow_rate: FlowRate.wrap(int128(data.wrappedFlowRate)), // upcast from int96 is safe
+        _settled_value: Value.wrap(data.wrappedSettledValue)
+    });
+}
+
+function poolIndexDataToPDPoolIndex(SuperfluidPool.PoolIndexData memory data)
+    pure
+    returns (PDPoolIndex memory pdPoolIndex)
+{
+    pdPoolIndex = PDPoolIndex({
+        total_units: toSemanticMoneyUnit(data.totalUnits),
+        _wrapped_particle: poolIndexDataToWrappedParticle(data)
+    });
+}
+
 /**
  * @title SuperfluidPool
  * @author Superfluid
@@ -34,8 +64,24 @@ import { SafeGasLibrary } from "../../libs/SafeGasLibrary.sol";
  */
 contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
     using SemanticMoney for BasicParticle;
-    using SafeCast for uint256;
-    using SafeCast for int256;
+
+    // Structs
+    struct PoolIndexData {
+        uint128 totalUnits;
+        uint32 wrappedSettledAt;
+        int96 wrappedFlowRate;
+        int256 wrappedSettledValue;
+    }
+
+    struct MemberData {
+        uint128 ownedUnits;
+        uint32 syncedSettledAt;
+        int96 syncedFlowRate;
+        int256 syncedSettledValue;
+        int256 settledValue;
+        int256 claimedValue;
+    }
+
 
     GeneralDistributionAgreementV1 public immutable GDA;
 
@@ -76,7 +122,8 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
         return keccak256("org.superfluid-finance.contracts.SuperfluidPool.implementation");
     }
 
-    function getIndex() external view returns (PoolIndexData memory) {
+    /// @dev This function is only meant to be called by the GDAv1 contract
+    function poolOperatorGetIndex() external view returns (PoolIndexData memory) {
         return _index;
     }
 
@@ -215,34 +262,26 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
     }
 
     /// @inheritdoc ISuperfluidPool
+    function getTotalAmountReceivedByMember(address memberAddr) external view override returns (uint256) {
+        MemberData memory memberData = _membersData[memberAddr];
+
+        // max timestamp is uint32.max
+        return uint256(
+            Value.unwrap(
+                // PDPoolMemberMU(poolIndex, memberData)
+                PDPoolMemberMU(poolIndexDataToPDPoolIndex(_index), _memberDataToPDPoolMember(memberData)).settle(
+                    Time.wrap(uint32(block.timestamp))
+                ).m._settled_value
+            )
+        );
+    }
+
+    /// @inheritdoc ISuperfluidPool
     function getMemberFlowRate(address memberAddr) external view override returns (int96) {
         uint128 units = _getUnits(memberAddr);
         if (units == 0) return 0;
         // @note total units must never exceed type(int96).max
         else return (_index.wrappedFlowRate * uint256(units).toInt256()).toInt96();
-    }
-
-    function _poolIndexDataToWrappedParticle(PoolIndexData memory data)
-        internal
-        pure
-        returns (BasicParticle memory wrappedParticle)
-    {
-        wrappedParticle = BasicParticle({
-            _settled_at: Time.wrap(data.wrappedSettledAt),
-            _flow_rate: FlowRate.wrap(int128(data.wrappedFlowRate)), // upcast from int96 is safe
-            _settled_value: Value.wrap(data.wrappedSettledValue)
-        });
-    }
-
-    function poolIndexDataToPDPoolIndex(PoolIndexData memory data)
-        public
-        pure
-        returns (PDPoolIndex memory pdPoolIndex)
-    {
-        pdPoolIndex = PDPoolIndex({
-            total_units: _toSemanticMoneyUnit(data.totalUnits),
-            _wrapped_particle: _poolIndexDataToWrappedParticle(data)
-        });
     }
 
     function _pdPoolIndexToPoolIndexData(PDPoolIndex memory pdPoolIndex)
@@ -264,7 +303,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
         returns (PDPoolMember memory pdPoolMember)
     {
         pdPoolMember = PDPoolMember({
-            owned_units: _toSemanticMoneyUnit(memberData.ownedUnits),
+            owned_units: toSemanticMoneyUnit(memberData.ownedUnits),
             _synced_particle: BasicParticle({
                 _settled_at: Time.wrap(memberData.syncedSettledAt),
                 _flow_rate: FlowRate.wrap(int128(memberData.syncedFlowRate)), // upcast from int96 is safe
@@ -272,12 +311,6 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
             }),
             _settled_value: Value.wrap(memberData.settledValue)
         });
-    }
-
-    function _toSemanticMoneyUnit(uint128 units) internal pure returns (Unit) {
-        // @note safe upcasting from uint128 to uint256
-        // and use of safecast library for downcasting from uint256 to int128
-        return Unit.wrap(uint256(units).toInt256().toInt128());
     }
 
     function _pdPoolMemberToMemberData(PDPoolMember memory pdPoolMember, int256 claimedValue)
@@ -391,7 +424,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
 
         uint32 time = uint32(ISuperfluid(superToken.getHost()).getNow());
         Time t = Time.wrap(time);
-        Unit wrappedUnits = _toSemanticMoneyUnit(newUnits);
+        Unit wrappedUnits = toSemanticMoneyUnit(newUnits);
 
         PDPoolIndex memory pdPoolIndex = poolIndexDataToPDPoolIndex(_index);
         MemberData memory memberData = _membersData[memberAddr];
@@ -403,12 +436,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
 
         // update pool's disconnected units
         if (!GDA.isMemberConnected(ISuperfluidPool(address(this)), memberAddr)) {
-            // trigger the side effect of claiming all if not connected
-            // @note claiming is a bit surprising here given the function name
-            int256 claimedAmount = _claimAll(memberAddr, time);
-
-            // update pool's disconnected units
-            _shiftDisconnectedUnits(wrappedUnits - mu.m.owned_units, Value.wrap(claimedAmount), t);
+            _shiftDisconnectedUnits(wrappedUnits - mu.m.owned_units, Value.wrap(0), t);
         }
 
         // update pool member's units

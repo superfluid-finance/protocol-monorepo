@@ -830,7 +830,8 @@ type AgreementClassRegisteredEvent implements Event @entity(immutable: true) {
     name: String!
 
     """
-    Empty addresses array.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `code`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -849,7 +850,8 @@ type AgreementClassUpdatedEvent implements Event @entity(immutable: true) {
     name: String!
 
     """
-    Empty addresses array.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `code`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -868,7 +870,8 @@ type AppRegisteredEvent implements Event @entity(immutable: true) {
     name: String!
 
     """
-    Empty addresses array.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `app`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -889,7 +892,9 @@ type GovernanceReplacedEvent implements Event @entity(immutable: true) {
     order: BigInt!
 
     """
-    Empty addresses array.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `oldGovernance`
+    addresses[1] = `newGovernance`
     """
     addresses: [Bytes!]!
     oldGovernance: Bytes!
@@ -905,7 +910,8 @@ type JailEvent implements Event @entity(immutable: true) {
     name: String!
 
     """
-    Empty addresses array.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `app`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -924,7 +930,8 @@ type SuperTokenFactoryUpdatedEvent implements Event @entity(immutable: true) {
     name: String!
 
     """
-    Empty addresses array.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `newFactory`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -942,7 +949,9 @@ type SuperTokenLogicUpdatedEvent implements Event @entity(immutable: true) {
     name: String!
 
     """
-    Empty addresses array.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `token`
+    addresses[1] = `code`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -963,7 +972,9 @@ type RoleAdminChangedEvent implements Event @entity(immutable: true) {
     name: String!
 
     """
-    Empty addresses array.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `previousAdminRole`
+    addresses[1] = `newAdminRole`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -983,7 +994,9 @@ type RoleGrantedEvent implements Event @entity(immutable: true) {
     name: String!
 
     """
-    Empty addresses array.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `account`
+    addresses[1] = `sender`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -1003,7 +1016,9 @@ type RoleRevokedEvent implements Event @entity(immutable: true) {
     name: String!
 
     """
-    Empty addresses array.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `account`
+    addresses[1] = `sender`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -1057,7 +1072,10 @@ type CFAv1LiquidationPeriodChangedEvent implements Event
     governanceAddress: Bytes!
 
     """
-    Empty addresses array.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `governanceAddress`
+    addresses[1] = `host`
+    addresses[2] = `superToken`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -1083,7 +1101,10 @@ type ConfigChangedEvent implements Event @entity(immutable: true) {
     governanceAddress: Bytes!
 
     """
-    Empty addresses array.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `governanceAddress`
+    addresses[1] = `host`
+    addresses[2] = `superToken`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -1110,7 +1131,11 @@ type RewardAddressChangedEvent implements Event @entity(immutable: true) {
     governanceAddress: Bytes!
 
     """
-    Empty addresses array.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `governanceAddress`
+    addresses[1] = `host`
+    addresses[2] = `superToken`
+    addresses[3] = `rewardAddress`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -1136,7 +1161,10 @@ type PPPConfigurationChangedEvent implements Event @entity(immutable: true) {
     governanceAddress: Bytes!
 
     """
-    Empty addresses array.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `governanceAddress`
+    addresses[1] = `host`
+    addresses[2] = `superToken`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -1164,7 +1192,10 @@ type SuperTokenMinimumDepositChangedEvent implements Event
     governanceAddress: Bytes!
 
     """
-    Empty addresses array.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `governanceAddress`
+    addresses[1] = `host`
+    addresses[2] = `superToken`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -1190,7 +1221,11 @@ type TrustedForwarderChangedEvent implements Event @entity(immutable: true) {
     governanceAddress: Bytes!
 
     """
-    Empty addresses array.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `governanceAddress`
+    addresses[1] = `host`
+    addresses[2] = `superToken`
+    addresses[3] = `forwarder`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -1468,20 +1503,39 @@ type ApprovalEvent implements Event @entity(immutable: true) {
     name: String!
 
     """
-    Empty addresses array.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `isNFTApproval` ? `nft address` : `token` (superToken)
+    addresses[1] = `owner`
+    addresses[2] = `to`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
     logIndex: BigInt!
     order: BigInt!
 
+    """
+    The address that will be granting allowance to transfer ERC20/NFT.
+    """
     owner: Account!
 
     """
-    The address that will be granted allowance to transfer the NFT.
+    The address that will be granted allowance to transfer ERC20/NFT.
     """
     to: Account!
+
     """
+    Indicates whether the event was emitted for the approval of an NFT.
+    """
+    isNFTApproval: Boolean!
+
+    """
+    If `amount` is non-zero, this event was emitted for the approval of an ERC20.
+    Tne amount of ERC20 tokens that will be granted allowance to transfer.
+    """
+    amount: BigInt!
+    
+    """
+    If `tokenId` is non-zero, this event was emitted for the approval of an NFT.
     The id of the NFT that will be granted allowance to transfer.
     The id is: uint256(keccak256(abi.encode(block.chainid, superToken, sender, receiver)))
     """
@@ -1497,7 +1551,10 @@ type ApprovalForAllEvent implements Event @entity(immutable: true) {
     name: String!
 
     """
-    Empty addresses array.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = NFT address
+    addresses[1] = `owner`
+    addresses[2] = `operator`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -1590,7 +1647,8 @@ type SuperTokenLogicCreatedEvent implements Event @entity(immutable: true) {
     name: String!
 
     """
-    Empty addresses array.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `tokenLogic`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -1757,6 +1815,11 @@ type Pool @entity {
     totalAmountInstantlyDistributedUntilUpdatedAt: BigInt!
     totalAmountFlowedDistributedUntilUpdatedAt: BigInt!
     totalAmountDistributedUntilUpdatedAt: BigInt!
+    totalFlowAdjustmentAmountDistributedUntilUpdatedAt: BigInt!
+
+    perUnitSettledValue: BigInt!
+    perUnitFlowRate: BigInt!
+
     """
     A member is any account which has more than 0 units in the pool.
     """
@@ -1811,6 +1874,9 @@ type PoolMember @entity {
     totalAmountClaimed: BigInt!
     poolTotalAmountDistributedUntilUpdatedAt: BigInt!
     totalAmountReceivedUntilUpdatedAt: BigInt!
+
+    syncedPerUnitSettledValue: BigInt!
+    syncedPerUnitFlowRate: BigInt!
 
     account: Account!
     pool: Pool!

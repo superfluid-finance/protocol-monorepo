@@ -34,7 +34,9 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
         constantOutflowNFT.mockMint(address(superTokenMock), address(0), _flowReceiver, nftId);
     }
 
-    function testRevertIfInternalMintTokenThatExists(address _flowSender, address _flowReceiver) public {
+    // test disabled -we do now explicitly allow this in order to not revert
+    // if previous onDelete hooks failed to execute
+    function noTestRevertIfInternalMintTokenThatExists(address _flowSender, address _flowReceiver) public {
         _assumeSenderNEQReceiverAndNeitherAreZeroAddress(_flowSender, _flowReceiver);
 
         uint256 nftId = _helperGetNFTID(address(superTokenMock), _flowSender, _flowReceiver);
@@ -85,7 +87,7 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
         vm.expectRevert();
         constantInflowNFT.tokenURI(nftId);
     }
-    
+
     function testRevertIfYouTryToTransferOutflowNFT(address _flowSender, address _flowReceiver) public {
         _assumeSenderNEQReceiverAndNeitherAreZeroAddress(_flowSender, _flowReceiver);
 

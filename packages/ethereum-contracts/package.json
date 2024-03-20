@@ -1,6 +1,6 @@
 {
     "name": "@superfluid-finance/ethereum-contracts",
-    "version": "1.9.0",
+    "version": "1.9.1",
     "description": " Ethereum contracts implementation for the Superfluid Protocol",
     "homepage": "https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/ethereum-contracts#readme",
     "repository": {
@@ -92,7 +92,7 @@
         "@safe-global/safe-service-client": "^2.0.3",
         "@safe-global/safe-web3-lib": "^1.9.4",
         "@superfluid-finance/js-sdk": "^0.6.3",
-        "@superfluid-finance/metadata": "^1.1.27",
+        "@superfluid-finance/metadata": "^1.1.28",
         "async": "^3.2.5",
         "csv-writer": "^1.6.0",
         "ethers": "^5.7.2",

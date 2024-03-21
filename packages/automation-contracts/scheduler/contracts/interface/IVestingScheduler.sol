@@ -109,6 +109,31 @@ interface IVestingScheduler {
         uint32 startDate
     ) external;
 
+
+    /**
+     * @dev See IVestingScheduler.createVestingScheduleFromAmountAndDuration overload for more details.
+     * The startDate is set to current block timestamp.
+     */
+    function createVestingScheduleFromAmountAndDuration(
+        ISuperToken superToken,
+        address receiver,
+        uint256 totalAmount,
+        uint32 totalDuration,
+        uint32 cliffPeriod
+    ) external;
+
+    /**
+     * @dev See IVestingScheduler.createVestingScheduleFromAmountAndDuration overload for more details.
+     * The startDate is set to current block timestamp.
+     * No cliff period is applied.
+     */
+    function createVestingScheduleFromAmountAndDuration(
+        ISuperToken superToken,
+        address receiver,
+        uint256 totalAmount,
+        uint32 totalDuration
+    ) external;
+
     /**
      * @dev See IVestingScheduler.createVestingScheduleFromAmountAndDuration overload for more details.
      * @param ctx Superfluid context used when batching operations. (or bytes(0) if not SF batching)

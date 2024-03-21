@@ -134,6 +134,41 @@ contract VestingScheduler is IVestingScheduler, SuperAppBase {
         );
     }
 
+    function createVestingScheduleFromAmountAndDuration(
+        ISuperToken superToken,
+        address receiver,
+        uint256 totalAmount,
+        uint32 totalDuration
+    ) external {
+        _createVestingScheduleFromAmountAndDuration(
+            superToken,
+            receiver,
+            totalAmount,
+            totalDuration,
+            0,
+            uint32(block.timestamp),
+            bytes("")
+        );
+    }
+
+    function createVestingScheduleFromAmountAndDuration(
+        ISuperToken superToken,
+        address receiver,
+        uint256 totalAmount,
+        uint32 totalDuration,
+        uint32 cliffPeriod
+    ) external {
+        _createVestingScheduleFromAmountAndDuration(
+            superToken,
+            receiver,
+            totalAmount,
+            totalDuration,
+            cliffPeriod,
+            uint32(block.timestamp),
+            bytes("")
+        );
+    }
+
     /// @dev IVestingScheduler.createVestingScheduleFromAmountAndDuration implementation.
     function createVestingScheduleFromAmountAndDuration(
         ISuperToken superToken,

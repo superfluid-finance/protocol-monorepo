@@ -7,6 +7,8 @@ import {
 import { SuperAppBase } from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperAppBase.sol";
 import { CFAv1Library } from "@superfluid-finance/ethereum-contracts/contracts/apps/CFAv1Library.sol";
 import { IVestingScheduler } from "./interface/IVestingScheduler.sol";
+import { SafeMath } from "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 contract VestingScheduler is IVestingScheduler, SuperAppBase {
 
@@ -51,6 +53,67 @@ contract VestingScheduler is IVestingScheduler, SuperAppBase {
         uint32 endDate,
         bytes memory ctx
     ) external returns (bytes memory newCtx) {
+        newCtx = _createVestingSchedule(
+            superToken,
+            receiver,
+            startDate,
+            cliffDate,
+            flowRate,
+            cliffAmount,
+            endDate,
+            ctx
+        );
+    }
+
+    /// @dev IVestingScheduler.createVestingSchedule implementation.
+    function createVestingSchedule(
+        ISuperToken superToken,
+        address receiver,
+        uint256 totalAmount,
+        uint32 startDate,
+        uint32 totalDuration,
+        uint32 cliffPeriod,
+        bytes memory ctx
+    ) external returns (bytes memory newCtx) {
+        uint32 endDate = startDate + totalDuration;
+        int96 flowRate = SafeCast.toInt96(SafeCast.toInt256(totalAmount / totalDuration));
+        if (cliffPeriod == 0) {
+            newCtx = _createVestingSchedule(
+                superToken, 
+                receiver, 
+                startDate, 
+                0 /* cliffDate */, 
+                flowRate, 
+                0 /* cliffAmount */, 
+                endDate, 
+                ctx
+            );
+        } else {
+            uint32 cliffDate = startDate + cliffPeriod;
+            uint256 cliffAmount = SafeMath.mul(cliffPeriod, SafeCast.toUint256(flowRate)); // cliffPeriod * flowRate
+            newCtx = _createVestingSchedule(
+                superToken, 
+                receiver, 
+                startDate, 
+                cliffDate, 
+                flowRate, 
+                cliffAmount, 
+                endDate, 
+                ctx
+            );
+        }
+    }
+
+    function _createVestingSchedule(
+        ISuperToken superToken,
+        address receiver,
+        uint32 startDate,
+        uint32 cliffDate,
+        int96 flowRate,
+        uint256 cliffAmount,
+        uint32 endDate,
+        bytes memory ctx
+    ) private returns (bytes memory newCtx) {
         newCtx = ctx;
         address sender = _getSender(ctx);
 

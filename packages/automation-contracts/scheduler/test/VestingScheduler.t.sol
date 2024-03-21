@@ -566,8 +566,9 @@ contract VestingSchedulerTests is FoundrySuperfluidTester {
         assertTrue(success, "executeCloseVesting should return true");
     }
 
-    // # Vesting Scheduler 1.1 tests
-    function testExecuteCliffAndFlowWithCliffAmountNow() public {
+    // # Vesting Scheduler 1.2 tests
+
+    function testCreateAndExecuteImmediately() public {
         uint256 aliceInitialBalance = superToken.balanceOf(alice);
         uint256 bobInitialBalance = superToken.balanceOf(bob);
 
@@ -636,5 +637,132 @@ contract VestingSchedulerTests is FoundrySuperfluidTester {
         assertEq(aliceInitialBalance - aliceFinalBalance, aliceShouldStream, "(sender) wrong final balance");
         assertEq(bobFinalBalance, bobInitialBalance + aliceShouldStream, "(receiver) wrong final balance");
         // ---
+    }
+
+    function testReverts_wip() public {
+        _setACL_AUTHORIZE_FULL_CONTROL(alice, FLOW_RATE);
+        superToken.increaseAllowance(address(vestingScheduler), type(uint256).max);
+
+        // 0 flow rate
+        vm.expectRevert(IVestingScheduler.FlowRateInvalid.selector);
+        vestingScheduler.createVestingSchedule(
+            superToken,
+            bob,
+            0,
+            uint32(block.timestamp),
+            1209600,
+            604800,
+            EMPTY_CTX
+        );
+
+        // cliff and start in history
+        vm.expectRevert(IVestingScheduler.TimeWindowInvalid.selector);
+        vestingScheduler.createVestingSchedule(
+            superToken,
+            bob,
+            1 ether,
+            uint32(block.timestamp - 1),
+            1209600,
+            0,
+            EMPTY_CTX
+        );
+
+        // overflow
+        vm.expectRevert(); // todo: the right error
+        vestingScheduler.createVestingSchedule(
+            superToken,
+            bob,
+            type(uint256).max,
+            uint32(block.timestamp),
+            1209600,
+            0,
+            EMPTY_CTX
+        );
+
+        // overflow/underflow
+        vm.expectRevert(); // todo: the right error
+        vestingScheduler.createVestingSchedule(
+            superToken,
+            bob,
+            1 ether,
+            uint32(block.timestamp),
+            type(uint32).max,
+            0,
+            EMPTY_CTX
+        );
+
+        // todo
+        // hmm, start date can be in history?
+        vestingScheduler.createVestingSchedule(
+            superToken,
+            bob,
+            1 ether,
+            uint32(block.timestamp - 1),
+            1209600,
+            604800,
+            EMPTY_CTX
+        );
+    }
+
+    function testNewFunctionScheduleCreationWithoutCliff() public {
+        _setACL_AUTHORIZE_FULL_CONTROL(alice, FLOW_RATE);
+
+        vm.startPrank(alice);
+        superToken.increaseAllowance(address(vestingScheduler), type(uint256).max);
+        vm.stopPrank();
+
+        uint32 startDate = uint32(block.timestamp);
+        uint256 totalVestedAmount = 105_840_000; // a value perfectly divisible by a week
+        uint32 vestingDuration = 1 weeks;
+        int96 expectedFlowRate = 175; // totalVestedAmount / vestingDuration
+        uint32 expectedEndDate = startDate + vestingDuration;
+
+        vm.expectEmit();
+        emit VestingScheduleCreated(superToken, alice, bob, startDate, 0, expectedFlowRate, expectedEndDate, 0);
+
+        vm.startPrank(alice);
+        vestingScheduler.createVestingSchedule(
+            superToken,
+            bob,
+            totalVestedAmount,
+            startDate,
+            vestingDuration,
+            0,
+            EMPTY_CTX
+        );
+        vm.stopPrank();
+    }
+
+    function testNewFunctionScheduleCreationWithCliff() public {
+        _setACL_AUTHORIZE_FULL_CONTROL(alice, FLOW_RATE);
+
+        vm.startPrank(alice);
+        superToken.increaseAllowance(address(vestingScheduler), type(uint256).max);
+        vm.stopPrank();
+
+        uint32 startDate = uint32(block.timestamp);
+        uint256 totalVestedAmount = 103_680_000; // a value perfectly divisible
+        uint32 vestingDuration = 1 weeks + 1 days;
+        uint32 cliffPeriod = 1 days;
+
+        int96 expectedFlowRate = 150; // (totalVestedAmount - cliffAmount) / (vestingDuration - cliffPeriod)
+        uint256 expectedCliffAmount = 12960000;
+        uint32 expectedCliffDate = startDate + cliffPeriod;
+        uint32 expectedEndDate = startDate + vestingDuration;
+
+        vm.expectEmit();
+        emit VestingScheduleCreated(superToken, alice, bob, startDate, expectedCliffDate, expectedFlowRate, expectedEndDate, expectedCliffAmount);
+
+        vm.startPrank(alice);
+        vestingScheduler.createVestingSchedule(
+            superToken,
+            bob,
+            totalVestedAmount,
+            startDate,
+            vestingDuration,
+            cliffPeriod,
+            EMPTY_CTX
+        );
+        vm.stopPrank();
     }
 }

@@ -10,7 +10,7 @@ set -eu
 # RELEASE_VERSION, MACROFWD_DEPLOYER_PK
 #
 # You can use the npm package vanity-eth to get a deployer account for a given contract address:
-# Example use: npx vanityeth -i cfa1 --contract
+# Example use: npx vanityeth -i fd01 --contract
 #
 # For optimism the gas estimation doesn't work, requires setting EST_TX_COST
 # (the value auto-detected for arbitrum should work).
@@ -23,7 +23,7 @@ source .env
 set -x
 
 network=$1
-expectedContractAddr="0xFd017DBC8aCf18B06cff9322fA6cAae2243a5c95"
+expectedContractAddr="0xfD01285b9435bc45C243E5e7F978E288B2912de6"
 deployerPk=$MACROFWD_DEPLOYER_PK
 
 tmpfile="/tmp/$(basename "$0").addr"

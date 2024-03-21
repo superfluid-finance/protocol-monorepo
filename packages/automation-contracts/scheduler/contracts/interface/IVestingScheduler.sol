@@ -63,6 +63,19 @@ interface IVestingScheduler {
      * @param flowRate The flowRate for the stream
      * @param cliffAmount The amount to be transferred at the cliff
      * @param endDate The timestamp when the stream should stop.
+     */
+    function createVestingSchedule(
+        ISuperToken superToken,
+        address receiver,
+        uint32 startDate,
+        uint32 cliffDate,
+        int96 flowRate,
+        uint256 cliffAmount,
+        uint32 endDate
+    ) external;
+
+    /**
+     * @dev See IVestingScheduler.createVestingSchedule overload for more details.
      * @param ctx Superfluid context used when batching operations. (or bytes(0) if not SF batching)
      */
     function createVestingSchedule(
@@ -83,18 +96,30 @@ interface IVestingScheduler {
      * @param superToken SuperToken to be vested
      * @param receiver Vesting receiver
      * @param totalAmount The total amount to be vested 
-     * @param startDate Timestamp when the vesting should start
-     * @param totalDuration The total duration of the vesting
+     * @param totalDuration The total duration of the vestingß
      * @param cliffPeriod The cliff period of the vesting
-     * @param ctx Superfluid context used when batching operations. (or bytes(0) if not SF batching)
+     * @param startDate Timestamp when the vesting should start
      */
-    function createVestingSchedule(
+    function createVestingScheduleFromAmountAndDuration(
         ISuperToken superToken,
         address receiver,
         uint256 totalAmount,
-        uint32 startDate,
         uint32 totalDuration,
         uint32 cliffPeriod,
+        uint32 startDate
+    ) external;
+
+    /**
+     * @dev See IVestingScheduler.createVestingScheduleFromAmountAndDuration overload for more details.
+     * @param ctx Superfluid context used when batching operations. (or bytes(0) if not SF batching)
+     */
+    function createVestingScheduleFromAmountAndDuration(
+        ISuperToken superToken,
+        address receiver,
+        uint256 totalAmount,
+        uint32 totalDuration,
+        uint32 cliffPeriod,
+        uint32 startDate,
         bytes memory ctx
     ) external returns (bytes memory newCtx);
 

@@ -50,6 +50,28 @@ contract VestingScheduler is IVestingScheduler, SuperAppBase {
         uint32 cliffDate,
         int96 flowRate,
         uint256 cliffAmount,
+        uint32 endDate
+    ) external {
+        _createVestingSchedule(
+            superToken,
+            receiver,
+            startDate,
+            cliffDate,
+            flowRate,
+            cliffAmount,
+            endDate,
+            bytes("")
+        );
+    }
+
+    /// @dev IVestingScheduler.createVestingSchedule implementation.
+    function createVestingSchedule(
+        ISuperToken superToken,
+        address receiver,
+        uint32 startDate,
+        uint32 cliffDate,
+        int96 flowRate,
+        uint256 cliffAmount,
         uint32 endDate,
         bytes memory ctx
     ) external returns (bytes memory newCtx) {
@@ -63,45 +85,6 @@ contract VestingScheduler is IVestingScheduler, SuperAppBase {
             endDate,
             ctx
         );
-    }
-
-    /// @dev IVestingScheduler.createVestingSchedule implementation.
-    function createVestingSchedule(
-        ISuperToken superToken,
-        address receiver,
-        uint256 totalAmount,
-        uint32 startDate,
-        uint32 totalDuration,
-        uint32 cliffPeriod,
-        bytes memory ctx
-    ) external returns (bytes memory newCtx) {
-        uint32 endDate = startDate + totalDuration;
-        int96 flowRate = SafeCast.toInt96(SafeCast.toInt256(totalAmount / totalDuration));
-        if (cliffPeriod == 0) {
-            newCtx = _createVestingSchedule(
-                superToken, 
-                receiver, 
-                startDate, 
-                0 /* cliffDate */, 
-                flowRate, 
-                0 /* cliffAmount */, 
-                endDate, 
-                ctx
-            );
-        } else {
-            uint32 cliffDate = startDate + cliffPeriod;
-            uint256 cliffAmount = SafeMath.mul(cliffPeriod, SafeCast.toUint256(flowRate)); // cliffPeriod * flowRate
-            newCtx = _createVestingSchedule(
-                superToken, 
-                receiver, 
-                startDate, 
-                cliffDate, 
-                flowRate, 
-                cliffAmount, 
-                endDate, 
-                ctx
-            );
-        }
     }
 
     function _createVestingSchedule(
@@ -149,6 +132,85 @@ contract VestingScheduler is IVestingScheduler, SuperAppBase {
             endDate,
             cliffAmount
         );
+    }
+
+    /// @dev IVestingScheduler.createVestingScheduleFromAmountAndDuration implementation.
+    function createVestingScheduleFromAmountAndDuration(
+        ISuperToken superToken,
+        address receiver,
+        uint256 totalAmount,
+        uint32 totalDuration,
+        uint32 cliffPeriod,
+        uint32 startDate
+    ) external {
+        _createVestingScheduleFromAmountAndDuration(
+            superToken,
+            receiver,
+            totalAmount,
+            totalDuration,
+            cliffPeriod,
+            startDate,
+            bytes("")
+        );
+    }
+
+    /// @dev IVestingScheduler.createVestingScheduleFromAmountAndDuration implementation.
+    function createVestingScheduleFromAmountAndDuration(
+        ISuperToken superToken,
+        address receiver,
+        uint256 totalAmount,
+        uint32 totalDuration,
+        uint32 cliffPeriod,
+        uint32 startDate,
+        bytes memory ctx
+    ) external returns (bytes memory newCtx) {
+        newCtx = _createVestingScheduleFromAmountAndDuration(
+            superToken,
+            receiver,
+            totalAmount,
+            totalDuration,
+            cliffPeriod,
+            startDate,
+            ctx
+        );
+    }
+
+    function _createVestingScheduleFromAmountAndDuration(
+        ISuperToken superToken,
+        address receiver,
+        uint256 totalAmount,
+        uint32 totalDuration,
+        uint32 cliffPeriod,
+        uint32 startDate,
+        bytes memory ctx
+    ) private returns (bytes memory newCtx) {
+        uint32 endDate = startDate + totalDuration;
+        int96 flowRate = SafeCast.toInt96(SafeCast.toInt256(totalAmount / totalDuration));
+        if (cliffPeriod == 0) {
+            newCtx = _createVestingSchedule(
+                superToken, 
+                receiver, 
+                startDate, 
+                0 /* cliffDate */, 
+                flowRate, 
+                0 /* cliffAmount */, 
+                endDate, 
+                ctx
+            );
+        } else {
+            uint32 cliffDate = startDate + cliffPeriod;
+            uint256 cliffAmount = SafeMath.mul(cliffPeriod, SafeCast.toUint256(flowRate)); // cliffPeriod * flowRate
+            newCtx = _createVestingSchedule(
+                superToken, 
+                receiver, 
+                startDate, 
+                cliffDate, 
+                flowRate, 
+                cliffAmount, 
+                endDate, 
+                ctx
+            );
+        }
     }
 
     function updateVestingSchedule(

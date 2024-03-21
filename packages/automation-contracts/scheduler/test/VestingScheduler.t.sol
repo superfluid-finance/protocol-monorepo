@@ -645,66 +645,66 @@ contract VestingSchedulerTests is FoundrySuperfluidTester {
 
         // 0 flow rate
         vm.expectRevert(IVestingScheduler.FlowRateInvalid.selector);
-        vestingScheduler.createVestingSchedule(
+        vestingScheduler.createVestingScheduleFromAmountAndDuration(
             superToken,
             bob,
             0,
-            uint32(block.timestamp),
             1209600,
             604800,
+            uint32(block.timestamp),
             EMPTY_CTX
         );
 
         // cliff and start in history
         vm.expectRevert(IVestingScheduler.TimeWindowInvalid.selector);
-        vestingScheduler.createVestingSchedule(
+        vestingScheduler.createVestingScheduleFromAmountAndDuration(
             superToken,
             bob,
             1 ether,
-            uint32(block.timestamp - 1),
             1209600,
             0,
+            uint32(block.timestamp - 1),
             EMPTY_CTX
         );
 
         // overflow
         vm.expectRevert(); // todo: the right error
-        vestingScheduler.createVestingSchedule(
+        vestingScheduler.createVestingScheduleFromAmountAndDuration(
             superToken,
             bob,
             type(uint256).max,
-            uint32(block.timestamp),
             1209600,
             0,
+            uint32(block.timestamp),
             EMPTY_CTX
         );
 
         // overflow/underflow
         vm.expectRevert(); // todo: the right error
-        vestingScheduler.createVestingSchedule(
+        vestingScheduler.createVestingScheduleFromAmountAndDuration(
             superToken,
             bob,
             1 ether,
-            uint32(block.timestamp),
             type(uint32).max,
             0,
+            uint32(block.timestamp),
             EMPTY_CTX
         );
 
         // todo
         // hmm, start date can be in history?
-        vestingScheduler.createVestingSchedule(
+        vestingScheduler.createVestingScheduleFromAmountAndDuration(
             superToken,
             bob,
             1 ether,
-            uint32(block.timestamp - 1),
             1209600,
             604800,
+            uint32(block.timestamp - 1),
             EMPTY_CTX
         );
     }
 
-    function testNewFunctionScheduleCreationWithoutCliff() public {
+    function testNewFunctionScheduleCreationWithoutCliff(uint8 randomizer) public {
         _setACL_AUTHORIZE_FULL_CONTROL(alice, FLOW_RATE);
 
         vm.startPrank(alice);
@@ -721,19 +721,31 @@ contract VestingSchedulerTests is FoundrySuperfluidTester {
         emit VestingScheduleCreated(superToken, alice, bob, startDate, 0, expectedFlowRate, expectedEndDate, 0);
 
         vm.startPrank(alice);
-        vestingScheduler.createVestingSchedule(
-            superToken,
-            bob,
-            totalVestedAmount,
-            startDate,
-            vestingDuration,
-            0,
-            EMPTY_CTX
-        );
+        bool useCtx = randomizer % 2 == 0;
+        if (useCtx) {
+            vestingScheduler.createVestingScheduleFromAmountAndDuration(
+                superToken,
+                bob,
+                totalVestedAmount,
+                vestingDuration,
+                0,
+                startDate,
+                EMPTY_CTX
+            );
+        } else {
+            vestingScheduler.createVestingScheduleFromAmountAndDuration(
+                superToken,
+                bob,
+                totalVestedAmount,
+                vestingDuration,
+                0,
+                startDate
+            );
+        }
         vm.stopPrank();
     }
 
-    function testNewFunctionScheduleCreationWithCliff() public {
+    function testNewFunctionScheduleCreationWithCliff(uint8 randomizer) public {
         _setACL_AUTHORIZE_FULL_CONTROL(alice, FLOW_RATE);
 
         vm.startPrank(alice);
@@ -754,15 +766,27 @@ contract VestingSchedulerTests is FoundrySuperfluidTester {
         emit VestingScheduleCreated(superToken, alice, bob, startDate, expectedCliffDate, expectedFlowRate, expectedEndDate, expectedCliffAmount);
 
         vm.startPrank(alice);
-        vestingScheduler.createVestingSchedule(
-            superToken,
-            bob,
-            totalVestedAmount,
-            startDate,
-            vestingDuration,
-            cliffPeriod,
-            EMPTY_CTX
-        );
+        bool useCtx = randomizer % 2 == 0;
+        if (useCtx) {
+            vestingScheduler.createVestingScheduleFromAmountAndDuration(
+                superToken,
+                bob,
+                totalVestedAmount,
+                vestingDuration,
+                cliffPeriod,
+                startDate,
+                EMPTY_CTX
+            );
+        } else {
+            vestingScheduler.createVestingScheduleFromAmountAndDuration(
+                superToken,
+                bob,
+                totalVestedAmount,
+                vestingDuration,
+                cliffPeriod,
+                startDate
+            );
+        }
         vm.stopPrank();
     }
 }

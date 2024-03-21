@@ -9,6 +9,7 @@ import { FoundrySuperfluidTester, SuperTokenV1Library } from "../FoundrySuperflu
 
 using SuperTokenV1Library for ISuperToken;
 
+// not overriding IUserDefinedMacro here in order to avoid the compiler enforcing the function to be view-only.
 contract NaugthyMacro {
     int naughtyCounter = -1;
 
@@ -26,6 +27,8 @@ contract NaugthyMacro {
         }
         return new ISuperfluid.Operation[](0);
     }
+
+    function postCheck() external view { }
 }
 
 contract GoodMacro is IUserDefinedMacro {
@@ -55,6 +58,13 @@ contract GoodMacro is IUserDefinedMacro {
                 data: abi.encode(callData, new bytes(0))
             });
         }
+    }
+
+    function postCheck() external view { }
+
+    // recommended view function for parameter encoding
+    function getParams(ISuperToken token, int96 flowRate, address[] calldata recipients) external pure returns (bytes memory) {
+        return abi.encode(token, flowRate, recipients);
     }
 }
 
@@ -86,6 +96,20 @@ contract MultiFlowDeleteMacro is IUserDefinedMacro {
                 data: abi.encode(callData, new bytes(0))
             });
         }
+    }
+
+    function postCheck() external view { }
+}
+
+contract MacroWithRevertingPostCheck is IUserDefinedMacro {
+    function buildBatchOperations(ISuperfluid, bytes memory, address /*msgSender*/) external override pure
+        returns (ISuperfluid.Operation[] memory /*operation*/)
+    {
+        return new ISuperfluid.Operation[](0);
+    }
+
+    function postCheck() external pure {
+        revert("I'm a bad macro");
     }
 }
 
@@ -134,6 +158,8 @@ contract StatefulMacro is IUserDefinedMacro {
             });
         }
     }
+
+    function postCheck() external view { }
 }
 
 contract MacroForwarderTest is FoundrySuperfluidTester {
@@ -176,6 +202,20 @@ contract MacroForwarderTest is FoundrySuperfluidTester {
         vm.stopPrank();
     }
 
+    function testGoodMacroUsingGetParams() external {
+        GoodMacro m = new GoodMacro();
+        address[] memory recipients = new address[](2);
+        recipients[0] = bob;
+        recipients[1] = carol;
+        vm.startPrank(admin);
+        // NOTE! This is different from abi.encode(superToken, int96(42), [bob, carol]),
+        //       which is a fixed array: address[2].
+        macroForwarder.runMacro(m, m.getParams(superToken, int96(42), recipients));
+        assertEq(sf.cfa.getNetFlow(superToken, bob), 42);
+        assertEq(sf.cfa.getNetFlow(superToken, carol), 42);
+        vm.stopPrank();
+    }
+
     function testStatefulMacro() external {
         address[] memory recipients = new address[](2);
         recipients[0] = bob;
@@ -210,5 +250,11 @@ contract MacroForwarderTest is FoundrySuperfluidTester {
             assertEq(sf.cfa.getNetFlow(superToken, recipients[i]), 0);
         }
         vm.stopPrank();
+    }
+
+    function testRevertingPostCheck() external {
+        MacroWithRevertingPostCheck m = new MacroWithRevertingPostCheck();
+        vm.expectRevert();
+        macroForwarder.runMacro(m, new bytes(0));
     }
 }

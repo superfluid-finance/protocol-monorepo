@@ -33,6 +33,7 @@ contract MacroForwarder is ForwarderBase {
     function runMacro(IUserDefinedMacro m, bytes calldata params) external returns (bool)
     {
         ISuperfluid.Operation[] memory operations = buildBatchOperations(m, params);
+        m.postCheck();
         return _forwardBatchCall(operations);
     }
 }

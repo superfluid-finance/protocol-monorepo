@@ -165,6 +165,83 @@ contract VestingScheduler is IVestingScheduler, SuperAppBase {
         );
     }
 
+    /// @dev IVestingScheduler.createAndExecuteVestingScheduleFromAmountAndDuration.
+    function createAndExecuteVestingScheduleFromAmountAndDuration(
+        ISuperToken superToken,
+        address receiver,
+        uint256 totalAmount,
+        uint32 totalDuration,
+        uint32 cliffPeriod,
+        bytes memory ctx
+    ) external returns (bytes memory newCtx) {
+        newCtx = _createAndExecuteVestingScheduleFromAmountAndDuration(
+            superToken,
+            receiver,
+            totalAmount,
+            totalDuration,
+            cliffPeriod,
+            ctx
+        );
+    }
+
+    /// @dev IVestingScheduler.createAndExecuteVestingScheduleFromAmountAndDuration.
+    function createAndExecuteVestingScheduleFromAmountAndDuration(
+        ISuperToken superToken,
+        address receiver,
+        uint256 totalAmount,
+        uint32 totalDuration,
+        uint32 cliffPeriod
+    ) external {
+        _createAndExecuteVestingScheduleFromAmountAndDuration(
+            superToken,
+            receiver,
+            totalAmount,
+            totalDuration,
+            cliffPeriod,
+            bytes("")
+        );
+    }
+
+    /// @dev IVestingScheduler.createAndExecuteVestingScheduleFromAmountAndDuration.
+    function createAndExecuteVestingScheduleFromAmountAndDuration(
+        ISuperToken superToken,
+        address receiver,
+        uint256 totalAmount,
+        uint32 totalDuration
+    ) external {
+        _createAndExecuteVestingScheduleFromAmountAndDuration(
+            superToken,
+            receiver,
+            totalAmount,
+            totalDuration,
+            0,
+            bytes("")
+        );
+    }
+
+    /// @dev IVestingScheduler.createAndExecuteVestingScheduleFromAmountAndDuration.
+    function _createAndExecuteVestingScheduleFromAmountAndDuration(
+        ISuperToken superToken,
+        address receiver,
+        uint256 totalAmount,
+        uint32 totalDuration,
+        uint32 cliffPeriod,
+        bytes memory ctx
+    ) private returns (bytes memory newCtx) {
+        newCtx = _createVestingScheduleFromAmountAndDuration(
+            superToken,
+            receiver,
+            totalAmount,
+            totalDuration,
+            cliffPeriod,
+            uint32(block.timestamp),
+            ctx
+        );
+
+        address sender = _getSender(ctx);
+        assert(_executeCliffAndFlow(superToken, sender, receiver));
+    }
+
     function _createVestingScheduleFromAmountAndDuration(
         ISuperToken superToken,
         address receiver,
@@ -300,6 +377,15 @@ contract VestingScheduler is IVestingScheduler, SuperAppBase {
         address sender,
         address receiver
     ) external returns (bool success) {
+        return _executeCliffAndFlow(superToken, sender, receiver);
+    }
+
+    /// @dev IVestingScheduler.executeCliffAndFlow implementation.
+    function _executeCliffAndFlow(
+        ISuperToken superToken,
+        address sender,
+        address receiver
+    ) private returns (bool success) {
         bytes32 configHash = keccak256(abi.encodePacked(superToken, sender, receiver));
         VestingSchedule memory schedule = vestingSchedules[configHash];
 
@@ -338,6 +424,7 @@ contract VestingScheduler is IVestingScheduler, SuperAppBase {
 
         return true;
     }
+
 
     /// @dev IVestingScheduler.executeEndVesting implementation.
     function executeEndVesting(

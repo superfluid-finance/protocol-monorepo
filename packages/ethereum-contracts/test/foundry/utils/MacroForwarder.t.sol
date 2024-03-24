@@ -28,7 +28,7 @@ contract NaugthyMacro {
         return new ISuperfluid.Operation[](0);
     }
 
-    function postCheck() external view { }
+    function postCheck(ISuperfluid host, bytes memory params, address msgSender) external view { }
 }
 
 contract GoodMacro is IUserDefinedMacro {
@@ -60,7 +60,7 @@ contract GoodMacro is IUserDefinedMacro {
         }
     }
 
-    function postCheck() external view { }
+    function postCheck(ISuperfluid host, bytes memory params, address msgSender) external view { }
 
     // recommended view function for parameter encoding
     function getParams(ISuperToken token, int96 flowRate, address[] calldata recipients) external pure returns (bytes memory) {
@@ -98,7 +98,7 @@ contract MultiFlowDeleteMacro is IUserDefinedMacro {
         }
     }
 
-    function postCheck() external view { }
+    function postCheck(ISuperfluid host, bytes memory params, address msgSender) external view { }
 }
 
 contract MacroWithRevertingPostCheck is IUserDefinedMacro {
@@ -108,7 +108,7 @@ contract MacroWithRevertingPostCheck is IUserDefinedMacro {
         return new ISuperfluid.Operation[](0);
     }
 
-    function postCheck() external pure {
+    function postCheck(ISuperfluid host, bytes memory params, address msgSender) external pure {
         revert("I'm a bad macro");
     }
 }
@@ -159,7 +159,7 @@ contract StatefulMacro is IUserDefinedMacro {
         }
     }
 
-    function postCheck() external view { }
+    function postCheck(ISuperfluid host, bytes memory params, address msgSender) external view { }
 }
 
 contract MacroForwarderTest is FoundrySuperfluidTester {

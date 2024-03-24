@@ -24,8 +24,11 @@ interface IUserDefinedMacro {
      * It allows to do arbitrary checks based on the state after execution,
      * and to revert if the result is not as expected.
      * Can be an empty implementation if no check is needed.
+     * @param  host       The host contract set for the executing MacroForwarder.
+     * @param  params     The encoded parameters as provided to `MacroForwarder.runMacro()`
+     * @param  msgSender  The msg.sender of the call to the MacroForwarder.
      */
-    function postCheck() external view;
+    function postCheck(ISuperfluid host, bytes memory params, address msgSender) external view;
 
     /*
      * Additional to the required interface, we recommend to implement the following function:

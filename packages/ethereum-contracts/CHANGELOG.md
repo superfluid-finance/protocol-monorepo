@@ -3,24 +3,38 @@ All notable changes to the ethereum-contracts will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## [v1.9.1] - 2024-03-19
 
 ### Breaking
 
-- The abstract base contract`SuperAppBaseFlow` was renamed to `CFASuperAppBase`.
-Initialization is now split between constructor and a method `_initialize`, with self-registration
-made optional.
-This allows the contract to be used with a SuperApp factory pattern (disable self-registration on networks with permissioned SuperApps) and for logic contracts in the context of the proxy pattern.
+- The abstract base contract`SuperAppBaseFlow` was renamed to `CFASuperAppBase` and doesn't self-register in the constructor anymore.
+This allows the contract to be used with a SuperApp factory pattern and by logic contracts in the context of the proxy pattern.
 Note: this will NOT break any deployed contracts, only affects undeployed Super Apps in case the ethereum-contracts dependency is updated.
+- `UniversalIndexData`, `PoolMemberData` and `FlowDistributionData` structs moved from `IGeneralDistributionAgreementV1.sol` to `GeneralDistributionAgreementV1.sol`
+- `PoolIndexData`, `MemberData` structs moved from `ISuperfluidPool.sol` to `SuperfluidPool.sol`
 
 ### Added
 
 - New utility: MacroForwarder - a trusted forwarder extensible with permission-less macro contracts.
+- New protocol contract view functions:
+  - `gdaV1.getFlow`
+  - `gdaV1.getAccountFlowInfo`
+  - `pool.poolOperatorGetIndex`
+  - `pool.getTotalAmountReceivedByMember`
+- New SuperTokenV1Library functions:
+  - `getGDAFlowInfo`
+  - `getGDANetFlowInfo`
+  - `getPoolAdjustmentFlowRate`
+  - `getTotalAmountReceivedByMember`
 
 ### Changed
 
 - bump solc to 0.8.23
+- `superTokenV1Library.getNetFlowInfo` sums CFA and GDA net flow info
 
+### Fixes
+
+- FlowNFT hooks can't revert with outofgas anymore
 
 ## [v1.9.0] - 2024-01-09
 

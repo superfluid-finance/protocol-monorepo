@@ -2,70 +2,6 @@
 export default
 [
     {
-        "name": "eth-goerli",
-        "isTestnet": true,
-        "networkId": 5,
-        "chainId": 5,
-        "sfId": 101,
-        "shortName": "goerli",
-        "uppercaseName": "ETH_GOERLI",
-        "humanReadableName": "Goerli",
-        "nativeTokenSymbol": "ETH",
-        "nativeTokenWrapper": "0x5943f705abb6834cad767e6e4bb258bc48d9c947",
-        "duneName": "goerli",
-        "contractsV1": {
-            "resolver": "0x071077b24943D4DC09a6A57B8aFfE2BdE9bD4B89",
-            "host": "0x22ff293e14F1EC3A09B137e9e06084AFd63adDF9",
-            "governance": "0x3a648764a6d66440ca096343937c711a7ac1b1e9",
-            "cfaV1": "0xEd6BcbF6907D4feEEe8a8875543249bEa9D308E8",
-            "cfaV1Forwarder": "0xcfA132E353cB4E398080B9700609bb008eceB125",
-            "idaV1": "0xfDdcdac21D64B639546f3Ce2868C7EF06036990c",
-            "gdaV1": "0x3dB8Abd8B696F6c4150212A85961f954825Dd4B9",
-            "gdaV1Forwarder": "0x6DA13Bde224A05a288748d857b9e7DDEffd1dE08",
-            "superTokenFactory": "0x94f26B4c8AD12B18c12f38E878618f7664bdcCE2",
-            "constantOutflowNFT": "0xB18cbFeA12b5CB2626C74c94920dB1B37Ae91506",
-            "constantInflowNFT": "0xF07df8b66ed80399B1E00981D61aD34EB4293032",
-            "superfluidLoader": "0x08C6Ad85c040076dD3e33Bbd963C4c37DBF6fCc4",
-            "toga": "0xa54FC15FC75693447d70a57262F37a70B614721b",
-            "flowScheduler": "0xf428308b426D7cD7Ad8eBE549d750f31C8E060Ca",
-            "vestingScheduler": "0xF9240F930d847F70ad900aBEE8949F25649Bf24a",
-            "autowrap": {
-                "manager": "0x0B82D14E9616ca4d260E77454834AdCf5887595F",
-                "wrapStrategy": "0xea49af829d3e28d3ec49e0e0a0ba1e7860a56f60"
-            },
-            "existentialNFTCloneFactory": "0x3e5e8449477F80a3Dc0bA394882AeAB300c7F807"
-        },
-        "startBlockV1": 3550000,
-        "logsQueryRange": 10000,
-        "explorer": "https://goerli.etherscan.io",
-        "subgraphV1": {
-            "cliName": "goerli",
-            "name": "protocol-v1-goerli",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-goerli"
-        },
-        "subgraphVesting": {
-            "name": "vesting-v1-eth-goerli",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/vesting-v1-eth-goerli"
-        },
-        "subgraphFlowScheduler": {
-            "name": "scheduling-v1-eth-goerli",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/scheduling-v1-eth-goerli"
-        },
-        "subgraphAutoWrap": {
-            "name": "auto-wrap-v1-eth-goerli",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/auto-wrap-v1-eth-goerli"
-        },
-        "publicRPCs": [
-            "https://rpc.ankr.com/eth_goerli",
-            "https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161"
-        ],
-        "trustedForwarders": [
-            "0xE041608922d06a4F26C0d4c27d8bCD01daf1f792",
-            "0xb539068872230f20456CF38EC52EF2f91AF4AE49",
-            "0xd8253782c45a12053594b9deB72d8e8aB2Fca54c"
-        ]
-    },
-    {
         "name": "polygon-mumbai",
         "isTestnet": true,
         "networkId": 80001,
@@ -125,93 +61,6 @@ export default
         "trustedForwarders": [
             "0x9399bb24dbb5c4b782c70c2969f58716ebbd6a3b",
             "0x69015912AA33720b842dCD6aC059Ed623F28d9f7",
-            "0xb539068872230f20456CF38EC52EF2f91AF4AE49",
-            "0xd8253782c45a12053594b9deB72d8e8aB2Fca54c"
-        ]
-    },
-    {
-        "name": "optimism-goerli",
-        "isDeprecated": true,
-        "isTestnet": true,
-        "networkId": 420,
-        "chainId": 420,
-        "sfId": 103,
-        "shortName": "opgoerli",
-        "uppercaseName": "OPTIMISM_GOERLI",
-        "humanReadableName": "Optimism Goerli",
-        "nativeTokenSymbol": "ETH",
-        "nativeTokenWrapper": "0xE01F8743677Da897F4e7De9073b57Bf034FC2433",
-        "contractsV1": {
-            "resolver": "0x21d4E9fbB9DB742E6ef4f29d189a7C18B0b59136",
-            "host": "0xE40983C2476032A0915600b9472B3141aA5B5Ba9",
-            "cfaV1": "0xff48668fa670A85e55A7a822b352d5ccF3E7b18C",
-            "cfaV1Forwarder": "0xcfA132E353cB4E398080B9700609bb008eceB125",
-            "idaV1": "0x96215257F2FcbB00135578f766c0449d239bd92F",
-            "gdaV1": "0xe87F46A15C410F151309Bf7516e130087Fc6a5E5",
-            "gdaV1Forwarder": "0x6DA13Bde224A05a288748d857b9e7DDEffd1dE08",
-            "superTokenFactory": "0xfafe31cf998Df4e5D8310B03EBa8fb5bF327Eaf5",
-            "constantOutflowNFT": "0xDF874BA132D8C68FEb5De513790f7612Fe20dDbd",
-            "constantInflowNFT": "0xf88dd7208438Fdc5Ad05857eA701b7b51cdae0a9",
-            "superfluidLoader": "0x5Bb5908dcCC9Bb0fC39a78CfDf9e47B4C08E9521",
-            "existentialNFTCloneFactory": "0xFCb633f4ff90241391aD92E4678eC2a11a94a990"
-        },
-        "startBlockV1": 340000,
-        "logsQueryRange": 50000,
-        "explorer": "https://goerli-optimism.etherscan.io",
-        "subgraphV1": {
-            "cliName": "optimism-goerli",
-            "name": "protocol-v1-optimism-goerli",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-optimism-goerli"
-        },
-        "publicRPCs": [
-            "https://goerli.optimism.io",
-            "https://opt-goerli.g.alchemy.com/v2/demo"
-        ],
-        "trustedForwarders": [
-            "0x9C73373C70F23920EA54F7883dCB1F85b162Df40",
-            "0xb539068872230f20456CF38EC52EF2f91AF4AE49",
-            "0xd8253782c45a12053594b9deB72d8e8aB2Fca54c"
-        ]
-    },
-    {
-        "name": "arbitrum-goerli",
-        "isDeprecated": true,
-        "isTestnet": true,
-        "networkId": 421613,
-        "chainId": 421613,
-        "sfId": 104,
-        "shortName": "arbgoerli",
-        "uppercaseName": "ARBITRUM_GOERLI",
-        "humanReadableName": "Arbitrum Goerli",
-        "nativeTokenSymbol": "ETH",
-        "nativeTokenWrapper": "0xE01F8743677Da897F4e7De9073b57Bf034FC2433",
-        "contractsV1": {
-            "resolver": "0x21d4E9fbB9DB742E6ef4f29d189a7C18B0b59136",
-            "host": "0xE40983C2476032A0915600b9472B3141aA5B5Ba9",
-            "cfaV1": "0xff48668fa670A85e55A7a822b352d5ccF3E7b18C",
-            "cfaV1Forwarder": "0xcfA132E353cB4E398080B9700609bb008eceB125",
-            "idaV1": "0x96215257F2FcbB00135578f766c0449d239bd92F",
-            "gdaV1": "0xe87F46A15C410F151309Bf7516e130087Fc6a5E5",
-            "gdaV1Forwarder": "0x6DA13Bde224A05a288748d857b9e7DDEffd1dE08",
-            "superTokenFactory": "0xfafe31cf998Df4e5D8310B03EBa8fb5bF327Eaf5",
-            "constantOutflowNFT": "0xDF874BA132D8C68FEb5De513790f7612Fe20dDbd",
-            "constantInflowNFT": "0xf88dd7208438Fdc5Ad05857eA701b7b51cdae0a9",
-            "superfluidLoader": "0x5Bb5908dcCC9Bb0fC39a78CfDf9e47B4C08E9521",
-            "existentialNFTCloneFactory": "0x22f391AB6755F0A8986AFD543289C43701beaCAa"
-        },
-        "startBlockV1": 93000,
-        "logsQueryRange": 50000,
-        "explorer": "https://goerli.arbiscan.io",
-        "subgraphV1": {
-            "cliName": "arbitrum-goerli",
-            "name": "protocol-v1-arbitrum-goerli",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-arbitrum-goerli"
-        },
-        "publicRPCs": [
-            "https://goerli-rollup.arbitrum.io/rpc",
-            "https://arb-goerli.g.alchemy.com/v2/demo"
-        ],
-        "trustedForwarders": [
             "0xb539068872230f20456CF38EC52EF2f91AF4AE49",
             "0xd8253782c45a12053594b9deB72d8e8aB2Fca54c"
         ]
@@ -302,84 +151,6 @@ export default
         ]
     },
     {
-        "name": "base-goerli",
-        "isDeprecated": true,
-        "isTestnet": true,
-        "networkId": 84531,
-        "chainId": 84531,
-        "sfId": 107,
-        "shortName": "bgoerli",
-        "uppercaseName": "BASE_GOERLI",
-        "humanReadableName": "Base Goerli",
-        "nativeTokenSymbol": "ETH",
-        "nativeTokenWrapper": "0x7fFCE315B2014546bA461d54eDed7AAc70DF4f53",
-        "contractsV1": {
-            "resolver": "0x598D5dB9902cbBd6e8Ee9CDb3A231377cdA2f018",
-            "host": "0x507c3a7C6Ccc253884A2e3a3ee2A211cC7E796a6",
-            "cfaV1": "0x4C476F2Fb27272680F2f6f2592E94d9e704691bC",
-            "cfaV1Forwarder": "0xcfA132E353cB4E398080B9700609bb008eceB125",
-            "idaV1": "0xaa4FCc799B8857FA87b2945Dc6572D5d76b35485",
-            "superTokenFactory": "0x1015BE31D7711D95d2c3444708FB53cC851ba856",
-            "constantOutflowNFT": "0x4E89088Cd14064f38E5B2F309cFaB9C864F9a8e6",
-            "constantInflowNFT": "0xda6db863cb2EE39b196edB8159c38A1ed5c55344",
-            "superfluidLoader": "0x15F0Ca26781C3852f8166eD2ebce5D18265cceb7",
-            "existentialNFTCloneFactory": "0x42B332F56BCD15F0D7cd523E5eC26Cd0734621eD"
-        },
-        "startBlockV1": 5249500,
-        "logsQueryRange": 10000,
-        "explorer": "https://goerli.basescan.org/",
-        "subgraphV1": {
-            "cliName": "base-testnet",
-            "name": "protocol-v1-base-goerli"
-        },
-        "publicRPCs": [
-            "https://goerli.base.org",
-            "https://base-goerli.public.blastapi.io"
-        ],
-        "trustedForwarders": [
-            "0xb539068872230f20456CF38EC52EF2f91AF4AE49",
-            "0xd8253782c45a12053594b9deB72d8e8aB2Fca54c"
-        ]
-    },
-    {
-        "name": "polygon-zkevm-testnet",
-        "isTestnet": true,
-        "networkId": 1442,
-        "chainId": 1442,
-        "sfId": 108,
-        "shortName": "pzkevmtest",
-        "uppercaseName": "POLYGON_ZKEVM_TESTNET",
-        "humanReadableName": "Polygon zkEVM Testnet",
-        "nativeTokenSymbol": "ETH",
-        "nativeTokenWrapper": "0x6345Aa6cec42a85160CF436810F97661e28c1876",
-        "contractsV1": {
-            "resolver": "0x642332562BC60a4Bd9681E7bb1588f7456A497aC",
-            "host": "0xe64f81d5dDdA1c7172e5C6d964E8ef1BD82D8704",
-            "cfaV1": "0x1EAa5ceA064aab2692AF257FB31f5291fdA3Cdee",
-            "cfaV1Forwarder": "0xcfA132E353cB4E398080B9700609bb008eceB125",
-            "idaV1": "0xBf22019a4A4430bA67D3B0c8B4d5Edc48F913301",
-            "gdaV1": "0x11C3c89701E6b0BA7576543dBa0c81Bd74c53e13",
-            "gdaV1Forwarder": "0x6DA13Bde224A05a288748d857b9e7DDEffd1dE08",
-            "superTokenFactory": "0x0F3B163623F05b2BfF42956f7C7bd31456bd83a2",
-            "constantOutflowNFT": "0xDBD6f113E46A99D7BF95edfa47390c0c8127E922",
-            "constantInflowNFT": "0xcb05535bd212eCFC4B7b9db81d6C2C768b726776",
-            "superfluidLoader": "0x712A3edF1fb9070695BF08Adf82C289fB1972E78",
-            "existentialNFTCloneFactory": "0x70bbB7a057A13070dF11d533e8f299357D778637"
-        },
-        "startBlockV1": 726000,
-        "logsQueryRange": 20000,
-        "explorer": "https://testnet-zkevm.polygonscan.org/",
-        "subgraphV1": {
-            "cliName": "polygon-zkevm-testnet",
-            "name": "protocol-v1-polygon-zkevm-testnet"
-        },
-        "publicRPCs": ["https://rpc.public.zkevm-test.net"],
-        "trustedForwarders": [
-            "0xb539068872230f20456CF38EC52EF2f91AF4AE49",
-            "0xd8253782c45a12053594b9deB72d8e8aB2Fca54c"
-        ]
-    },
-    {
         "name": "optimism-sepolia",
         "isTestnet": true,
         "networkId": 11155420,
@@ -445,8 +216,7 @@ export default
         "explorer": "https://sepolia.scrollscan.com/",
         "subgraphV1": {
             "cliName": "scroll-sepolia",
-            "name": "protocol-v1-scroll-sepolia",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-scroll-sepolia"
+            "name": "protocol-v1-scroll-sepolia"
         },
         "publicRPCs": ["https://sepolia-rpc.scroll.io"]
     },

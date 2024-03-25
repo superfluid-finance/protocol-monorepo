@@ -2206,8 +2206,9 @@ type Token @entity {
     underlyingToken: Token
 
     """
+    If `governanceConfig.id` is the zero address, the token uses the default governance config.
     """
-    governanceConfig: TokenGovernanceConfig
+    governanceConfig: TokenGovernanceConfig!
 }
 
 type ResolverEntry @entity {

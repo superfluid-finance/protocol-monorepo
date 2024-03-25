@@ -206,9 +206,11 @@ export function getOrInitTokenGovernanceConfig(
 
             governanceConfig.save();
 
-            const superToken = Token.load(superTokenAddress.toHexString())!;
-            superToken.governanceConfig = governanceConfig.id;
-            superToken.save();
+            const superToken = Token.load(superTokenAddress.toHexString());
+            if (superToken) {
+                superToken.governanceConfig = governanceConfig.id;
+                superToken.save();
+            }
         }
         return governanceConfig;
     }

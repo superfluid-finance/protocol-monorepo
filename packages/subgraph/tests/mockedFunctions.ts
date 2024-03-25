@@ -95,7 +95,7 @@ export function mockedHandleFlowUpdatedRPCCalls(
     // getOrInitStream(event) => getOrInitAccount(receiver) => host.try_getAppManifest(receiver)
     mockedGetAppManifest(receiver, false, false, BIG_INT_ZERO);
 
-    // [START] getOrInitStream(event) => getOrInitSuperToken(token, block) => handleTokenRPCCalls(token, resolverAddress)
+    // [START] getOrInitStream(event) => getOrInitSuperToken(token, block) => handleTokenRPCCalls(token)
     mockedHandleSuperTokenInitRPCCalls(
         superToken,
         decimals,
@@ -103,7 +103,7 @@ export function mockedHandleFlowUpdatedRPCCalls(
         tokenName,
         tokenSymbol
     );
-    // [END] getOrInitStream(event) => getOrInitSuperToken(token, block) => handleTokenRPCCalls(token, resolverAddress)
+    // [END] getOrInitStream(event) => getOrInitSuperToken(token, block) => handleTokenRPCCalls(token)
 
     // updateATSStreamedAndBalanceUntilUpdatedAt => updateATSBalanceAndUpdatedAt => try_realtimeBalanceOf(sender)
     mockedRealtimeBalanceOf(

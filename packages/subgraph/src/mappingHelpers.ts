@@ -36,6 +36,7 @@ import {
     getActiveStreamsDelta,
     getClosedStreamsDelta,
     MAX_UINT256,
+    getIsTokenListed,
 } from "./utils";
 import { SuperToken as SuperTokenTemplate } from "../generated/templates";
 import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
@@ -117,8 +118,8 @@ export function getOrInitSuperToken(
             nativeAssetSuperTokenAddress
         );
 
-        token = handleTokenRPCCalls(token, resolverAddress);
-        token.isListed = false;
+        token = handleTokenRPCCalls(token);
+        token.isListed = getIsTokenListed(token, resolverAddress);
         const underlyingAddress = token.underlyingAddress;
         token.underlyingToken = underlyingAddress.toHexString();
 
@@ -146,12 +147,6 @@ export function getOrInitSuperToken(
         }
         return token as Token;
     }
-
-    // @note - this is currently being called every single time to handle list/unlist of tokens
-    // because we don't have the Resolver Set event on some networks
-    // We can remove this once we have migrated data to a new resolver which emits this event on
-    // all networks.
-    token = handleTokenRPCCalls(token, resolverAddress);
 
     token.save();
 
@@ -233,7 +228,7 @@ export function getOrInitToken(
     token.isNativeAssetSuperToken = false;
     token.isListed = false;
 
-    token = handleTokenRPCCalls(token, resolverAddress);
+    token = handleTokenRPCCalls(token);
     token.save();
 }
 

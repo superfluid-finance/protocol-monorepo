@@ -1,11 +1,12 @@
 import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
 import { createMockedFunction } from "matchstick-as/assembly/index";
 import { FlowUpdated } from "../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
-import { BIG_INT_ZERO } from "../src/utils";
+import { BIG_INT_ZERO, ZERO_ADDRESS } from "../src/utils";
 import {
     FAKE_INITIAL_BALANCE,
     FAKE_SUPER_TOKEN_TOTAL_SUPPLY,
     hostAddress,
+    resolverAddress,
 } from "./constants";
 import {
     getETHAddress,
@@ -45,6 +46,8 @@ export function mockedHandleSuperTokenInitRPCCalls(
     // token.try_decimals()
     mockedTokenDecimals(superToken, decimals);
     // [END] getTokenInfoAndReturn
+
+    mockedResolverGet(resolverAddress, "supertokens.v1." + tokenSymbol, ZERO_ADDRESS.toHexString());
 
     // updateTotalSupplyForNativeSuperToken(token, tokenStatistic, tokenAddress)
     mockedTokenTotalSupply(superToken, FAKE_SUPER_TOKEN_TOTAL_SUPPLY);
@@ -104,6 +107,8 @@ export function mockedHandleFlowUpdatedRPCCalls(
         tokenSymbol
     );
     // [END] getOrInitStream(event) => getOrInitSuperToken(token, block) => handleTokenRPCCalls(token)
+
+    mockedResolverGet(resolverAddress, "supertokens.v1." + tokenSymbol, ZERO_ADDRESS.toHexString());
 
     // updateATSStreamedAndBalanceUntilUpdatedAt => updateATSBalanceAndUpdatedAt => try_realtimeBalanceOf(sender)
     mockedRealtimeBalanceOf(

@@ -384,3 +384,19 @@ export function mockedApprove(
         ])
         .returns([getETHUnsignedBigInt(expectedValue)]);
 }
+
+export function mockedAppManifestAndRealtimeBalanceOf(
+    tokenAddress: string,
+    accountAddress: string,
+    timestamp: BigInt
+): void {
+    mockedGetAppManifest(accountAddress, false, false, BIG_INT_ZERO);
+    mockedRealtimeBalanceOf(
+        tokenAddress,
+        accountAddress,
+        timestamp,
+        FAKE_INITIAL_BALANCE,
+        BIG_INT_ZERO,
+        BIG_INT_ZERO
+    );
+}

@@ -12,6 +12,7 @@ import {
 import {
     AgreementLiquidatedByEvent,
     AgreementLiquidatedV2Event,
+    ApprovalEvent,
     BurnedEvent,
     MintedEvent,
     SentEvent,
@@ -452,6 +453,17 @@ function _createTransferEventEntity(event: Transfer): void {
 }
 
 export function handleApproval(event: Approval): void {
+    const eventId = createEventID("Approval", event);
+    const ev = new ApprovalEvent(eventId);
+    initializeEventEntity(ev, event, [event.address, event.params.owner, event.params.spender]);
+    ev.owner = event.params.owner.toHex();
+    ev.to = event.params.spender.toHex();
+    ev.tokenId = BIG_INT_ZERO;
+    ev.amount = event.params.value;
+    ev.isNFTApproval = false;
+
+    ev.save();
+
     // The entity named `FlowOperators` which currently holds all the user access and approval settings will be renamed to `AccessSettings`.
     const flowOperator = getOrInitFlowOperator(
         event.block,

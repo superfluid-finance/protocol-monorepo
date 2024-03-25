@@ -402,3 +402,12 @@ export function createLogID(
         event.logIndex.toString()
     );
 }
+
+export function divideOrZero(
+    numerator: BigInt,
+    denominator: BigInt
+): BigInt {
+    return denominator.equals(BIG_INT_ZERO)
+        ? BIG_INT_ZERO
+        : numerator.div(denominator);
+}

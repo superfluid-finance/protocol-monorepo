@@ -636,6 +636,8 @@ export function getOrInitAccountTokenSnapshot(
 
 if (accountTokenSnapshot == null) {
         accountTokenSnapshot = new AccountTokenSnapshot(atsId);
+        accountTokenSnapshot.createdAtTimestamp = block.timestamp;
+        accountTokenSnapshot.createdAtBlockNumber = block.number;
         accountTokenSnapshot.updatedAtTimestamp = block.timestamp;
         accountTokenSnapshot.updatedAtBlockNumber = block.number;
         accountTokenSnapshot.totalNumberOfActiveStreams = 0;

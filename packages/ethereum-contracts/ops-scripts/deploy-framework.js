@@ -835,16 +835,15 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             agreementsToUpdate.push(idaNewLogicAddress);
         }
         // deploy new GDA logic
-        const gdaAddr = await (await UUPSProxiable.at(
-            await superfluid.getAgreementClass.call(GDAv1_TYPE)
-        )).getCodeAddress();
+        const gdaProxyAddr = await superfluid.getAgreementClass.call(GDAv1_TYPE);
+        const gdaLogicAddr = await (await UUPSProxiable.at(gdaProxyAddr)).getCodeAddress();
         const superfluidPoolBeaconAddr = await (
-            await GeneralDistributionAgreementV1.at(gdaAddr)
+            await GeneralDistributionAgreementV1.at(gdaProxyAddr)
         ).superfluidPoolBeacon.call();
         const gdaNewLogicAddress = await deployContractIfCodeChanged(
             web3,
             GeneralDistributionAgreementV1,
-            gdaAddr,
+            gdaLogicAddr,
             async () => (await deployGDAv1(superfluidPoolBeaconAddr)).address,
             [
                 superfluidConstructorParam,
@@ -1095,13 +1094,13 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 const constantOutflowNFTLogic = await deployNFTContract(
                     ConstantOutflowNFT,
                     "ConstantOutflowNFT",
-                    "CONSTANT_OUTFLOW_NFT",
+                    "CONSTANT_OUTFLOW_NFT_LOGIC",
                     [superfluid.address, cfaAddr, gdaAddr, constantInflowNFTProxy.address]
                 );
                 const constantInflowNFTLogic = await deployNFTContract(
                     ConstantInflowNFT,
                     "ConstantInflowNFT",
-                    "CONSTANT_INFLOW_NFT",
+                    "CONSTANT_INFLOW_NFT_LOGIC",
                     [superfluid.address, cfaAddr, gdaAddr, constantOutflowNFTProxy.address]
                 );
 
@@ -1149,7 +1148,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                         const cofNFTLogic = await deployNFTContract(
                             ConstantOutflowNFT,
                             "ConstantOutflowNFT",
-                            "CONSTANT_OUTFLOW_NFT",
+                            "CONSTANT_OUTFLOW_NFT_LOGIC",
                             [superfluid.address, cfaAddr, gdaAddr, cifNFTProxyAddress]
                         );
                         // @note we set the cofNFTLogicAddress to be passed to SuperTokenFactoryLogic here
@@ -1168,7 +1167,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                         const cifNFTLogic = await deployNFTContract(
                             ConstantInflowNFT,
                             "ConstantInflowNFT",
-                            "CONSTANT_INFLOW_NFT",
+                            "CONSTANT_INFLOW_NFT_LOGIC",
                             [superfluid.address, cfaAddr, gdaAddr, cofNFTProxyAddress]
                         );
                         // @note we set the cifNFTLogicAddress to be passed to SuperTokenFactoryLogic here
@@ -1207,13 +1206,13 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 const poolAdminNFTLogic = await deployNFTContract(
                     PoolAdminNFT,
                     "PoolAdminNFT",
-                    "POOL_ADMIN_NFT",
+                    "POOL_ADMIN_NFT_LOGIC",
                     [superfluid.address, gdaAddr]
                 );
                 const poolMemberNFTLogic = await deployNFTContract(
                     PoolMemberNFT,
                     "PoolMemberNFT",
-                    "POOL_MEMBER_NFT",
+                    "POOL_MEMBER_NFT_LOGIC",
                     [superfluid.address, gdaAddr]
                 );
 
@@ -1258,7 +1257,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                         const poolAdminNFTLogic = await deployNFTContract(
                             PoolAdminNFT,
                             "PoolAdminNFT",
-                            "POOL_ADMIN_NFT",
+                            "POOL_ADMIN_NFT_LOGIC",
                             [superfluid.address, gdaAddr]
                         );
                         // @note we set the poolAdminNFTLogicAddress to be passed to SuperTokenFactoryLogic here
@@ -1276,7 +1275,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                         const poolMemberNFTLogic = await deployNFTContract(
                             PoolMemberNFT,
                             "PoolMemberNFT",
-                            "POOL_MEMBER_NFT",
+                            "POOL_MEMBER_NFT_LOGIC",
                             [superfluid.address, gdaAddr]
                         );
                         // @note we set the poolMemberNFTLogicAddress to be passed to SuperTokenFactoryLogic here

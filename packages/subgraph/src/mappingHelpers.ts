@@ -121,6 +121,7 @@ export function getOrInitSuperToken(
         token.isListed = false;
         const underlyingAddress = token.underlyingAddress;
         token.underlyingToken = underlyingAddress.toHexString();
+        token.governanceConfig = ZERO_ADDRESS.toHexString();
 
         token.save();
 
@@ -203,6 +204,12 @@ export function getOrInitTokenGovernanceConfig(
             governanceConfig.token = superTokenAddress.toHexString();
 
             governanceConfig.save();
+
+            const superToken = Token.load(superTokenAddress.toHexString());
+            if (superToken) {
+                superToken.governanceConfig = governanceConfig.id;
+                superToken.save();
+            }
         }
         return governanceConfig;
     }

@@ -759,8 +759,7 @@ module.exports =
         "explorer": "https://scrollscan.com/",
         "subgraphV1": {
             "cliName": "scroll",
-            "name": "protocol-v1-scroll-mainnet",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-scroll-mainnet"
+            "name": "protocol-v1-scroll-mainnet"
         },
         "publicRPCs": ["https://rpc.scroll.io"]
     }

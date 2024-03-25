@@ -2303,6 +2303,8 @@ type AccountTokenSnapshot @entity {
     ID composed of: accountID-tokenID
     """
     id: ID!
+    createdAtTimestamp: BigInt!
+    createdAtBlockNumber: BigInt!
     updatedAtTimestamp: BigInt!
     updatedAtBlockNumber: BigInt!
     # ---------------------------------- state ----------------------------------

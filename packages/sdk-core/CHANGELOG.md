@@ -7,6 +7,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## [Unreleased]
 
 ### Added
+
 -   Added `getTotalAmountReceivedByMember`
 
 ### Changed
@@ -15,6 +16,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 -   Don't lock metadata version to a specific version, use semver (^).
 -   Allow infinite pagination with 'skip: 0' value (previously had to be undefined)
 -   Add subgraphs queries for Pools, PoolMembers and PoolDistributors
+-   Map `isNFTApproval` and `isNFTTransfer` onto events
 
 ## [0.6.12] - 2023-10-23
 

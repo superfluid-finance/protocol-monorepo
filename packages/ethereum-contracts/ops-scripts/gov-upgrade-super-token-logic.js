@@ -73,6 +73,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         additionalContracts: [
             "Ownable",
             "IMultiSigWallet",
+            "ISafe",
             "SuperfluidGovernanceBase",
             "Resolver",
             "UUPSProxiable",
@@ -85,17 +86,18 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     const canonicalSuperTokenLogic = await getCanonicalSuperTokenLogic(sf);
     console.log(`current canonical super token logic: ${canonicalSuperTokenLogic}`);
 
+    const newSuperTokenLogic = superTokenLogic !== undefined ?
+        superTokenLogic :
+        canonicalSuperTokenLogic;
+
+    console.log("SuperToken logic to update to:", newSuperTokenLogic);
+
     let tokensToBeUpgraded = (args.length === 1 && args[0] === "ALL") ?
-        await getTokensToBeUpgraded(sf, canonicalSuperTokenLogic, skipTokens) :
+        await getTokensToBeUpgraded(sf, newSuperTokenLogic, skipTokens) :
         Array.from(args);
 
     console.log(`${tokensToBeUpgraded.length} tokens to be upgraded`);
 
-    const superTokenLogicAddr = superTokenLogic !== undefined ?
-        superTokenLogic :
-        canonicalSuperTokenLogic;
-
-    console.log("SuperToken logic to update to:", superTokenLogicAddr);
 
     if (tokensToBeUpgraded.length > 0) {
         console.log(`${tokensToBeUpgraded.length} tokens to be upgraded`);
@@ -117,7 +119,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
             if (!dryRun) {
                 // a non-canonical logic address can be provided in an extra array (batchUpdateSuperTokenLogic is overloaded)
                 const govAction = superTokenLogic !== undefined ?
-                    (gov) => gov.batchUpdateSuperTokenLogic(sf.host.address, batch, [...new Array(batch.length)].map(e => superTokenLogicAddr)) :
+                    (gov) => gov.batchUpdateSuperTokenLogic(sf.host.address, batch, [...new Array(batch.length)].map(e => newSuperTokenLogic)) :
                     (gov) => gov.batchUpdateSuperTokenLogic(sf.host.address, batch)
 
                 await sendGovernanceAction(sf, govAction);
@@ -159,7 +161,7 @@ async function getCanonicalSuperTokenLogic(sf) {
 // - not being a proxy or not having a logic address
 // - already pointing to the latest logic
 // - in the skip list (e.g. because not managed by SF gov)
-async function getTokensToBeUpgraded(sf, canonicalSuperTokenLogic, skipList) {
+async function getTokensToBeUpgraded(sf, newSuperTokenLogic, skipList) {
     const maxItems = parseInt(process.env.MAX_ITEMS) || 1000;
     const skipItems = parseInt(process.env.SKIP_ITEMS) || 0;
 
@@ -211,7 +213,7 @@ async function getTokensToBeUpgraded(sf, canonicalSuperTokenLogic, skipList) {
                     console.log(
                         `[SKIP] SuperToken@${superToken.address} (${symbol}) is likely an uninitalized proxy`
                     );
-                } else if (canonicalSuperTokenLogic !== superTokenLogic) {
+                } else if (newSuperTokenLogic !== superTokenLogic) {
                     if (!pastSuperTokenLogics.map(e => e.toLowerCase()).includes(superTokenLogic.toLowerCase())) {
                         // if the previous logic isn't in our list of past canonical supertoken logics, we skip it
                         // it likely means we don't have upgradability ownership
@@ -219,10 +221,21 @@ async function getTokensToBeUpgraded(sf, canonicalSuperTokenLogic, skipList) {
                             `!!! [SKIP] SuperToken@${superToken.address} (${symbol}) alien previous logic ${superTokenLogic} - please manually check!`
                         );
                     } else {
-                        console.log(
-                            `SuperToken@${superToken.address} (${symbol}) logic needs upgrade from ${superTokenLogic}`
-                        );
-                        return superTokenAddress;
+                        try {
+                            const adminAddr = await superToken.getAdmin();
+                            if (adminAddr !== ZERO_ADDRESS) {
+                                console.warn(
+                                    `!!! [SKIP] SuperToken@${superToken.address} admin override set to ${adminAddr}`
+                                );
+                            } else {
+                                console.log(
+                                    `SuperToken@${superToken.address} (${symbol}) logic needs upgrade from ${superTokenLogic}`
+                                );
+                                return superTokenAddress;
+                            }
+                        } catch(err) {
+                            console.log("### failed to get admin addr:", err.message);
+                        }
                     }
                 } else {
                     console.log(
@@ -233,18 +246,6 @@ async function getTokensToBeUpgraded(sf, canonicalSuperTokenLogic, skipList) {
                 console.warn(
                     `??? [SKIP] SuperToken@${superToken.address} failed to be queried, probably not UUPSProxiable`
                 );
-            }
-
-            try {
-                const adminAddr = await superToken.getAdmin();
-                if (adminAddr !== ZERO_ADDRESS) {
-                    console.warn(
-                        `!!! [SKIP] SuperToken@${superToken.address} admin override set to ${adminAddr}`
-                    );
-                }
-            } catch(err) {
-                // TODO: enable logging once we expect this to exist
-                //console.log("### failed to get admin addr:", err.message);
             }
         }
     )).filter((i) => typeof i !== "undefined")

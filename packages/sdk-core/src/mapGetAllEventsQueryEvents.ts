@@ -598,6 +598,7 @@ export const mapGetAllEventsQueryEvents = (
                     to: x.to.id,
                     token: x.token,
                     value: x.value,
+                    isNFTTransfer: x.isNFTTransfer,
                 });
             case "TrustedForwarderChangedEvent":
                 return typeGuard<events.TrustedForwarderChangedEvent>({
@@ -760,6 +761,7 @@ export const mapGetAllEventsQueryEvents = (
                     order: Number(x.order),
                     timestamp: Number(x.timestamp),
                     logIndex: Number(x.logIndex),
+                    isNFTApproval: x.isNFTApproval,
                 });
             case "ApprovalForAllEvent":
                 return typeGuard<events.ApprovalForAllEvent>({
@@ -786,9 +788,6 @@ export const mapGetAllEventsQueryEvents = (
             default:
                 // eslint-disable-next-line no-case-declarations
                 const eventBase = x as events.EventBase;
-                console.warn(
-                    `An unknown event [${eventBase.name}] was detected which couldn't be properly mapped. Please update to the latest version of @superfluid-finance/sdk-core.`
-                );
                 return typeGuard<events.UnknownEvent>({
                     // force casted as empty string for the type system
                     name: eventBase.name as "",

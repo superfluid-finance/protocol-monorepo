@@ -22,13 +22,14 @@ interface IVestingScheduler {
      * @param endDate End date of the vesting
      * @param flowRate For the stream
      * @param cliffAmount Amount to be transferred at the cliff
+     * @param remainderAmount Amount transferred during early end to achieve an accurate "total vested amount"
      */
     struct VestingSchedule {
         uint32 cliffAndFlowDate;
         uint32 endDate;
         int96 flowRate;
         uint256 cliffAmount;
-        uint256 dustFixAmount;
+        uint256 remainderAmount;
     }
 
     /**
@@ -41,6 +42,7 @@ interface IVestingScheduler {
      * @param flowRate The flowRate for the stream
      * @param endDate The timestamp when the stream should stop
      * @param cliffAmount The amount to be transferred at the cliff
+     * @param remainderAmount Amount transferred during early end to achieve an accurate "total vested amount"
      */
     event VestingScheduleCreated(
         ISuperToken indexed superToken,
@@ -50,7 +52,8 @@ interface IVestingScheduler {
         uint32 cliffDate,
         int96 flowRate,
         uint32 endDate,
-        uint256 cliffAmount
+        uint256 cliffAmount,
+        uint256 remainderAmount
     );
 
     /**

@@ -255,7 +255,7 @@ contract VestingScheduler is IVestingScheduler, SuperAppBase {
     ) private returns (bytes memory newCtx) {
         uint32 endDate = startDate + totalDuration;
         int96 flowRate = SafeCast.toInt96(SafeCast.toInt256(totalAmount / totalDuration));
-        uint256 dustAmount = totalAmount - (totalAmount / totalDuration * totalDuration);
+        uint256 remainderAmount = totalAmount % SafeCast.toUint256(flowRate);
         if (cliffPeriod == 0) {
             newCtx = _createVestingSchedule(
                 superToken, 
@@ -265,7 +265,7 @@ contract VestingScheduler is IVestingScheduler, SuperAppBase {
                 flowRate, 
                 0 /* cliffAmount */, 
                 endDate,
-                dustAmount,
+                remainderAmount,
                 ctx
             );
         } else {
@@ -279,7 +279,7 @@ contract VestingScheduler is IVestingScheduler, SuperAppBase {
                 flowRate, 
                 cliffAmount, 
                 endDate, 
-                dustAmount,
+                remainderAmount,
                 ctx
             );
         }
@@ -293,7 +293,7 @@ contract VestingScheduler is IVestingScheduler, SuperAppBase {
         int96 flowRate,
         uint256 cliffAmount,
         uint32 endDate,
-        uint256 dustFixAmount,
+        uint256 remainderAmount,
         bytes memory ctx
     ) private returns (bytes memory newCtx) {
         newCtx = ctx;
@@ -319,7 +319,7 @@ contract VestingScheduler is IVestingScheduler, SuperAppBase {
             endDate,
             flowRate,
             cliffAmount,
-            dustFixAmount
+            remainderAmount
         );
 
         emit VestingScheduleCreated(
@@ -330,8 +330,8 @@ contract VestingScheduler is IVestingScheduler, SuperAppBase {
             cliffDate,
             flowRate,
             endDate,
-            cliffAmount
-            // todo: dust amount
+            cliffAmount,
+            remainderAmount
         );
     }
 
@@ -352,8 +352,8 @@ contract VestingScheduler is IVestingScheduler, SuperAppBase {
         // Only allow an update if 1. vesting exists 2. executeCliffAndFlow() has been called
         if (schedule.cliffAndFlowDate != 0 || schedule.endDate == 0) revert ScheduleNotFlowing();
         vestingSchedules[configHash].endDate = endDate;
+        vestingSchedules[configHash].remainderAmount = 0;
         // Note: Nullify the dust amount if complexity of updates is introduced.
-        vestingSchedules[configHash].dustFixAmount = 0;
         emit VestingScheduleUpdated(
             superToken,
             sender,
@@ -455,7 +455,7 @@ contract VestingScheduler is IVestingScheduler, SuperAppBase {
             cfaV1.deleteFlowByOperator(sender, receiver, superToken);
 
             uint256 earlyEndCompensation = schedule.endDate > block.timestamp ?
-                (schedule.endDate - block.timestamp) * uint96(schedule.flowRate) + schedule.dustFixAmount : 0;
+                (schedule.endDate - block.timestamp) * uint96(schedule.flowRate) + schedule.remainderAmount : 0;
             bool didCompensationFail = schedule.endDate < block.timestamp;
             if (earlyEndCompensation != 0) {
                 superToken.transferFrom(sender, receiver, earlyEndCompensation);

@@ -61,8 +61,11 @@ export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
     pool = updatePoolTotalAmountFlowedAndDistributed(event, pool);
     settlePDPoolMemberMU(pool, poolMember, event.block);
 
+<<<<<<< HEAD
     // @note TODO update the pool.perUnitFlowRate
     // @note TODO update the poolMember.perUnitFlowRate
+=======
+>>>>>>> origin/dev
     const existingPoolFlowRate = pool.perUnitFlowRate.times(pool.totalUnits);
     let newPerUnitFlowRate: BigInt;
     let remainderRate: BigInt;

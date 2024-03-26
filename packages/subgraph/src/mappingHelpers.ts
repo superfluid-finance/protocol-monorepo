@@ -1,4 +1,5 @@
 import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
+import { FlowUpdated } from "../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
 import { ISuperfluid as Superfluid } from "../generated/Host/ISuperfluid";
 import {
     Account,
@@ -10,7 +11,6 @@ import {
     Pool,
     PoolDistributor,
     PoolMember,
-    ResolverEntry,
     Stream,
     StreamRevision,
     Token,
@@ -18,25 +18,6 @@ import {
     TokenStatistic,
     TokenStatisticLog,
 } from "../generated/schema";
-import {
-    BIG_INT_ZERO,
-    createLogID,
-    calculateMaybeCriticalAtTimestamp,
-    getAccountTokenSnapshotID,
-    getAmountStreamedSinceLastUpdatedAt,
-    getFlowOperatorID,
-    getIndexID,
-    getOrder,
-    getStreamID,
-    getStreamRevisionID,
-    getSubscriptionID,
-    ZERO_ADDRESS,
-    handleTokenRPCCalls,
-    getPoolMemberID,
-    getPoolDistributorID,
-    getActiveStreamsDelta,
-    getClosedStreamsDelta,
-} from "./utils";
 import { SuperToken as SuperTokenTemplate } from "../generated/templates";
 import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
 import {
@@ -44,7 +25,26 @@ import {
     getNativeAssetSuperTokenAddress,
     getResolverAddress,
 } from "./addresses";
-import { FlowUpdated } from "../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
+import {
+    BIG_INT_ZERO,
+    ZERO_ADDRESS,
+    calculateMaybeCriticalAtTimestamp,
+    createLogID,
+    getAccountTokenSnapshotID,
+    getActiveStreamsDelta,
+    getAmountStreamedSinceLastUpdatedAt,
+    getClosedStreamsDelta,
+    getFlowOperatorID,
+    getIndexID,
+    getIsTokenListed,
+    getOrder,
+    getPoolDistributorID,
+    getPoolMemberID,
+    getStreamID,
+    getStreamRevisionID,
+    getSubscriptionID,
+    handleTokenRPCCalls
+} from "./utils";
 
 /**************************************************************************
  * HOL initializer functions
@@ -117,10 +117,11 @@ export function getOrInitSuperToken(
             nativeAssetSuperTokenAddress
         );
 
-        token = handleTokenRPCCalls(token, resolverAddress);
-        token.isListed = false;
+        token = handleTokenRPCCalls(token);
+        token.isListed = getIsTokenListed(token, resolverAddress);
         const underlyingAddress = token.underlyingAddress;
         token.underlyingToken = underlyingAddress.toHexString();
+        token.governanceConfig = ZERO_ADDRESS.toHexString();
 
         token.save();
 
@@ -146,12 +147,6 @@ export function getOrInitSuperToken(
         }
         return token as Token;
     }
-
-    // @note - this is currently being called every single time to handle list/unlist of tokens
-    // because we don't have the Resolver Set event on some networks
-    // We can remove this once we have migrated data to a new resolver which emits this event on
-    // all networks.
-    token = handleTokenRPCCalls(token, resolverAddress);
 
     token.save();
 
@@ -203,6 +198,12 @@ export function getOrInitTokenGovernanceConfig(
             governanceConfig.token = superTokenAddress.toHexString();
 
             governanceConfig.save();
+
+            const superToken = Token.load(superTokenAddress.toHexString());
+            if (superToken) {
+                superToken.governanceConfig = governanceConfig.id;
+                superToken.save();
+            }
         }
         return governanceConfig;
     }
@@ -233,7 +234,7 @@ export function getOrInitToken(
     token.isNativeAssetSuperToken = false;
     token.isListed = false;
 
-    token = handleTokenRPCCalls(token, resolverAddress);
+    token = handleTokenRPCCalls(token);
     token.save();
 }
 
@@ -456,30 +457,6 @@ export function getOrInitSubscription(
     return subscription as IndexSubscription;
 }
 
-export function getOrInitResolverEntry(
-    id: string,
-    target: Address,
-    block: ethereum.Block
-): ResolverEntry {
-    let resolverEntry = ResolverEntry.load(id);
-
-    if (resolverEntry == null) {
-        resolverEntry = new ResolverEntry(id);
-        resolverEntry.createdAtBlockNumber = block.number;
-        resolverEntry.createdAtTimestamp = block.timestamp;
-        resolverEntry.targetAddress = target;
-
-        const superToken = Token.load(target.toHex());
-        resolverEntry.isToken = superToken != null;
-    }
-    resolverEntry.updatedAtBlockNumber = block.number;
-    resolverEntry.updatedAtTimestamp = block.timestamp;
-    resolverEntry.isListed = target.notEqual(ZERO_ADDRESS);
-
-    resolverEntry.save();
-    return resolverEntry as ResolverEntry;
-}
-
 export function getOrInitPool(event: ethereum.Event, poolId: string): Pool {
     // get existing pool
     let pool = Pool.load(poolId);
@@ -643,6 +620,8 @@ export function getOrInitAccountTokenSnapshot(
 
 if (accountTokenSnapshot == null) {
         accountTokenSnapshot = new AccountTokenSnapshot(atsId);
+        accountTokenSnapshot.createdAtTimestamp = block.timestamp;
+        accountTokenSnapshot.createdAtBlockNumber = block.number;
         accountTokenSnapshot.updatedAtTimestamp = block.timestamp;
         accountTokenSnapshot.updatedAtBlockNumber = block.number;
         accountTokenSnapshot.totalNumberOfActiveStreams = 0;

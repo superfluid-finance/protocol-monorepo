@@ -123,14 +123,32 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
 
+  check-sdk-core-version:
+    name: Checking if SDK-Core should be published
+
+    runs-on: ubuntu-latest
+
+    outputs:
+      publish_sdk_core: ${{ env.SHOULD_PUBLISH_SDK_CORE }}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Check package versions
+        run: ./tasks/check-package-version.sh sdk-core SHOULD_PUBLISH_SDK_CORE SDK_CORE_NEW_VERSION >> "$GITHUB_ENV"
+
   test-sdk-core-query-schema-against-deployed-v1-subgraphs:
     uses: ./.github/workflows/call.check-query-schema-against-subgraph.yml
+    needs: check-sdk-core-version
+    if: needs.check-sdk-core-version.outputs.publish_sdk_core == 1
     name: Test SDK-Core Query Schema and Queries Against Deployed V1 Subgraphs
     with:
       subgraph-release: v1
 
   test-sdk-core-with-v1-release-subgraph:
     uses: ./.github/workflows/call.test-sdk-core.yml
+    needs: check-sdk-core-version
+    if: needs.check-sdk-core-version.outputs.publish_sdk_core == 1
     name: Build and Test SDK-Core (Release branch)
     with:
       subgraph-release: v1
@@ -144,6 +162,7 @@ jobs:
 
     needs:
       [
+        check-sdk-core-version,
         test-sdk-core-query-schema-against-deployed-v1-subgraphs,
         test-sdk-core-with-v1-release-subgraph,
       ]
@@ -159,11 +178,8 @@ jobs:
           node-version: 18.x
           registry-url: https://registry.npmjs.org/
 
-      - name: Check package versions
-        run: ./tasks/check-package-version.sh sdk-core SHOULD_PUBLISH_SDK_CORE SDK_CORE_NEW_VERSION >> "$GITHUB_ENV"
-
       - name: Create sdk-core stable release draft
-        if: env.SHOULD_PUBLISH_SDK_CORE == 1
+        if: needs.check-sdk-core-version.outputs.publish_sdk_core == 1
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token

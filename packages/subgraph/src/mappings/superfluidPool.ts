@@ -30,10 +30,10 @@ export function handleDistributionClaimed(event: DistributionClaimed): void {
     // settle pool and pool member
     pool = updatePoolTotalAmountFlowedAndDistributed(event, pool);
     settlePDPoolMemberMU(pool, poolMember, event.block);
-    
+
     // Update PoolMember
     poolMember.totalAmountClaimed = event.params.totalClaimed;
-    
+
     pool.save();
     poolMember.save();
 
@@ -85,7 +85,7 @@ export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
     }
 
     // 0 units to > 0 units
-    const didPoolMemberBecomeActive =  previousUnits.equals(BIG_INT_ZERO) && event.params.newUnits.gt(BIG_INT_ZERO)
+    const didPoolMemberBecomeActive = previousUnits.equals(BIG_INT_ZERO) && event.params.newUnits.gt(BIG_INT_ZERO);
     if (didPoolMemberBecomeActive) {
         pool.totalMembers = pool.totalMembers + 1;
         // if the member is connected with units now, we add one to connected
@@ -111,7 +111,7 @@ export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
     }
 
     // > 0 units to 0 units
-    const didPoolMemberBecomeInactive = previousUnits.gt(BIG_INT_ZERO) && poolMember.units.equals(BIG_INT_ZERO)
+    const didPoolMemberBecomeInactive = previousUnits.gt(BIG_INT_ZERO) && poolMember.units.equals(BIG_INT_ZERO);
     if (didPoolMemberBecomeInactive) {
         pool.totalMembers = pool.totalMembers - 1;
         // if the member is connected with no units now, we subtract one from connected

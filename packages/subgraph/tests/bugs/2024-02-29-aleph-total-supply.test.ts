@@ -32,7 +32,7 @@ describe("ALEPH Total Supply Bug", () => {
         mockedTokenSymbol(superToken, "tokenSymbol");
         mockedTokenDecimals(superToken, 18);
         mockedResolverGet(resolverAddress, "supertokens.v1.tokenSymbol", ZERO_ADDRESS.toHexString());
-        
+
         // unused mocked function call after change in this commit (removing total supply RPC call in getOrInitSuperToken)
         mockedTokenTotalSupply(superToken, totalSupply);
 

@@ -5,7 +5,11 @@ All notable changes to the SDK-redux will be documented in this file.
 
 ### Changed
 
-- Node dependency updates.
+- Node dependency updates
+- Reduce transaction tracking expiration from 10 minutes to 3 minutes
+
+### Added
+- Support for `Pool`, `PoolMember` and `PoolDistributor` queries
 
 ## [0.5.1] - 2023-05-17
 

@@ -498,13 +498,18 @@ contract VestingSchedulerTests is FoundrySuperfluidTester {
         superToken.transferAll(eve);
         vm.stopPrank();
         vm.startPrank(admin);
-        uint256 finalTimestamp = block.timestamp + 10 days - 3600;
+        uint256 earlyEndTimestamp = block.timestamp + 10 days - 3600;
+        vm.warp(earlyEndTimestamp);
+
+        vm.expectRevert();
+        vestingScheduler.executeEndVesting(superToken, alice, bob);
+
+        uint256 finalTimestamp = END_DATE + 1;
         vm.warp(finalTimestamp);
-        uint256 timeDiffToEndDate = END_DATE > block.timestamp ? END_DATE - block.timestamp : 0;
-        uint256 adjustedAmountClosing = timeDiffToEndDate * uint96(FLOW_RATE);
+
         vm.expectEmit(true, true, true, true);
         emit VestingEndExecuted(
-            superToken, alice, bob, END_DATE, adjustedAmountClosing, true
+            superToken, alice, bob, END_DATE, 0, true
         );
         success = vestingScheduler.executeEndVesting(superToken, alice, bob);
         assertTrue(success, "executeCloseVesting should return true");

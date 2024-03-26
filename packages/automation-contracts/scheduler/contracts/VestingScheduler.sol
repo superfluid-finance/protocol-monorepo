@@ -446,15 +446,9 @@ contract VestingScheduler is IVestingScheduler, SuperAppBase {
 
             uint256 earlyEndCompensation = schedule.endDate > block.timestamp ?
                 (schedule.endDate - block.timestamp) * uint96(schedule.flowRate) : 0;
-            bool didCompensationFail;
+            bool didCompensationFail = schedule.endDate < block.timestamp;
             if (earlyEndCompensation != 0) {
-                // try-catch this because if the account does not have tokens for earlyEndCompensation
-                // we should delete the flow anyway.
-                try superToken.transferFrom(sender, receiver, earlyEndCompensation)
-                // solhint-disable-next-line no-empty-blocks
-                {} catch {
-                    didCompensationFail = true;
-                }
+                superToken.transferFrom(sender, receiver, earlyEndCompensation);
             }
 
             emit VestingEndExecuted(

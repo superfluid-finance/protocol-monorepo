@@ -1,4 +1,5 @@
 import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
+import { FlowUpdated } from "../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
 import { ISuperfluid as Superfluid } from "../generated/Host/ISuperfluid";
 import {
     Account,
@@ -10,7 +11,6 @@ import {
     Pool,
     PoolDistributor,
     PoolMember,
-    ResolverEntry,
     Stream,
     StreamRevision,
     Token,
@@ -18,26 +18,6 @@ import {
     TokenStatistic,
     TokenStatisticLog,
 } from "../generated/schema";
-import {
-    BIG_INT_ZERO,
-    createLogID,
-    calculateMaybeCriticalAtTimestamp,
-    getAccountTokenSnapshotID,
-    getAmountStreamedSinceLastUpdatedAt,
-    getFlowOperatorID,
-    getIndexID,
-    getOrder,
-    getStreamID,
-    getStreamRevisionID,
-    getSubscriptionID,
-    ZERO_ADDRESS,
-    handleTokenRPCCalls,
-    getPoolMemberID,
-    getPoolDistributorID,
-    getActiveStreamsDelta,
-    getClosedStreamsDelta,
-    MAX_UINT256,
-} from "./utils";
 import { SuperToken as SuperTokenTemplate } from "../generated/templates";
 import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
 import {
@@ -45,7 +25,26 @@ import {
     getNativeAssetSuperTokenAddress,
     getResolverAddress,
 } from "./addresses";
-import { FlowUpdated } from "../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
+import {
+    BIG_INT_ZERO,
+    ZERO_ADDRESS,
+    calculateMaybeCriticalAtTimestamp,
+    createLogID,
+    getAccountTokenSnapshotID,
+    getActiveStreamsDelta,
+    getAmountStreamedSinceLastUpdatedAt,
+    getClosedStreamsDelta,
+    getFlowOperatorID,
+    getIndexID,
+    getIsTokenListed,
+    getOrder,
+    getPoolDistributorID,
+    getPoolMemberID,
+    getStreamID,
+    getStreamRevisionID,
+    getSubscriptionID,
+    handleTokenRPCCalls
+} from "./utils";
 
 /**************************************************************************
  * HOL initializer functions
@@ -118,10 +117,11 @@ export function getOrInitSuperToken(
             nativeAssetSuperTokenAddress
         );
 
-        token = handleTokenRPCCalls(token, resolverAddress);
-        token.isListed = false;
+        token = handleTokenRPCCalls(token);
+        token.isListed = getIsTokenListed(token, resolverAddress);
         const underlyingAddress = token.underlyingAddress;
         token.underlyingToken = underlyingAddress.toHexString();
+        token.governanceConfig = ZERO_ADDRESS.toHexString();
 
         token.save();
 
@@ -147,12 +147,6 @@ export function getOrInitSuperToken(
         }
         return token as Token;
     }
-
-    // @note - this is currently being called every single time to handle list/unlist of tokens
-    // because we don't have the Resolver Set event on some networks
-    // We can remove this once we have migrated data to a new resolver which emits this event on
-    // all networks.
-    token = handleTokenRPCCalls(token, resolverAddress);
 
     token.save();
 
@@ -204,6 +198,12 @@ export function getOrInitTokenGovernanceConfig(
             governanceConfig.token = superTokenAddress.toHexString();
 
             governanceConfig.save();
+
+            const superToken = Token.load(superTokenAddress.toHexString());
+            if (superToken) {
+                superToken.governanceConfig = governanceConfig.id;
+                superToken.save();
+            }
         }
         return governanceConfig;
     }
@@ -234,7 +234,7 @@ export function getOrInitToken(
     token.isNativeAssetSuperToken = false;
     token.isListed = false;
 
-    token = handleTokenRPCCalls(token, resolverAddress);
+    token = handleTokenRPCCalls(token);
     token.save();
 }
 
@@ -457,30 +457,6 @@ export function getOrInitSubscription(
     return subscription as IndexSubscription;
 }
 
-export function getOrInitResolverEntry(
-    id: string,
-    target: Address,
-    block: ethereum.Block
-): ResolverEntry {
-    let resolverEntry = ResolverEntry.load(id);
-
-    if (resolverEntry == null) {
-        resolverEntry = new ResolverEntry(id);
-        resolverEntry.createdAtBlockNumber = block.number;
-        resolverEntry.createdAtTimestamp = block.timestamp;
-        resolverEntry.targetAddress = target;
-
-        const superToken = Token.load(target.toHex());
-        resolverEntry.isToken = superToken != null;
-    }
-    resolverEntry.updatedAtBlockNumber = block.number;
-    resolverEntry.updatedAtTimestamp = block.timestamp;
-    resolverEntry.isListed = target.notEqual(ZERO_ADDRESS);
-
-    resolverEntry.save();
-    return resolverEntry as ResolverEntry;
-}
-
 export function getOrInitPool(event: ethereum.Event, poolId: string): Pool {
     // get existing pool
     let pool = Pool.load(poolId);
@@ -499,6 +475,11 @@ export function getOrInitPool(event: ethereum.Event, poolId: string): Pool {
         pool.totalAmountInstantlyDistributedUntilUpdatedAt = BIG_INT_ZERO;
         pool.totalAmountFlowedDistributedUntilUpdatedAt = BIG_INT_ZERO;
         pool.totalAmountDistributedUntilUpdatedAt = BIG_INT_ZERO;
+        pool.totalFlowAdjustmentAmountDistributedUntilUpdatedAt = BIG_INT_ZERO;
+
+        pool.perUnitSettledValue = BIG_INT_ZERO;
+        pool.perUnitFlowRate = BIG_INT_ZERO;
+
         pool.totalMembers = 0;
         pool.totalConnectedMembers = 0;
         pool.totalDisconnectedMembers = 0;
@@ -519,9 +500,6 @@ export function updatePoolTotalAmountFlowedAndDistributed(
     const timeDelta = event.block.timestamp.minus(pool.updatedAtTimestamp);
     const amountFlowedSinceLastUpdate = pool.flowRate.times(timeDelta);
 
-    pool.updatedAtBlockNumber = event.block.number;
-    pool.updatedAtTimestamp = event.block.timestamp;
-
     pool.totalAmountFlowedDistributedUntilUpdatedAt =
         pool.totalAmountFlowedDistributedUntilUpdatedAt.plus(
             amountFlowedSinceLastUpdate
@@ -536,7 +514,7 @@ export function updatePoolTotalAmountFlowedAndDistributed(
     return pool;
 }
 
-export function getOrInitPoolMember(
+export function getOrInitOrUpdatePoolMember(
     event: ethereum.Event,
     poolAddress: Address,
     poolMemberAddress: Address
@@ -548,19 +526,25 @@ export function getOrInitPoolMember(
         poolMember = new PoolMember(poolMemberID);
         poolMember.createdAtTimestamp = event.block.timestamp;
         poolMember.createdAtBlockNumber = event.block.number;
-        poolMember.updatedAtTimestamp = event.block.timestamp;
-        poolMember.updatedAtBlockNumber = event.block.number;
-
+        
         poolMember.units = BIG_INT_ZERO;
         poolMember.isConnected = false;
         poolMember.totalAmountClaimed = BIG_INT_ZERO;
         poolMember.poolTotalAmountDistributedUntilUpdatedAt = BIG_INT_ZERO;
         poolMember.totalAmountReceivedUntilUpdatedAt = BIG_INT_ZERO;
 
+        poolMember.syncedPerUnitSettledValue = BIG_INT_ZERO;
+        poolMember.syncedPerUnitFlowRate = BIG_INT_ZERO;
+
         poolMember.account = poolMemberAddress.toHex();
         poolMember.pool = poolAddress.toHex();
     }
-
+    poolMember.updatedAtTimestamp = event.block.timestamp;
+    poolMember.updatedAtBlockNumber = event.block.number;
+    
+    poolMember.updatedAtTimestamp = event.block.timestamp;
+    poolMember.updatedAtBlockNumber = event.block.number;
+    
     return poolMember;
 }
 
@@ -636,6 +620,8 @@ export function getOrInitAccountTokenSnapshot(
 
 if (accountTokenSnapshot == null) {
         accountTokenSnapshot = new AccountTokenSnapshot(atsId);
+        accountTokenSnapshot.createdAtTimestamp = block.timestamp;
+        accountTokenSnapshot.createdAtBlockNumber = block.number;
         accountTokenSnapshot.updatedAtTimestamp = block.timestamp;
         accountTokenSnapshot.updatedAtBlockNumber = block.number;
         accountTokenSnapshot.totalNumberOfActiveStreams = 0;
@@ -1471,33 +1457,80 @@ export function updateAggregateEntitiesTransferData(
     tokenStatistic.save();
 }
 
-/**
- * Updates `totalAmountReceivedUntilUpdatedAt` and `poolTotalAmountDistributedUntilUpdatedAt` fields
- * Requires an explicit save on the PoolMember entity.
- * Requires `pool.totalAmountDistributedUntilUpdatedAt` is updated *BEFORE* this function is called.
- * Requires that pool.totalUnits and poolMember.units are updated *AFTER* this function is called.
- * @param pool the pool entity
- * @param poolMember the pool member entity
- * @returns the updated pool member entity to be saved
- */
-export function updatePoolMemberTotalAmountUntilUpdatedAtFields(pool: Pool, poolMember: PoolMember): PoolMember {
-    let amountReceivedDelta = BIG_INT_ZERO;
-    // if the pool member has any units, we calculate the delta
-    // otherwise the delta is going to be 0
-    if (!poolMember.units.equals(BIG_INT_ZERO)) {
-        const distributedAmountDelta = pool.totalAmountDistributedUntilUpdatedAt
-            .minus(poolMember.poolTotalAmountDistributedUntilUpdatedAt);
 
-        const isSafeToMultiplyWithoutOverflow = MAX_UINT256.div(poolMember.units).gt(distributedAmountDelta);
-        if (isSafeToMultiplyWithoutOverflow) {
-            amountReceivedDelta = distributedAmountDelta.times(poolMember.units).div(pool.totalUnits);
-        } else {
-            amountReceivedDelta = distributedAmountDelta.div(pool.totalUnits).times(poolMember.units);
-        }
-    }
-    poolMember.totalAmountReceivedUntilUpdatedAt =
-        poolMember.totalAmountReceivedUntilUpdatedAt.plus(amountReceivedDelta);
-    poolMember.poolTotalAmountDistributedUntilUpdatedAt = pool.totalAmountDistributedUntilUpdatedAt;
+export function particleRTB(
+    perUnitSettledValue: BigInt,
+    perUnitFlowRate: BigInt,
+    currentTimestamp: BigInt,
+    lastUpdatedTimestamp: BigInt
+): BigInt {
+    const amountFlowedPerUnit = perUnitFlowRate.times(currentTimestamp.minus(lastUpdatedTimestamp));
+    return perUnitSettledValue.plus(amountFlowedPerUnit);
+}
+
+export function monetaryUnitPoolMemberRTB(pool: Pool, poolMember: PoolMember, currentTimestamp: BigInt): BigInt {
+    const poolPerUnitRTB = particleRTB(
+        pool.perUnitSettledValue,
+        pool.perUnitFlowRate,
+        currentTimestamp,
+        pool.updatedAtTimestamp
+    );
+    const poolMemberPerUnitRTB = particleRTB(
+        poolMember.syncedPerUnitSettledValue,
+        poolMember.syncedPerUnitFlowRate,
+        currentTimestamp,
+        poolMember.updatedAtTimestamp
+    );
+
+    return poolMember.totalAmountReceivedUntilUpdatedAt.plus(
+        poolPerUnitRTB.minus(poolMemberPerUnitRTB).times(poolMember.units)
+    );
+}
+
+/**
+ * Updates the pool.perUnitSettledValue to the up to date value based on the current block,
+ * and updates the updatedAtTimestamp and updatedAtBlockNumber.
+ * @param pool pool entity
+ * @param block current block
+ * @returns updated pool entity
+ */
+export function settlePoolParticle(pool: Pool, block: ethereum.Block): Pool {
+    pool.perUnitSettledValue = particleRTB(
+        pool.perUnitSettledValue,
+        pool.perUnitFlowRate,
+        block.timestamp,
+        pool.updatedAtTimestamp
+    );
+    pool.updatedAtTimestamp = block.timestamp;
+    pool.updatedAtBlockNumber = block.number;
+
+    return pool;
+}
+
+export function settlePoolMemberParticle(poolMember: PoolMember, block: ethereum.Block): PoolMember {
+    poolMember.syncedPerUnitSettledValue = particleRTB(
+        poolMember.syncedPerUnitSettledValue,
+        poolMember.syncedPerUnitFlowRate,
+        block.timestamp,
+        poolMember.updatedAtTimestamp
+    );
+    poolMember.updatedAtTimestamp = block.timestamp;
+    poolMember.updatedAtBlockNumber = block.number;
 
     return poolMember;
+}
+
+export function syncPoolMemberParticle(pool: Pool, poolMember: PoolMember): PoolMember {
+    poolMember.syncedPerUnitSettledValue = pool.perUnitSettledValue;
+    poolMember.syncedPerUnitFlowRate = pool.perUnitFlowRate;
+    poolMember.updatedAtTimestamp = pool.updatedAtTimestamp;
+    poolMember.updatedAtBlockNumber = pool.updatedAtBlockNumber;
+
+    return poolMember;
+}
+
+export function settlePDPoolMemberMU(pool: Pool, poolMember: PoolMember, block: ethereum.Block): void {
+    pool = settlePoolParticle(pool, block);
+    poolMember.totalAmountReceivedUntilUpdatedAt = monetaryUnitPoolMemberRTB(pool, poolMember, block.timestamp);
+    poolMember = syncPoolMemberParticle(pool, poolMember);
 }

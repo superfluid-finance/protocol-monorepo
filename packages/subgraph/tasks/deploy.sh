@@ -78,7 +78,7 @@ deploy_to_graph() {
         "$subgraphName" \
         --node https://api.thegraph.com/deploy/ \
         --ipfs https://api.thegraph.com/ipfs \
-        --access-token "$THE_GRAPH_ACCESS_TOKEN"
+        --deploy-key "$THE_GRAPH_ACCESS_TOKEN"
 }
 
 deploy_to_satsuma() {

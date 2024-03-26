@@ -31,6 +31,7 @@
         "pretest": "yarn testenv:start",
         "test": "hardhat test --tsconfig \"tsconfig.test.json\"",
         "dev": "nodemon -e ts -x yarn test",
+        "clean": "rm -rf node_modules; rm -rf dist; rm -rf src/typechain-types; rm -rf src/typechain; rm -rf src/abi; find . -type f -name '*.generated.ts' -exec rm {} +",
         "test-coverage": "nyc --reporter=html --reporter=lcov --reporter=json yarn test",
         "posttest": "yarn testenv:stop",
         "check-updates": "ncu --target minor --dep prod,dev",
@@ -56,8 +57,8 @@
         "url": "https://github.com/superfluid-finance/protocol-monorepo/issues"
     },
     "dependencies": {
-        "@superfluid-finance/ethereum-contracts": "^1.9.0",
-        "@superfluid-finance/metadata": "^1.1.27",
+        "@superfluid-finance/ethereum-contracts": "^1.9.1",
+        "@superfluid-finance/metadata": "^1.1.29",
         "browserify": "^17.0.0",
         "graphql-request": "^6.1.0",
         "lodash": "^4.17.21",

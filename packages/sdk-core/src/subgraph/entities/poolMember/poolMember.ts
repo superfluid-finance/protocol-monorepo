@@ -32,6 +32,8 @@ export interface PoolMember {
     totalAmountReceivedUntilUpdatedAt: BigNumber;
     poolTotalAmountDistributedUntilUpdatedAt: BigNumber;
     pool: Address;
+    syncedPerUnitFlowRate: BigNumber;
+    syncedPerUnitSettledValue: BigNumber;
 }
 
 export type PoolMembersListQuery = SubgraphListQuery<
@@ -70,6 +72,8 @@ export class PoolMemberQueryHandler extends SubgraphQueryHandler<
             updatedAtBlockNumber: Number(x.updatedAtBlockNumber),
             pool: x.pool.id,
             token: x.pool.token.id,
+            syncedPerUnitFlowRate: x.syncedPerUnitFlowRate,
+            syncedPerUnitSettledValue: x.syncedPerUnitSettledValue,
         }));
 
     requestDocument = PoolMembersDocument;

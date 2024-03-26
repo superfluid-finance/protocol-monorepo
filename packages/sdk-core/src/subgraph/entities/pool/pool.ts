@@ -29,22 +29,22 @@ export interface Pool {
     totalAmountInstantlyDistributedUntilUpdatedAt: BigNumber;
     totalAmountFlowedDistributedUntilUpdatedAt: BigNumber;
     totalAmountDistributedUntilUpdatedAt: BigNumber;
+    totalFlowAdjustmentAmountDistributedUntilUpdatedAt: BigNumber;
     totalUnits: BigNumber;
     totalConnectedUnits: BigNumber;
     totalDisconnectedUnits: BigNumber;
+    perUnitSettledValue: BigNumber;
+    perUnitFlowRate: BigNumber;
     /**
      * A member is any account which has more than 0 units in the pool.
-     *
      */
     totalMembers: number;
     /**
      * A connected member is any account which has more than 0 units in the pool and is connected.
-     *
      */
     totalConnectedMembers: number;
     /**
      * A disconnected member is any account which has more than 0 units in the pool and is not connected.
-     *
      */
     totalDisconnectedMembers: number;
     adjustmentFlowRate: BigNumber;
@@ -110,6 +110,10 @@ export class PoolQueryHandler extends SubgraphQueryHandler<
                 x.totalAmountFlowedDistributedUntilUpdatedAt,
             totalAmountDistributedUntilUpdatedAt:
                 x.totalAmountDistributedUntilUpdatedAt,
+            totalFlowAdjustmentAmountDistributedUntilUpdatedAt:
+                x.totalFlowAdjustmentAmountDistributedUntilUpdatedAt,
+            perUnitFlowRate: x.perUnitFlowRate,
+            perUnitSettledValue: x.perUnitSettledValue,
             admin: x.admin.id,
             token: x.token.id,
         }));

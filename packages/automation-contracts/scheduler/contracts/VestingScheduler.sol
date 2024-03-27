@@ -61,7 +61,7 @@ contract VestingScheduler is IVestingScheduler, SuperAppBase {
             flowRate,
             cliffAmount,
             endDate,
-            0, // dustAmount
+            0, // remainderAmount
             ctx
         );
     }
@@ -84,7 +84,7 @@ contract VestingScheduler is IVestingScheduler, SuperAppBase {
             flowRate,
             cliffAmount,
             endDate,
-            0, // dustAmount
+            0, // remainderAmount
             bytes("")
         );
     }

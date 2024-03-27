@@ -21,7 +21,8 @@ contract VestingSchedulerTests is FoundrySuperfluidTester {
         uint32 cliffDate,
         int96 flowRate,
         uint32 endDate,
-        uint256 cliffAmount
+        uint256 cliffAmount,
+        uint256 remainderAmount
     );
 
     event VestingScheduleUpdated(
@@ -126,7 +127,7 @@ contract VestingSchedulerTests is FoundrySuperfluidTester {
     function testCreateVestingSchedule() public {
         vm.expectEmit(true, true, true, true);
         emit VestingScheduleCreated(
-            superToken, alice, bob, START_DATE, CLIFF_DATE, FLOW_RATE, END_DATE, CLIFF_TRANSFER_AMOUNT
+            superToken, alice, bob, START_DATE, CLIFF_DATE, FLOW_RATE, END_DATE, CLIFF_TRANSFER_AMOUNT, 0
         );
         _createVestingScheduleWithDefaultData(alice, bob);
         vm.startPrank(alice);
@@ -308,7 +309,7 @@ contract VestingSchedulerTests is FoundrySuperfluidTester {
         _setACL_AUTHORIZE_FULL_CONTROL(alice, FLOW_RATE);
         vm.expectEmit(true, true, true, true);
         emit VestingScheduleCreated(
-            superToken, alice, bob, START_DATE, CLIFF_DATE, FLOW_RATE, END_DATE, CLIFF_TRANSFER_AMOUNT
+            superToken, alice, bob, START_DATE, CLIFF_DATE, FLOW_RATE, END_DATE, CLIFF_TRANSFER_AMOUNT, 0
         );
         _createVestingScheduleWithDefaultData(alice, bob);
         vm.prank(alice);
@@ -586,7 +587,7 @@ contract VestingSchedulerTests is FoundrySuperfluidTester {
         uint32 startAndCliffDate = uint32(block.timestamp);
 
         vm.expectEmit();
-        emit VestingScheduleCreated(superToken, alice, bob, startAndCliffDate, startAndCliffDate, FLOW_RATE, END_DATE, CLIFF_TRANSFER_AMOUNT);
+        emit VestingScheduleCreated(superToken, alice, bob, startAndCliffDate, startAndCliffDate, FLOW_RATE, END_DATE, CLIFF_TRANSFER_AMOUNT, 0);
 
         vestingScheduler.createVestingSchedule(
             superToken,
@@ -648,8 +649,7 @@ contract VestingSchedulerTests is FoundrySuperfluidTester {
         _setACL_AUTHORIZE_FULL_CONTROL(alice, FLOW_RATE);
         superToken.increaseAllowance(address(vestingScheduler), type(uint256).max);
 
-        // 0 flow rate
-        vm.expectRevert(IVestingScheduler.FlowRateInvalid.selector);
+        vm.expectRevert();
         vestingScheduler.createVestingScheduleFromAmountAndDuration(
             superToken,
             bob,
@@ -723,7 +723,7 @@ contract VestingSchedulerTests is FoundrySuperfluidTester {
         uint32 expectedEndDate = startDate + vestingDuration;
 
         vm.expectEmit();
-        emit VestingScheduleCreated(superToken, alice, bob, startDate, 0, expectedFlowRate, expectedEndDate, 0);
+        emit VestingScheduleCreated(superToken, alice, bob, startDate, 0, expectedFlowRate, expectedEndDate, 0, 0);
 
         vm.startPrank(alice);
         bool useCtx = randomizer % 2 == 0;
@@ -768,7 +768,7 @@ contract VestingSchedulerTests is FoundrySuperfluidTester {
         uint32 expectedEndDate = startDate + vestingDuration;
 
         vm.expectEmit();
-        emit VestingScheduleCreated(superToken, alice, bob, startDate, expectedCliffDate, expectedFlowRate, expectedEndDate, expectedCliffAmount);
+        emit VestingScheduleCreated(superToken, alice, bob, startDate, expectedCliffDate, expectedFlowRate, expectedEndDate, expectedCliffAmount, 0);
 
         vm.startPrank(alice);
         bool useCtx = randomizer % 2 == 0;

@@ -10,24 +10,24 @@ on:
       deployment_env:
         required: true
         type: string
-        description: 'The subgraph deployment env: v1, dev, feature'
+        description: "The subgraph deployment env: v1, dev, feature"
       network:
         required: true
         type: string
-        description: 'The network you want to deploy to (matic, xdai, eth-mainnet, etc.) or `all` for all networks.'
+        description: "The network you want to deploy to (matic, xdai, eth-mainnet, etc.) or `all` for all networks."
 
     secrets:
       SUBGRAPH_URL_TEMPLATE:
-        description: 'Subgraph endpoint url template'
+        description: "Subgraph endpoint url template"
         required: false
       SATSUMA_DEPLOY_KEY:
-        description: 'Satsuma deploy key'
+        description: "Satsuma deploy key"
         required: false
       THE_GRAPH_ACCESS_TOKEN:
-        description: 'The Graph (hosted service) access token for deploying subgraphs'
+        description: "The Graph (hosted service) access token for deploying subgraphs"
         required: false
       SUPERFLUID_IPFS_API:
-        description: 'Superfluid IPFS API endpoint'
+        description: "Superfluid IPFS API endpoint"
         required: false
 
 jobs:
@@ -112,7 +112,7 @@ jobs:
       - uses: olegtarasov/get-tag@v2.1.2
         id: "getSubgraphTag"
         with:
-          tagRegex: "subgraph@(.*)" 
+          tagRegex: "subgraph@(.*)"
 
       # Version is the git tag or revision
       - name: "Deploy to a node"
@@ -126,3 +126,4 @@ jobs:
           SUPERFLUID_IPFS_API: ${{ secrets.SUPERFLUID_IPFS_API }}
           THE_GRAPH_ACCESS_TOKEN: ${{ secrets.THE_GRAPH_ACCESS_TOKEN }}
           SATSUMA_DEPLOY_KEY: ${{ secrets.SATSUMA_DEPLOY_KEY }}
+          GOLDSKY_API_KEY: ${{ secrets.GOLDSKY_API_KEY }}

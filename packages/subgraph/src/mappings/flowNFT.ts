@@ -10,6 +10,7 @@ import {
     MetadataUpdateEvent,
     TransferEvent,
 } from "../../generated/schema";
+import { getOrInitAccount } from "../mappingHelpers";
 import { BIG_INT_ONE, createEventID, initializeEventEntity } from "../utils";
 
 export function handleApproval(event: Approval): void {
@@ -51,6 +52,9 @@ export function handleTransfer(event: Transfer): void {
     ev.token = event.address;
 
     ev.save();
+
+    getOrInitAccount(event.params.to, event.block);
+    getOrInitAccount(event.params.from, event.block);
 }
 
 export function handleMetadataUpdate(event: MetadataUpdate): void {

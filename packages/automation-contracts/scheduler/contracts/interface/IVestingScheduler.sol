@@ -152,6 +152,35 @@ interface IVestingScheduler {
     ) external;
 
     /**
+     * @dev Creates a new vesting schedule
+     * @dev The function calculates the endDate, cliffDate, cliffAmount, flowRate, etc, based on the input arguments.
+     * @dev The function creates the vesting schedule with start date set to current timestamp,
+     * @dev and executes the start (i.e. creation of the flow) immediately.
+     * @param superToken SuperToken to be vested
+     * @param receiver Vesting receiver
+     * @param totalAmount The total amount to be vested 
+     * @param totalDuration The total duration of the vestingß
+     * @param ctx Superfluid context used when batching operations. (or bytes(0) if not SF batching)
+     */
+    function createAndExecuteVestingScheduleFromAmountAndDuration(
+        ISuperToken superToken,
+        address receiver,
+        uint256 totalAmount,
+        uint32 totalDuration,
+        bytes memory ctx
+    ) external returns (bytes memory newCtx);
+
+    /** 
+     * @dev See IVestingScheduler.createAndExecuteVestingScheduleFromAmountAndDuration.
+     */
+    function createAndExecuteVestingScheduleFromAmountAndDuration(
+        ISuperToken superToken,
+        address receiver,
+        uint256 totalAmount,
+        uint32 totalDuration
+    ) external;
+
+    /**
      * @dev Event emitted on update of a vesting schedule
      * @param superToken The superToken to be vested
      * @param sender Vesting sender

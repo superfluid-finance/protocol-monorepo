@@ -309,6 +309,8 @@ dataSources:
         abis:
           - name: IFlowNFTBase
             file: ./abis/IFlowNFTBase.json
+          - name: ISuperfluid
+            file: ./abis/ISuperfluid.json
         eventHandlers:
           - event: Transfer(indexed address,indexed address,indexed uint256)
             handler: handleTransfer
@@ -342,6 +344,8 @@ dataSources:
         abis:
           - name: IFlowNFTBase
             file: ./abis/IFlowNFTBase.json
+          - name: ISuperfluid
+            file: ./abis/ISuperfluid.json
         eventHandlers:
           - event: Transfer(indexed address,indexed address,indexed uint256)
             handler: handleTransfer

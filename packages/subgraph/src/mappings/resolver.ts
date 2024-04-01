@@ -42,20 +42,28 @@ export function handleRoleRevoked(event: RoleRevoked): void {
     ev.save();
 }
 
+function getIsToken(id: string): boolean {
+    return Token.load(id) != null;
+}
+
 function getOrInitResolverEntry(id: string, target: Address, block: ethereum.Block): ResolverEntry {
     let resolverEntry = ResolverEntry.load(id);
+
+    const isListed = target.notEqual(ZERO_ADDRESS);
 
     if (resolverEntry == null) {
         resolverEntry = new ResolverEntry(id);
         resolverEntry.createdAtBlockNumber = block.number;
         resolverEntry.createdAtTimestamp = block.timestamp;
         resolverEntry.targetAddress = target;
+        // on initialization, we are unlikely to set this to zero address
+        // if we do, this gets fixed in subsequent set events
+        resolverEntry.isToken = getIsToken(target.toHex());
     }
-    const isListed = target.notEqual(ZERO_ADDRESS);
 
     // we only update this if the target is not equal to the zero address
     if (isListed) {
-        resolverEntry.isToken = Token.load(target.toHex()) != null;
+        resolverEntry.isToken = getIsToken(target.toHex());
     }
     resolverEntry.updatedAtBlockNumber = block.number;
     resolverEntry.updatedAtTimestamp = block.timestamp;

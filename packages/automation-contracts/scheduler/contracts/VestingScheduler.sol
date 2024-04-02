@@ -144,7 +144,7 @@ contract VestingScheduler is IVestingScheduler, SuperAppBase {
             totalAmount,
             totalDuration,
             cliffPeriod,
-            uint32(block.timestamp),
+            0, // startDate
             bytes("")
         );
     }
@@ -161,8 +161,8 @@ contract VestingScheduler is IVestingScheduler, SuperAppBase {
             receiver,
             totalAmount,
             totalDuration,
-            0,
-            uint32(block.timestamp),
+            0, // cliffPeriod
+            0, // startDate
             bytes("")
         );
     }
@@ -213,8 +213,8 @@ contract VestingScheduler is IVestingScheduler, SuperAppBase {
             receiver,
             totalAmount,
             totalDuration,
-            0,
-            uint32(block.timestamp),
+            0, // cliffPeriod
+            0, // startDate
             ctx
         );
 
@@ -231,9 +231,14 @@ contract VestingScheduler is IVestingScheduler, SuperAppBase {
         uint32 startDate,
         bytes memory ctx
     ) private returns (bytes memory newCtx) {
+        if (startDate == 0) {
+            startDate = uint32(block.timestamp);
+        }
+
         uint32 endDate = startDate + totalDuration;
         int96 flowRate = SafeCast.toInt96(SafeCast.toInt256(totalAmount / totalDuration));
-        uint256 remainderAmount = totalAmount % SafeCast.toUint256(flowRate);
+        uint256 remainderAmount = totalAmount - (SafeCast.toUint256(flowRate) * totalDuration);
+
         if (cliffPeriod == 0) {
             newCtx = _createVestingSchedule(
                 superToken, 
@@ -276,6 +281,11 @@ contract VestingScheduler is IVestingScheduler, SuperAppBase {
     ) private returns (bytes memory newCtx) {
         newCtx = ctx;
         address sender = _getSender(ctx);
+        
+        if (startDate == 0) {
+            startDate = uint32(block.timestamp);
+        }
+        if (startDate < block.timestamp) revert TimeWindowInvalid();
 
         if (receiver == address(0) || receiver == sender) revert AccountInvalid();
         if (address(superToken) == address(0)) revert ZeroAddress();

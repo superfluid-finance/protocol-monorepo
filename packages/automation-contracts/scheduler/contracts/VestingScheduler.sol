@@ -341,7 +341,8 @@ contract VestingScheduler is IVestingScheduler, SuperAppBase {
         if (schedule.cliffAndFlowDate != 0 || schedule.endDate == 0) revert ScheduleNotFlowing();
         vestingSchedules[configHash].endDate = endDate;
         vestingSchedules[configHash].remainderAmount = 0;
-        // Note: Nullify the dust amount if complexity of updates is introduced.
+        // Note: Nullify the remainder amount if complexity of updates is introduced.
+
         emit VestingScheduleUpdated(
             superToken,
             sender,
@@ -442,11 +443,14 @@ contract VestingScheduler is IVestingScheduler, SuperAppBase {
             // delete first the stream and unlock deposit amount.
             cfaV1.deleteFlowByOperator(sender, receiver, superToken);
 
-            uint256 earlyEndCompensation = schedule.endDate > block.timestamp ?
-                (schedule.endDate - block.timestamp) * uint96(schedule.flowRate) + schedule.remainderAmount : 0;
+            uint256 earlyEndCompensation = schedule.endDate >= block.timestamp 
+                ? (schedule.endDate - block.timestamp) * uint96(schedule.flowRate) + schedule.remainderAmount 
+                : 0;
+
             bool didCompensationFail = schedule.endDate < block.timestamp;
             if (earlyEndCompensation != 0) {
-                superToken.transferFrom(sender, receiver, earlyEndCompensation);
+                assert(superToken.transferFrom(sender, receiver, earlyEndCompensation));
+                // TODO: Assert? Revert? SafeERC20?
             }
 
             emit VestingEndExecuted(

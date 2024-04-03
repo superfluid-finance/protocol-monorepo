@@ -660,69 +660,69 @@ contract VestingSchedulerTests is FoundrySuperfluidTester {
         // ---
     }
 
-    // function testReverts_wip() public {
-    //     _setACL_AUTHORIZE_FULL_CONTROL(alice, FLOW_RATE);
-    //     superToken.increaseAllowance(address(vestingScheduler), type(uint256).max);
+    function test_createScheduleFromAmountAndDuration_reverts() public {
+        _setACL_AUTHORIZE_FULL_CONTROL(alice, FLOW_RATE);
+        superToken.increaseAllowance(address(vestingScheduler), type(uint256).max);
 
-    //     vm.expectRevert();
-    //     vestingScheduler.createVestingScheduleFromAmountAndDuration(
-    //         superToken,
-    //         bob,
-    //         0,
-    //         1209600,
-    //         604800,
-    //         uint32(block.timestamp),
-    //         EMPTY_CTX
-    //     );
+        vm.expectRevert();
+        vestingScheduler.createVestingScheduleFromAmountAndDuration(
+            superToken,
+            bob,
+            0,
+            1209600,
+            604800,
+            uint32(block.timestamp),
+            EMPTY_CTX
+        );
 
-    //     // cliff and start in history
-    //     vm.expectRevert(IVestingScheduler.TimeWindowInvalid.selector);
-    //     vestingScheduler.createVestingScheduleFromAmountAndDuration(
-    //         superToken,
-    //         bob,
-    //         1 ether,
-    //         1209600,
-    //         0,
-    //         uint32(block.timestamp - 1),
-    //         EMPTY_CTX
-    //     );
+        console.log("Revert with cliff and start in history.");
+        vm.expectRevert(IVestingScheduler.TimeWindowInvalid.selector);
+        vestingScheduler.createVestingScheduleFromAmountAndDuration(
+            superToken,
+            bob,
+            1 ether,
+            1209600,
+            0,
+            uint32(block.timestamp - 1),
+            EMPTY_CTX
+        );
 
-    //     // overflow
-    //     vm.expectRevert(); // todo: the right error
-    //     vestingScheduler.createVestingScheduleFromAmountAndDuration(
-    //         superToken,
-    //         bob,
-    //         type(uint256).max,
-    //         1209600,
-    //         0,
-    //         uint32(block.timestamp),
-    //         EMPTY_CTX
-    //     );
+        console.log("Revert with overflow.");
+        vm.expectRevert(); // todo: the right error
+        vestingScheduler.createVestingScheduleFromAmountAndDuration(
+            superToken,
+            bob,
+            type(uint256).max,
+            1209600,
+            0,
+            uint32(block.timestamp),
+            EMPTY_CTX
+        );
 
-    //     // overflow/underflow
-    //     vm.expectRevert(); // todo: the right error
-    //     vestingScheduler.createVestingScheduleFromAmountAndDuration(
-    //         superToken,
-    //         bob,
-    //         1 ether,
-    //         type(uint32).max,
-    //         0,
-    //         uint32(block.timestamp),
-    //         EMPTY_CTX
-    //     );
+        console.log("Revert with underflow/overflow.");
+        vm.expectRevert(); // todo: the right error
+        vestingScheduler.createVestingScheduleFromAmountAndDuration(
+            superToken,
+            bob,
+            1 ether,
+            type(uint32).max,
+            0,
+            uint32(block.timestamp),
+            EMPTY_CTX
+        );
 
-    //     // todo
-    //     // hmm, start date can be in history?
-    //     vestingScheduler.createVestingScheduleFromAmountAndDuration(
-    //         superToken,
-    //         bob,
-    //         1 ether,
-    //         1209600,
-    //         604800,
-    //         uint32(block.timestamp - 1),
-    //         EMPTY_CTX
-    //     );
-    // }
+        console.log("Revert with start date in history.");
+        vm.expectRevert(IVestingScheduler.TimeWindowInvalid.selector);
+        vestingScheduler.createVestingScheduleFromAmountAndDuration(
+            superToken,
+            bob,
+            1 ether,
+            1209600,
+            604800,
+            uint32(block.timestamp - 1),
+            EMPTY_CTX
+        );
+    }
 
     function testNewFunctionScheduleCreationWithoutCliff(uint8 randomizer) public {
         _setACL_AUTHORIZE_FULL_CONTROL(alice, FLOW_RATE);
@@ -818,25 +818,25 @@ contract VestingSchedulerTests is FoundrySuperfluidTester {
         uint8 randomizer
     ) public {
         // Assume
-        vm.assume(totalAmount > 1);
-        vm.assume(totalDuration > vestingScheduler.MIN_VESTING_DURATION());
+        vm.assume(randomizer != 0);
+        
         vm.assume(startDate == 0 || startDate >= block.timestamp);
-        vm.assume(totalAmount >= totalDuration);
-        vm.assume(cliffPeriod <= totalDuration - vestingScheduler.MIN_VESTING_DURATION());
-        vm.assume(totalAmount / totalDuration <= SafeCast.toUint256(type(int96).max));
         vm.assume(startDate < 2524600800 /* year 2050 */);
+
+        vm.assume(totalDuration > vestingScheduler.MIN_VESTING_DURATION());
+        vm.assume(cliffPeriod <= totalDuration - vestingScheduler.MIN_VESTING_DURATION());
         vm.assume(totalDuration < 18250 days /* 50 years */);
 
         uint256 beforeSenderBalance = superToken.balanceOf(alice);
         uint256 beforeReceiverBalance = superToken.balanceOf(bob);
 
-        vm.assume(totalAmount <= beforeSenderBalance /* 50 years */);
-
-        console.log(type(uint32).max);
+        vm.assume(totalAmount > 1);
+        vm.assume(totalAmount >= totalDuration);
+        vm.assume(totalAmount / totalDuration <= SafeCast.toUint256(type(int96).max));
+        vm.assume(totalAmount <= beforeSenderBalance);
 
         IVestingScheduler.VestingSchedule memory nullSchedule = vestingScheduler.getVestingSchedule(address(superToken), alice, bob);
         assertTrue(nullSchedule.endDate == 0, "Schedule should not exist");
-
 
         // Arrange
         IVestingScheduler.VestingSchedule memory expectedSchedule = _getExpectedScheduleFromAmountAndDuration(
@@ -848,6 +848,23 @@ contract VestingSchedulerTests is FoundrySuperfluidTester {
         uint32 expectedCliffDate = cliffPeriod == 0 ? 0 : expectedSchedule.cliffAndFlowDate;
         uint32 expectedStartDate = startDate == 0 ? uint32(block.timestamp) : startDate;
 
+        // Assume we're not getting liquidated at the end:
+        vm.assume(totalAmount <= (beforeSenderBalance - vestingScheduler.END_DATE_VALID_BEFORE() * SafeCast.toUint256(expectedSchedule.flowRate)));
+
+        console.log("Total amount: %s", totalAmount);
+        console.log("Total duration: %s", totalDuration);
+        console.log("Cliff period: %s", cliffPeriod);
+        console.log("Start date: %s", startDate);
+        console.log("Randomizer: %s", randomizer);
+        console.log("Expected start date: %s", expectedStartDate);
+        console.log("Expected cliff date: %s", expectedCliffDate);
+        console.log("Expected cliff & flow date: %s", expectedSchedule.cliffAndFlowDate);
+        console.log("Expected end date: %s", expectedSchedule.endDate);
+        console.log("Expected flow rate: %s", SafeCast.toUint256(expectedSchedule.flowRate));
+        console.log("Expected cliff amount: %s", expectedSchedule.cliffAmount);
+        console.log("Expected remainder amount: %s", expectedSchedule.remainderAmount);
+        console.log("Sender balance: %s", beforeSenderBalance);
+
         _arrangeAllowances(alice, expectedSchedule.flowRate);
 
         vm.expectEmit();
@@ -856,7 +873,7 @@ contract VestingSchedulerTests is FoundrySuperfluidTester {
         // Act
         vm.startPrank(alice);
         if (startDate == 0 && randomizer % 2 == 0) {
-            // use the overload without start date
+            console.log("Using the overload without start date.");
             vestingScheduler.createVestingScheduleFromAmountAndDuration(
                 superToken,
                 bob,
@@ -866,7 +883,7 @@ contract VestingSchedulerTests is FoundrySuperfluidTester {
             );
         } else {
             if (randomizer % 3 == 0) {
-                // use the overload without superfluid context
+                console.log("Using the overload without superfluid context.");
                 vestingScheduler.createVestingScheduleFromAmountAndDuration(
                     superToken,
                     bob,
@@ -876,7 +893,7 @@ contract VestingSchedulerTests is FoundrySuperfluidTester {
                     startDate
                 );
             } else {
-                // use the overload with superfluid context
+                console.log("Using the overload with superfluid context.");
                 vestingScheduler.createVestingScheduleFromAmountAndDuration(
                     superToken,
                     bob,
@@ -899,7 +916,7 @@ contract VestingSchedulerTests is FoundrySuperfluidTester {
         assertEq(actualSchedule.remainderAmount, expectedSchedule.remainderAmount, "schedule created: remainderAmount not expected");
 
         // Act
-        vm.warp(expectedSchedule.cliffAndFlowDate + (1 days / 2));
+        vm.warp(expectedSchedule.cliffAndFlowDate + (vestingScheduler.START_DATE_VALID_AFTER() - (vestingScheduler.START_DATE_VALID_AFTER() / randomizer)));
         assertTrue(vestingScheduler.executeCliffAndFlow(superToken, alice, bob));
 
         // Assert
@@ -911,7 +928,7 @@ contract VestingSchedulerTests is FoundrySuperfluidTester {
         assertEq(actualSchedule.remainderAmount, expectedSchedule.remainderAmount, "schedule started: remainderAmount not expected");
 
         // Act
-        vm.warp(expectedSchedule.endDate - (1 days / 2));
+        vm.warp(expectedSchedule.endDate - (vestingScheduler.END_DATE_VALID_BEFORE() - (vestingScheduler.END_DATE_VALID_BEFORE() / randomizer)));
         assertTrue(vestingScheduler.executeEndVesting(superToken, alice, bob));
 
         actualSchedule = vestingScheduler.getVestingSchedule(address(superToken), alice, bob);

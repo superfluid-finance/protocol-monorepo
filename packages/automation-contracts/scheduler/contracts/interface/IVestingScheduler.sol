@@ -29,7 +29,7 @@ interface IVestingScheduler {
         uint32 endDate;
         int96 flowRate;
         uint256 cliffAmount;
-        uint256 remainderAmount;
+        uint256 remainderAmount; // TODO: consider packing
     }
 
     /**

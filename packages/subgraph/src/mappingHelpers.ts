@@ -148,6 +148,12 @@ export function getOrInitSuperToken(
         return token as Token;
     }
 
+    if (token.symbol == "") {
+        const tokenContract = SuperToken.bind(tokenAddress);
+        const symbolResult = tokenContract.try_symbol();
+        token.symbol = symbolResult.reverted ? "" : symbolResult.value;
+    }
+
     token.save();
 
     return token as Token;

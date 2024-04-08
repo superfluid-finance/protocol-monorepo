@@ -26,6 +26,9 @@ on:
       THE_GRAPH_ACCESS_TOKEN:
         description: "The Graph (hosted service) access token for deploying subgraphs"
         required: false
+      GOLDSKY_API_KEY:
+        description: "Goldsky API key for deploying subgraphs"
+        required: false
       SUPERFLUID_IPFS_API:
         description: "Superfluid IPFS API endpoint"
         required: false

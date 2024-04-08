@@ -59,7 +59,7 @@ module.exports = class Framework {
                 options.gasReportType !== "JSON"
             ) {
                 throw new Error(
-                    "Unsuported gas report type: " + options.gasReportType
+                    "Unsupported gas report type: " + options.gasReportType
                 );
             }
             console.debug("Enabling gas report type:", options.gasReportType);

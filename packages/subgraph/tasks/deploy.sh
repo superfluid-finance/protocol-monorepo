@@ -184,7 +184,7 @@ if [ -z "$VENDOR" ] || [ -z "$NETWORK" ] || [ -z "$DEPLOYMENT_ENV" ] || [ -z "$V
     print_usage_and_exit
 fi
 
-# We can safely ignore this warning, becasue the value in vendor won't contain whitespaces
+# We can safely ignore this warning, because the value in vendor won't contain whitespaces
 # shellcheck disable=SC2199,SC2076
 if [[ ! " ${SUPPORTED_VENDORS[@]} " =~ " $VENDOR " ]]; then
     print_usage_and_exit

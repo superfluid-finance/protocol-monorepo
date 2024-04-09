@@ -66,6 +66,12 @@
     node18DevInputs = nodeDevInputsWith pkgs.nodejs_18;
     node20DevInputs = nodeDevInputsWith pkgs.nodejs_20;
 
+    # CI inputs
+    ciInputs = with pkgs; [
+      # codecov requries gnupg binary
+      gnupg
+    ];
+
     # minimem development shell
     minimumDevInputs = commonDevInputs ++ ethDevInputs ++ node18DevInputs;
 
@@ -132,17 +138,18 @@
         ++ whitehatInputs
         ++ specInputs;
     };
+
     # CI shells
     devShells.ci-node18 = mkShell {
-      buildInputs = commonDevInputs ++ ethDevInputs ++ node18DevInputs;
+      buildInputs = ciInputs ++ commonDevInputs ++ ethDevInputs ++ node18DevInputs;
     };
     devShells.ci-node20 = mkShell {
-      buildInputs = commonDevInputs ++ ethDevInputs ++ node20DevInputs;
+      buildInputs = ciInputs ++ commonDevInputs ++ ethDevInputs ++ node20DevInputs;
     };
     devShells.ci-spec-ghc92 = ci-spec-with-ghc ghcVer92;
     devShells.ci-spec-ghc94 = ci-spec-with-ghc ghcVer94;
     devShells.ci-hot-fuzz = mkShell {
-      buildInputs = with pkgs; commonDevInputs ++ ethDevInputs ++ [
+      buildInputs = with pkgs; ciInputs ++ commonDevInputs ++ ethDevInputs ++ [
         slither-analyzer
         echidna
       ];

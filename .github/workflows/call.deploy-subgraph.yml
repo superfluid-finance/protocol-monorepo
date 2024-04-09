@@ -5,7 +5,7 @@ on:
     inputs:
       vendor:
         required: true
-        description: "Where to deploy subgraph to; superfluid, graph, or satsuma"
+        description: "Where to deploy subgraph to; superfluid, graph, satsuma, or goldsky"
         type: string
       deployment_env:
         required: true

@@ -132,17 +132,22 @@
         ++ whitehatInputs
         ++ specInputs;
     };
+
     # CI shells
+    ciInputs = with pkgs; [
+      # codecov requries gnupg binary
+      gnupg
+    ];
     devShells.ci-node18 = mkShell {
-      buildInputs = commonDevInputs ++ ethDevInputs ++ node18DevInputs;
+      buildInputs = ciInputs ++ commonDevInputs ++ ethDevInputs ++ node18DevInputs;
     };
     devShells.ci-node20 = mkShell {
-      buildInputs = commonDevInputs ++ ethDevInputs ++ node20DevInputs;
+      buildInputs = ciInputs ++ commonDevInputs ++ ethDevInputs ++ node20DevInputs;
     };
     devShells.ci-spec-ghc92 = ci-spec-with-ghc ghcVer92;
     devShells.ci-spec-ghc94 = ci-spec-with-ghc ghcVer94;
     devShells.ci-hot-fuzz = mkShell {
-      buildInputs = with pkgs; commonDevInputs ++ ethDevInputs ++ [
+      buildInputs = with pkgs; ciInputs ++ commonDevInputs ++ ethDevInputs ++ [
         slither-analyzer
         echidna
       ];

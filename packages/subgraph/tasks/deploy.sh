@@ -126,8 +126,8 @@ deploy_to_goldsky() {
     # TODO: use tagging?
     # TODO: how to handle versions?
 
-    cp subgraph.yaml ./build/subgraph.yaml
-    # TODO: not sure the cp is necessary
+    $GRAPH_CLI build
+    # Note: when using Graph CLI to deploy, it implicitly triggers build too, but Goldsky CLI doesn't.
 
     echo "********* Deploying $network subgraph $subgraphName to Goldsky. **********"
     $GOLDSKY_CLI subgraph deploy \

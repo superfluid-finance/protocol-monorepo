@@ -66,6 +66,12 @@
     node18DevInputs = nodeDevInputsWith pkgs.nodejs_18;
     node20DevInputs = nodeDevInputsWith pkgs.nodejs_20;
 
+    # CI inputs
+    ciInputs = with pkgs; [
+      # codecov requries gnupg binary
+      gnupg
+    ];
+
     # minimem development shell
     minimumDevInputs = commonDevInputs ++ ethDevInputs ++ node18DevInputs;
 
@@ -134,10 +140,6 @@
     };
 
     # CI shells
-    ciInputs = with pkgs; [
-      # codecov requries gnupg binary
-      gnupg
-    ];
     devShells.ci-node18 = mkShell {
       buildInputs = ciInputs ++ commonDevInputs ++ ethDevInputs ++ node18DevInputs;
     };

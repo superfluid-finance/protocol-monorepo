@@ -1499,10 +1499,10 @@
   optionalDependencies:
     "@trufflesuite/bigint-buffer" "1.1.9"
 
-"@graphprotocol/graph-cli@0.67.4":
-  version "0.67.4"
-  resolved "https://registry.yarnpkg.com/@graphprotocol/graph-cli/-/graph-cli-0.67.4.tgz#da8fd87c20c64bb3ab78664bd2af0ab965f9d12f"
-  integrity sha512-U2LDemWwmYUxf7PloAcDPXK1UeceRphGJJKrhNbDZB32hlp3LY+GI6HnRK4F9Oeri2azB3t3/humNxIDgbim0w==
+"@graphprotocol/graph-cli@0.69.1":
+  version "0.69.1"
+  resolved "https://registry.yarnpkg.com/@graphprotocol/graph-cli/-/graph-cli-0.69.1.tgz#2ea248fb1636b46afb6101236e3f387e9d2f3275"
+  integrity sha512-PekTli4hsBkF48y2NA2ufNjtdG/VL4N+E7GAavNXxFmSHM9VoCWbR4OBeJ93dAOpgHRGyx8yO1NE9DDT7yEZsg==
   dependencies:
     "@float-capital/float-subgraph-uncrashable" "^0.0.0-alpha.4"
     "@oclif/core" "2.8.6"
@@ -1532,10 +1532,10 @@
     which "2.0.2"
     yaml "1.10.2"
 
-"@graphprotocol/graph-ts@0.32.0":
-  version "0.32.0"
-  resolved "https://registry.yarnpkg.com/@graphprotocol/graph-ts/-/graph-ts-0.32.0.tgz#36f8cd8e4ef42c3c32536cceb9995ab990f51d29"
-  integrity sha512-YfKLT2w+ItXD/VPYQiAKtINQONVsAOkcqVFMHlhUy0fcEBVWuFBT53hJNI0/l5ujQa4TSxtzrKW/7EABAdgI8g==
+"@graphprotocol/graph-ts@0.34.0":
+  version "0.34.0"
+  resolved "https://registry.yarnpkg.com/@graphprotocol/graph-ts/-/graph-ts-0.34.0.tgz#ca47398295b114f25b412faa364b98af31fa2bb7"
+  integrity sha512-gnhjai65AV4YMYe9QHGz+HP/jdzI54z/nOfEXZFfh6m987EP2iy3ycLXrTi+ahcogHH7vtoWFdXbUzZbE8bCAg==
   dependencies:
     assemblyscript "0.19.10"
 

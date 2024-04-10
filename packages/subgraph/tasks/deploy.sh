@@ -5,8 +5,10 @@ set -eux
 JQ="jq"
 
 # shellcheck disable=SC2207
-GRAPH_CLI="npx --package=@graphprotocol/graph-cli -- graph"
-SUPPORTED_VENDORS=( "graph" "satsuma" "superfluid" )
+GRAPH_CLI="npx --package=@graphprotocol/graph-cli --yes -- graph"
+# shellcheck disable=SC2207
+GOLDSKY_CLI="npx --package=@goldskycom/cli --yes -- goldsky"
+SUPPORTED_VENDORS=( "graph" "satsuma" "superfluid" "goldsky" )
 
 # list of supported networks by vendor
 
@@ -16,11 +18,14 @@ GRAPH_NETWORKS=( $($JQ -r .[] ./hosted-service-networks.json) ) || exit 1
 SATSUMA_NETWORKS=( "polygon-mainnet" "xdai-mainnet" "eth-mainnet" "eth-sepolia" "optimism-mainnet" "base-mainnet")
 # shellcheck disable=SC2034
 SUPERFLUID_NETWORKS=( "polygon-mainnet" "xdai-mainnet" "base-mainnet" "optimism-mainnet" "arbitrum-one" "celo-mainnet" "bsc-mainnet" "avalanche-c" "optimism-sepolia" "scroll-sepolia" "scroll-mainnet")
+# shellcheck disable=SC2034
+GOLDSKY_NETWORKS=( "polygon-mainnet" "xdai-mainnet" "base-mainnet" "optimism-mainnet" "arbitrum-one" "celo-mainnet" "bsc-mainnet" "avalanche-c" "optimism-sepolia" "scroll-sepolia" "scroll-mainnet")
 
 declare -A VENDOR_NETWORKS=(
     ["graph"]="${GRAPH_NETWORKS[@]}"
     ["satsuma"]="${SATSUMA_NETWORKS[@]}"
     ["superfluid"]="${SUPERFLUID_NETWORKS[@]}"
+    ["goldsky"]="${GOLDSKY_NETWORKS[@]}"
 )
 
 VENDOR=""
@@ -29,7 +34,7 @@ DEPLOYMENT_ENV=""
 VERSION_LABEL=""
 
 print_usage_and_exit() {
-    echo "Usage: $0 -o graph|satsuma|superfluid -n <network_name> -r <deployment_env> -v <version_label>"
+    echo "Usage: $0 -o graph|satsuma|superfluid|goldsky -n <network_name> -r <deployment_env> -v <version_label>"
     exit 1
 }
 
@@ -115,6 +120,22 @@ deploy_to_superfluid() {
         --ipfs "$SUPERFLUID_IPFS_API"
 }
 
+deploy_to_goldsky() {
+    local network="$1"
+    local subgraphName="protocol-$DEPLOYMENT_ENV-$network/1.0.0"
+    # TODO: use tagging?
+    # TODO: how to handle versions?
+
+    $GRAPH_CLI build
+    # Note: when using Graph CLI to deploy, it implicitly triggers build too, but Goldsky CLI doesn't.
+
+    echo "********* Deploying $network subgraph $subgraphName to Goldsky. **********"
+    $GOLDSKY_CLI subgraph deploy \
+        "$subgraphName" \
+        --path . \
+        --token "$GOLDSKY_API_KEY"
+}
+
 # Vendor specific function dispatcher
 # Expected arguments:
 # $1 - vendor
@@ -148,6 +169,9 @@ deploy_to() {
         ;;
     superfluid)
         deploy_to_superfluid "$network"
+        ;;
+    goldsky)
+        deploy_to_goldsky "$network"
         ;;
     *)
         print_usage_and_exit

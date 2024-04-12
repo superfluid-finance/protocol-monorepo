@@ -964,7 +964,7 @@ library SuperTokenV1Library {
     function getGDANetFlowInfo(ISuperToken token, address account)
         internal
         view
-        returns (uint256 lastUpdated, int96 flowRate, uint256 deposit, uint256 owedDeposit)
+        returns (uint256 lastUpdated, int96 flowRate, uint256 deposit, uint256 /* owedDeposit unused */)
     {
         (, IGeneralDistributionAgreementV1 gda) = _getHostAndGDA(token);
         (lastUpdated, flowRate, deposit) = gda.getAccountFlowInfo(token, account);

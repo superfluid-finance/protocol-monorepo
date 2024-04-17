@@ -68,9 +68,11 @@ pragma solidity ^0.8.19;
  */
 type Time is uint32;
 function mt_t_eq(Time a, Time b) pure returns (bool) { return Time.unwrap(a) == Time.unwrap(b); }
+function mt_t_neq(Time a, Time b) pure returns (bool) { return Time.unwrap(a) != Time.unwrap(b); }
 function mt_t_add_t(Time a, Time b) pure returns (Time) { return Time.wrap(Time.unwrap(a) + Time.unwrap(b)); }
 function mt_t_sub_t(Time a, Time b) pure returns (Time) { return Time.wrap(Time.unwrap(a) - Time.unwrap(b)); }
-using { mt_t_eq as ==, mt_t_add_t as +, mt_t_sub_t as - } for Time global;
+using { mt_t_eq as ==, mt_t_neq as !=,
+        mt_t_add_t as +, mt_t_sub_t as - } for Time global;
 
 /**
  * @title Unit value of monetary value represented with 256bits of signed integer.
@@ -103,7 +105,8 @@ function mt_r_add_r(FlowRate a, FlowRate b) pure returns (FlowRate) {
 function mt_r_sub_r(FlowRate a, FlowRate b) pure returns (FlowRate) {
     return FlowRate.wrap(FlowRate.unwrap(a) - FlowRate.unwrap(b));
 }
-using { mt_r_eq as ==, mt_r_add_r as +, mt_r_sub_r as - } for FlowRate global;
+function mt_r_inv(FlowRate a) pure returns (FlowRate) { return FlowRate.wrap(-FlowRate.unwrap(a)); }
+using { mt_r_eq as ==, mt_r_add_r as +, mt_r_sub_r as -, mt_r_inv as - } for FlowRate global;
 
 /**
  * @dev Additional helper functions for the monetary types
@@ -113,9 +116,8 @@ using { mt_r_eq as ==, mt_r_add_r as +, mt_r_sub_r as - } for FlowRate global;
  * Read more at: https://github.com/ethereum/solidity/issues/11969#issuecomment-1448445474
  */
 library AdditionalMonetaryTypeHelpers {
-    function inv(Value x) internal pure returns (Value) {
-        return Value.wrap(-Value.unwrap(x));
-    }
+    // Additional Value operators
+    //
     function mul(Value a, Unit b) internal pure returns (Value) {
         return Value.wrap(Value.unwrap(a) * int256(Unit.unwrap(b)));
     }
@@ -123,10 +125,8 @@ library AdditionalMonetaryTypeHelpers {
         return Value.wrap(Value.unwrap(a) / int256(Unit.unwrap(b)));
     }
 
-    function inv(FlowRate r) internal pure returns (FlowRate) {
-        return FlowRate.wrap(-FlowRate.unwrap(r));
-    }
-
+    // Additional FlowRate operators
+    //
     function mul(FlowRate r, Time t) internal pure returns (Value) {
         return Value.wrap(int256(FlowRate.unwrap(r)) * int256(uint256(Time.unwrap(t))));
     }
@@ -404,14 +404,14 @@ library SemanticMoney {
     function shift2(BasicParticle memory a, BasicParticle memory b, Value x) internal pure
         returns (BasicParticle memory m, BasicParticle memory n)
     {
-        m = a.shift1(x.inv());
+        m = a.shift1(-x);
         n = b.shift1(x);
     }
 
     function flow2(BasicParticle memory a, BasicParticle memory b, FlowRate r, Time t) internal pure
         returns (BasicParticle memory m, BasicParticle memory n)
     {
-        m = a.settle(t).flow1(r.inv());
+        m = a.settle(t).flow1(-r);
         n = b.settle(t).flow1(r);
     }
 
@@ -422,7 +422,7 @@ library SemanticMoney {
         BasicParticle memory a1;
         BasicParticle memory a2;
         FlowRate r = b.flow_rate();
-        (a1,  ) = mempty.flow2(b, r.inv(), t);
+        (a1,  ) = mempty.flow2(b, -r, t);
         (a2, n) = mempty.flow2(b, r + dr,  t);
         m = a.mappend(a1).mappend(a2);
     }
@@ -437,7 +437,7 @@ library SemanticMoney {
         BasicParticle memory b2;
         FlowRate r = a.flow_rate();
         ( , b1) = a.flow2(mempty, r, t);
-        (m, b2) = a.flow2(mempty, r.inv() + dr, t);
+        (m, b2) = a.flow2(mempty, -r + dr, t);
         n = b.mappend(b1).mappend(b2);
     }
 
@@ -445,14 +445,14 @@ library SemanticMoney {
         returns (BasicParticle memory m, PDPoolIndex memory n, Value x1)
     {
         (n, x1) = b.shift1(x);
-        m = a.shift1(x1.inv());
+        m = a.shift1(-x1);
     }
 
     function flow2(BasicParticle memory a, PDPoolIndex memory b, FlowRate r, Time t) internal pure
         returns (BasicParticle memory m, PDPoolIndex memory n, FlowRate r1)
     {
         (n, r1) = b.settle(t).flow1(r);
-        m = a.settle(t).flow1(r1.inv());
+        m = a.settle(t).flow1(-r1);
     }
 
     function shift_flow2b(BasicParticle memory a, PDPoolIndex memory b, FlowRate dr, Time t) internal pure
@@ -462,7 +462,7 @@ library SemanticMoney {
         BasicParticle memory a1;
         BasicParticle memory a2;
         FlowRate r = b.flow_rate();
-        (a1,  ,   ) = mempty.flow2(b, r.inv(), t);
+        (a1,  ,   ) = mempty.flow2(b, -r, t);
         (a2, n, r1) = mempty.flow2(b, r + dr,  t);
         m = a.mappend(a1).mappend(a2);
     }

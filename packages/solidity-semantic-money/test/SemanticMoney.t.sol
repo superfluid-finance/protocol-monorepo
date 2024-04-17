@@ -82,6 +82,11 @@ contract SemanticMoneyTest is Test {
         assertEq(q.mul(u) + e, r, "e1");
     }
 
+    function test_operators() external {
+        assertTrue(Time.wrap(0) == Time.wrap(0));
+        assertTrue(Time.wrap(0) != Time.wrap(1));
+    }
+
     ////////////////////////////////////////////////////////////////////////////////
     // Particle/Universal Index Properties: Monoidal Laws & Monetary Unit Laws
     ////////////////////////////////////////////////////////////////////////////////

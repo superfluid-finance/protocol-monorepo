@@ -435,7 +435,7 @@ library SemanticMoney {
         BasicParticle memory mempty;
         BasicParticle memory b1;
         BasicParticle memory b2;
-        FlowRate r = b.flow_rate();
+        FlowRate r = a.flow_rate();
         ( , b1) = a.flow2(mempty, r, t);
         (m, b2) = a.flow2(mempty, r.inv() + dr, t);
         n = b.mappend(b1).mappend(b2);

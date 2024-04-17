@@ -69,9 +69,13 @@ pragma solidity ^0.8.19;
 type Time is uint32;
 function mt_t_eq(Time a, Time b) pure returns (bool) { return Time.unwrap(a) == Time.unwrap(b); }
 function mt_t_neq(Time a, Time b) pure returns (bool) { return Time.unwrap(a) != Time.unwrap(b); }
+function mt_t_le(Time a, Time b) pure returns (bool) { return Time.unwrap(a) < Time.unwrap(b); }
+function mt_t_lte(Time a, Time b) pure returns (bool) { return Time.unwrap(a) <= Time.unwrap(b); }
+function mt_t_gt(Time a, Time b) pure returns (bool) { return Time.unwrap(a) > Time.unwrap(b); }
+function mt_t_gte(Time a, Time b) pure returns (bool) { return Time.unwrap(a) >= Time.unwrap(b); }
 function mt_t_add_t(Time a, Time b) pure returns (Time) { return Time.wrap(Time.unwrap(a) + Time.unwrap(b)); }
 function mt_t_sub_t(Time a, Time b) pure returns (Time) { return Time.wrap(Time.unwrap(a) - Time.unwrap(b)); }
-using { mt_t_eq as ==, mt_t_neq as !=,
+using { mt_t_eq as ==, mt_t_neq as !=, mt_t_le as <, mt_t_lte as <=, mt_t_gt as >, mt_t_gte as >=,
         mt_t_add_t as +, mt_t_sub_t as - } for Time global;
 
 /**
@@ -79,26 +83,43 @@ using { mt_t_eq as ==, mt_t_neq as !=,
  */
 type Value is int256;
 function mt_v_eq(Value a, Value b) pure returns (bool) { return Value.unwrap(a) == Value.unwrap(b); }
+function mt_v_neq(Value a, Value b) pure returns (bool) { return Value.unwrap(a) != Value.unwrap(b); }
+function mt_v_le(Value a, Value b) pure returns (bool) { return Value.unwrap(a) < Value.unwrap(b); }
+function mt_v_lte(Value a, Value b) pure returns (bool) { return Value.unwrap(a) <= Value.unwrap(b); }
+function mt_v_gt(Value a, Value b) pure returns (bool) { return Value.unwrap(a) > Value.unwrap(b); }
+function mt_v_gte(Value a, Value b) pure returns (bool) { return Value.unwrap(a) >= Value.unwrap(b); }
 function mt_v_add_v(Value a, Value b) pure returns (Value) { return Value.wrap(Value.unwrap(a) + Value.unwrap(b)); }
 function mt_v_sub_v(Value a, Value b) pure returns (Value) { return Value.wrap(Value.unwrap(a) - Value.unwrap(b)); }
 function mt_v_inv(Value a) pure returns (Value) { return Value.wrap(-Value.unwrap(a)); }
-using { mt_v_eq as ==, mt_v_add_v as +, mt_v_sub_v as -, mt_v_inv as - } for Value global;
+using { mt_v_eq as ==, mt_v_neq as !=, mt_v_le as <, mt_v_lte as <=, mt_v_gt as >, mt_v_gte as >=,
+        mt_v_add_v as +, mt_v_sub_v as -, mt_v_inv as - } for Value global;
 
 /**
  * @title Number of units represented with half the size of `Value`.
  */
 type Unit is int128;
 function mt_u_eq(Unit a, Unit b) pure returns (bool) { return Unit.unwrap(a) == Unit.unwrap(b); }
+function mt_u_neq(Unit a, Unit b) pure returns (bool) { return Unit.unwrap(a) != Unit.unwrap(b); }
+function mt_u_le(Unit a, Unit b) pure returns (bool) { return Unit.unwrap(a) < Unit.unwrap(b); }
+function mt_u_lte(Unit a, Unit b) pure returns (bool) { return Unit.unwrap(a) <= Unit.unwrap(b); }
+function mt_u_gt(Unit a, Unit b) pure returns (bool) { return Unit.unwrap(a) > Unit.unwrap(b); }
+function mt_u_gte(Unit a, Unit b) pure returns (bool) { return Unit.unwrap(a) >= Unit.unwrap(b); }
 function mt_u_add_u(Unit a, Unit b) pure returns (Unit) { return Unit.wrap(Unit.unwrap(a) + Unit.unwrap(b)); }
 function mt_u_sub_u(Unit a, Unit b) pure returns (Unit) { return Unit.wrap(Unit.unwrap(a) - Unit.unwrap(b)); }
 function mt_u_inv(Unit a) pure returns (Unit) { return Unit.wrap(-Unit.unwrap(a)); }
-using { mt_u_eq as ==, mt_u_add_u as +, mt_u_sub_u as -, mt_u_inv as - } for Unit global;
+using { mt_u_eq as ==, mt_u_neq as !=, mt_u_le as <, mt_u_lte as <=, mt_u_gt as >, mt_u_gte as >=,
+        mt_u_add_u as +, mt_u_sub_u as -, mt_u_inv as - } for Unit global;
 
 /**
  * @title FlowRate value represented with half the size of `Value`.
  */
 type FlowRate is int128;
 function mt_r_eq(FlowRate a, FlowRate b) pure returns (bool) { return FlowRate.unwrap(a) == FlowRate.unwrap(b); }
+function mt_r_neq(FlowRate a, FlowRate b) pure returns (bool) { return FlowRate.unwrap(a) != FlowRate.unwrap(b); }
+function mt_r_le(FlowRate a, FlowRate b) pure returns (bool) { return FlowRate.unwrap(a) < FlowRate.unwrap(b); }
+function mt_r_lte(FlowRate a, FlowRate b) pure returns (bool) { return FlowRate.unwrap(a) <= FlowRate.unwrap(b); }
+function mt_r_gt(FlowRate a, FlowRate b) pure returns (bool) { return FlowRate.unwrap(a) > FlowRate.unwrap(b); }
+function mt_r_gte(FlowRate a, FlowRate b) pure returns (bool) { return FlowRate.unwrap(a) >= FlowRate.unwrap(b); }
 function mt_r_add_r(FlowRate a, FlowRate b) pure returns (FlowRate) {
     return FlowRate.wrap(FlowRate.unwrap(a) + FlowRate.unwrap(b));
 }
@@ -106,7 +127,8 @@ function mt_r_sub_r(FlowRate a, FlowRate b) pure returns (FlowRate) {
     return FlowRate.wrap(FlowRate.unwrap(a) - FlowRate.unwrap(b));
 }
 function mt_r_inv(FlowRate a) pure returns (FlowRate) { return FlowRate.wrap(-FlowRate.unwrap(a)); }
-using { mt_r_eq as ==, mt_r_add_r as +, mt_r_sub_r as -, mt_r_inv as - } for FlowRate global;
+using { mt_r_eq as ==, mt_r_neq as !=, mt_r_le as <, mt_r_lte as <=, mt_r_gt as >, mt_r_gte as >=,
+        mt_r_add_r as +, mt_r_sub_r as -, mt_r_inv as - } for FlowRate global;
 
 /**
  * @dev Additional helper functions for the monetary types
@@ -116,19 +138,34 @@ using { mt_r_eq as ==, mt_r_add_r as +, mt_r_sub_r as -, mt_r_inv as - } for Flo
  * Read more at: https://github.com/ethereum/solidity/issues/11969#issuecomment-1448445474
  */
 library AdditionalMonetaryTypeHelpers {
+    // Additional Time operators
+    //
+    function quotrem(Time a, Time b) internal pure returns (uint256 quot, uint256 rem) {
+        quot = Time.unwrap(a) / Time.unwrap(b);
+        rem = Time.unwrap(a) - quot * Time.unwrap(b);
+    }
+
     // Additional Value operators
     //
+    function quotrem(Value a, Value b) internal pure returns (int256 quot, int256 rem) {
+        quot = Value.unwrap(a) / Value.unwrap(b);
+        rem = Value.unwrap(a) - quot * Value.unwrap(b);
+    }
     function mul(Value a, Unit b) internal pure returns (Value) {
-        return Value.wrap(Value.unwrap(a) * int256(Unit.unwrap(b)));
+        return Value.wrap(Value.unwrap(a) * Unit.unwrap(b));
     }
     function div(Value a, Unit b) internal pure returns (Value) {
-        return Value.wrap(Value.unwrap(a) / int256(Unit.unwrap(b)));
+        return Value.wrap(Value.unwrap(a) / Unit.unwrap(b));
     }
 
     // Additional FlowRate operators
     //
+    function quotrem(FlowRate a, FlowRate b) internal pure returns (int256 quot, int256 rem) {
+        quot = FlowRate.unwrap(a) / FlowRate.unwrap(b);
+        rem = FlowRate.unwrap(a) - quot * FlowRate.unwrap(b);
+    }
     function mul(FlowRate r, Time t) internal pure returns (Value) {
-        return Value.wrap(int256(FlowRate.unwrap(r)) * int256(uint256(Time.unwrap(t))));
+        return Value.wrap(FlowRate.unwrap(r) * int256(uint256(Time.unwrap(t))));
     }
     function mul(FlowRate r, Unit u) internal pure returns (FlowRate) {
         return FlowRate.wrap(FlowRate.unwrap(r) * Unit.unwrap(u));
@@ -143,6 +180,13 @@ library AdditionalMonetaryTypeHelpers {
     }
     function mul_quotrem(FlowRate r, Unit u1, Unit u2) internal pure returns (FlowRate nr, FlowRate er) {
         return r.mul(u1).quotrem(u2);
+    }
+
+    // Additional Unit operators
+    //
+    function quotrem(Unit a, Unit b) internal pure returns (int256 quot, int256 rem) {
+        quot = Unit.unwrap(a) / Unit.unwrap(b);
+        rem = Unit.unwrap(a) - quot * Unit.unwrap(b);
     }
 }
 using AdditionalMonetaryTypeHelpers for Time global;

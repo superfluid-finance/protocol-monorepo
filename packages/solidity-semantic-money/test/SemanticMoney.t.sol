@@ -85,6 +85,76 @@ contract SemanticMoneyTest is Test {
     function test_operators() external {
         assertTrue(Time.wrap(0) == Time.wrap(0));
         assertTrue(Time.wrap(0) != Time.wrap(1));
+        assertTrue(Time.wrap(0) < Time.wrap(1));
+        assertFalse(Time.wrap(1) < Time.wrap(1));
+        assertTrue(Time.wrap(0) <= Time.wrap(1));
+        assertTrue(Time.wrap(1) <= Time.wrap(1));
+        assertTrue(Time.wrap(1) > Time.wrap(0));
+        assertFalse(Time.wrap(1) > Time.wrap(1));
+        assertTrue(Time.wrap(1) >= Time.wrap(0));
+        assertTrue(Time.wrap(1) >= Time.wrap(1));
+        {
+            (uint256 quot, uint256 rem) = Time.wrap(5).quotrem(Time.wrap(2));
+            assertEq(quot, 2);
+            assertEq(rem, 1);
+        }
+
+        assertTrue(FlowRate.wrap(0) == FlowRate.wrap(0));
+        assertTrue(FlowRate.wrap(0) != FlowRate.wrap(1));
+        assertTrue(FlowRate.wrap(0) < FlowRate.wrap(1));
+        assertFalse(FlowRate.wrap(1) < FlowRate.wrap(1));
+        assertTrue(FlowRate.wrap(0) <= FlowRate.wrap(1));
+        assertTrue(FlowRate.wrap(1) <= FlowRate.wrap(1));
+        assertTrue(FlowRate.wrap(1) > FlowRate.wrap(0));
+        assertFalse(FlowRate.wrap(1) > FlowRate.wrap(1));
+        assertTrue(FlowRate.wrap(1) >= FlowRate.wrap(0));
+        assertTrue(FlowRate.wrap(1) >= FlowRate.wrap(1));
+        {
+            (int256 quot, int256 rem) = FlowRate.wrap(5).quotrem(FlowRate.wrap(2));
+            assertEq(quot, 2);
+            assertEq(rem, 1);
+            (quot, rem) = FlowRate.wrap(-5).quotrem(FlowRate.wrap(2));
+            assertEq(quot, -2);
+            assertEq(rem, -1);
+            (quot, rem) = FlowRate.wrap(5).quotrem(FlowRate.wrap(-2));
+            assertEq(quot, -2);
+            assertEq(rem, 1);
+            (quot, rem) = FlowRate.wrap(-5).quotrem(FlowRate.wrap(-2));
+            assertEq(quot, 2);
+            assertEq(rem, -1);
+        }
+
+        assertTrue(Value.wrap(0) == Value.wrap(0));
+        assertTrue(Value.wrap(0) != Value.wrap(1));
+        assertTrue(Value.wrap(0) < Value.wrap(1));
+        assertFalse(Value.wrap(1) < Value.wrap(1));
+        assertTrue(Value.wrap(0) <= Value.wrap(1));
+        assertTrue(Value.wrap(1) <= Value.wrap(1));
+        assertTrue(Value.wrap(1) > Value.wrap(0));
+        assertFalse(Value.wrap(1) > Value.wrap(1));
+        assertTrue(Value.wrap(1) >= Value.wrap(0));
+        assertTrue(Value.wrap(1) >= Value.wrap(1));
+        {
+            (int256 quot, int256 rem) = Value.wrap(5).quotrem(Value.wrap(2));
+            assertEq(quot, 2);
+            assertEq(rem, 1);
+        }
+
+        assertTrue(Unit.wrap(0) == Unit.wrap(0));
+        assertTrue(Unit.wrap(0) != Unit.wrap(1));
+        assertTrue(Unit.wrap(0) < Unit.wrap(1));
+        assertFalse(Unit.wrap(1) < Unit.wrap(1));
+        assertTrue(Unit.wrap(0) <= Unit.wrap(1));
+        assertTrue(Unit.wrap(1) <= Unit.wrap(1));
+        assertTrue(Unit.wrap(1) > Unit.wrap(0));
+        assertFalse(Unit.wrap(1) > Unit.wrap(1));
+        assertTrue(Unit.wrap(1) >= Unit.wrap(0));
+        assertTrue(Unit.wrap(1) >= Unit.wrap(1));
+        {
+            (int256 quot, int256 rem) = Unit.wrap(5).quotrem(Unit.wrap(2));
+            assertEq(quot, 2);
+            assertEq(rem, 1);
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////

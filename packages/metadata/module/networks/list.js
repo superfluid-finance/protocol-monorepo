@@ -793,7 +793,6 @@ export default
         "startBlockV1": 6500000,
         "logsQueryRange": 50000,
         "explorer": "https://explorer.degen.tips/",
-        "subgraphV1": {},
         "publicRPCs": ["https://rpc.degen.tips"]
     }
 ]

@@ -48,6 +48,12 @@ if [ -n "$GITHUB_ENV" ];then
         echo "Root package.json changed."
         setBuildAll
     fi
+    # if specified solidity-semantic-money folders and files changed
+    if grep -E "^packages/solidity-semantic-money/(src/|test/|foundry\.toml|Makefile|package\.json)" changed-files.list;then
+        BUILD_SOLIDITY_SEMANTIC_MONEY=1
+        BUILD_ETHEREUM_CONTRACTS=1
+        echo Solidity semantic money will be tested.
+    fi
     # if specified ethereum-contracts folders and files changed
     if grep -E "^packages/ethereum-contracts/(contracts/|scripts/|test/|truffle-config\.js|package\.json)" changed-files.list;then
         BUILD_ETHEREUM_CONTRACTS=1
@@ -92,11 +98,6 @@ if [ -n "$GITHUB_ENV" ];then
     if grep -E "^packages/automation-contracts/autowrap/(contracts/|scripts/|test/|truffle-config\.js|package\.json)" changed-files.list;then
         BUILD_AUTOMATION_CONTRACTS=1
         echo Automation Contracts will be tested.
-    fi
-    # if specified solidity-semantic-money folders and files changed
-    if grep -E "^packages/solidity-semantic-money/(src/|test/|foundry\.toml|Makefile|package\.json)" changed-files.list;then
-        BUILD_SOLIDITY_SEMANTIC_MONEY=1
-        echo Solidity semantic money will be tested.
     fi
 
     if [ "$BUILD_ETHEREUM_CONTRACTS" == 1 ] || [ "$BUILD_SDK_CORE" == 1 ] || [ "$BUILD_SDK_REDUX" == 1 ];then

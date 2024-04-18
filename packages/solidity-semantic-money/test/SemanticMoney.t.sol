@@ -82,6 +82,81 @@ contract SemanticMoneyTest is Test {
         assertEq(q.mul(u) + e, r, "e1");
     }
 
+    function test_operators() external {
+        assertTrue(Time.wrap(0) == Time.wrap(0));
+        assertTrue(Time.wrap(0) != Time.wrap(1));
+        assertTrue(Time.wrap(0) < Time.wrap(1));
+        assertFalse(Time.wrap(1) < Time.wrap(1));
+        assertTrue(Time.wrap(0) <= Time.wrap(1));
+        assertTrue(Time.wrap(1) <= Time.wrap(1));
+        assertTrue(Time.wrap(1) > Time.wrap(0));
+        assertFalse(Time.wrap(1) > Time.wrap(1));
+        assertTrue(Time.wrap(1) >= Time.wrap(0));
+        assertTrue(Time.wrap(1) >= Time.wrap(1));
+        {
+            (uint256 quot, uint256 rem) = Time.wrap(5).quotrem(Time.wrap(2));
+            assertEq(quot, 2);
+            assertEq(rem, 1);
+        }
+
+        assertTrue(FlowRate.wrap(0) == FlowRate.wrap(0));
+        assertTrue(FlowRate.wrap(0) != FlowRate.wrap(1));
+        assertTrue(FlowRate.wrap(0) < FlowRate.wrap(1));
+        assertFalse(FlowRate.wrap(1) < FlowRate.wrap(1));
+        assertTrue(FlowRate.wrap(0) <= FlowRate.wrap(1));
+        assertTrue(FlowRate.wrap(1) <= FlowRate.wrap(1));
+        assertTrue(FlowRate.wrap(1) > FlowRate.wrap(0));
+        assertFalse(FlowRate.wrap(1) > FlowRate.wrap(1));
+        assertTrue(FlowRate.wrap(1) >= FlowRate.wrap(0));
+        assertTrue(FlowRate.wrap(1) >= FlowRate.wrap(1));
+        {
+            (int256 quot, int256 rem) = FlowRate.wrap(5).quotrem(FlowRate.wrap(2));
+            assertEq(quot, 2);
+            assertEq(rem, 1);
+            (quot, rem) = FlowRate.wrap(-5).quotrem(FlowRate.wrap(2));
+            assertEq(quot, -2);
+            assertEq(rem, -1);
+            (quot, rem) = FlowRate.wrap(5).quotrem(FlowRate.wrap(-2));
+            assertEq(quot, -2);
+            assertEq(rem, 1);
+            (quot, rem) = FlowRate.wrap(-5).quotrem(FlowRate.wrap(-2));
+            assertEq(quot, 2);
+            assertEq(rem, -1);
+        }
+
+        assertTrue(Value.wrap(0) == Value.wrap(0));
+        assertTrue(Value.wrap(0) != Value.wrap(1));
+        assertTrue(Value.wrap(0) < Value.wrap(1));
+        assertFalse(Value.wrap(1) < Value.wrap(1));
+        assertTrue(Value.wrap(0) <= Value.wrap(1));
+        assertTrue(Value.wrap(1) <= Value.wrap(1));
+        assertTrue(Value.wrap(1) > Value.wrap(0));
+        assertFalse(Value.wrap(1) > Value.wrap(1));
+        assertTrue(Value.wrap(1) >= Value.wrap(0));
+        assertTrue(Value.wrap(1) >= Value.wrap(1));
+        {
+            (int256 quot, int256 rem) = Value.wrap(5).quotrem(Value.wrap(2));
+            assertEq(quot, 2);
+            assertEq(rem, 1);
+        }
+
+        assertTrue(Unit.wrap(0) == Unit.wrap(0));
+        assertTrue(Unit.wrap(0) != Unit.wrap(1));
+        assertTrue(Unit.wrap(0) < Unit.wrap(1));
+        assertFalse(Unit.wrap(1) < Unit.wrap(1));
+        assertTrue(Unit.wrap(0) <= Unit.wrap(1));
+        assertTrue(Unit.wrap(1) <= Unit.wrap(1));
+        assertTrue(Unit.wrap(1) > Unit.wrap(0));
+        assertFalse(Unit.wrap(1) > Unit.wrap(1));
+        assertTrue(Unit.wrap(1) >= Unit.wrap(0));
+        assertTrue(Unit.wrap(1) >= Unit.wrap(1));
+        {
+            (int256 quot, int256 rem) = Unit.wrap(5).quotrem(Unit.wrap(2));
+            assertEq(quot, 2);
+            assertEq(rem, 1);
+        }
+    }
+
     ////////////////////////////////////////////////////////////////////////////////
     // Particle/Universal Index Properties: Monoidal Laws & Monetary Unit Laws
     ////////////////////////////////////////////////////////////////////////////////
@@ -176,8 +251,38 @@ contract SemanticMoneyTest is Test {
         (d.a, d.b) = d.a.flow2(d.b, FlowRate.wrap(r1), d.t1);
         (d.a, d.b) = d.a.flow2(d.b, FlowRate.wrap(r2), d.t2);
 
+        assertEq(Value.unwrap(-d.a.rtb(d.t3)), Value.unwrap(d.b.rtb(d.t3)));
         assertEq(Value.unwrap(d.b.rtb(d.t3)),
                  int256(r1) * int256(uint256(m2)) + int256(r2) * int256(uint256(m3)));
+    }
+    function test_uu_shift_flow2b(uint16 m1, int64 r1, uint16 m2, int64 r2, uint16 m3) external {
+        UUTestVars memory d;
+        d.t1 = Time.wrap(m1);
+        d.t2 = d.t1 + Time.wrap(m2);
+        d.t3 = d.t2 + Time.wrap(m3);
+
+        (d.a, d.b) = d.a.shift_flow2b(d.b, FlowRate.wrap(r1), d.t1);
+        (d.a, d.b) = d.a.shift_flow2b(d.b, FlowRate.wrap(r2), d.t2);
+
+        assertEq(Value.unwrap(-d.a.rtb(d.t3)), Value.unwrap(d.b.rtb(d.t3)));
+        assertEq(Value.unwrap(d.b.rtb(d.t3)),
+                 int256(r1) * int256(uint256(m2)) + (int256(r1) + int256(r2)) * int256(uint256(m3)));
+    }
+    function test_uu_shift_flow2ab_equiv(int64 r1, uint16 m1, int64 r2, uint16 m2) external {
+        Time t1 = Time.wrap(m1);
+        Time t2 = Time.wrap(m1) + Time.wrap(m2);
+        BasicParticle memory a0;
+        BasicParticle memory b0;
+
+        (BasicParticle memory a1a, BasicParticle memory b1a) = a0.shift_flow2a(b0, FlowRate.wrap(r1), t1);
+        (BasicParticle memory a1b, BasicParticle memory b1b) = a0.shift_flow2b(b0, FlowRate.wrap(r1), t1);
+        assertEq(a1a, a1b, "a1");
+        assertEq(b1a, b1b, "b1");
+
+        (BasicParticle memory a2a, BasicParticle memory b2a) = a1a.shift_flow2a(b1a, FlowRate.wrap(r2), t2);
+        (BasicParticle memory a2b, BasicParticle memory b2b) = a1b.shift_flow2b(b1b, FlowRate.wrap(r2), t2);
+        assertEq(a2a, a2b, "a2");
+        assertEq(b2a, b2b, "b2");
     }
 
     // Universal Index to Proportional Distribution Pool

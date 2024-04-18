@@ -3,6 +3,10 @@ All notable changes to the metadata will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.1.30]
+### Added
+- Degen Chain deployment
+
 ## [v1.1.29]
 ### Fixed
 - Removed subgraph hosted endpoint entry for scroll-mainnet which doesn't exist

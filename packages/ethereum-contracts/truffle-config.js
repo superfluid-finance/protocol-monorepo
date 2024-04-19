@@ -79,6 +79,8 @@ const ALIASES = {
     "scroll-sepolia": ["scrsepolia"],
     "scroll-mainnet": ["scroll"],
 
+    "degenchain": ["degen"],
+
     // wildcard for any network
     "any": ["any"],
 };
@@ -281,6 +283,16 @@ const E = (module.exports = {
         "scroll-sepolia": {
             ...createNetworkDefaultConfiguration("scroll-sepolia"),
             network_id: 534351,
+        },
+
+        //
+        // Degen Chain: https://www.degen.tips/
+        //
+        "degenchain": {
+            ...createNetworkDefaultConfiguration("degenchain"),
+            network_id: 666666666,
+            maxPriorityFeePerGas: 1e6, // 0.001 gwei
+            maxFeePerGas: 100e9, // 100 gwei
         },
 
         //

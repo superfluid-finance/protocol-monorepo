@@ -17,7 +17,7 @@ GRAPH_NETWORKS=( $($JQ -r .[] ./hosted-service-networks.json) ) || exit 1
 # shellcheck disable=SC2034
 SATSUMA_NETWORKS=( "polygon-mainnet" "xdai-mainnet" "eth-mainnet" "eth-sepolia" "optimism-mainnet" "base-mainnet")
 # shellcheck disable=SC2034
-SUPERFLUID_NETWORKS=( "polygon-mainnet" "xdai-mainnet" "base-mainnet" "optimism-mainnet" "arbitrum-one" "celo-mainnet" "bsc-mainnet" "avalanche-c" "optimism-sepolia" "scroll-sepolia" "scroll-mainnet")
+SUPERFLUID_NETWORKS=( "polygon-mainnet" "xdai-mainnet" "base-mainnet" "optimism-mainnet" "arbitrum-one" "celo-mainnet" "bsc-mainnet" "avalanche-c" "optimism-sepolia" "scroll-sepolia" "scroll-mainnet" "degenchain")
 # shellcheck disable=SC2034
 GOLDSKY_NETWORKS=( "polygon-mainnet" "xdai-mainnet" "base-mainnet" "optimism-mainnet" "arbitrum-one" "celo-mainnet" "bsc-mainnet" "avalanche-c" "optimism-sepolia" "scroll-sepolia" "scroll-mainnet")
 

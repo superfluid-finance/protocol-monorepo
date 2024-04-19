@@ -762,5 +762,40 @@ export default
             "name": "protocol-v1-scroll-mainnet"
         },
         "publicRPCs": ["https://rpc.scroll.io"]
+    },
+    {
+        "name": "degenchain",
+        "isTestnet": false,
+        "networkId": 666666666,
+        "chainId": 666666666,
+        "sfId": 10,
+        "shortName": "degen",
+        "uppercaseName": "DEGENCHAIN",
+        "humanReadableName": "Degen Chain",
+        "nativeTokenSymbol": "DEGEN",
+        "nativeTokenWrapper": "0xda58FA9bfc3D3960df33ddD8D4d762Cf8Fa6F7ad",
+        "contractsV1": {
+            "resolver": "0x649FB24ed0B983f88500F3C37682714aB96D73c2",
+            "host": "0xc1314EdcD7e478C831a7a24169F7dEADB2646eD2",
+            "governance": "0x4D420e94328bF1AEA1b525FDE9e498ADBe60f9B1",
+            "cfaV1": "0x82cc052d1b17aC554a22A88D5876B56c6b51e95c",
+            "cfaV1Forwarder": "0xcfA132E353cB4E398080B9700609bb008eceB125",
+            "idaV1": "0xb19CE3e7DA9FbAf9De2526BD662A82f26421A53E",
+            "gdaV1": "0x210a01ad187003603B2287F78579ec103Eb70D9B",
+            "gdaV1Forwarder": "0x6DA13Bde224A05a288748d857b9e7DDEffd1dE08",
+            "constantOutflowNFT": "0xFC29D2db9c952D8253d1291964100C838B236DbD",
+            "constantInflowNFT": "0xd97b1C090B3A3512E1776197A86fddf8a437D8D1",
+            "superfluidLoader": "0x5fb676d66eAb8E0c22Ae24C5c10eD7E4A6397c1C",
+            "toga": "0x38ed5512Ac11926bB697F4CF4eE0DD04358E2E7e",
+            "batchLiquidator": "0x7BCE8e8401dc98E3Da26F1D701c3C2168b8e466c",
+            "superTokenFactory": "0x184D999ea60e9b16fE4cCC1f756422114E9B663f"
+        },
+        "startBlockV1": 6500000,
+        "logsQueryRange": 50000,
+        "explorer": "https://explorer.degen.tips/",
+        "subgraphV1": {
+            "cliName": "degen"
+	    },
+        "publicRPCs": ["https://rpc.degen.tips"]
     }
 ]

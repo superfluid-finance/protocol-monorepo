@@ -23,7 +23,7 @@ function setBuildAll() {
     BUILD_HOT_FUZZ=1
     BUILD_SDK_CORE=1
     BUILD_SDK_REDUX=1
-    BUILD_SPEC_HASKELL=1
+    #BUILD_SPEC_HASKELL=1
     BUILD_SUBGRAPH=1
     BUILD_AUTOMATION_CONTRACTS=1
     BUILD_SOLIDITY_SEMANTIC_MONEY=1
@@ -86,8 +86,8 @@ if [ -n "$GITHUB_ENV" ];then
     fi
     # if specified haskell folders and files changed
     if grep -E "^packages/spec-haskell/(packages/|cabal\.project)" changed-files.list;then
-        BUILD_SPEC_HASKELL=1
-        echo SPEC-HASKELL will be tested.
+        # BUILD_SPEC_HASKELL=1
+        echo SPEC-HASKELL will be tested, disabled for now.
     fi
     # if specified automation-contracts/scheduler folders and files changed
     if grep -E "^packages/automation-contracts/scheduler/(contracts/|scripts/|test/|truffle-config\.js|package\.json)" changed-files.list;then

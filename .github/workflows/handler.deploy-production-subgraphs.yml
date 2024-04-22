@@ -53,3 +53,4 @@ jobs:
       SUBGRAPH_URL_TEMPLATE: ${{ secrets.SUBGRAPH_URL_TEMPLATE }}
       SUPERFLUID_IPFS_API: ${{ secrets.SUPERFLUID_IPFS_API }}
       GOLDSKY_API_KEY: ${{ secrets.GOLDSKY_API_KEY }}
+      AIRSTACK_API_KEY: ${{ secrets.AIRSTACK_API_KEY }}

@@ -5,7 +5,7 @@ on:
     inputs:
       vendor:
         required: true
-        description: "Where to deploy subgraph to; superfluid, graph, satsuma, or goldsky"
+        description: "Where to deploy subgraph to; superfluid, graph, satsuma, goldsky or airstack"
         type: string
       deployment_env:
         required: true
@@ -28,6 +28,9 @@ on:
         required: false
       GOLDSKY_API_KEY:
         description: "Goldsky API key for deploying subgraphs"
+        required: false
+      AIRSTACK_API_KEY:
+        description: "Airstack API key for deploying subgraphs"
         required: false
       SUPERFLUID_IPFS_API:
         description: "Superfluid IPFS API endpoint"
@@ -130,3 +133,4 @@ jobs:
           THE_GRAPH_ACCESS_TOKEN: ${{ secrets.THE_GRAPH_ACCESS_TOKEN }}
           SATSUMA_DEPLOY_KEY: ${{ secrets.SATSUMA_DEPLOY_KEY }}
           GOLDSKY_API_KEY: ${{ secrets.GOLDSKY_API_KEY }}
+          AIRSTACK_API_KEY: ${{ secrets.AIRSTACK_API_KEY }}

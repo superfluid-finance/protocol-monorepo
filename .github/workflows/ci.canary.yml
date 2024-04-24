@@ -106,9 +106,9 @@ jobs:
     name: Build and Test Solidity Semantic Money (Canary Branch)
     uses: ./.github/workflows/call.test-solidity-semantic-money.yml
 
-    #test-spec-haskell:
-    #uses: ./.github/workflows/call.test-spec-haskell.yml
-    #name: Build and Test Spec Haskell (Canary Branch)
+  test-spec-haskell:
+    uses: ./.github/workflows/call.test-spec-haskell.yml
+    name: Build and Test Spec Haskell (Canary Branch)
 
   test-automation-contracts:
     uses: ./.github/workflows/call.test-automation-contracts.yml
@@ -139,7 +139,7 @@ jobs:
     # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-not-requiring-successful-dependent-jobs
     if: ${{ always() }}
     needs: [ essential-build-and-test
-    #, test-spec-haskell
+           , test-spec-haskell
            , test-solidity-semantic-money
            , test-hot-fuzz
            , test-subgraph
@@ -161,7 +161,7 @@ jobs:
             fi
           }
           check_result essential-build-and-test ${{ needs.essential-build-and-test.result }}
-          #check_result spec-haskell ${{ needs.test-spec-haskell.result }}
+          check_result spec-haskell ${{ needs.test-spec-haskell.result }}
           check_result hot-fuzz ${{ needs.test-hot-fuzz.result }}
           check_result subgraph ${{ needs.test-subgraph.result }}
           check_result ethereum-contracts-coverage ${{ needs.coverage-ethereum-contracts.result }}

@@ -62,7 +62,7 @@ contract Superfluid is
     uint constant public MAX_APP_CALLBACK_LEVEL = 1;
 
     // solhint-disable-next-line var-name-mixedcase
-    uint64 constant public CALLBACK_GAS_LIMIT = 3000000;
+    uint64 constant public CALLBACK_GAS_LIMIT = 15000000;
 
     uint32 constant public MAX_NUM_AGREEMENTS = 256;
 
@@ -312,7 +312,7 @@ contract Superfluid is
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Superfluid Upgradeable Beacon
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
+
     /// @inheritdoc ISuperfluid
     function updatePoolBeaconLogic(address newLogic) external override onlyGovernance {
         GeneralDistributionAgreementV1 gda = GeneralDistributionAgreementV1(

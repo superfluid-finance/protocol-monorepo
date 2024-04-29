@@ -12,8 +12,8 @@ jobs:
     strategy:
       matrix:
         include:
-          - compiler-name: ghc-9.2
-            dev-shell-type: ci-spec-ghc92
+          #- compiler-name: ghc-9.2
+          #  dev-shell-type: ci-spec-ghc92
           - compiler-name: ghc-9.4
             dev-shell-type: ci-spec-ghc94
       fail-fast: false

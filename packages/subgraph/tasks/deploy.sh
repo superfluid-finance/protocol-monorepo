@@ -8,7 +8,7 @@ JQ="jq"
 GRAPH_CLI="npx --package=@graphprotocol/graph-cli --yes -- graph"
 # shellcheck disable=SC2207
 GOLDSKY_CLI="npx --package=@goldskycom/cli --yes -- goldsky"
-SUPPORTED_VENDORS=( "graph" "satsuma" "superfluid" "goldsky" )
+SUPPORTED_VENDORS=( "graph" "satsuma" "superfluid" "goldsky" "airstack" )
 
 # list of supported networks by vendor
 
@@ -17,15 +17,18 @@ GRAPH_NETWORKS=( $($JQ -r .[] ./hosted-service-networks.json) ) || exit 1
 # shellcheck disable=SC2034
 SATSUMA_NETWORKS=( "polygon-mainnet" "xdai-mainnet" "eth-mainnet" "eth-sepolia" "optimism-mainnet" "base-mainnet")
 # shellcheck disable=SC2034
-SUPERFLUID_NETWORKS=( "polygon-mainnet" "xdai-mainnet" "base-mainnet" "optimism-mainnet" "arbitrum-one" "celo-mainnet" "bsc-mainnet" "avalanche-c" "optimism-sepolia" "scroll-sepolia" "scroll-mainnet")
+SUPERFLUID_NETWORKS=( "polygon-mainnet" "xdai-mainnet" "base-mainnet" "optimism-mainnet" "arbitrum-one" "celo-mainnet" "bsc-mainnet" "avalanche-c" "optimism-sepolia" "scroll-sepolia" "scroll-mainnet" "degenchain")
 # shellcheck disable=SC2034
 GOLDSKY_NETWORKS=( "polygon-mainnet" "xdai-mainnet" "base-mainnet" "optimism-mainnet" "arbitrum-one" "celo-mainnet" "bsc-mainnet" "avalanche-c" "optimism-sepolia" "scroll-sepolia" "scroll-mainnet")
+# shellcheck disable=SC2034
+AIRSTACK_NETWORKS=( "degenchain")
 
 declare -A VENDOR_NETWORKS=(
     ["graph"]="${GRAPH_NETWORKS[@]}"
     ["satsuma"]="${SATSUMA_NETWORKS[@]}"
     ["superfluid"]="${SUPERFLUID_NETWORKS[@]}"
     ["goldsky"]="${GOLDSKY_NETWORKS[@]}"
+    ["airstack"]="${AIRSTACK_NETWORKS[@]}"
 )
 
 VENDOR=""
@@ -34,7 +37,7 @@ DEPLOYMENT_ENV=""
 VERSION_LABEL=""
 
 print_usage_and_exit() {
-    echo "Usage: $0 -o graph|satsuma|superfluid|goldsky -n <network_name> -r <deployment_env> -v <version_label>"
+    echo "Usage: $0 -o graph|satsuma|superfluid|goldsky|airstack -n <network_name> -r <deployment_env> -v <version_label>"
     exit 1
 }
 
@@ -136,6 +139,22 @@ deploy_to_goldsky() {
         --token "$GOLDSKY_API_KEY"
 }
 
+deploy_to_airstack() {
+    local network="$1"
+    local nodeUrl="https://subgraph.airstack.xyz/indexer/"
+    local subgraphName="protocol-$DEPLOYMENT_ENV-$network"
+
+    echo "********* Deploying $network subgraph $subgraphName to Airstack. **********"
+    $GRAPH_CLI create "$subgraphName" --node "$nodeUrl" --access-token "$AIRSTACK_API_KEY"
+    $GRAPH_CLI deploy \
+        --version-label "$VERSION_LABEL" \
+        --node "$nodeUrl" \
+        --deploy-key "$AIRSTACK_API_KEY" \
+        --ipfs https://ipfs.airstack.xyz/ipfs/api/v0 \
+        --headers '{"Authorization": "'"$AIRSTACK_API_KEY"'"}' \
+        "$subgraphName"
+}
+
 # Vendor specific function dispatcher
 # Expected arguments:
 # $1 - vendor
@@ -172,6 +191,9 @@ deploy_to() {
         ;;
     goldsky)
         deploy_to_goldsky "$network"
+        ;;
+    airstack)
+        deploy_to_airstack "$network"
         ;;
     *)
         print_usage_and_exit

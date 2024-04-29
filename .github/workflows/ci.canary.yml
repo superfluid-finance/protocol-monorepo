@@ -9,7 +9,7 @@ on:
       # - "**.md" commented-out because README updates should go to the packages
       - ".github/workflows/ci.canary.yml"
       - "codecov.yml"
-      - ".github/workflows/call.test-local-subgraph.yml"
+      - ".github/workflows/call.*.yml"
 
 jobs:
   check:

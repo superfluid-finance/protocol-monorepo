@@ -6,6 +6,14 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [1.7.1] - 2024-04-22
+
+### Added
+- Support for vendor "airstack"
+
+### Fixes
+- Various GDA related fixes
+
 ## [1.7.0] - 2024-02-05
 
 ### Added

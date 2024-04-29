@@ -62,7 +62,7 @@ contract Superfluid is
     uint constant public MAX_APP_CALLBACK_LEVEL = 1;
 
     // solhint-disable-next-line var-name-mixedcase
-    uint64 constant public CALLBACK_GAS_LIMIT = 15000000;
+    uint64 constant public CALLBACK_GAS_LIMIT = 15_000_000;
 
     uint32 constant public MAX_NUM_AGREEMENTS = 256;
 

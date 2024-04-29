@@ -41,8 +41,14 @@ module.exports = {
             accounts:
                 process.env.BSC_PRIVATE_KEY !== undefined ? [process.env.BSC_PRIVATE_KEY] : [],
         },
+        opsepolia: {
+            url: process.env.OPSEPOLIA_URL || "",
+            accounts:
+                process.env.OPSEPOLIA_PRIVATE_KEY !== undefined
+                    ? [process.env.OPSEPOLIA_PRIVATE_KEY]
+                    : [],
+        },
     },
-
     namedAccounts: {
         deployer: {
             default: 0,
@@ -50,5 +56,15 @@ module.exports = {
     },
     etherscan: {
         apiKey: process.env.ETHERSCAN_API_KEY,
+        customChains: [
+            {
+                network: "opsepolia",
+                chainId: 11155420,
+                urls: {
+                    apiURL: "https://api-sepolia-optimistic.etherscan.io/api",
+                    browserURL: "https://sepolia-optimism.etherscan.io/",
+                },
+            },
+        ],
     },
 };

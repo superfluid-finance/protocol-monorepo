@@ -3,6 +3,12 @@ All notable changes to the SDK-redux will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+### Changed
+### Fixed
+
+## [0.5.2] - 2023-04-30
+
 ### Changed
 
 - Node dependency updates

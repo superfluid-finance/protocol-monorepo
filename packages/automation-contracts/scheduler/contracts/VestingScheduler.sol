@@ -18,7 +18,7 @@ contract VestingScheduler is IVestingScheduler, SuperAppBase {
     uint32 public constant START_DATE_VALID_AFTER = 3 days;
     uint32 public constant END_DATE_VALID_BEFORE = 1 days;
 
-    constructor(ISuperfluid host, string memory registrationKey) {
+    constructor(ISuperfluid host) {
         cfaV1 = CFAv1Library.InitData(
             host,
             IConstantFlowAgreementV1(
@@ -37,7 +37,7 @@ contract VestingScheduler is IVestingScheduler, SuperAppBase {
         SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP |
         SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP |
         SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP;
-        host.registerAppWithKey(configWord, registrationKey);
+        host.registerApp(configWord);
     }
 
     /// @dev IVestingScheduler.createVestingSchedule implementation.

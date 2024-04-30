@@ -15,7 +15,6 @@ module.exports = async function ({ deployments, getNamedAccounts }) {
     const chainId = await hre.getChainId();
     const host = metadata.networks.filter((item) => item.chainId == chainId)[0]
         .contractsV1.host;
-    const registrationKey = "";
     if (host === undefined) {
         console.log("Host contract not found for this network");
         return;
@@ -42,9 +41,9 @@ module.exports = async function ({ deployments, getNamedAccounts }) {
         console.log("Deploying FlowScheduler...");
         const FlowScheduler = await deploy("FlowScheduler", {
             from: deployer,
-            args: [host, registrationKey],
+            args: [host],
             log: true,
-            skipIfAlreadyDeployed: false,
+            skipIfAlreadyDeployed: false
         });
 
         // wait for 15 seconds to allow etherscan to indexed the contracts
@@ -53,7 +52,7 @@ module.exports = async function ({ deployments, getNamedAccounts }) {
         console.log("Verifying FlowScheduler...");
         await hre.run("verify:verify", {
             address: FlowScheduler.address,
-            constructorArguments: [host, registrationKey],
+            constructorArguments: [host],
             contract: "contracts/FlowScheduler.sol:FlowScheduler",
         });
     }
@@ -62,9 +61,9 @@ module.exports = async function ({ deployments, getNamedAccounts }) {
         console.log("Deploying VestingScheduler...");
         const VestingScheduler = await deploy("VestingScheduler", {
             from: deployer,
-            args: [host, registrationKey],
+            args: [host],
             log: true,
-            skipIfAlreadyDeployed: false,
+            skipIfAlreadyDeployed: false
         });
 
         // wait for 15 seconds to allow etherscan to indexed the contracts
@@ -73,7 +72,7 @@ module.exports = async function ({ deployments, getNamedAccounts }) {
         console.log("Verifying VestingScheduler...");
         await hre.run("verify:verify", {
             address: VestingScheduler.address,
-            constructorArguments: [host, registrationKey],
+            constructorArguments: [host],
             contract: "contracts/VestingScheduler.sol:VestingScheduler",
         });
     }
@@ -82,7 +81,7 @@ module.exports = async function ({ deployments, getNamedAccounts }) {
         console.log("Deploying VestingSchedulerV2...");
         const VestingSchedulerV2 = await deploy("VestingSchedulerV2", {
             from: deployer,
-            args: [host, registrationKey],
+            args: [host],
             log: true,
             skipIfAlreadyDeployed: false,
         });
@@ -93,7 +92,7 @@ module.exports = async function ({ deployments, getNamedAccounts }) {
         console.log("Verifying VestingSchedulerV2...");
         await hre.run("verify:verify", {
             address: VestingSchedulerV2.address,
-            constructorArguments: [host, registrationKey],
+            constructorArguments: [host],
             contract: "contracts/VestingSchedulerV2.sol:VestingSchedulerV2",
         });
     }

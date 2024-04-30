@@ -57,7 +57,7 @@ contract FlowSchedulerTest is FoundrySuperfluidTester {
 
     function setUp() override public virtual {
         super.setUp();
-        flowScheduler = new FlowScheduler(sf.host, "");
+        flowScheduler = new FlowScheduler(sf.host);
     }
 
     function getHashID(

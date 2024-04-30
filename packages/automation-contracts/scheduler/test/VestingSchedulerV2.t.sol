@@ -84,7 +84,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
     uint256 internal _expectedTotalSupply = 0;
 
     constructor() FoundrySuperfluidTester(3) {
-        vestingScheduler = new VestingSchedulerV2(sf.host, "");
+        vestingScheduler = new VestingSchedulerV2(sf.host);
     }
 
     /// SETUP AND HELPERS

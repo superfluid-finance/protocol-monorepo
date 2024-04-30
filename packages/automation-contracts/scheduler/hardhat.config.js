@@ -17,8 +17,8 @@ module.exports = {
             optimizer: {
                 enabled: true,
                 runs: 200,
-            }
-        }
+            },
+        },
     },
     networks: {
         localhost: {
@@ -28,24 +28,38 @@ module.exports = {
         mumbai: {
             url: process.env.MUMBAI_URL || "",
             accounts:
-                process.env.MUMBAI_PRIVATE_KEY !== undefined ? [process.env.MUMBAI_PRIVATE_KEY] : [],
+                process.env.PRIVATE_KEY !== undefined
+                    ? [process.env.PRIVATE_KEY]
+                    : [],
         },
         polygon: {
             url: process.env.POLYGON_URL || "",
             accounts:
-                process.env.POLYGON_PRIVATE_KEY !== undefined ? [process.env.POLYGON_PRIVATE_KEY] : [],
+                process.env.PRIVATE_KEY !== undefined
+                    ? [process.env.PRIVATE_KEY]
+                    : [],
         },
         bsc: {
             url: process.env.BSC_URL || "",
             accounts:
-                process.env.BSC_PRIVATE_KEY !== undefined ? [process.env.BSC_PRIVATE_KEY] : [],
+                process.env.PRIVATE_KEY !== undefined
+                    ? [process.env.PRIVATE_KEY]
+                    : [],
         },
         opsepolia: {
             url: process.env.OPSEPOLIA_URL || "",
             accounts:
-                process.env.OPSEPOLIA_PRIVATE_KEY !== undefined
-                    ? [process.env.OPSEPOLIA_PRIVATE_KEY]
+                process.env.PRIVATE_KEY !== undefined
+                    ? [process.env.PRIVATE_KEY]
                     : [],
+        },
+        "base-mainnet": {
+            url: process.env.BASE_URL || "",
+            accounts:
+                process.env.PRIVATE_KEY !== undefined
+                    ? [process.env.PRIVATE_KEY]
+                    : [],
+            gasPrice: 1000000000
         },
     },
     namedAccounts: {
@@ -62,6 +76,14 @@ module.exports = {
                 urls: {
                     apiURL: "https://api-sepolia-optimistic.etherscan.io/api",
                     browserURL: "https://sepolia-optimism.etherscan.io/",
+                },
+            },
+            {
+                network: "base-mainnet",
+                chainId: 8453,
+                urls: {
+                    apiURL: "https://api.basescan.org/api",
+                    browserURL: "https://basescan.org/",
                 },
             },
         ],

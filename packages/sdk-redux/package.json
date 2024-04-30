@@ -1,6 +1,6 @@
 {
     "name": "@superfluid-finance/sdk-redux",
-    "version": "0.5.1",
+    "version": "0.5.2",
     "description": "SDK Redux for streamlined front-end application development with Superfluid Protocol",
     "homepage": "https://docs.superfluid.finance/",
     "repository": {

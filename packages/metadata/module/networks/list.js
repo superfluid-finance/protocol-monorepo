@@ -108,6 +108,12 @@ export default
             "superTokenFactory": "0xfcF0489488397332579f35b0F711BE570Da0E8f5",
             "constantOutflowNFT": "0xda6db863cb2EE39b196edB8159c38A1ed5c55344",
             "constantInflowNFT": "0x87E00Dced5670e01BEe33a9a724B1dac790937eF",
+            "flowScheduler": "0x73B1Ce21d03ad389C2A291B1d1dc4DAFE7B5Dc68",
+            "vestingScheduler": "0x27444c0235a4D921F3106475faeba0B5e7ABDD7a",
+            "autowrap": {
+                "manager": "0xe567b32C10B0dB72d9490eB1B9A409C5ADed192C",
+                "wrapStrategy": "0xf232f1fd34CE12e24F4391865c2D6E374D2C34d9"
+            },
             "superfluidLoader": "0x109412E3C84f0539b43d39dB691B08c90f58dC7c"
         },
         "startBlockV1": 6886559,
@@ -117,6 +123,18 @@ export default
             "cliName": "optimism-sepolia",
             "name": "protocol-v1-optimism-sepolia",
             "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-optimism-sepolia"
+        },
+        "subgraphVesting": {
+            "name": "vesting-v1-optimism-sepolia",
+            "hostedEndpoint": "https://api.goldsky.com/api/public/project_clsnd6xsoma5j012qepvucfpp/subgraphs/vesting-v1-optimism-sepolia/prod/gn"
+        },
+        "subgraphFlowScheduler": {
+            "name": "scheduling-v1-optimism-sepolia",
+            "hostedEndpoint": "https://api.goldsky.com/api/public/project_clsnd6xsoma5j012qepvucfpp/subgraphs/scheduling-v1-optimism-sepolia/prod/gn"
+        },
+        "subgraphAutoWrap": {
+            "name": "auto-wrap-v1-optimism-sepolia",
+            "hostedEndpoint": "https://api.goldsky.com/api/public/project_clsnd6xsoma5j012qepvucfpp/subgraphs/auto-wrap-v1-optimism-sepolia/prod/gn"
         },
         "publicRPCs": [
             "https://sepolia.optimism.io"
@@ -650,6 +668,12 @@ export default
             "superfluidLoader": "0x9F9EEd9Bbc38E9e0514fD9dFcc0Bca9869A9c534",
             "toga": "0xA87F76e99f6C8Ff8996d14f550ceF47f193D9A09",
             "batchLiquidator": "0x889ebeCaD5F8C34Fd96023456d0fC5cE54eb74Cb",
+            "flowScheduler": "0xC72CEd15204d02183c83fEbb918b183E400811Ee",
+            "vestingScheduler": "0xDF92D0E6Bcb9385FDe99aD21Ff5e47Fb47E3c6b2",
+            "autowrap": {
+                "manager": "0x5D0acD0864Ad07ba4E1E0474AE69Da87482e14A9",
+                "wrapStrategy": "0xB29005319B0caB24cF6D4d24e8420E54BB29Cb0d"
+            },
             "existentialNFTCloneFactory": "0x642332562BC60a4Bd9681E7bb1588f7456A497aC"
         },
         "startBlockV1": 1000000,
@@ -658,6 +682,18 @@ export default
         "subgraphV1": {
             "cliName": "base",
             "name": "protocol-v1-base-mainnet"
+        },
+        "subgraphVesting": {
+            "name": "vesting-v1-base-mainnet",
+            "hostedEndpoint": "https://api.goldsky.com/api/public/project_clsnd6xsoma5j012qepvucfpp/subgraphs/vesting-v1-base-mainnet/prod/gn"
+        },
+        "subgraphFlowScheduler": {
+            "name": "scheduling-v1-base-mainnet",
+            "hostedEndpoint": "https://api.goldsky.com/api/public/project_clsnd6xsoma5j012qepvucfpp/subgraphs/scheduling-v1-base-mainnet/prod/gn"
+        },
+        "subgraphAutoWrap": {
+            "name": "auto-wrap-v1-base-mainnet",
+            "hostedEndpoint": "https://api.goldsky.com/api/public/project_clsnd6xsoma5j012qepvucfpp/subgraphs/auto-wrap-v1-base-mainnet/prod/gn"
         },
         "publicRPCs": ["https://developer-access-mainnet.base.org"],
         "coinGeckoId": "base"

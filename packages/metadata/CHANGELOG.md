@@ -3,6 +3,11 @@ All notable changes to the metadata will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.2.1]
+### Added
+- Added Base automation contracts
+- Added OP Sepolia automation contracts
+
 ## [v1.2.0]
 ### Changed
 - Removed Polygon Mumbai

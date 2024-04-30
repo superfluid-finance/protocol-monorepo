@@ -6,9 +6,7 @@ JQ="npx --package=node-jq -- jq"
 set -xe
 
 if [ "$SUBGRAPH_RELEASE_TAG" == "feature" ];then
-    # we only support matic and mumbai feature endpoints
-    # however, we don't want to be blocked by matic for feature
-    NETWORKS=("mumbai")
+    NETWORKS=("matic")
 fi
 
 if [ "$SUBGRAPH_RELEASE_TAG" == "dev" ] || [ "$SUBGRAPH_RELEASE_TAG" == "v1" ];then
@@ -31,7 +29,6 @@ for i in "${NETWORKS[@]}";do
     declare -A LEGACY_NETWORK_NAMES=(
         ["xdai-mainnet"]="xdai"
         ["polygon-mainnet"]="matic"
-        ["polygon-mumbai"]="mumbai"
     )
 
     GRAPH_NETWORK="${LEGACY_NETWORK_NAMES[$i]:-$i}"

@@ -1,7 +1,7 @@
 export const chainIds = [
     // 100, // XDAI //TODO(KK): No infura support
     137, // MATIC
-    80001, // MUMBAI
+    43113 , // OP Sepolia
 ];
 
 export type Network = {
@@ -15,8 +15,8 @@ export const networks: Network[] = [
         chainId: 137,
     },
     {
-        name: "mumbai",
-        chainId: 80001,
+        name: "fuji",
+        chainId: 43113 ,
     },
 ];
 

@@ -19,7 +19,6 @@ library SuperfluidLoaderLibrary {
 
     // testnets
     uint256 private constant AVALANCHE_FUJI = 43113;
-    uint256 private constant POLYGON_MUMBAI = 80001;
     uint256 private constant SCROLL_SEPOLIA = 534351;
     uint256 private constant ETH_SEPOLIA = 11155111;
     uint256 private constant OPTIMISM_SEPOLIA = 11155420;
@@ -50,8 +49,6 @@ library SuperfluidLoaderLibrary {
         // testnets
         } else if (block.chainid == AVALANCHE_FUJI) {
             return 0x85Fe79b998509B77BF10A8BD4001D58475D29386;
-        } else if (block.chainid == POLYGON_MUMBAI) {
-            return 0xEB796bdb90fFA0f28255275e16936D25d3418603;
         } else if (block.chainid == SCROLL_SEPOLIA) {
             return 0x42b05a6016B9eED232E13fd56a8F0725693DBF8e;
         } else if (block.chainid == ETH_SEPOLIA) {

@@ -48,9 +48,9 @@
         "generate:graphql-types": "graphql-codegen --config subgraph-codegen.yml",
         "generate-graphql-schema": "yarn generate-graphql-schema:v1",
         "generate-graphql-schema:local": "get-graphql-schema http://localhost:8000/subgraphs/name/superfluid-test > src/subgraph/schema.graphql",
-        "generate-graphql-schema:v1": "get-graphql-schema https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-mumbai > src/subgraph/schema.graphql",
-        "generate-graphql-schema:dev": "get-graphql-schema https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-mumbai > src/subgraph/schema.graphql",
-        "generate-graphql-schema:feature": "get-graphql-schema https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-feature-mumbai > src/subgraph/schema.graphql",
+        "generate-graphql-schema:v1": "get-graphql-schema https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-optimism-sepolia > src/subgraph/schema.graphql",
+        "generate-graphql-schema:dev": "get-graphql-schema https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-optimism-sepolia > src/subgraph/schema.graphql",
+        "generate-graphql-schema:feature": "get-graphql-schema https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-feature-matic > src/subgraph/schema.graphql",
         "cloc": "sh tasks/cloc.sh"
     },
     "bugs": {

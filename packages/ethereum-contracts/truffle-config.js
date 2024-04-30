@@ -60,7 +60,6 @@ const ALIASES = {
     "xdai-mainnet": ["xdai"],
 
     "polygon-mainnet": ["matic"],
-    "polygon-mumbai": ["mumbai"],
 
     "optimism-mainnet": ["opmainnet"],
     "optimism-sepolia": ["opsepolia"],
@@ -195,11 +194,6 @@ const E = (module.exports = {
             network_id: 137,
             maxPriorityFeePerGas: 37e9,
             maxFeePerGas: 500e9,
-        },
-
-        "polygon-mumbai": {
-            ...createNetworkDefaultConfiguration("polygon-mumbai"),
-            network_id: 80001,
         },
 
 

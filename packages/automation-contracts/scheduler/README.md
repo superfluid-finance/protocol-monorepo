@@ -25,11 +25,9 @@ The Vesting Scheduler allows you to schedule the vesting of tokens to a receiver
 ```bash
 # .env-example
 
-MUMBAI_PRIVATE_KEY=
 POLYGON_PRIVATE_KEY=
 BSC_PRIVATE_KEY=
 
-MUMBAI_URL=
 POLYGON_URL=
 BSC_URL=
 
@@ -58,7 +56,7 @@ npx hardhat deploy --network <network>
 #### Testnets
 |          | FlowScheduler                                                                                                                        | VestingScheduler                                                                                                                     |
 |----------|--------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|
-| Mumbai   | [0xF18825d412C061aEfEFB4dF46a1c077636dA50bf](https://mumbai.polygonscan.com/address/0xF18825d412C061aEfEFB4dF46a1c077636dA50bf#code) | [0xD4fCe2a08fd2fA7495BEd900F2fb6c6deDBf8632](https://mumbai.polygonscan.com/address/0xD4fCe2a08fd2fA7495BEd900F2fb6c6deDBf8632#code) |
+| OP Sepolia   | [0x73B1Ce21d03ad389C2A291B1d1dc4DAFE7B5Dc68](https://sepolia-optimism.etherscan.io/address/0x73B1Ce21d03ad389C2A291B1d1dc4DAFE7B5Dc68) | [0x27444c0235a4D921F3106475faeba0B5e7ABDD7a](https://sepolia-optimism.etherscan.io/address/0x27444c0235a4D921F3106475faeba0B5e7ABDD7a) |
 
 #### Mainnets
 |         | FlowScheduler                                                                                                                 | VestingScheduler                                                                                                              |

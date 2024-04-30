@@ -26,11 +26,6 @@ module.exports = {
             url: "http://127.0.0.1:8545/",
             chainId: 31337,
         },
-        mumbai: {
-            url: process.env.MUMBAI_URL || "",
-            accounts:
-                process.env.MUMBAI_PRIVATE_KEY !== undefined ? [process.env.MUMBAI_PRIVATE_KEY] : [],
-        },
         polygon: {
             url: process.env.POLYGON_URL || "",
             accounts:

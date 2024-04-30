@@ -24,7 +24,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-          network: [eth-sepolia, polygon-mumbai, optimism-sepolia, avalanche-fuji, polygon-mainnet, xdai-mainnet, optimism-mainnet, arbitrum-one, avalanche-c, bsc-mainnet, eth-mainnet, celo-mainnet, base-mainnnet, scroll-mainnet]
+          network: [eth-sepolia, optimism-sepolia, avalanche-fuji, polygon-mainnet, xdai-mainnet, optimism-mainnet, arbitrum-one, avalanche-c, bsc-mainnet, eth-mainnet, celo-mainnet, base-mainnnet, scroll-mainnet]
 
     defaults:
       run:

@@ -64,7 +64,6 @@ const chainIds = {
     "arbitrum-one": 42161,
 
     "polygon-mainnet": 137,
-    "polygon-mumbai": 80001,
 
     "avalanche-c": 43114,
     "avalanche-fuji": 43113,
@@ -126,10 +125,6 @@ const config: HardhatUserConfig = {
         "polygon-mainnet": {
             ...createNetworkConfig("polygon-mainnet"),
             url: process.env.POLYGON_MAINNET_PROVIDER_URL || "",
-        },
-        "polygon-mumbai": {
-            ...createNetworkConfig("polygon-mumbai"),
-            url: process.env.POLYGON_MUMBAI_PROVIDER_URL || "",
         },
         "avalanche-c": {
             ...createNetworkConfig("avalanche-c"),

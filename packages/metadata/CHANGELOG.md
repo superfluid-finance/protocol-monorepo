@@ -3,6 +3,10 @@ All notable changes to the metadata will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.2.0]
+### Changed
+- Removed Polygon Mumbai
+
 ## [v1.1.30]
 ### Added
 - Degen Chain deployment

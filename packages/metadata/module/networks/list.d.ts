@@ -49,6 +49,9 @@ export interface NetworkMetaData {
     readonly publicRPCs?: string[];
     readonly coinGeckoId?: string;
     readonly trustedForwarders?: string[]; // list of additional trusted forwarders
+    readonly subgraphVesting?: { name: string, hostedEndpoint: string }
+    readonly subgraphFlowScheduler?: { name: string, hostedEndpoint: string }
+    readonly subgraphAutoWrap?: { name: string, hostedEndpoint: string },
 }
 declare const _default: NetworkMetaData[];
 export default _default;

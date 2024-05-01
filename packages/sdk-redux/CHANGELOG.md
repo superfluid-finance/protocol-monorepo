@@ -7,7 +7,7 @@ All notable changes to the SDK-redux will be documented in this file.
 ### Changed
 ### Fixed
 
-## [0.5.2] - 2023-04-30
+## [0.6.0] - 2023-05-01
 
 ### Changed
 

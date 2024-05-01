@@ -3,6 +3,10 @@ All notable changes to the metadata will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.2.2]
+### Added
+- Added Base v1 subgraph endpoint
+
 ## [v1.2.1]
 ### Added
 - Added Base automation contracts

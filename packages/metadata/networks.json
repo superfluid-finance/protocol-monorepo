@@ -679,7 +679,8 @@
         "explorer": "https://basescan.org",
         "subgraphV1": {
             "cliName": "base",
-            "name": "protocol-v1-base-mainnet"
+            "name": "protocol-v1-base-mainnet",
+            "satsumaEndpoint": "https://subgraph.satsuma-prod.com/c5br3jaVlJI6/superfluid/base-mainnet/api"
         },
         "subgraphVesting": {
             "name": "vesting-v1-base-mainnet",

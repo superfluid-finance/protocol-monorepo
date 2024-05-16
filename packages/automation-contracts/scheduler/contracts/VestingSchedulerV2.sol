@@ -89,7 +89,67 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         );
     }
 
-    /// @dev IVestingScheduler.createVestingScheduleFromAmountAndDuration implementation.
+    function _createVestingSchedule(
+        ISuperToken superToken,
+        address receiver,
+        uint32 startDate,
+        uint32 cliffDate,
+        int96 flowRate,
+        uint256 cliffAmount,
+        uint32 endDate,
+        uint256 remainderAmount,
+        bytes memory ctx
+    ) private returns (bytes memory newCtx) {
+        newCtx = ctx;
+        address sender = _getSender(ctx);
+        
+        // Default to current block timestamp if no start date is provided.
+        if (startDate == 0) {
+            startDate = uint32(block.timestamp);
+        }
+
+        // Note: Vesting Scheduler V2 doesn't allow start date to be in the past.
+        // V1 did but didn't allow cliff and flow to be in the past though.
+        if (startDate < block.timestamp) revert TimeWindowInvalid();
+
+        if (receiver == address(0) || receiver == sender) revert AccountInvalid();
+        if (address(superToken) == address(0)) revert ZeroAddress();
+        if (flowRate <= 0) revert FlowRateInvalid();
+        if (cliffDate != 0 && startDate > cliffDate) revert TimeWindowInvalid();
+        if (cliffDate == 0 && cliffAmount != 0) revert CliffInvalid();
+
+        uint32 cliffAndFlowDate = cliffDate == 0 ? startDate : cliffDate;
+        // Note: Vesting Scheduler V2 allows cliff and flow to be in the schedule creation block, V1 didn't.
+        if (cliffAndFlowDate < block.timestamp ||
+            cliffAndFlowDate >= endDate ||
+            cliffAndFlowDate + START_DATE_VALID_AFTER >= endDate - END_DATE_VALID_BEFORE ||
+            endDate - cliffAndFlowDate < MIN_VESTING_DURATION
+        ) revert TimeWindowInvalid();
+
+        bytes32 hashConfig = keccak256(abi.encodePacked(superToken, sender, receiver));
+        if (vestingSchedules[hashConfig].endDate != 0) revert ScheduleAlreadyExists();
+        vestingSchedules[hashConfig] = VestingSchedule(
+            cliffAndFlowDate,
+            endDate,
+            flowRate,
+            cliffAmount,
+            remainderAmount
+        );
+
+        emit VestingScheduleCreated(
+            superToken,
+            sender,
+            receiver,
+            startDate,
+            cliffDate,
+            flowRate,
+            endDate,
+            cliffAmount,
+            remainderAmount
+        );
+    }
+
+        /// @dev IVestingScheduler.createVestingScheduleFromAmountAndDuration implementation.
     function createVestingScheduleFromAmountAndDuration(
         ISuperToken superToken,
         address receiver,
@@ -184,6 +244,53 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         );
     }
 
+    function _createVestingScheduleFromAmountAndDuration(
+        ISuperToken superToken,
+        address receiver,
+        uint256 totalAmount,
+        uint32 totalDuration,
+        uint32 cliffPeriod,
+        uint32 startDate,
+        bytes memory ctx
+    ) private returns (bytes memory newCtx) {
+        // Default to current block timestamp if no start date is provided.
+        if (startDate == 0) {
+            startDate = uint32(block.timestamp);
+        }
+
+        uint32 endDate = startDate + totalDuration;
+        int96 flowRate = SafeCast.toInt96(SafeCast.toInt256(totalAmount / totalDuration));
+        uint256 remainderAmount = totalAmount - (SafeCast.toUint256(flowRate) * totalDuration);
+
+        if (cliffPeriod == 0) {
+            newCtx = _createVestingSchedule(
+                superToken, 
+                receiver, 
+                startDate, 
+                0 /* cliffDate */, 
+                flowRate, 
+                0 /* cliffAmount */, 
+                endDate,
+                remainderAmount,
+                ctx
+            );
+        } else {
+            uint32 cliffDate = startDate + cliffPeriod;
+            uint256 cliffAmount = SafeMath.mul(cliffPeriod, SafeCast.toUint256(flowRate));
+            newCtx = _createVestingSchedule(
+                superToken, 
+                receiver, 
+                startDate, 
+                cliffDate, 
+                flowRate, 
+                cliffAmount, 
+                endDate, 
+                remainderAmount,
+                ctx
+            );
+        }
+    }
+
     /// @dev IVestingScheduler.createAndExecuteVestingScheduleFromAmountAndDuration.
     function createAndExecuteVestingScheduleFromAmountAndDuration(
         ISuperToken superToken,
@@ -222,107 +329,6 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         assert(_executeCliffAndFlow(superToken, sender, receiver));
     }
 
-    function _createVestingScheduleFromAmountAndDuration(
-        ISuperToken superToken,
-        address receiver,
-        uint256 totalAmount,
-        uint32 totalDuration,
-        uint32 cliffPeriod,
-        uint32 startDate,
-        bytes memory ctx
-    ) private returns (bytes memory newCtx) {
-        if (startDate == 0) {
-            startDate = uint32(block.timestamp);
-        }
-
-        uint32 endDate = startDate + totalDuration;
-        int96 flowRate = SafeCast.toInt96(SafeCast.toInt256(totalAmount / totalDuration));
-        uint256 remainderAmount = totalAmount - (SafeCast.toUint256(flowRate) * totalDuration);
-
-        if (cliffPeriod == 0) {
-            newCtx = _createVestingSchedule(
-                superToken, 
-                receiver, 
-                startDate, 
-                0 /* cliffDate */, 
-                flowRate, 
-                0 /* cliffAmount */, 
-                endDate,
-                remainderAmount,
-                ctx
-            );
-        } else {
-            uint32 cliffDate = startDate + cliffPeriod;
-            uint256 cliffAmount = SafeMath.mul(cliffPeriod, SafeCast.toUint256(flowRate)); // cliffPeriod * flowRate
-            newCtx = _createVestingSchedule(
-                superToken, 
-                receiver, 
-                startDate, 
-                cliffDate, 
-                flowRate, 
-                cliffAmount, 
-                endDate, 
-                remainderAmount,
-                ctx
-            );
-        }
-    }
-
-    function _createVestingSchedule(
-        ISuperToken superToken,
-        address receiver,
-        uint32 startDate,
-        uint32 cliffDate,
-        int96 flowRate,
-        uint256 cliffAmount,
-        uint32 endDate,
-        uint256 remainderAmount,
-        bytes memory ctx
-    ) private returns (bytes memory newCtx) {
-        newCtx = ctx;
-        address sender = _getSender(ctx);
-        
-        if (startDate == 0) {
-            startDate = uint32(block.timestamp);
-        }
-        if (startDate < block.timestamp) revert TimeWindowInvalid();
-
-        if (receiver == address(0) || receiver == sender) revert AccountInvalid();
-        if (address(superToken) == address(0)) revert ZeroAddress();
-        if (flowRate <= 0) revert FlowRateInvalid();
-        if (cliffDate != 0 && startDate > cliffDate) revert TimeWindowInvalid();
-        if (cliffDate == 0 && cliffAmount != 0) revert CliffInvalid();
-
-        uint32 cliffAndFlowDate = cliffDate == 0 ? startDate : cliffDate;
-        if (cliffAndFlowDate < block.timestamp ||
-            cliffAndFlowDate >= endDate ||
-            cliffAndFlowDate + START_DATE_VALID_AFTER >= endDate - END_DATE_VALID_BEFORE ||
-            endDate - cliffAndFlowDate < MIN_VESTING_DURATION
-        ) revert TimeWindowInvalid();
-
-        bytes32 hashConfig = keccak256(abi.encodePacked(superToken, sender, receiver));
-        if (vestingSchedules[hashConfig].endDate != 0) revert ScheduleAlreadyExists();
-        vestingSchedules[hashConfig] = VestingSchedule(
-            cliffAndFlowDate,
-            endDate,
-            flowRate,
-            cliffAmount,
-            remainderAmount
-        );
-
-        emit VestingScheduleCreated(
-            superToken,
-            sender,
-            receiver,
-            startDate,
-            cliffDate,
-            flowRate,
-            endDate,
-            cliffAmount,
-            remainderAmount
-        );
-    }
-
     function updateVestingSchedule(
         ISuperToken superToken,
         address receiver,
@@ -340,8 +346,8 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         // Only allow an update if 1. vesting exists 2. executeCliffAndFlow() has been called
         if (schedule.cliffAndFlowDate != 0 || schedule.endDate == 0) revert ScheduleNotFlowing();
         vestingSchedules[configHash].endDate = endDate;
+        // Note: Nullify the remainder amount when complexity of updates is introduced.
         vestingSchedules[configHash].remainderAmount = 0;
-        // Note: Nullify the remainder amount if complexity of updates is introduced.
 
         emit VestingScheduleUpdated(
             superToken,
@@ -424,7 +430,6 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         return true;
     }
 
-
     /// @dev IVestingScheduler.executeEndVesting implementation.
     function executeEndVesting(
         ISuperToken superToken,
@@ -447,10 +452,11 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
                 ? (schedule.endDate - block.timestamp) * uint96(schedule.flowRate) + schedule.remainderAmount 
                 : 0;
 
+            // Note: we consider the compensation as failed if the stream is still ongoing after the end date.
             bool didCompensationFail = schedule.endDate < block.timestamp;
             if (earlyEndCompensation != 0) {
+                // Note: Super Tokens revert, not return false, i.e. we expect always true here.
                 assert(superToken.transferFrom(sender, receiver, earlyEndCompensation));
-                // TODO: Assert? Revert? SafeERC20?
             }
 
             emit VestingEndExecuted(

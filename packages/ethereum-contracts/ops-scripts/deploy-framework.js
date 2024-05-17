@@ -222,6 +222,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         "SuperfluidPool",
         "SuperfluidPoolPlaceholder",
         "SuperfluidPoolDeployerLibrary",
+        "BeaconProxy",
         "ConstantOutflowNFT",
         "ConstantInflowNFT",
         "PoolAdminNFT",
@@ -261,6 +262,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         SuperfluidPool,
         SuperfluidPoolPlaceholder,
         SuperfluidPoolDeployerLibrary,
+        BeaconProxy,
         ConstantOutflowNFT,
         ConstantInflowNFT,
         PoolAdminNFT,
@@ -585,6 +587,14 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 GeneralDistributionAgreementV1,
                 protocolReleaseVersion === "test" ? true : false
             );
+
+            // deploy a dummy BeaconProxy for verification
+            const beaconProxy = await web3tx(
+                BeaconProxy.new,
+                "BeaconProxy.new"
+            )(superfluidPoolBeaconAddr, "0x");
+            console.log("Dummy BeaconProxy address", beaconProxy.address);
+            output += `DUMMY_BEACON_PROXY=${beaconProxy.address}\n`;
 
             if (process.env.IS_HARDHAT) {
                 // this fails in test case deployment.test.js:ops-scripts/deploy-super-token.js

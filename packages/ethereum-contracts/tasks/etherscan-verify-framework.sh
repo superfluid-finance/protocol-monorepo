@@ -158,6 +158,10 @@ if [ -n "$SUPERFLUID_POOL_DEPLOYER_LIBRARY" ]; then
     try_verify SuperfluidPoolDeployerLibrary@"${SUPERFLUID_POOL_DEPLOYER_LIBRARY}"
 fi
 
+if [ -n "$DUMMY_BEACON_PROXY" ]; then
+    try_verify BeaconProxy@"${DUMMY_BEACON_PROXY}"
+fi
+
 # this will fail with 'Library address is not prefixed with "0x"' if a library address is not set
 link_library "GeneralDistributionAgreementV1" "SlotsBitmapLibrary" "${SLOTS_BITMAP_LIBRARY}"
 link_library "GeneralDistributionAgreementV1" "SuperfluidPoolDeployerLibrary" "${SUPERFLUID_POOL_DEPLOYER_LIBRARY}"

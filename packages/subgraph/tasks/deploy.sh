@@ -124,14 +124,21 @@ deploy_to_superfluid() {
 
 deploy_to_goldsky() {
     local network="$1"
-    local subgraphName="protocol-$DEPLOYMENT_ENV-$network/1.0.0"
     # TODO: use tagging?
     # TODO: how to handle versions?
+
+    # name mapping for godldsky legacy networks not using our cliNames
+    local -A legacyNetworkNames=(
+        ["xdai-mainnet"]="xdai"
+    )
+
+    local goldskyNetwork="${legacyNetworkNames[$network]:-$network}"
+    local subgraphName="protocol-$DEPLOYMENT_ENV-$goldskyNetwork/1.0.0"
 
     $GRAPH_CLI build
     # Note: when using Graph CLI to deploy, it implicitly triggers build too, but Goldsky CLI doesn't.
 
-    echo "********* Deploying $network subgraph $subgraphName to Goldsky. **********"
+    echo "********* Deploying $goldskyNetwork subgraph $subgraphName to Goldsky. **********"
     $GOLDSKY_CLI subgraph deploy \
         "$subgraphName" \
         --path . \

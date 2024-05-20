@@ -213,7 +213,7 @@
         "logsQueryRange": 20000,
         "explorer": "https://gnosisscan.io",
         "subgraphV1": {
-            "cliName": "xdai",
+            "cliName": "gnosis",
             "name": "protocol-v1-xdai",
             "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-xdai",
             "satsumaEndpoint": "https://subgraph.satsuma-prod.com/c5br3jaVlJI6/superfluid/xdai/api"

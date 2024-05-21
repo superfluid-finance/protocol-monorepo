@@ -642,6 +642,14 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         bytes32 configHash = keccak256(abi.encodePacked(superToken, sender, receiver));
         VestingSchedule memory schedule = vestingSchedules[configHash];
 
+        // Ensure that the caller is the sender or the receiver if the vesting schedule requires claiming.
+        if (
+            schedule.isClaimable &&
+            (msg.sender != sender && msg.sender != receiver)
+        ) {
+            revert CannotClaimFlowOnBehalf();
+        }
+
         if (schedule.cliffAndFlowDate > block.timestamp ||
             schedule.cliffAndFlowDate + START_DATE_VALID_AFTER < block.timestamp
         ) revert TimeWindowInvalid();

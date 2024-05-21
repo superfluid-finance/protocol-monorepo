@@ -5,14 +5,14 @@ import metadata from "@superfluid-finance/metadata";
 
 /**
  * We only use matic network endpoints for v1 release tests
- * otherwise, we use mumbai
+ * otherwise, we use OP Sepolia
  * @returns chainId
  */
 export const getChainId = () => {
     // null coalesce, but this should NEVER return null for either
     return process.env.SUBGRAPH_RELEASE_TAG == "v1"
         ? metadata.getNetworkByShortName("matic")?.chainId ?? 0
-        : metadata.getNetworkByShortName("mumbai")?.chainId ?? 0;
+        : metadata.getNetworkByShortName("opsepolia")?.chainId ?? 0;
 };
 
 export const testQueryClassFunctions = async (query: Query) => {

@@ -74,7 +74,6 @@ deploy_to_graph() {
     local -A legacyNetworkNames=(
         ["xdai-mainnet"]="xdai"
         ["polygon-mainnet"]="matic"
-        ["polygon-mumbai"]="mumbai"
     )
 
     local graphNetwork="${legacyNetworkNames[$network]:-$network}"

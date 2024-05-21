@@ -7,6 +7,12 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## [Unreleased]
 
 ### Added
+### Changed
+### Fixed
+
+## [0.7.0] - 2023-05-01
+
+### Added
 
 -   Added Degen chain support
 -   Added `getTotalAmountReceivedByMember`

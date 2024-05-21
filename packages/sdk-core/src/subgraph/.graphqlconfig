@@ -4,7 +4,7 @@
   "extensions": {
     "endpoints": {
       "Default GraphQL Endpoint": {
-        "url": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-feature-mumbai",
+        "url": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-optimism-sepolia",
         "headers": {
           "user-agent": "JS GraphQL"
         },

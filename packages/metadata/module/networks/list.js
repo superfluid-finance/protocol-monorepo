@@ -2,70 +2,6 @@
 export default
 [
     {
-        "name": "polygon-mumbai",
-        "isTestnet": true,
-        "networkId": 80001,
-        "chainId": 80001,
-        "sfId": 102,
-        "shortName": "mumbai",
-        "uppercaseName": "POLYGON_MUMBAI",
-        "humanReadableName": "Polygon Mumbai",
-        "nativeTokenSymbol": "MATIC",
-        "nativeTokenWrapper": "0x96B82B65ACF7072eFEb00502F45757F254c2a0D4",
-        "contractsV1": {
-            "resolver": "0x2feFd8B23e4770B674b0d2fAda5EE8a2bE0B525F",
-            "host": "0xEB796bdb90fFA0f28255275e16936D25d3418603",
-            "cfaV1": "0x49e565Ed1bdc17F3d220f72DF0857C26FA83F873",
-            "cfaV1Forwarder": "0xcfA132E353cB4E398080B9700609bb008eceB125",
-            "idaV1": "0x804348D4960a61f2d5F9ce9103027A3E849E09b8",
-            "gdaV1": "0x63ab406B6eF6c8be732c1edbd15464de16a8F46D",
-            "gdaV1Forwarder": "0x6DA13Bde224A05a288748d857b9e7DDEffd1dE08",
-            "superTokenFactory": "0xB798553db6EB3D3C56912378409370145E97324B",
-            "constantOutflowNFT": "0x502CC982947216C0f94e433BC78c413806301C07",
-            "constantInflowNFT": "0x9906A7e948C642B6bc74b9A5EAfCddB3580b44e0",
-            "superfluidLoader": "0xFcc617a382988a6d081B1821c8d17C47DFF9EDE1",
-            "toga": "0x38DD80876DBA048d0050D28828522c313967D073",
-            "superSpreader": "0x74CDF863b00789c29734F8dFd9F83423Bc55E4cE",
-            "flowScheduler": "0x59A3Ba9d34c387FB70b4f4e4Fbc9eD7519194139",
-            "vestingScheduler": "0x3962EE56c9f7176215D149938BA685F91aBB633B",
-            "autowrap": {
-                "manager": "0x3eAB3c6207F488E475b7955B631B564F0E6317B9",
-                "wrapStrategy": "0x544728AFDBeEafBeC9e1329031788edb53017bC4"
-            },
-            "existentialNFTCloneFactory": "0xfC4E49AfcDDDcc2B90794DC214cc324d17B15619"
-        },
-        "startBlockV1": 8100000,
-        "logsQueryRange": 10000,
-        "explorer": "https://mumbai.polygonscan.com",
-        "subgraphV1": {
-            "cliName": "mumbai",
-            "name": "protocol-v1-mumbai",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-mumbai"
-        },
-        "subgraphVesting": {
-            "name": "vesting-v1-polygon-mumbai",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/vesting-v1-polygon-mumbai"
-        },
-        "subgraphFlowScheduler": {
-            "name": "scheduling-v1-polygon-mumbai",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/scheduling-v1-polygon-mumbai"
-        },
-        "subgraphAutoWrap": {
-            "name": "auto-wrap-v1-polygon-mumbai",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/auto-wrap-v1-polygon-mumbai"
-        },
-        "publicRPCs": [
-            "https://rpc.ankr.com/polygon_mumbai",
-            "https://matic-mumbai.chainstacklabs.com"
-        ],
-        "trustedForwarders": [
-            "0x9399bb24dbb5c4b782c70c2969f58716ebbd6a3b",
-            "0x69015912AA33720b842dCD6aC059Ed623F28d9f7",
-            "0xb539068872230f20456CF38EC52EF2f91AF4AE49",
-            "0xd8253782c45a12053594b9deB72d8e8aB2Fca54c"
-        ]
-    },
-    {
         "name": "avalanche-fuji",
         "isTestnet": true,
         "networkId": 43113,
@@ -172,6 +108,12 @@ export default
             "superTokenFactory": "0xfcF0489488397332579f35b0F711BE570Da0E8f5",
             "constantOutflowNFT": "0xda6db863cb2EE39b196edB8159c38A1ed5c55344",
             "constantInflowNFT": "0x87E00Dced5670e01BEe33a9a724B1dac790937eF",
+            "flowScheduler": "0x73B1Ce21d03ad389C2A291B1d1dc4DAFE7B5Dc68",
+            "vestingScheduler": "0x27444c0235a4D921F3106475faeba0B5e7ABDD7a",
+            "autowrap": {
+                "manager": "0xe567b32C10B0dB72d9490eB1B9A409C5ADed192C",
+                "wrapStrategy": "0xf232f1fd34CE12e24F4391865c2D6E374D2C34d9"
+            },
             "superfluidLoader": "0x109412E3C84f0539b43d39dB691B08c90f58dC7c"
         },
         "startBlockV1": 6886559,
@@ -181,6 +123,18 @@ export default
             "cliName": "optimism-sepolia",
             "name": "protocol-v1-optimism-sepolia",
             "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-optimism-sepolia"
+        },
+        "subgraphVesting": {
+            "name": "vesting-v1-optimism-sepolia",
+            "hostedEndpoint": "https://api.goldsky.com/api/public/project_clsnd6xsoma5j012qepvucfpp/subgraphs/vesting-v1-optimism-sepolia/prod/gn"
+        },
+        "subgraphFlowScheduler": {
+            "name": "scheduling-v1-optimism-sepolia",
+            "hostedEndpoint": "https://api.goldsky.com/api/public/project_clsnd6xsoma5j012qepvucfpp/subgraphs/scheduling-v1-optimism-sepolia/prod/gn"
+        },
+        "subgraphAutoWrap": {
+            "name": "auto-wrap-v1-optimism-sepolia",
+            "hostedEndpoint": "https://api.goldsky.com/api/public/project_clsnd6xsoma5j012qepvucfpp/subgraphs/auto-wrap-v1-optimism-sepolia/prod/gn"
         },
         "publicRPCs": [
             "https://sepolia.optimism.io"
@@ -714,6 +668,12 @@ export default
             "superfluidLoader": "0x9F9EEd9Bbc38E9e0514fD9dFcc0Bca9869A9c534",
             "toga": "0xA87F76e99f6C8Ff8996d14f550ceF47f193D9A09",
             "batchLiquidator": "0x889ebeCaD5F8C34Fd96023456d0fC5cE54eb74Cb",
+            "flowScheduler": "0xC72CEd15204d02183c83fEbb918b183E400811Ee",
+            "vestingScheduler": "0xDF92D0E6Bcb9385FDe99aD21Ff5e47Fb47E3c6b2",
+            "autowrap": {
+                "manager": "0x5D0acD0864Ad07ba4E1E0474AE69Da87482e14A9",
+                "wrapStrategy": "0xB29005319B0caB24cF6D4d24e8420E54BB29Cb0d"
+            },
             "existentialNFTCloneFactory": "0x642332562BC60a4Bd9681E7bb1588f7456A497aC"
         },
         "startBlockV1": 1000000,
@@ -722,6 +682,18 @@ export default
         "subgraphV1": {
             "cliName": "base",
             "name": "protocol-v1-base-mainnet"
+        },
+        "subgraphVesting": {
+            "name": "vesting-v1-base-mainnet",
+            "hostedEndpoint": "https://api.goldsky.com/api/public/project_clsnd6xsoma5j012qepvucfpp/subgraphs/vesting-v1-base-mainnet/prod/gn"
+        },
+        "subgraphFlowScheduler": {
+            "name": "scheduling-v1-base-mainnet",
+            "hostedEndpoint": "https://api.goldsky.com/api/public/project_clsnd6xsoma5j012qepvucfpp/subgraphs/scheduling-v1-base-mainnet/prod/gn"
+        },
+        "subgraphAutoWrap": {
+            "name": "auto-wrap-v1-base-mainnet",
+            "hostedEndpoint": "https://api.goldsky.com/api/public/project_clsnd6xsoma5j012qepvucfpp/subgraphs/auto-wrap-v1-base-mainnet/prod/gn"
         },
         "publicRPCs": ["https://developer-access-mainnet.base.org"],
         "coinGeckoId": "base"

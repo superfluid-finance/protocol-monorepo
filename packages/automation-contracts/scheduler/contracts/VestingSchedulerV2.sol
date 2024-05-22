@@ -649,7 +649,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
             }
             // Ensure that that the claming date is after the cliff/flow date and before the early end of the schedule
             if (schedule.cliffAndFlowDate > block.timestamp ||
-                schedule.endDate - END_DATE_VALID_BEFORE > block.timestamp
+                schedule.endDate - END_DATE_VALID_BEFORE < block.timestamp
             ) revert TimeWindowInvalid();
         } else {
             if (schedule.cliffAndFlowDate > block.timestamp ||

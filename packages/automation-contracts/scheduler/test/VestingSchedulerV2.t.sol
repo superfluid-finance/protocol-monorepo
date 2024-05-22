@@ -25,7 +25,8 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         int96 flowRate,
         uint32 endDate,
         uint256 cliffAmount,
-        uint256 remainderAmount
+        uint256 remainderAmount,
+        bool isClaimable
     );
 
     event VestingScheduleUpdated(
@@ -137,12 +138,27 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         vm.stopPrank();
     }
 
+    function _createClaimableVestingScheduleWithDefaultData(address sender, address receiver) private {
+        vm.startPrank(sender);
+        vestingScheduler.createClaimableVestingSchedule(
+            superToken,
+            receiver,
+            START_DATE,
+            CLIFF_DATE,
+            FLOW_RATE,
+            CLIFF_TRANSFER_AMOUNT,
+            END_DATE,
+            EMPTY_CTX
+        );
+        vm.stopPrank();
+    }
+
     /// TESTS
 
     function testCreateVestingSchedule() public {
         vm.expectEmit(true, true, true, true);
         emit VestingScheduleCreated(
-            superToken, alice, bob, START_DATE, CLIFF_DATE, FLOW_RATE, END_DATE, CLIFF_TRANSFER_AMOUNT, 0
+            superToken, alice, bob, START_DATE, CLIFF_DATE, FLOW_RATE, END_DATE, CLIFF_TRANSFER_AMOUNT, 0, false
         );
         _createVestingScheduleWithDefaultData(alice, bob);
         vm.startPrank(alice);
@@ -324,7 +340,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         _setACL_AUTHORIZE_FULL_CONTROL(alice, FLOW_RATE);
         vm.expectEmit(true, true, true, true);
         emit VestingScheduleCreated(
-            superToken, alice, bob, START_DATE, CLIFF_DATE, FLOW_RATE, END_DATE, CLIFF_TRANSFER_AMOUNT, 0
+            superToken, alice, bob, START_DATE, CLIFF_DATE, FLOW_RATE, END_DATE, CLIFF_TRANSFER_AMOUNT, 0, false
         );
         _createVestingScheduleWithDefaultData(alice, bob);
         vm.prank(alice);
@@ -602,7 +618,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         uint32 startAndCliffDate = uint32(block.timestamp);
 
         vm.expectEmit();
-        emit VestingScheduleCreated(superToken, alice, bob, startAndCliffDate, startAndCliffDate, FLOW_RATE, END_DATE, CLIFF_TRANSFER_AMOUNT, 0);
+        emit VestingScheduleCreated(superToken, alice, bob, startAndCliffDate, startAndCliffDate, FLOW_RATE, END_DATE, CLIFF_TRANSFER_AMOUNT, 0, false);
 
         vestingScheduler.createVestingSchedule(
             superToken,
@@ -738,7 +754,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         uint32 expectedEndDate = startDate + vestingDuration;
 
         vm.expectEmit();
-        emit VestingScheduleCreated(superToken, alice, bob, startDate, 0, expectedFlowRate, expectedEndDate, 0, 0);
+        emit VestingScheduleCreated(superToken, alice, bob, startDate, 0, expectedFlowRate, expectedEndDate, 0, 0, false);
 
         vm.startPrank(alice);
         bool useCtx = randomizer % 2 == 0;
@@ -783,7 +799,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         uint32 expectedEndDate = startDate + vestingDuration;
 
         vm.expectEmit();
-        emit VestingScheduleCreated(superToken, alice, bob, startDate, expectedCliffDate, expectedFlowRate, expectedEndDate, expectedCliffAmount, 0);
+        emit VestingScheduleCreated(superToken, alice, bob, startDate, expectedCliffDate, expectedFlowRate, expectedEndDate, expectedCliffAmount, 0, false);
 
         vm.startPrank(alice);
         bool useCtx = randomizer % 2 == 0;
@@ -868,7 +884,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         _arrangeAllowances(alice, expectedSchedule.flowRate);
 
         vm.expectEmit();
-        emit VestingScheduleCreated(superToken, alice, bob, expectedStartDate, expectedCliffDate, expectedSchedule.flowRate, expectedSchedule.endDate, expectedSchedule.cliffAmount, expectedSchedule.remainderAmount);
+        emit VestingScheduleCreated(superToken, alice, bob, expectedStartDate, expectedCliffDate, expectedSchedule.flowRate, expectedSchedule.endDate, expectedSchedule.cliffAmount, expectedSchedule.remainderAmount, false);
 
         // Act
         vm.startPrank(alice);
@@ -949,6 +965,435 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         assertEq(afterSenderBalance, superToken.balanceOf(alice), "After the schedule has ended, the sender's balance should never change.");
     }
 
+    // Claimable Vesting Schedules tests
+
+    function test_createClaimableVestingSchedule() public {
+        vm.expectEmit(true, true, true, true);
+        emit VestingScheduleCreated(
+            superToken, alice, bob, START_DATE, CLIFF_DATE, FLOW_RATE, END_DATE, CLIFF_TRANSFER_AMOUNT, 0, true
+        );
+
+        vm.startPrank(alice);
+        vestingScheduler.createClaimableVestingSchedule(
+            superToken,
+            bob,
+            START_DATE,
+            CLIFF_DATE,
+            FLOW_RATE,
+            CLIFF_TRANSFER_AMOUNT,
+            END_DATE,
+            EMPTY_CTX
+        );
+        vm.stopPrank();
+
+        vm.startPrank(alice);
+        //assert storage data
+        VestingSchedulerV2.VestingSchedule memory schedule = vestingScheduler.getVestingSchedule(address(superToken), alice, bob);
+        assertTrue(schedule.cliffAndFlowDate == CLIFF_DATE , "schedule.cliffAndFlowDate");
+        assertTrue(schedule.endDate == END_DATE , "schedule.endDate");
+        assertTrue(schedule.flowRate == FLOW_RATE , "schedule.flowRate");
+        assertTrue(schedule.isClaimable == true , "schedule.isClaimable");
+        assertTrue(schedule.cliffAmount == CLIFF_TRANSFER_AMOUNT , "schedule.cliffAmount");
+    }
+
+    function test_createClaimableVestingSchedule_noCtx() public {
+        vm.expectEmit(true, true, true, true);
+        emit VestingScheduleCreated(
+            superToken, alice, bob, START_DATE, CLIFF_DATE, FLOW_RATE, END_DATE, CLIFF_TRANSFER_AMOUNT, 0, true
+        );
+
+        vm.startPrank(alice);
+        vestingScheduler.createClaimableVestingSchedule(
+            superToken,
+            bob,
+            START_DATE,
+            CLIFF_DATE,
+            FLOW_RATE,
+            CLIFF_TRANSFER_AMOUNT,
+            END_DATE
+        );
+        vm.stopPrank();
+
+        vm.startPrank(alice);
+        //assert storage data
+        VestingSchedulerV2.VestingSchedule memory schedule = vestingScheduler.getVestingSchedule(address(superToken), alice, bob);
+        assertTrue(schedule.cliffAndFlowDate == CLIFF_DATE , "schedule.cliffAndFlowDate");
+        assertTrue(schedule.endDate == END_DATE , "schedule.endDate");
+        assertTrue(schedule.flowRate == FLOW_RATE , "schedule.flowRate");
+        assertTrue(schedule.isClaimable == true , "schedule.isClaimable");
+        assertTrue(schedule.cliffAmount == CLIFF_TRANSFER_AMOUNT , "schedule.cliffAmount");
+    }
+
+    function test_createClaimableVestingSchedule_wrongData() public {
+        vm.startPrank(alice);
+        // revert with superToken = 0
+        vm.expectRevert(IVestingSchedulerV2.ZeroAddress.selector);
+        vestingScheduler.createClaimableVestingSchedule(
+                ISuperToken(address(0)),
+                bob,
+                START_DATE,
+                CLIFF_DATE,
+                FLOW_RATE,
+                CLIFF_TRANSFER_AMOUNT,
+                END_DATE,
+                EMPTY_CTX
+        );
+
+        // revert with receivers = sender
+        vm.expectRevert(IVestingSchedulerV2.AccountInvalid.selector);
+        vestingScheduler.createClaimableVestingSchedule(
+                superToken,
+                alice,
+                START_DATE,
+                CLIFF_DATE,
+                FLOW_RATE,
+                CLIFF_TRANSFER_AMOUNT,
+                END_DATE,
+                EMPTY_CTX
+        );
+
+        // revert with receivers = address(0)
+        vm.expectRevert(IVestingSchedulerV2.AccountInvalid.selector);
+        vestingScheduler.createClaimableVestingSchedule(
+                superToken,
+                address(0),
+                START_DATE,
+                CLIFF_DATE,
+                FLOW_RATE,
+                CLIFF_TRANSFER_AMOUNT,
+                END_DATE,
+                EMPTY_CTX
+        );
+
+        // revert with flowRate = 0
+        vm.expectRevert(IVestingSchedulerV2.FlowRateInvalid.selector);
+        vestingScheduler.createClaimableVestingSchedule(
+                superToken,
+                bob,
+                START_DATE,
+                CLIFF_DATE,
+                0,
+                CLIFF_TRANSFER_AMOUNT,
+                END_DATE,
+                EMPTY_CTX
+        );
+
+        // revert with cliffDate = 0 but cliffAmount != 0
+        vm.expectRevert(IVestingSchedulerV2.CliffInvalid.selector);
+        vestingScheduler.createClaimableVestingSchedule(
+            superToken,
+            bob,
+            0,
+            0,
+            FLOW_RATE,
+            CLIFF_TRANSFER_AMOUNT,
+            END_DATE,
+            EMPTY_CTX
+        );
+
+        // revert with startDate < block.timestamp && cliffDate = 0
+        vm.expectRevert(IVestingSchedulerV2.TimeWindowInvalid.selector);
+        vestingScheduler.createClaimableVestingSchedule(
+                superToken,
+                bob,
+                uint32(block.timestamp - 1),
+                0,
+                FLOW_RATE,
+                0,
+                END_DATE,
+                EMPTY_CTX
+        );
+
+        // revert with endDate = 0
+        vm.expectRevert(IVestingSchedulerV2.TimeWindowInvalid.selector);
+        vestingScheduler.createClaimableVestingSchedule(
+                superToken,
+                bob,
+                START_DATE,
+                CLIFF_DATE,
+                FLOW_RATE,
+                CLIFF_TRANSFER_AMOUNT,
+                0,
+                EMPTY_CTX
+        );
+
+        // revert with cliffAndFlowDate < block.timestamp
+        vm.expectRevert(IVestingSchedulerV2.TimeWindowInvalid.selector);
+        vestingScheduler.createClaimableVestingSchedule(
+                superToken,
+                bob,
+                0,
+                uint32(block.timestamp) - 1,
+                FLOW_RATE,
+                0,
+                END_DATE,
+                EMPTY_CTX
+        );
+
+        // revert with cliffAndFlowDate >= endDate
+        vm.expectRevert(IVestingSchedulerV2.TimeWindowInvalid.selector);
+        vestingScheduler.createClaimableVestingSchedule(
+                superToken,
+                bob,
+                START_DATE,
+                CLIFF_DATE,
+                FLOW_RATE,
+                CLIFF_TRANSFER_AMOUNT,
+                CLIFF_DATE,
+                EMPTY_CTX
+        );
+
+        // revert with cliffAndFlowDate + startDateValidFor >= endDate - endDateValidBefore
+        vm.expectRevert(IVestingSchedulerV2.TimeWindowInvalid.selector);
+        vestingScheduler.createClaimableVestingSchedule(
+                superToken,
+                bob,
+                START_DATE,
+                CLIFF_DATE,
+                FLOW_RATE,
+                CLIFF_TRANSFER_AMOUNT,
+                CLIFF_DATE,
+                EMPTY_CTX
+        );
+
+        // revert with startDate > cliffDate
+        vm.expectRevert(IVestingSchedulerV2.TimeWindowInvalid.selector);
+        vestingScheduler.createClaimableVestingSchedule(
+                superToken,
+                bob,
+                CLIFF_DATE + 1,
+                CLIFF_DATE,
+                FLOW_RATE,
+                CLIFF_TRANSFER_AMOUNT,
+                END_DATE,
+                EMPTY_CTX
+        );
+
+
+        // revert with vesting duration < 7 days
+        vm.expectRevert(IVestingSchedulerV2.TimeWindowInvalid.selector);
+        vestingScheduler.createClaimableVestingSchedule(
+                superToken,
+                bob,
+                START_DATE,
+                CLIFF_DATE,
+                FLOW_RATE,
+                CLIFF_TRANSFER_AMOUNT,
+                CLIFF_DATE + 2 days,
+                EMPTY_CTX
+        );
+    }
+
+    function test_createClaimableVestingSchedule_dataExists() public {
+        vm.startPrank(alice);
+        vestingScheduler.createClaimableVestingSchedule(
+            superToken,
+            bob,
+            START_DATE,
+            CLIFF_DATE,
+            FLOW_RATE,
+            CLIFF_TRANSFER_AMOUNT,
+            END_DATE,
+            EMPTY_CTX
+        );
+        vm.stopPrank();
+
+        vm.expectRevert(IVestingSchedulerV2.ScheduleAlreadyExists.selector);
+
+        vm.startPrank(alice);
+        vestingScheduler.createClaimableVestingSchedule(
+            superToken,
+            bob,
+            START_DATE,
+            CLIFF_DATE,
+            FLOW_RATE,
+            CLIFF_TRANSFER_AMOUNT,
+            END_DATE,
+            EMPTY_CTX
+        );
+        vm.stopPrank();
+
+    }
+
+    function test_createClaimableVestingScheduleFromAmountAndDuration_withoutCliff(uint8 randomizer) public {
+        _setACL_AUTHORIZE_FULL_CONTROL(alice, FLOW_RATE);
+
+        vm.startPrank(alice);
+        superToken.increaseAllowance(address(vestingScheduler), type(uint256).max);
+        vm.stopPrank();
+
+        uint32 startDate = uint32(block.timestamp);
+        uint256 totalVestedAmount = 105_840_000; // a value perfectly divisible by a week
+        uint32 vestingDuration = 1 weeks;
+        int96 expectedFlowRate = 175; // totalVestedAmount / vestingDuration
+        uint32 expectedEndDate = startDate + vestingDuration;
+
+        vm.expectEmit();
+        emit VestingScheduleCreated(superToken, alice, bob, startDate, 0, expectedFlowRate, expectedEndDate, 0, 0, true);
+
+        vm.startPrank(alice);
+        bool useCtx = randomizer % 2 == 0;
+        if (useCtx) {
+            vestingScheduler.createClaimableVestingScheduleFromAmountAndDuration(
+                superToken,
+                bob,
+                totalVestedAmount,
+                vestingDuration,
+                0,
+                startDate,
+                EMPTY_CTX
+            );
+        } else {
+            vestingScheduler.createClaimableVestingScheduleFromAmountAndDuration(
+                superToken,
+                bob,
+                totalVestedAmount,
+                vestingDuration,
+                0,
+                startDate
+            );
+        }
+        vm.stopPrank();
+    }
+
+    function test_createClaimableVestingScheduleFromAmountAndDuration_withCliff(uint8 randomizer) public {
+        _setACL_AUTHORIZE_FULL_CONTROL(alice, FLOW_RATE);
+
+        vm.startPrank(alice);
+        superToken.increaseAllowance(address(vestingScheduler), type(uint256).max);
+        vm.stopPrank();
+
+        uint32 startDate = uint32(block.timestamp);
+        uint256 totalVestedAmount = 103_680_000; // a value perfectly divisible
+        uint32 vestingDuration = 1 weeks + 1 days;
+        uint32 cliffPeriod = 1 days;
+
+        int96 expectedFlowRate = 150; // (totalVestedAmount - cliffAmount) / (vestingDuration - cliffPeriod)
+        uint256 expectedCliffAmount = 12960000;
+        uint32 expectedCliffDate = startDate + cliffPeriod;
+        uint32 expectedEndDate = startDate + vestingDuration;
+
+        vm.expectEmit();
+        emit VestingScheduleCreated(superToken, alice, bob, startDate, expectedCliffDate, expectedFlowRate, expectedEndDate, expectedCliffAmount, 0, true);
+
+        vm.startPrank(alice);
+        bool useCtx = randomizer % 2 == 0;
+        if (useCtx) {
+            vestingScheduler.createClaimableVestingScheduleFromAmountAndDuration(
+                superToken,
+                bob,
+                totalVestedAmount,
+                vestingDuration,
+                cliffPeriod,
+                startDate,
+                EMPTY_CTX
+            );
+        } else {
+            vestingScheduler.createClaimableVestingScheduleFromAmountAndDuration(
+                superToken,
+                bob,
+                totalVestedAmount,
+                vestingDuration,
+                cliffPeriod,
+                startDate
+            );
+        }
+        vm.stopPrank();
+    }
+    
+    function test_executeCliffAndFlow_claimableScheduleWithCliffAmount_receiverClaim() public {
+        uint256 aliceInitialBalance = superToken.balanceOf(alice);
+        uint256 bobInitialBalance = superToken.balanceOf(bob);
+        _setACL_AUTHORIZE_FULL_CONTROL(alice, FLOW_RATE);
+        _createClaimableVestingScheduleWithDefaultData(alice, bob);
+        vm.prank(alice);
+        superToken.increaseAllowance(address(vestingScheduler), type(uint256).max);
+        uint256 initialTimestamp = block.timestamp + 10 days + 1800;
+        vm.warp(initialTimestamp);
+        uint256 flowDelayCompensation = (block.timestamp - CLIFF_DATE) * uint96(FLOW_RATE);
+        vm.expectEmit(true, true, true, true);
+        emit Transfer(alice, bob, CLIFF_TRANSFER_AMOUNT + flowDelayCompensation);
+        vm.expectEmit(true, true, true, true);
+        emit VestingCliffAndFlowExecuted(
+            superToken, alice, bob, CLIFF_DATE, FLOW_RATE, CLIFF_TRANSFER_AMOUNT, flowDelayCompensation
+        );
+
+        vm.prank(bob);
+        bool success = vestingScheduler.executeCliffAndFlow(superToken, alice, bob);
+        assertTrue(success, "executeVesting should return true");
+        uint256 finalTimestamp = block.timestamp + 10 days - 3600;
+        vm.warp(finalTimestamp);
+        vm.expectEmit(true, true, true, true);
+        uint256 timeDiffToEndDate = END_DATE > block.timestamp ? END_DATE - block.timestamp : 0;
+        uint256 adjustedAmountClosing = timeDiffToEndDate * uint96(FLOW_RATE);
+        emit Transfer(alice, bob, adjustedAmountClosing);
+        vm.expectEmit(true, true, true, true);
+        emit VestingEndExecuted(
+            superToken, alice, bob, END_DATE, adjustedAmountClosing, false
+        );
+        success = vestingScheduler.executeEndVesting(superToken, alice, bob);
+        assertTrue(success, "executeCloseVesting should return true");
+        uint256 aliceFinalBalance = superToken.balanceOf(alice);
+        uint256 bobFinalBalance = superToken.balanceOf(bob);
+        uint256 aliceShouldStream = (END_DATE-CLIFF_DATE) * uint96(FLOW_RATE) + CLIFF_TRANSFER_AMOUNT ;
+        assertEq(aliceInitialBalance - aliceFinalBalance, aliceShouldStream, "(sender) wrong final balance");
+        assertEq(bobFinalBalance, bobInitialBalance + aliceShouldStream, "(receiver) wrong final balance");
+    }
+
+    function test_executeCliffAndFlow_claimableScheduleWithCliffAmount_senderClaim() public {
+        uint256 aliceInitialBalance = superToken.balanceOf(alice);
+        uint256 bobInitialBalance = superToken.balanceOf(bob);
+        _setACL_AUTHORIZE_FULL_CONTROL(alice, FLOW_RATE);
+        _createClaimableVestingScheduleWithDefaultData(alice, bob);
+        vm.startPrank(alice);
+        superToken.increaseAllowance(address(vestingScheduler), type(uint256).max);
+        uint256 initialTimestamp = block.timestamp + 10 days + 1800;
+        vm.warp(initialTimestamp);
+        uint256 flowDelayCompensation = (block.timestamp - CLIFF_DATE) * uint96(FLOW_RATE);
+        vm.expectEmit(true, true, true, true);
+        emit Transfer(alice, bob, CLIFF_TRANSFER_AMOUNT + flowDelayCompensation);
+        vm.expectEmit(true, true, true, true);
+        emit VestingCliffAndFlowExecuted(
+            superToken, alice, bob, CLIFF_DATE, FLOW_RATE, CLIFF_TRANSFER_AMOUNT, flowDelayCompensation
+        );
+        bool success = vestingScheduler.executeCliffAndFlow(superToken, alice, bob);
+        vm.stopPrank();
+        assertTrue(success, "executeVesting should return true");
+        uint256 finalTimestamp = block.timestamp + 10 days - 3600;
+        vm.warp(finalTimestamp);
+        vm.expectEmit(true, true, true, true);
+        uint256 timeDiffToEndDate = END_DATE > block.timestamp ? END_DATE - block.timestamp : 0;
+        uint256 adjustedAmountClosing = timeDiffToEndDate * uint96(FLOW_RATE);
+        emit Transfer(alice, bob, adjustedAmountClosing);
+        vm.expectEmit(true, true, true, true);
+        emit VestingEndExecuted(
+            superToken, alice, bob, END_DATE, adjustedAmountClosing, false
+        );
+        success = vestingScheduler.executeEndVesting(superToken, alice, bob);
+        assertTrue(success, "executeCloseVesting should return true");
+        uint256 aliceFinalBalance = superToken.balanceOf(alice);
+        uint256 bobFinalBalance = superToken.balanceOf(bob);
+        uint256 aliceShouldStream = (END_DATE-CLIFF_DATE) * uint96(FLOW_RATE) + CLIFF_TRANSFER_AMOUNT ;
+        assertEq(aliceInitialBalance - aliceFinalBalance, aliceShouldStream, "(sender) wrong final balance");
+        assertEq(bobFinalBalance, bobInitialBalance + aliceShouldStream, "(receiver) wrong final balance");
+    }
+
+    function test_executeCliffAndFlow_claimableScheduleWithCliffAmount_cannotClaimOnBehalf(address _claimer) public {
+        vm.assume(_claimer != address(0) && _claimer != alice && _claimer != bob);
+        uint256 aliceInitialBalance = superToken.balanceOf(alice);
+        uint256 bobInitialBalance = superToken.balanceOf(bob);
+        _setACL_AUTHORIZE_FULL_CONTROL(alice, FLOW_RATE);
+        _createClaimableVestingScheduleWithDefaultData(alice, bob);
+        vm.prank(alice);
+        superToken.increaseAllowance(address(vestingScheduler), type(uint256).max);
+        uint256 initialTimestamp = block.timestamp + 10 days + 1800;
+        vm.warp(initialTimestamp);
+        vm.prank(_claimer);
+        vm.expectRevert(IVestingSchedulerV2.CannotClaimFlowOnBehalf.selector);
+        bool success = vestingScheduler.executeCliffAndFlow(superToken, alice, bob);
+    }
+
+
     function _getExpectedSchedule(
         uint32 startDate,
         uint32 cliffDate,
@@ -965,6 +1410,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         expectedSchedule = IVestingSchedulerV2.VestingSchedule({
             cliffAndFlowDate: cliffAndFlowDate,
             flowRate: flowRate,
+            isClaimable: false,
             cliffAmount: cliffAmount,
             endDate: endDate,
             remainderAmount: 0
@@ -1003,6 +1449,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         expectedSchedule = IVestingSchedulerV2.VestingSchedule({
             cliffAndFlowDate: cliffAndFlowDate,
             flowRate: flowRate,
+            isClaimable: false,
             cliffAmount: cliffAmount,
             endDate: endDate,
             remainderAmount: remainderAmount

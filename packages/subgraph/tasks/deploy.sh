@@ -19,7 +19,7 @@ SATSUMA_NETWORKS=( "polygon-mainnet" "xdai-mainnet" "eth-mainnet" "eth-sepolia" 
 # shellcheck disable=SC2034
 SUPERFLUID_NETWORKS=( "polygon-mainnet" "xdai-mainnet" "base-mainnet" "optimism-mainnet" "arbitrum-one" "celo-mainnet" "bsc-mainnet" "avalanche-c" "optimism-sepolia" "scroll-sepolia" "scroll-mainnet" "degenchain")
 # shellcheck disable=SC2034
-GOLDSKY_NETWORKS=( "polygon-mainnet" "xdai-mainnet" "base-mainnet" "optimism-mainnet" "arbitrum-one" "celo-mainnet" "bsc-mainnet" "avalanche-c" "optimism-sepolia" "scroll-sepolia" "scroll-mainnet")
+GOLDSKY_NETWORKS=( "polygon-mainnet" "xdai-mainnet" "eth-mainnet" "base-mainnet" "optimism-mainnet" "arbitrum-one" "bsc-mainnet" "avalanche-c" "optimism-sepolia" "scroll-sepolia" "scroll-mainnet" "eth-sepolia")
 # shellcheck disable=SC2034
 AIRSTACK_NETWORKS=( "degenchain")
 
@@ -124,14 +124,21 @@ deploy_to_superfluid() {
 
 deploy_to_goldsky() {
     local network="$1"
-    local subgraphName="protocol-$DEPLOYMENT_ENV-$network/1.0.0"
     # TODO: use tagging?
     # TODO: how to handle versions?
+
+    # name mapping for godldsky legacy networks not using our cliNames
+    local -A legacyNetworkNames=(
+        ["xdai-mainnet"]="xdai"
+    )
+
+    local goldskyNetwork="${legacyNetworkNames[$network]:-$network}"
+    local subgraphName="protocol-$DEPLOYMENT_ENV-$goldskyNetwork/1.0.0"
 
     $GRAPH_CLI build
     # Note: when using Graph CLI to deploy, it implicitly triggers build too, but Goldsky CLI doesn't.
 
-    echo "********* Deploying $network subgraph $subgraphName to Goldsky. **********"
+    echo "********* Deploying $goldskyNetwork subgraph $subgraphName to Goldsky. **********"
     $GOLDSKY_CLI subgraph deploy \
         "$subgraphName" \
         --path . \

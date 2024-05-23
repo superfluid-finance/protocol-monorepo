@@ -1265,6 +1265,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
                 totalVestedAmount,
                 vestingDuration,
                 0,
+                0,
                 startDate,
                 EMPTY_CTX
             );
@@ -1274,6 +1275,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
                 bob,
                 totalVestedAmount,
                 vestingDuration,
+                0,
                 0,
                 startDate
             );
@@ -1302,7 +1304,8 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
             superToken,
             bob,
             totalVestedAmount,
-            vestingDuration
+            vestingDuration,
+            0
         );
         vm.stopPrank();
     }
@@ -1321,11 +1324,11 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
 
         int96 expectedFlowRate = 150; // (totalVestedAmount - cliffAmount) / (vestingDuration - cliffPeriod)
         uint256 expectedCliffAmount = 12960000;
-        uint32 expectedCliffDate = startDate + cliffPeriod;
-        uint32 expectedEndDate = startDate + vestingDuration;
+        // uint32 expectedCliffDate = startDate + cliffPeriod;
+        // uint32 expectedEndDate = startDate + vestingDuration;
 
         vm.expectEmit();
-        emit VestingScheduleCreated(superToken, alice, bob, startDate, expectedCliffDate, expectedFlowRate, expectedEndDate, expectedCliffAmount, 0, true);
+        emit VestingScheduleCreated(superToken, alice, bob, startDate, startDate + cliffPeriod, expectedFlowRate, startDate + vestingDuration, expectedCliffAmount, 0, true);
 
         vm.startPrank(alice);
         bool useCtx = randomizer % 2 == 0;
@@ -1335,6 +1338,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
                 bob,
                 totalVestedAmount,
                 vestingDuration,
+                0,
                 cliffPeriod,
                 startDate,
                 EMPTY_CTX
@@ -1345,6 +1349,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
                 bob,
                 totalVestedAmount,
                 vestingDuration,
+                0,
                 cliffPeriod,
                 startDate
             );
@@ -1378,6 +1383,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
             bob,
             totalVestedAmount,
             vestingDuration,
+            0,
             cliffPeriod
         );
 
@@ -1394,6 +1400,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
             bob,
             0,
             1209600,
+            0,
             604800,
             uint32(block.timestamp),
             EMPTY_CTX
@@ -1407,6 +1414,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
             1 ether,
             1209600,
             0,
+            0,
             uint32(block.timestamp - 1),
             EMPTY_CTX
         );
@@ -1418,6 +1426,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
             bob,
             type(uint256).max,
             1209600,
+            0,
             0,
             uint32(block.timestamp),
             EMPTY_CTX
@@ -1431,6 +1440,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
             1 ether,
             type(uint32).max,
             0,
+            0,
             uint32(block.timestamp),
             EMPTY_CTX
         );
@@ -1442,6 +1452,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
             bob,
             1 ether,
             1209600,
+            0,
             604800,
             uint32(block.timestamp - 1),
             EMPTY_CTX
@@ -1527,8 +1538,6 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
 
     function test_executeCliffAndFlow_claimableScheduleWithCliffAmount_cannotClaimOnBehalf(address _claimer) public {
         vm.assume(_claimer != address(0) && _claimer != alice && _claimer != bob);
-        uint256 aliceInitialBalance = superToken.balanceOf(alice);
-        uint256 bobInitialBalance = superToken.balanceOf(bob);
         _setACL_AUTHORIZE_FULL_CONTROL(alice, FLOW_RATE);
         _createClaimableVestingScheduleWithDefaultData(alice, bob);
         vm.prank(alice);
@@ -1542,8 +1551,6 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
     }
 
     function test_executeCliffAndFlow_claimableScheduleWithCliffAmount_claimBeforeStart() public {
-        uint256 aliceInitialBalance = superToken.balanceOf(alice);
-        uint256 bobInitialBalance = superToken.balanceOf(bob);
         _setACL_AUTHORIZE_FULL_CONTROL(alice, FLOW_RATE);
         _createClaimableVestingScheduleWithDefaultData(alice, bob);
         vm.prank(alice);
@@ -1558,8 +1565,6 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
     }
 
     function test_executeCliffAndFlow_claimableScheduleWithCliffAmount_claimAfterEarlyEnd() public {
-        uint256 aliceInitialBalance = superToken.balanceOf(alice);
-        uint256 bobInitialBalance = superToken.balanceOf(bob);
         _setACL_AUTHORIZE_FULL_CONTROL(alice, FLOW_RATE);
         _createClaimableVestingScheduleWithDefaultData(alice, bob);
         vm.prank(alice);
@@ -1589,10 +1594,11 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
 
         expectedSchedule = IVestingSchedulerV2.VestingSchedule({
             cliffAndFlowDate: cliffAndFlowDate,
+            endDate: endDate,
+            claimValidityDate: 0,
             flowRate: flowRate,
             isClaimable: false,
             cliffAmount: cliffAmount,
-            endDate: endDate,
             remainderAmount: 0
         });
     }
@@ -1628,10 +1634,11 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
 
         expectedSchedule = IVestingSchedulerV2.VestingSchedule({
             cliffAndFlowDate: cliffAndFlowDate,
+            endDate: endDate,
+            claimValidityDate: 0,
             flowRate: flowRate,
             isClaimable: false,
             cliffAmount: cliffAmount,
-            endDate: endDate,
             remainderAmount: remainderAmount
         });
     }

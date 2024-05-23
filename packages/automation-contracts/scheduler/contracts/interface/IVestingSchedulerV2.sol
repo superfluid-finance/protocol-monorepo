@@ -21,6 +21,7 @@ interface IVestingSchedulerV2 {
      * @dev Vesting configuration provided by user.
      * @param cliffAndFlowDate Date of flow start and cliff execution (if a cliff was specified)
      * @param endDate End date of the vesting
+     * @param claimValidityDate Date before which the claimable schedule must be claimed
      * @param flowRate For the stream
      * @param isClaimable Indicate if the vesting is claimable or not
      * @param cliffAmount Amount to be transferred at the cliff
@@ -29,11 +30,35 @@ interface IVestingSchedulerV2 {
     struct VestingSchedule {
         uint32 cliffAndFlowDate;
         uint32 endDate;
+        uint32 claimValidityDate;
         int96 flowRate;
         bool isClaimable;
         uint256 cliffAmount;
         uint256 remainderAmount; // TODO: consider packing
     }
+
+    /**
+     * @dev Parameters used to create claimable vesting schedules
+     * @param superToken SuperToken to be vested
+     * @param receiver Vesting receiver
+     * @param totalAmount The total amount to be vested 
+     * @param totalDuration The total duration of the vestingß
+     * @param cliffPeriod The cliff period of the vesting
+     * @param startDate Timestamp when the vesting should start
+     * @param claimValidityDate Date before which the claimable schedule must be claimed
+     * @param ctx Superfluid context used when batching operations. (or bytes(0) if not SF batching)
+     */
+    struct VestingScheduleCreationParam {
+        ISuperToken superToken;
+        address receiver;
+        uint256 totalAmount;
+        uint32 totalDuration;
+        uint32 cliffPeriod;
+        uint32 startDate;
+        uint32 claimValidityDate;
+        bytes ctx;
+    }
+
 
     /**
      * @dev Event emitted on creation of a new vesting schedule
@@ -229,7 +254,8 @@ interface IVestingSchedulerV2 {
      * @param superToken SuperToken to be vested
      * @param receiver Vesting receiver
      * @param totalAmount The total amount to be vested
-     * @param totalDuration The total duration of the vestingß
+     * @param totalDuration The total duration of the vesting
+     * @param claimValidityDate Date before which the claimable schedule must be claimed
      * @param cliffPeriod The cliff period of the vesting
      * @param startDate Timestamp when the vesting should start
      * @param ctx Superfluid context used when batching operations. (or bytes(0) if not SF batching)
@@ -239,6 +265,7 @@ interface IVestingSchedulerV2 {
         address receiver,
         uint256 totalAmount,
         uint32 totalDuration,
+        uint32 claimValidityDate,
         uint32 cliffPeriod,
         uint32 startDate,
         bytes memory ctx
@@ -252,6 +279,7 @@ interface IVestingSchedulerV2 {
         address receiver,
         uint256 totalAmount,
         uint32 totalDuration,
+        uint32 claimValidityDate,
         uint32 cliffPeriod,
         uint32 startDate
     ) external;
@@ -265,6 +293,7 @@ interface IVestingSchedulerV2 {
         address receiver,
         uint256 totalAmount,
         uint32 totalDuration,
+        uint32 claimValidityDate,
         uint32 cliffPeriod
     ) external;
 
@@ -277,7 +306,8 @@ interface IVestingSchedulerV2 {
         ISuperToken superToken,
         address receiver,
         uint256 totalAmount,
-        uint32 totalDuration
+        uint32 totalDuration,
+        uint32 claimValidityDate
     ) external;
 
     /**

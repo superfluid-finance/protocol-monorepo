@@ -80,6 +80,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
     uint32 immutable CLIFF_DATE = uint32(BLOCK_TIMESTAMP + 10 days);
     int96 constant FLOW_RATE = 1000000000;
     uint256 constant CLIFF_TRANSFER_AMOUNT = 1 ether;
+    uint32 immutable CLAIM_VALIDITY_DATE = uint32(BLOCK_TIMESTAMP + 15 days);
     uint32 immutable END_DATE = uint32(BLOCK_TIMESTAMP + 20 days);
     bytes constant EMPTY_CTX = "";
     uint256 internal _expectedTotalSupply = 0;
@@ -144,7 +145,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
             superToken,
             receiver,
             START_DATE,
-            0, // claimValidityDate
+            CLAIM_VALIDITY_DATE,
             CLIFF_DATE,
             FLOW_RATE,
             CLIFF_TRANSFER_AMOUNT,
@@ -1019,6 +1020,38 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         assertTrue(schedule.cliffAndFlowDate == CLIFF_DATE , "schedule.cliffAndFlowDate");
         assertTrue(schedule.endDate == END_DATE , "schedule.endDate");
         assertTrue(schedule.flowRate == FLOW_RATE , "schedule.flowRate");
+        assertTrue(schedule.claimValidityDate ==  END_DATE - vestingScheduler.END_DATE_VALID_BEFORE(), "schedule.claimValidityDate");
+        assertTrue(schedule.isClaimable == true , "schedule.isClaimable");
+        assertTrue(schedule.cliffAmount == CLIFF_TRANSFER_AMOUNT , "schedule.cliffAmount");
+    }
+
+        function test_createClaimableVestingSchedule_claimValidity() public {
+        vm.expectEmit(true, true, true, true);
+        emit VestingScheduleCreated(
+            superToken, alice, bob, START_DATE, CLIFF_DATE, FLOW_RATE, END_DATE, CLIFF_TRANSFER_AMOUNT, 0, true
+        );
+
+        vm.startPrank(alice);
+        vestingScheduler.createClaimableVestingSchedule(
+            superToken,
+            bob,
+            START_DATE,
+            CLAIM_VALIDITY_DATE,
+            CLIFF_DATE,
+            FLOW_RATE,
+            CLIFF_TRANSFER_AMOUNT,
+            END_DATE,
+            EMPTY_CTX
+        );
+        vm.stopPrank();
+
+        vm.startPrank(alice);
+        //assert storage data
+        VestingSchedulerV2.VestingSchedule memory schedule = vestingScheduler.getVestingSchedule(address(superToken), alice, bob);
+        assertTrue(schedule.cliffAndFlowDate == CLIFF_DATE , "schedule.cliffAndFlowDate");
+        assertTrue(schedule.endDate == END_DATE , "schedule.endDate");
+        assertTrue(schedule.flowRate == FLOW_RATE , "schedule.flowRate");
+        assertTrue(schedule.claimValidityDate ==  CLAIM_VALIDITY_DATE, "schedule.claimValidityDate");
         assertTrue(schedule.isClaimable == true , "schedule.isClaimable");
         assertTrue(schedule.cliffAmount == CLIFF_TRANSFER_AMOUNT , "schedule.cliffAmount");
     }
@@ -1222,6 +1255,38 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
                 CLIFF_DATE + 2 days,
                 EMPTY_CTX
         );
+
+        // revert with invalid claim validity date (before schedule/cliff start)
+        vm.expectRevert(IVestingSchedulerV2.TimeWindowInvalid.selector);
+        vestingScheduler.createClaimableVestingSchedule(
+                superToken,
+                bob,
+                START_DATE,
+                CLIFF_DATE - 1,
+                CLIFF_DATE,
+                FLOW_RATE,
+                CLIFF_TRANSFER_AMOUNT,
+                END_DATE,
+                EMPTY_CTX
+        );
+
+
+        uint32 afterEarlyEnd = END_DATE - vestingScheduler.END_DATE_VALID_BEFORE() + 1;
+
+        // revert with invalid claim validity date (after early end)
+        vm.expectRevert(IVestingSchedulerV2.TimeWindowInvalid.selector);
+        vestingScheduler.createClaimableVestingSchedule(
+                superToken,
+                bob,
+                START_DATE,
+                afterEarlyEnd,
+                CLIFF_DATE,
+                FLOW_RATE,
+                CLIFF_TRANSFER_AMOUNT,
+                END_DATE,
+                EMPTY_CTX
+        );
+
     }
 
     function test_createClaimableVestingSchedule_dataExists() public {
@@ -1581,14 +1646,13 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         assertEq(success, false);
     }
 
-    function test_executeCliffAndFlow_claimableScheduleWithCliffAmount_claimAfterEarlyEnd() public {
+    function test_executeCliffAndFlow_claimableScheduleWithCliffAmount_claimAfterValidityDate() public {
         _setACL_AUTHORIZE_FULL_CONTROL(alice, FLOW_RATE);
         _createClaimableVestingScheduleWithDefaultData(alice, bob);
         vm.prank(alice);
         superToken.increaseAllowance(address(vestingScheduler), type(uint256).max);
-        uint256 earlyEndTimestamp = vestingScheduler.getVestingSchedule(address(superToken), alice, bob).endDate - vestingScheduler.END_DATE_VALID_BEFORE(); 
-        vm.warp(earlyEndTimestamp + 1);
 
+        vm.warp(CLAIM_VALIDITY_DATE + 1);
         vm.prank(bob);
         vm.expectRevert(IVestingSchedulerV2.TimeWindowInvalid.selector);
         bool success = vestingScheduler.executeCliffAndFlow(superToken, alice, bob);

@@ -337,6 +337,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         ISuperToken superToken,
         address receiver,
         uint32 startDate,
+        uint32 claimValidityDate,
         uint32 cliffDate,
         int96 flowRate,
         uint256 cliffAmount,
@@ -347,7 +348,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
             superToken,
             receiver,
             startDate,
-            0 /* claimValidityDate */,
+            claimValidityDate,
             cliffDate,
             flowRate,
             cliffAmount,
@@ -362,6 +363,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         ISuperToken superToken,
         address receiver,
         uint32 startDate,
+        uint32 claimValidityDate,
         uint32 cliffDate,
         int96 flowRate,
         uint256 cliffAmount,
@@ -371,7 +373,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
             superToken,
             receiver,
             startDate,
-            0 /* claimValidityDate */,
+            claimValidityDate,
             cliffDate,
             flowRate,
             cliffAmount,
@@ -471,7 +473,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         uint32 startDate,
         bytes memory ctx
     ) external returns (bytes memory newCtx) {
-        IVestingSchedulerV2.VestingScheduleCreationParam memory params = 
+        newCtx = _createClaimableVestingScheduleFromAmountAndDuration(
             IVestingSchedulerV2.VestingScheduleCreationParam(
                 superToken,
                 receiver,
@@ -481,8 +483,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
                 startDate,
                 claimValidityDate,
                 ctx
-            );
-        newCtx = _createClaimableVestingScheduleFromAmountAndDuration(params);
+            ));
     }
 
     /// @dev IVestingScheduler.createClaimableVestingScheduleFromAmountAndDuration implementation.
@@ -495,7 +496,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         uint32 cliffPeriod,
         uint32 startDate
     ) external {
-        IVestingSchedulerV2.VestingScheduleCreationParam memory params = 
+        _createClaimableVestingScheduleFromAmountAndDuration(
             IVestingSchedulerV2.VestingScheduleCreationParam(
                 superToken,
                 receiver,
@@ -505,9 +506,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
                 startDate,
                 claimValidityDate,
                 bytes("")
-            );
-
-        _createClaimableVestingScheduleFromAmountAndDuration(params);
+            ));
     }
 
     /// @dev IVestingScheduler.createVestingScheduleFromAmountAndDuration implementation.
@@ -519,7 +518,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         uint32 claimValidityDate,
         uint32 cliffPeriod
     ) external {
-        IVestingSchedulerV2.VestingScheduleCreationParam memory params = 
+        _createClaimableVestingScheduleFromAmountAndDuration(
             IVestingSchedulerV2.VestingScheduleCreationParam(
                 superToken,
                 receiver,
@@ -529,9 +528,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
                 0, // startDate
                 claimValidityDate,
                 bytes("")
-            );
-
-        _createClaimableVestingScheduleFromAmountAndDuration(params);
+            ));
     }
 
     /// @dev IVestingScheduler.createVestingScheduleFromAmountAndDuration implementation.
@@ -542,7 +539,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         uint32 totalDuration,
         uint32 claimValidityDate
     ) external {
-        IVestingSchedulerV2.VestingScheduleCreationParam memory params = 
+        _createClaimableVestingScheduleFromAmountAndDuration(
             IVestingSchedulerV2.VestingScheduleCreationParam(
                 superToken,
                 receiver,
@@ -552,8 +549,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
                 0, // startDate
                 claimValidityDate,
                 bytes("")
-            );
-        _createClaimableVestingScheduleFromAmountAndDuration(params);
+            ));
     }
 
     function _createClaimableVestingScheduleFromAmountAndDuration(

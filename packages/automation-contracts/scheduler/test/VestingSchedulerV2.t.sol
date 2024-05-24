@@ -144,6 +144,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
             superToken,
             receiver,
             START_DATE,
+            0, // claimValidityDate
             CLIFF_DATE,
             FLOW_RATE,
             CLIFF_TRANSFER_AMOUNT,
@@ -1003,6 +1004,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
             superToken,
             bob,
             START_DATE,
+            0, // claimValidityDate
             CLIFF_DATE,
             FLOW_RATE,
             CLIFF_TRANSFER_AMOUNT,
@@ -1032,6 +1034,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
             superToken,
             bob,
             START_DATE,
+            0, // claimValidityDate
             CLIFF_DATE,
             FLOW_RATE,
             CLIFF_TRANSFER_AMOUNT,
@@ -1057,6 +1060,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
                 ISuperToken(address(0)),
                 bob,
                 START_DATE,
+                0, // claimValidityDate
                 CLIFF_DATE,
                 FLOW_RATE,
                 CLIFF_TRANSFER_AMOUNT,
@@ -1070,6 +1074,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
                 superToken,
                 alice,
                 START_DATE,
+                0, // claimValidityDate
                 CLIFF_DATE,
                 FLOW_RATE,
                 CLIFF_TRANSFER_AMOUNT,
@@ -1083,6 +1088,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
                 superToken,
                 address(0),
                 START_DATE,
+                0, // claimValidityDate
                 CLIFF_DATE,
                 FLOW_RATE,
                 CLIFF_TRANSFER_AMOUNT,
@@ -1096,6 +1102,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
                 superToken,
                 bob,
                 START_DATE,
+                0, // claimValidityDate
                 CLIFF_DATE,
                 0,
                 CLIFF_TRANSFER_AMOUNT,
@@ -1109,6 +1116,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
             superToken,
             bob,
             0,
+            0, // claimValidityDate
             0,
             FLOW_RATE,
             CLIFF_TRANSFER_AMOUNT,
@@ -1122,6 +1130,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
                 superToken,
                 bob,
                 uint32(block.timestamp - 1),
+                0, // claimValidityDate
                 0,
                 FLOW_RATE,
                 0,
@@ -1135,6 +1144,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
                 superToken,
                 bob,
                 START_DATE,
+                0, // claimValidityDate
                 CLIFF_DATE,
                 FLOW_RATE,
                 CLIFF_TRANSFER_AMOUNT,
@@ -1148,6 +1158,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
                 superToken,
                 bob,
                 0,
+                0, // claimValidityDate
                 uint32(block.timestamp) - 1,
                 FLOW_RATE,
                 0,
@@ -1161,6 +1172,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
                 superToken,
                 bob,
                 START_DATE,
+                0, // claimValidityDate
                 CLIFF_DATE,
                 FLOW_RATE,
                 CLIFF_TRANSFER_AMOUNT,
@@ -1174,6 +1186,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
                 superToken,
                 bob,
                 START_DATE,
+                0, // claimValidityDate
                 CLIFF_DATE,
                 FLOW_RATE,
                 CLIFF_TRANSFER_AMOUNT,
@@ -1187,6 +1200,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
                 superToken,
                 bob,
                 CLIFF_DATE + 1,
+                0, // claimValidityDate
                 CLIFF_DATE,
                 FLOW_RATE,
                 CLIFF_TRANSFER_AMOUNT,
@@ -1201,6 +1215,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
                 superToken,
                 bob,
                 START_DATE,
+                0, // claimValidityDate
                 CLIFF_DATE,
                 FLOW_RATE,
                 CLIFF_TRANSFER_AMOUNT,
@@ -1215,6 +1230,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
             superToken,
             bob,
             START_DATE,
+            0, // claimValidityDate
             CLIFF_DATE,
             FLOW_RATE,
             CLIFF_TRANSFER_AMOUNT,
@@ -1230,6 +1246,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
             superToken,
             bob,
             START_DATE,
+            0, // claimValidityDate  
             CLIFF_DATE,
             FLOW_RATE,
             CLIFF_TRANSFER_AMOUNT,

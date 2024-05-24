@@ -217,6 +217,7 @@ interface IVestingSchedulerV2 {
      * @param superToken SuperToken to be vested
      * @param receiver Vesting receiver
      * @param startDate Timestamp when the vesting should start
+     * @param claimValidityDate Date before which the claimable schedule must be claimed
      * @param cliffDate Timestamp of cliff exectution - if 0, startDate acts as cliff
      * @param flowRate The flowRate for the stream
      * @param cliffAmount The amount to be transferred at the cliff
@@ -227,6 +228,7 @@ interface IVestingSchedulerV2 {
         ISuperToken superToken,
         address receiver,
         uint32 startDate,
+        uint32 claimValidityDate,
         uint32 cliffDate,
         int96 flowRate,
         uint256 cliffAmount,
@@ -241,6 +243,7 @@ interface IVestingSchedulerV2 {
         ISuperToken superToken,
         address receiver,
         uint32 startDate,
+        uint32 claimValidityDate,
         uint32 cliffDate,
         int96 flowRate,
         uint256 cliffAmount,

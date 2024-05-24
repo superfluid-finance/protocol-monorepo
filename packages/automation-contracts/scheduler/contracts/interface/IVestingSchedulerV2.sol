@@ -48,7 +48,7 @@ interface IVestingSchedulerV2 {
      * @param claimValidityDate Date before which the claimable schedule must be claimed
      * @param ctx Superfluid context used when batching operations. (or bytes(0) if not SF batching)
      */
-    struct VestingScheduleCreationParam {
+    struct ClaimableScheduleCreationFromAmountAndDurationParam {
         ISuperToken superToken;
         address receiver;
         uint256 totalAmount;
@@ -59,6 +59,56 @@ interface IVestingSchedulerV2 {
         bytes ctx;
     }
 
+    /**
+     * @dev Parameters used to create vesting schedules
+     * @param superToken SuperToken to be vested
+     * @param receiver Vesting receiver
+     * @param startDate Timestamp when the vesting should start
+     * @param cliffDate Timestamp of cliff exectution - if 0, startDate acts as cliff
+     * @param flowRate The flowRate for the stream
+     * @param cliffAmount The amount to be transferred at the cliff
+     * @param endDate The timestamp when the stream should stop.
+     * @param remainderAmount Amount transferred during early end to achieve an accurate "total vested amount"
+     * @param ctx Superfluid context used when batching operations. (or bytes(0) if not SF batching)
+     */
+    struct ScheduleCreationParam {
+        ISuperToken superToken;
+        address receiver;
+        uint32 startDate;
+        uint32 cliffDate;
+        int96 flowRate;
+        uint256 cliffAmount;
+        uint32 endDate;
+        uint256 remainderAmount;
+        bytes ctx;
+    }
+
+    /**
+     * @dev Parameters used to create vesting schedules
+     * @param superToken SuperToken to be vested
+     * @param receiver Vesting receiver
+     * @param startDate Timestamp when the vesting should start
+     * @param claimValidityDate Date before which the claimable schedule must be claimed
+     * @param cliffDate Timestamp of cliff exectution - if 0, startDate acts as cliff
+     * @param flowRate The flowRate for the stream
+     * @param cliffAmount The amount to be transferred at the cliff
+     * @param endDate The timestamp when the stream should stop.
+     * @param remainderAmount Amount transferred during early end to achieve an accurate "total vested amount"
+     * @param ctx Superfluid context used when batching operations. (or bytes(0) if not SF batching)
+     */
+    struct ClaimableScheduleCreationParam {
+        ISuperToken superToken;
+        address receiver;
+        uint32 startDate;
+        uint32 claimValidityDate;
+        uint32 cliffDate;
+        int96 flowRate;
+        uint256 cliffAmount;
+        uint32 endDate;
+        uint256 remainderAmount;
+        bytes ctx;
+    }
+
 
     /**
      * @dev Event emitted on creation of a new vesting schedule
@@ -66,6 +116,7 @@ interface IVestingSchedulerV2 {
      * @param sender Vesting sender
      * @param receiver Vesting receiver
      * @param startDate Timestamp when the vesting starts
+     * @param claimValidityDate Date before which the claimable schedule must be claimed
      * @param cliffDate Timestamp of the cliff
      * @param flowRate The flowRate for the stream
      * @param endDate The timestamp when the stream should stop
@@ -78,6 +129,7 @@ interface IVestingSchedulerV2 {
         address indexed sender,
         address indexed receiver,
         uint32 startDate,
+        uint32 claimValidityDate,
         uint32 cliffDate,
         int96 flowRate,
         uint32 endDate,

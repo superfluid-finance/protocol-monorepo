@@ -23,7 +23,6 @@ interface IVestingSchedulerV2 {
      * @param endDate End date of the vesting
      * @param claimValidityDate Date before which the claimable schedule must be claimed
      * @param flowRate For the stream
-     * @param isClaimable Indicate if the vesting is claimable or not
      * @param cliffAmount Amount to be transferred at the cliff
      * @param remainderAmount Amount transferred during early end to achieve an accurate "total vested amount"
      */
@@ -32,7 +31,6 @@ interface IVestingSchedulerV2 {
         uint32 endDate;
         uint32 claimValidityDate;
         int96 flowRate;
-        bool isClaimable;
         uint256 cliffAmount;
         uint256 remainderAmount; // TODO: consider packing
     }
@@ -122,7 +120,6 @@ interface IVestingSchedulerV2 {
      * @param endDate The timestamp when the stream should stop
      * @param cliffAmount The amount to be transferred at the cliff
      * @param remainderAmount Amount transferred during early end to achieve an accurate "total vested amount"
-     * @param isClaimable Indicate if the vesting is claimable or not
      */
     event VestingScheduleCreated(
         ISuperToken indexed superToken,
@@ -134,8 +131,7 @@ interface IVestingSchedulerV2 {
         int96 flowRate,
         uint32 endDate,
         uint256 cliffAmount,
-        uint256 remainderAmount,
-        bool isClaimable
+        uint256 remainderAmount
     );
 
     /**

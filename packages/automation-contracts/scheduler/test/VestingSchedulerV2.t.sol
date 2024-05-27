@@ -1265,24 +1265,6 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
                 END_DATE,
                 EMPTY_CTX
         );
-
-
-        uint32 afterEarlyEnd = END_DATE - vestingScheduler.END_DATE_VALID_BEFORE() + 1;
-
-        // revert with invalid claim validity date (after early end)
-        vm.expectRevert(IVestingSchedulerV2.TimeWindowInvalid.selector);
-        vestingScheduler.createClaimableVestingSchedule(
-                superToken,
-                bob,
-                START_DATE,
-                afterEarlyEnd,
-                CLIFF_DATE,
-                FLOW_RATE,
-                CLIFF_TRANSFER_AMOUNT,
-                END_DATE,
-                EMPTY_CTX
-        );
-
     }
 
     function test_createClaimableVestingSchedule_dataExists() public {

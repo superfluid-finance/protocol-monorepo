@@ -893,10 +893,10 @@
   dependencies:
     "@jridgewell/trace-mapping" "0.3.9"
 
-"@d10r/truffle-plugin-verify@0.6.9":
-  version "0.6.9"
-  resolved "https://registry.yarnpkg.com/@d10r/truffle-plugin-verify/-/truffle-plugin-verify-0.6.9.tgz#fc826ada251f82a7f276d80e1d572eaf573d1555"
-  integrity sha512-E5YG+YYrbDSJlRK5590xdV6g8855pztzAKUSUZqtidq/DUXOdcbt8VjFli+H7zsFru0cywM38G7z+rWoPdolGA==
+"@d10r/truffle-plugin-verify@^0.6.10":
+  version "0.6.10"
+  resolved "https://registry.yarnpkg.com/@d10r/truffle-plugin-verify/-/truffle-plugin-verify-0.6.10.tgz#f37d0b50ea3ec3e9ce5e8beed4bdb6df59404fd6"
+  integrity sha512-aCqotcE3usTImVRM9DW9z1nyR6LA+0t5GSlgivTnHYonWpBChkz5rFHAoHwyKsZU9BeJbPwLYwpB9K2ldWojdg==
   dependencies:
     "@truffle/resolver" "^9.0.35"
     axios "^0.26.1"
@@ -13668,7 +13668,34 @@ mnemonist@^0.38.0:
   dependencies:
     obliterator "^2.0.0"
 
-mocha@10.1.0, mocha@^10.0.0, mocha@^10.2.0:
+mocha@10.1.0:
+  version "10.1.0"
+  resolved "https://registry.yarnpkg.com/mocha/-/mocha-10.1.0.tgz#dbf1114b7c3f9d0ca5de3133906aea3dfc89ef7a"
+  integrity sha512-vUF7IYxEoN7XhQpFLxQAEMtE4W91acW4B6En9l97MwE9stL1A9gusXfoHZCLVHDUJ/7V5+lbCM6yMqzo5vNymg==
+  dependencies:
+    ansi-colors "4.1.1"
+    browser-stdout "1.3.1"
+    chokidar "3.5.3"
+    debug "4.3.4"
+    diff "5.0.0"
+    escape-string-regexp "4.0.0"
+    find-up "5.0.0"
+    glob "7.2.0"
+    he "1.2.0"
+    js-yaml "4.1.0"
+    log-symbols "4.1.0"
+    minimatch "5.0.1"
+    ms "2.1.3"
+    nanoid "3.3.3"
+    serialize-javascript "6.0.0"
+    strip-json-comments "3.1.1"
+    supports-color "8.1.1"
+    workerpool "6.2.1"
+    yargs "16.2.0"
+    yargs-parser "20.2.4"
+    yargs-unparser "2.0.0"
+
+mocha@^10.0.0, mocha@^10.2.0:
   version "10.2.0"
   resolved "https://registry.yarnpkg.com/mocha/-/mocha-10.2.0.tgz#1fd4a7c32ba5ac372e03a17eef435bd00e5c68b8"
   integrity sha512-IDY7fl/BecMwFHzoqF2sg/SHHANeBoMMXFlS9r0OXKDssYE1M5O43wUY/9BVPeIvfH2zmEbBfseqN9gBQZzXkg==

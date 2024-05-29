@@ -86,7 +86,7 @@
         "hardhat": "^2.19.5"
     },
     "devDependencies": {
-        "@d10r/truffle-plugin-verify": "0.6.9",
+        "@d10r/truffle-plugin-verify": "^0.6.10",
         "@nomiclabs/hardhat-truffle5": "^2.0.7",
         "@safe-global/safe-core-sdk": "^3.3.5",
         "@safe-global/safe-service-client": "^2.0.3",

@@ -262,7 +262,7 @@ export function handleSubscriptionApproved(event: SubscriptionApproved): void {
         event.params.subscriber,
         event.params.token,
         event.block,
-        null // will do RPC if any units exist anyways
+        balanceDelta
     );
 
     if (hasSubscriptionWithUnits) {

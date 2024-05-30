@@ -134,8 +134,7 @@ export function handleFlowUpdated(event: FlowUpdated): void {
         senderAddress,
         tokenAddress,
         event.block,
-        // @note when deleting, we do RPC call (prevents double accounting post-liquidation)
-        null
+        depositDelta
     );
     updateATSStreamedAndBalanceUntilUpdatedAt(
         receiverAddress,

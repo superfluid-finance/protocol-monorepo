@@ -981,23 +981,39 @@ function updateATSBalanceAndUpdatedAt(
         Address.fromString(accountTokenSnapshot.token)
     );
 
-    if (balanceDelta && !accountTokenSnapshot.isLiquidationEstimateOptimistic) {
-        accountTokenSnapshot.balanceUntilUpdatedAt =
-            accountTokenSnapshot.balanceUntilUpdatedAt.plus(
-                balanceDelta as BigInt
-            );
-    } else {
-        // if the account has any subscriptions with units we assume that
-        // the balance data requires a RPC call for balance because we did not
-        // have claim events there and we do not count distributions
-        // for subscribers
-        const newBalanceResult = superTokenContract.try_realtimeBalanceOf(
-            Address.fromString(accountTokenSnapshot.account),
-            block.timestamp
-        );
-        if (!newBalanceResult.reverted) {
+    // If the balance has been updated from RPC in this block then no need to update it again.
+    // The RPC call gets the final balance from that block.
+    if (accountTokenSnapshot.balanceLastUpdatedFromRpcBlocknumber !== block.number) {
+
+        // "Unpredictable" would mean an account receiving GDA distributions, IDA distributions or GDA adjustment flow.
+        // The reason they are "unpredictable" is that it would be unscalable to perfectly keep track of them with subgraph.
+        // What makes it unscalable is that the distribution events happen on the side of the distributor, not the receiver.
+        // We can't iterate all the receivers when a distribution is made.
+        const isAccountWithOnlyPredictableBalanceSources = !accountTokenSnapshot.isLiquidationEstimateOptimistic;
+
+        // If the balance has been updated in this block without an RPC, it's better to be safe than sorry and just get the final accurate state from the RPC.
+        const hasBalanceBeenUpdatedInThisBlock = accountTokenSnapshot.updatedAtBlockNumber === block.number;
+
+        if (balanceDelta && isAccountWithOnlyPredictableBalanceSources && !hasBalanceBeenUpdatedInThisBlock) {
             accountTokenSnapshot.balanceUntilUpdatedAt =
-                newBalanceResult.value.value0;
+                accountTokenSnapshot.balanceUntilUpdatedAt.plus(
+                    balanceDelta as BigInt
+                );
+        } else {
+            // if the account has any subscriptions with units we assume that
+            // the balance data requires a RPC call for balance because we did not
+            // have claim events there and we do not count distributions
+            // for subscribers
+            const newBalanceResult = superTokenContract.try_realtimeBalanceOf(
+                Address.fromString(accountTokenSnapshot.account),
+                block.timestamp
+            );
+            if (!newBalanceResult.reverted) {
+                accountTokenSnapshot.balanceUntilUpdatedAt =
+                    newBalanceResult.value.value0;
+            } else {
+                accountTokenSnapshot.balanceLastUpdatedFromRpcBlocknumber = block.number;
+            }
         }
     }
 

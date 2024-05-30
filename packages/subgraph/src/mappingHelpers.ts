@@ -935,6 +935,7 @@ export function updateAggregateDistributionAgreementData(
             totalApprovedSubscriptionsDelta;
     }
 
+    // TODO: Also consider adjustment flow rate here
     accountTokenSnapshot.isLiquidationEstimateOptimistic =
         accountTokenSnapshot.totalSubscriptionsWithUnits > 0 ||
         accountTokenSnapshot.totalMembershipsWithUnits > 0;
@@ -980,7 +981,7 @@ function updateATSBalanceAndUpdatedAt(
         Address.fromString(accountTokenSnapshot.token)
     );
 
-    if (balanceDelta && accountTokenSnapshot.totalSubscriptionsWithUnits == 0) {
+    if (balanceDelta && !accountTokenSnapshot.isLiquidationEstimateOptimistic) {
         accountTokenSnapshot.balanceUntilUpdatedAt =
             accountTokenSnapshot.balanceUntilUpdatedAt.plus(
                 balanceDelta as BigInt

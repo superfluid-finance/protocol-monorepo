@@ -141,7 +141,7 @@ export function handleFlowUpdated(event: FlowUpdated): void {
         receiverAddress,
         tokenAddress,
         event.block,
-        null
+        BigInt.fromI32(0)
     );
 
     // update stream counter data for sender and receiver ATS

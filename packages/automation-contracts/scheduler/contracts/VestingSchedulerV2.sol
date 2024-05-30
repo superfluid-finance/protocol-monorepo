@@ -109,6 +109,8 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         // Note: Vesting Scheduler V2 doesn't allow start date to be in the past.
         // V1 did but didn't allow cliff and flow to be in the past though.
         if (params.startDate < block.timestamp) revert TimeWindowInvalid();
+        if (params.endDate <= END_DATE_VALID_BEFORE) revert TimeWindowInvalid();
+
 
         if (params.receiver == address(0) || params.receiver == sender) revert AccountInvalid();
         if (address(params.superToken) == address(0)) revert ZeroAddress();
@@ -123,6 +125,13 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
             cliffAndFlowDate + START_DATE_VALID_AFTER >= params.endDate - END_DATE_VALID_BEFORE ||
             params.endDate - cliffAndFlowDate < MIN_VESTING_DURATION
         ) revert TimeWindowInvalid();
+
+        // NOTE : claimable schedule created with a claim validity date equal to 0 is considered regular schedule
+        if(params.claimValidityDate != 0) {
+            if (params.claimValidityDate < cliffAndFlowDate ||
+                params.claimValidityDate > params.endDate - END_DATE_VALID_BEFORE
+            ) revert TimeWindowInvalid();
+        }
 
         bytes32 hashConfig = keccak256(abi.encodePacked(params.superToken, sender, params.receiver));
         if (vestingSchedules[hashConfig].endDate != 0) revert ScheduleAlreadyExists();
@@ -356,16 +365,6 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         uint32 endDate,
         bytes memory ctx
     ) external returns (bytes memory newCtx) {
-        if (endDate <= END_DATE_VALID_BEFORE) revert TimeWindowInvalid();
-
-        // If the claim validity date is 0 (meaning no expiry date), set the validity to early end of schedule
-        if(claimValidityDate <= 0 || claimValidityDate > endDate - END_DATE_VALID_BEFORE){
-            claimValidityDate = endDate - END_DATE_VALID_BEFORE;
-        }
-
-        uint32 cliffAndFlowDate = cliffDate == 0 ? startDate : cliffDate;
-        if (claimValidityDate < cliffAndFlowDate) revert TimeWindowInvalid();
-        
         newCtx = _createVestingSchedule(
             IVestingSchedulerV2.ScheduleCreationParam(
                 superToken,
@@ -393,16 +392,6 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         uint256 cliffAmount,
         uint32 endDate
     ) external {
-        if (endDate <= END_DATE_VALID_BEFORE) revert TimeWindowInvalid();
-
-        // If the claim validity date is 0 (meaning no expiry date), set the validity to early end of schedule
-        if(claimValidityDate <= 0 || claimValidityDate > endDate - END_DATE_VALID_BEFORE){
-            claimValidityDate = endDate - END_DATE_VALID_BEFORE;
-        }
-
-        uint32 cliffAndFlowDate = cliffDate == 0 ? startDate : cliffDate;
-        if (claimValidityDate < cliffAndFlowDate) revert TimeWindowInvalid();
-        
         _createVestingSchedule(
             IVestingSchedulerV2.ScheduleCreationParam(
                 superToken,
@@ -429,18 +418,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         uint32 cliffPeriod,
         uint32 startDate,
         bytes memory ctx
-    ) external returns (bytes memory newCtx) {
-        uint32 endDate = startDate + totalDuration;
-        if (endDate <= END_DATE_VALID_BEFORE) revert TimeWindowInvalid();
-
-        // If the claim validity date is 0 (meaning no expiry date), set the validity to early end of schedule
-        if(claimValidityDate <= 0 || claimValidityDate > endDate - END_DATE_VALID_BEFORE){
-            claimValidityDate = endDate - END_DATE_VALID_BEFORE;
-        }
-
-        uint32 cliffAndFlowDate = cliffPeriod == 0 ? startDate : startDate + cliffPeriod;
-        if (claimValidityDate < cliffAndFlowDate) revert TimeWindowInvalid();
-        
+    ) external returns (bytes memory newCtx) {    
         newCtx = _createVestingScheduleFromAmountAndDuration(
             IVestingSchedulerV2.ScheduleCreationFromAmountAndDurationParam(
                 superToken,
@@ -465,17 +443,6 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         uint32 cliffPeriod,
         uint32 startDate
     ) external {
-        uint32 endDate = startDate + totalDuration;
-        if (endDate <= END_DATE_VALID_BEFORE) revert TimeWindowInvalid();
-
-        // If the claim validity date is 0 (meaning no expiry date), set the validity to early end of schedule
-        if(claimValidityDate <= 0 || claimValidityDate > endDate - END_DATE_VALID_BEFORE){
-            claimValidityDate = endDate - END_DATE_VALID_BEFORE;
-        }
-
-        uint32 cliffAndFlowDate = cliffPeriod == 0 ? startDate : startDate + cliffPeriod;
-        if (claimValidityDate < cliffAndFlowDate) revert TimeWindowInvalid();
-        
         _createVestingScheduleFromAmountAndDuration(
             IVestingSchedulerV2.ScheduleCreationFromAmountAndDurationParam(
                 superToken,
@@ -500,17 +467,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         uint32 cliffPeriod
     ) external {
         uint32 startDate = uint32(block.timestamp);
-        uint32 endDate = startDate + totalDuration;
-        if (endDate <= END_DATE_VALID_BEFORE) revert TimeWindowInvalid();
 
-        // If the claim validity date is 0 (meaning no expiry date), set the validity to early end of schedule
-        if(claimValidityDate <= 0 || claimValidityDate > endDate - END_DATE_VALID_BEFORE){
-            claimValidityDate = endDate - END_DATE_VALID_BEFORE;
-        }
-
-        uint32 cliffAndFlowDate = cliffPeriod == 0 ? startDate : startDate + cliffPeriod;
-        if (claimValidityDate < cliffAndFlowDate) revert TimeWindowInvalid();
-        
         _createVestingScheduleFromAmountAndDuration(
             IVestingSchedulerV2.ScheduleCreationFromAmountAndDurationParam(
                 superToken,
@@ -534,16 +491,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         uint32 claimValidityDate
     ) external {
         uint32 startDate = uint32(block.timestamp);
-        uint32 endDate = startDate + totalDuration;
-        if (endDate <= END_DATE_VALID_BEFORE) revert TimeWindowInvalid();
 
-        // If the claim validity date is 0 (meaning no expiry date), set the validity to early end of schedule
-        if(claimValidityDate <= 0 || claimValidityDate > endDate - END_DATE_VALID_BEFORE){
-            claimValidityDate = endDate - END_DATE_VALID_BEFORE;
-        }
-
-        if (claimValidityDate < startDate) revert TimeWindowInvalid();
-        
         _createVestingScheduleFromAmountAndDuration(
             IVestingSchedulerV2.ScheduleCreationFromAmountAndDurationParam(
                 superToken,

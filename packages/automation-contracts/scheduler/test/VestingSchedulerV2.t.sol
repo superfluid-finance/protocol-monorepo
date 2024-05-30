@@ -993,17 +993,16 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
 
     function test_createClaimableVestingSchedule() public {
 
-        uint32 expectedClaimValidityDate = END_DATE - vestingScheduler.END_DATE_VALID_BEFORE();
         vm.expectEmit(true, true, true, true);
         emit VestingScheduleCreated(
-            superToken, alice, bob, START_DATE, expectedClaimValidityDate, CLIFF_DATE, FLOW_RATE, END_DATE, CLIFF_TRANSFER_AMOUNT, 0);
+            superToken, alice, bob, START_DATE, CLAIM_VALIDITY_DATE, CLIFF_DATE, FLOW_RATE, END_DATE, CLIFF_TRANSFER_AMOUNT, 0);
 
         vm.startPrank(alice);
         vestingScheduler.createClaimableVestingSchedule(
             superToken,
             bob,
             START_DATE,
-            0, // claimValidityDate
+            CLAIM_VALIDITY_DATE,
             CLIFF_DATE,
             FLOW_RATE,
             CLIFF_TRANSFER_AMOUNT,
@@ -1018,7 +1017,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         assertTrue(schedule.cliffAndFlowDate == CLIFF_DATE , "schedule.cliffAndFlowDate");
         assertTrue(schedule.endDate == END_DATE , "schedule.endDate");
         assertTrue(schedule.flowRate == FLOW_RATE , "schedule.flowRate");
-        assertTrue(schedule.claimValidityDate ==  expectedClaimValidityDate, "schedule.claimValidityDate");
+        assertTrue(schedule.claimValidityDate ==  CLAIM_VALIDITY_DATE, "schedule.claimValidityDate");
         assertTrue(schedule.cliffAmount == CLIFF_TRANSFER_AMOUNT , "schedule.cliffAmount");
     }
 
@@ -1052,18 +1051,16 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
     }
 
     function test_createClaimableVestingSchedule_noCtx() public {
-        uint32 expectedClaimValidityDate = END_DATE - vestingScheduler.END_DATE_VALID_BEFORE();
-
         vm.expectEmit(true, true, true, true);
         emit VestingScheduleCreated(
-            superToken, alice, bob, START_DATE, expectedClaimValidityDate, CLIFF_DATE, FLOW_RATE, END_DATE, CLIFF_TRANSFER_AMOUNT, 0);
+            superToken, alice, bob, START_DATE, CLAIM_VALIDITY_DATE, CLIFF_DATE, FLOW_RATE, END_DATE, CLIFF_TRANSFER_AMOUNT, 0);
 
         vm.startPrank(alice);
         vestingScheduler.createClaimableVestingSchedule(
             superToken,
             bob,
             START_DATE,
-            0, // claimValidityDate
+            CLAIM_VALIDITY_DATE,
             CLIFF_DATE,
             FLOW_RATE,
             CLIFF_TRANSFER_AMOUNT,
@@ -1077,7 +1074,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         assertTrue(schedule.cliffAndFlowDate == CLIFF_DATE , "schedule.cliffAndFlowDate");
         assertTrue(schedule.endDate == END_DATE , "schedule.endDate");
         assertTrue(schedule.flowRate == FLOW_RATE , "schedule.flowRate");
-        assertTrue(schedule.claimValidityDate == expectedClaimValidityDate, "schedule.flowRate");
+        assertTrue(schedule.claimValidityDate == CLAIM_VALIDITY_DATE, "schedule.flowRate");
         assertTrue(schedule.cliffAmount == CLIFF_TRANSFER_AMOUNT , "schedule.cliffAmount");
     }
 
@@ -1310,11 +1307,12 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         uint32 startDate = uint32(block.timestamp);
         uint256 totalVestedAmount = 105_840_000; // a value perfectly divisible by a week
         uint32 vestingDuration = 1 weeks;
+        uint32 claimValidityDate = startDate + 1 days;
         int96 expectedFlowRate = 175; // totalVestedAmount / vestingDuration
         uint32 expectedEndDate = startDate + vestingDuration;
 
         vm.expectEmit();
-        emit VestingScheduleCreated(superToken, alice, bob, startDate, expectedEndDate - vestingScheduler.END_DATE_VALID_BEFORE(), 0, expectedFlowRate, expectedEndDate, 0, 0);
+        emit VestingScheduleCreated(superToken, alice, bob, startDate, claimValidityDate, 0, expectedFlowRate, expectedEndDate, 0, 0);
 
         vm.startPrank(alice);
         bool useCtx = randomizer % 2 == 0;
@@ -1324,7 +1322,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
                 bob,
                 totalVestedAmount,
                 vestingDuration,
-                0,
+                claimValidityDate,
                 0,
                 startDate,
                 EMPTY_CTX
@@ -1335,7 +1333,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
                 bob,
                 totalVestedAmount,
                 vestingDuration,
-                0,
+                claimValidityDate,
                 0,
                 startDate
             );
@@ -1352,11 +1350,12 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
 
         uint256 totalVestedAmount = 105_840_000; // a value perfectly divisible by a week
         uint32 vestingDuration = 1 weeks;
+        uint32 claimValidityDate = uint32(block.timestamp) + 2 days;
         int96 expectedFlowRate = 175; // totalVestedAmount / vestingDuration
         uint32 expectedEndDate = uint32(block.timestamp) + vestingDuration;
 
         vm.expectEmit();
-        emit VestingScheduleCreated(superToken, alice, bob, uint32(block.timestamp), expectedEndDate - vestingScheduler.END_DATE_VALID_BEFORE(), 0, expectedFlowRate, expectedEndDate, 0, 0);
+        emit VestingScheduleCreated(superToken, alice, bob, uint32(block.timestamp), claimValidityDate, 0, expectedFlowRate, expectedEndDate, 0, 0);
 
         vm.startPrank(alice);
 
@@ -1365,7 +1364,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
             bob,
             totalVestedAmount,
             vestingDuration,
-            0
+            claimValidityDate
         );
         vm.stopPrank();
     }
@@ -1381,14 +1380,13 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         uint256 totalVestedAmount = 103_680_000; // a value perfectly divisible
         uint32 vestingDuration = 1 weeks + 1 days;
         uint32 cliffPeriod = 1 days;
+        uint32 claimValidityDate = startDate + cliffPeriod + 1 days;
 
         int96 expectedFlowRate = 150; // (totalVestedAmount - cliffAmount) / (vestingDuration - cliffPeriod)
         uint256 expectedCliffAmount = 12960000;
-        // uint32 expectedCliffDate = startDate + cliffPeriod;
-        // uint32 expectedEndDate = startDate + vestingDuration;
 
         vm.expectEmit();
-        emit VestingScheduleCreated(superToken, alice, bob, startDate, startDate + vestingDuration - vestingScheduler.END_DATE_VALID_BEFORE(), startDate + cliffPeriod, expectedFlowRate, startDate + vestingDuration, expectedCliffAmount, 0);
+        emit VestingScheduleCreated(superToken, alice, bob, startDate, claimValidityDate, startDate + cliffPeriod, expectedFlowRate, startDate + vestingDuration, expectedCliffAmount, 0);
 
         vm.startPrank(alice);
         bool useCtx = randomizer % 2 == 0;
@@ -1398,7 +1396,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
                 bob,
                 totalVestedAmount,
                 vestingDuration,
-                0,
+                claimValidityDate,
                 cliffPeriod,
                 startDate,
                 EMPTY_CTX
@@ -1409,7 +1407,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
                 bob,
                 totalVestedAmount,
                 vestingDuration,
-                0,
+                claimValidityDate,
                 cliffPeriod,
                 startDate
             );
@@ -1431,12 +1429,11 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         int96 expectedFlowRate = 150; // (totalVestedAmount - cliffAmount) / (vestingDuration - cliffPeriod)
         uint256 expectedCliffAmount = 12960000;
         uint32 expectedCliffDate = uint32(block.timestamp) + cliffPeriod;
+        uint32 claimValidityDate = expectedCliffDate + 1 days;
         uint32 expectedEndDate = uint32(block.timestamp) + vestingDuration;
 
-        uint32 expectedClaimValidityDate = expectedEndDate - vestingScheduler.END_DATE_VALID_BEFORE();
-
         vm.expectEmit();
-        emit VestingScheduleCreated(superToken, alice, bob, uint32(block.timestamp), expectedClaimValidityDate, expectedCliffDate, expectedFlowRate, expectedEndDate, expectedCliffAmount, 0);
+        emit VestingScheduleCreated(superToken, alice, bob, uint32(block.timestamp), claimValidityDate, expectedCliffDate, expectedFlowRate, expectedEndDate, expectedCliffAmount, 0);
 
         vm.startPrank(alice);
 
@@ -1445,7 +1442,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
             bob,
             totalVestedAmount,
             vestingDuration,
-            0,
+            claimValidityDate,
             cliffPeriod
         );
 
@@ -1462,7 +1459,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
             bob,
             0,
             1209600,
-            0,
+            CLAIM_VALIDITY_DATE,
             604800,
             uint32(block.timestamp),
             EMPTY_CTX
@@ -1475,7 +1472,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
             bob,
             1 ether,
             1209600,
-            0,
+            CLAIM_VALIDITY_DATE,
             0,
             uint32(block.timestamp - 1),
             EMPTY_CTX
@@ -1488,7 +1485,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
             bob,
             type(uint256).max,
             1209600,
-            0,
+            CLAIM_VALIDITY_DATE,
             0,
             uint32(block.timestamp),
             EMPTY_CTX
@@ -1501,7 +1498,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
             bob,
             1 ether,
             type(uint32).max,
-            0,
+            CLAIM_VALIDITY_DATE,
             0,
             uint32(block.timestamp),
             EMPTY_CTX
@@ -1514,7 +1511,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
             bob,
             1 ether,
             1209600,
-            0,
+            CLAIM_VALIDITY_DATE,
             604800,
             uint32(block.timestamp - 1),
             EMPTY_CTX

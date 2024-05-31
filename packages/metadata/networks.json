@@ -173,6 +173,38 @@
         "publicRPCs": ["https://sepolia-rpc.scroll.io"]
     },
     {
+        "name": "base-sepolia",
+        "isTestnet": true,
+        "networkId": 84532,
+        "chainId": 84532,
+        "sfId": 111,
+        "shortName": "bsepolia",
+        "uppercaseName": "BASE_SEPOLIA",
+        "humanReadableName": "Base Sepolia",
+        "nativeTokenSymbol": "ETH",
+        "nativeTokenWrapper": "",
+        "contractsV1": {
+            "resolver": "0x21d4E9fbB9DB742E6ef4f29d189a7C18B0b59136",
+            "host": "0x109412E3C84f0539b43d39dB691B08c90f58dC7c",
+            "cfaV1": "0x6836F23d6171D74Ef62FcF776655aBcD2bcd62Ef",
+            "cfaV1Forwarder": "0xcfA132E353cB4E398080B9700609bb008eceB125",
+            "idaV1": "0x9358C7dCCc6B8CA6F526311e8ac266F8C861B7ea",
+            "gdaV1": "0x53F4f44C813Dc380182d0b2b67fe5832A12B97f8",
+            "gdaV1Forwarder": "0x6DA13Bde224A05a288748d857b9e7DDEffd1dE08",
+            "superTokenFactory": "0x7447E94Dfe3d804a9f46Bf12838d467c912C8F6C",
+            "superfluidLoader": "0x777Be25F9fdcA87e8a0E06Ad4be93d65429FCb9f"
+        },
+        "startBlockV1": 10604500,
+        "logsQueryRange": 50000,
+        "explorer": "https://sepolia.basescan.org",
+        "subgraphV1": {
+            "cliName": "base-sepolia"
+        },
+        "publicRPCs": [
+            "https://sepolia.base.org"
+        ]
+    },
+    {
         "name": "xdai-mainnet",
         "isTestnet": false,
         "networkId": 100,

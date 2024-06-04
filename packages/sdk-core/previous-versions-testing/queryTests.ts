@@ -12,7 +12,7 @@ export const getChainId = () => {
     // null coalesce, but this should NEVER return null for either
     return process.env.SUBGRAPH_RELEASE_TAG == "v1"
         ? metadata.getNetworkByShortName("matic")?.chainId ?? 0
-        : metadata.getNetworkByShortName("opsepolia")?.chainId ?? 0;
+        : metadata.getNetworkByShortName("fuji")?.chainId ?? 0;
 };
 
 export const testQueryClassFunctions = async (query: Query) => {
@@ -51,7 +51,9 @@ export const testListenerInitialization = async (query: Query) => {
 
 export const getSubgraphEndpoint = (chainId: number) => {
     const resolverData = chainIdToResolverDataMap.get(chainId);
+    console.log('resolverData:', resolverData); // Log retrieved data
     if (!resolverData) throw new Error("Resolver data is undefined");
+    console.log('subgraphAPIEndpoint:', resolverData.subgraphAPIEndpoint); // Log endpoint URL
     return resolverData.subgraphAPIEndpoint;
 };
 

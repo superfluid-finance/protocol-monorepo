@@ -5,7 +5,7 @@ import metadata from "@superfluid-finance/metadata";
 
 /**
  * We only use matic network endpoints for v1 release tests
- * otherwise, we use OP Sepolia
+ * otherwise, we use avalanche fuji
  * @returns chainId
  */
 export const getChainId = () => {

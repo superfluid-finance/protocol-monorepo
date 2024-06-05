@@ -51,9 +51,7 @@ export const testListenerInitialization = async (query: Query) => {
 
 export const getSubgraphEndpoint = (chainId: number) => {
     const resolverData = chainIdToResolverDataMap.get(chainId);
-    console.log('resolverData:', resolverData); // Log retrieved data
     if (!resolverData) throw new Error("Resolver data is undefined");
-    console.log('subgraphAPIEndpoint:', resolverData.subgraphAPIEndpoint); // Log endpoint URL
     return resolverData.subgraphAPIEndpoint;
 };
 

@@ -116,10 +116,13 @@ deploy_to_superfluid() {
     echo "node url: $nodeUrl, subgraph name: $subgraphName"
 
     $GRAPH_CLI create "$subgraphName" --node "$nodeUrl"
-    $GRAPH_CLI deploy "$subgraphName" \
+    if ! output=$($GRAPH_CLI deploy "$subgraphName" \
         --version-label "$VERSION_LABEL" \
         --node "$nodeUrl" \
-        --ipfs "$SUPERFLUID_IPFS_API"
+        --ipfs "$SUPERFLUID_IPFS_API" 2>"$error_log"); then
+        echo "::error file=check_processes.sh::Error log: '$error_log'"
+        cat "$error_log"
+    fi
 }
 
 deploy_to_goldsky() {

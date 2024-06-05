@@ -52,7 +52,7 @@ jobs:
             build-and-test-local-subgraph
            , build-and-test-local-subgraph-against-previous-sdk-core-releases
            ]
-    name: Deploy The Graph
+    name: Deploy graph to ${{ github.event.inputs.vendor }} vendor
     with:
       deployment_env: ${{ github.event.inputs.deployment_env }}
       network: ${{ github.event.inputs.network }}

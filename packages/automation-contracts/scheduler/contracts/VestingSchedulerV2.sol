@@ -149,11 +149,11 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
             sender,
             params.receiver,
             params.startDate,
-            params.claimValidityDate,
             params.cliffDate,
             params.flowRate,
             params.endDate,
             params.cliffAmount,
+            params.claimValidityDate,
             params.remainderAmount
         );
     }

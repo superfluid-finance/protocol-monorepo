@@ -102,11 +102,11 @@ interface IVestingSchedulerV2 {
         address indexed sender,
         address indexed receiver,
         uint32 startDate,
-        uint32 claimValidityDate,
         uint32 cliffDate,
         int96 flowRate,
         uint32 endDate,
         uint256 cliffAmount,
+        uint32 claimValidityDate,
         uint256 remainderAmount
     );
 

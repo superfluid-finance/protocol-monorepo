@@ -578,7 +578,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         if (schedule.claimValidityDate > 0) {
             // Ensure that the caller is the sender or the receiver if the vesting schedule requires claiming.
             if (msg.sender != sender && msg.sender != receiver) {
-                revert CannotClaimFlowOnBehalf();
+                revert CannotClaimScheduleOnBehalf();
             }
         }
         

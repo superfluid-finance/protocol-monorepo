@@ -1604,7 +1604,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         uint256 initialTimestamp = block.timestamp + 10 days + 1800;
         vm.warp(initialTimestamp);
         vm.prank(_claimer);
-        vm.expectRevert(IVestingSchedulerV2.CannotClaimFlowOnBehalf.selector);
+        vm.expectRevert(IVestingSchedulerV2.CannotClaimScheduleOnBehalf.selector);
         bool success = vestingScheduler.executeCliffAndFlow(superToken, alice, bob);
         assertEq(success, false);
     }

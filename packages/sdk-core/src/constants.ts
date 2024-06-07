@@ -35,13 +35,7 @@ const subgraphReleaseTag =
 const getAddressesData = (chainId: number): NetworkData | null => {
     const networkData = metadata.networks.find((x) => x.chainId === chainId);
     if (!networkData) return null;
-    const subgraphEndpoint =
-        networkData.subgraphV1.canonicalEndpoint != null
-            ? networkData.subgraphV1.canonicalEndpoint
-            : 
-              // @note if an endpoint doesn't exist, we just use an empty string
-              // this should never happen and this endpoint is unused in initialization anyways
-              "";
+    const subgraphEndpoint = networkData.subgraphV1.canonicalEndpoint || "";
 
     const subgraphAPIEndpoint = subgraphReleaseTag
         ? subgraphEndpoint.replace("v1", subgraphReleaseTag)

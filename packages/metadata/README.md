@@ -90,7 +90,7 @@ const network = sfMeta.getNetworkByName("eth-sepolia");
   explorer: 'https://optimistic.etherscan.io',
   subgraphV1: {
     name: 'protocol-v1-optimism-mainnet',
-    hostedEndpoint: 'https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-optimism-mainnet'
+    canonicalEndpoint: 'https://optimism-mainnet.subgraph.x.superfluid.dev'
   },
   publicRPCs: [ 'https://mainnet.optimism.io', 'https://rpc.ankr.com/optimism' ],
   coinGeckoId: 'optimistic-ethereum'

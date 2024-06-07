@@ -36,7 +36,7 @@ module.exports =
         "subgraphV1": {
             "cliName": "fuji",
             "name": "protocol-v1-avalanche-fuji",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-avalanche-fuji"
+            "canonicalEndpoint": "https://avalanche-fuji.subgraph.x.superfluid.dev"
         },
         "publicRPCs": [
             "https://api.avax-test.network/ext/bc/C/rpc",
@@ -79,7 +79,7 @@ module.exports =
         "subgraphV1": {
             "cliName": "sepolia",
             "name": "protocol-v1-eth-sepolia",
-            "satsumaEndpoint": "https://subgraph.satsuma-prod.com/c5br3jaVlJI6/superfluid/eth-sepolia/api"
+            "canonicalEndpoint": "https://eth-sepolia.subgraph.x.superfluid.dev"
         },
         "publicRPCs": [
             "https://rpc.sepolia.org",
@@ -122,7 +122,7 @@ module.exports =
         "subgraphV1": {
             "cliName": "optimism-sepolia",
             "name": "protocol-v1-optimism-sepolia",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-optimism-sepolia"
+            "canonicalEndpoint": "https://optimism-sepolia.subgraph.x.superfluid.dev"
         },
         "subgraphVesting": {
             "name": "vesting-v1-optimism-sepolia",
@@ -170,7 +170,8 @@ module.exports =
         "explorer": "https://sepolia.scrollscan.com/",
         "subgraphV1": {
             "cliName": "scroll-sepolia",
-            "name": "protocol-v1-scroll-sepolia"
+            "name": "protocol-v1-scroll-sepolia",
+            "canonicalEndpoint": "https://scroll-sepolia.subgraph.x.superfluid.dev"
         },
         "publicRPCs": ["https://sepolia-rpc.scroll.io"]
     },
@@ -249,8 +250,7 @@ module.exports =
         "subgraphV1": {
             "cliName": "gnosis",
             "name": "protocol-v1-xdai",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-xdai",
-            "satsumaEndpoint": "https://subgraph.satsuma-prod.com/c5br3jaVlJI6/superfluid/xdai/api"
+            "canonicalEndpoint": "https://xdai-mainnet.subgraph.x.superfluid.dev"
         },
         "subgraphVesting": {
             "name": "vesting-v1-xdai-mainnet",
@@ -311,8 +311,7 @@ module.exports =
         "subgraphV1": {
             "cliName": "matic",
             "name": "protocol-v1-matic",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-matic",
-            "satsumaEndpoint": "https://subgraph.satsuma-prod.com/c5br3jaVlJI6/superfluid/matic/api"
+            "canonicalEndpoint": "https://polygon-mainnet.subgraph.x.superfluid.dev"
         },
         "subgraphVesting": {
             "name": "vesting-v1-polygon-mainnet",
@@ -373,7 +372,7 @@ module.exports =
         "subgraphV1": {
             "cliName": "optimism",
             "name": "protocol-v1-optimism-mainnet",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-optimism-mainnet"
+            "canonicalEndpoint": "https://optimism-mainnet.subgraph.x.superfluid.dev"
         },
         "subgraphVesting": {
             "name": "vesting-v1-optimism-mainnet",
@@ -434,7 +433,7 @@ module.exports =
         "subgraphV1": {
             "cliName": "arbitrum-one",
             "name": "protocol-v1-arbitrum-one",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-arbitrum-one"
+            "canonicalEndpoint": "https://arbitrum-one.subgraph.x.superfluid.dev"
         },
         "subgraphVesting": {
             "name": "vesting-v1-arbitrum-one",
@@ -495,7 +494,7 @@ module.exports =
         "subgraphV1": {
             "cliName": "avalanche",
             "name": "protocol-v1-avalanche-c",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-avalanche-c"
+            "canonicalEndpoint": "https://avalanche-c.subgraph.x.superfluid.dev"
         },
         "subgraphVesting": {
             "name": "vesting-v1-avalanche-c",
@@ -556,7 +555,7 @@ module.exports =
         "subgraphV1": {
             "cliName": "bsc",
             "name": "protocol-v1-bsc-mainnet",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-bsc-mainnet"
+            "canonicalEndpoint": "https://bsc-mainnet.subgraph.x.superfluid.dev"
         },
         "subgraphVesting": {
             "name": "vesting-v1-bsc-mainnet",
@@ -612,8 +611,7 @@ module.exports =
         "subgraphV1": {
             "cliName": "mainnet",
             "name": "protocol-v1-eth-mainnet",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-eth-mainnet",
-            "satsumaEndpoint": "https://subgraph.satsuma-prod.com/c5br3jaVlJI6/superfluid/eth-mainnet/api"
+            "canonicalEndpoint": "https://eth-mainnet.subgraph.x.superfluid.dev"
         },
         "subgraphVesting": {
             "name": "vesting-v1-eth-mainnet",
@@ -668,7 +666,7 @@ module.exports =
         "subgraphV1": {
             "cliName": "celo",
             "name": "protocol-v1-celo-mainnet",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-celo-mainnet"
+            "canonicalEndpoint": "https://celo-mainnet.subgraph.x.superfluid.dev"
         },
         "publicRPCs": ["https://forno.celo.org", "https://rpc.ankr.com/celo"],
         "coinGeckoId": "celo"
@@ -714,7 +712,7 @@ module.exports =
         "subgraphV1": {
             "cliName": "base",
             "name": "protocol-v1-base-mainnet",
-            "satsumaEndpoint": "https://subgraph.satsuma-prod.com/c5br3jaVlJI6/superfluid/base-mainnet/api"
+            "canonicalEndpoint": "https://base-mainnet.subgraph.x.superfluid.dev"
         },
         "subgraphVesting": {
             "name": "vesting-v1-base-mainnet",
@@ -764,7 +762,8 @@ module.exports =
         "explorer": "https://scrollscan.com/",
         "subgraphV1": {
             "cliName": "scroll",
-            "name": "protocol-v1-scroll-mainnet"
+            "name": "protocol-v1-scroll-mainnet",
+            "canonicalEndpoint": "https://scroll-mainnet.subgraph.x.superfluid.dev"
         },
         "publicRPCs": ["https://rpc.scroll.io"]
     },
@@ -799,7 +798,9 @@ module.exports =
         "logsQueryRange": 50000,
         "explorer": "https://explorer.degen.tips/",
         "subgraphV1": {
-            "cliName": "degen"
+            "cliName": "degen",
+            "name": "protocol-v1-degenchain",
+            "canonicalEndpoint": "https://degenchain.subgraph.x.superfluid.dev"
 	    },
         "publicRPCs": ["https://rpc.degen.tips"]
     }

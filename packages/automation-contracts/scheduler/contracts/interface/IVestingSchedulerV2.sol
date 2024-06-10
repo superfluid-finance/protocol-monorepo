@@ -36,55 +36,6 @@ interface IVestingSchedulerV2 {
     }
 
     /**
-     * @dev Parameters used to create claimable vesting schedules
-     * @param superToken SuperToken to be vested
-     * @param receiver Vesting receiver
-     * @param totalAmount The total amount to be vested 
-     * @param totalDuration The total duration of the vestingß
-     * @param cliffPeriod The cliff period of the vesting
-     * @param startDate Timestamp when the vesting should start
-     * @param claimValidityDate Date before which the claimable schedule must be claimed
-     * @param ctx Superfluid context used when batching operations. (or bytes(0) if not SF batching)
-     */
-    struct ScheduleCreationFromAmountAndDurationParam {
-        ISuperToken superToken;
-        address receiver;
-        uint256 totalAmount;
-        uint32 totalDuration;
-        uint32 cliffPeriod;
-        uint32 startDate;
-        uint32 claimValidityDate;
-        bytes ctx;
-    }
-
-    /**
-     * @dev Parameters used to create vesting schedules
-     * @param superToken SuperToken to be vested
-     * @param receiver Vesting receiver
-     * @param startDate Timestamp when the vesting should start
-     * @param claimValidityDate Date before which the claimable schedule must be claimed
-     * @param cliffDate Timestamp of cliff exectution - if 0, startDate acts as cliff
-     * @param flowRate The flowRate for the stream
-     * @param cliffAmount The amount to be transferred at the cliff
-     * @param endDate The timestamp when the stream should stop.
-     * @param remainderAmount Amount transferred during early end to achieve an accurate "total vested amount"
-     * @param ctx Superfluid context used when batching operations. (or bytes(0) if not SF batching)
-     */
-    struct ScheduleCreationParam {
-        ISuperToken superToken;
-        address receiver;
-        uint32 startDate;
-        uint32 claimValidityDate;
-        uint32 cliffDate;
-        int96 flowRate;
-        uint256 cliffAmount;
-        uint32 endDate;
-        uint256 remainderAmount;
-        bytes ctx;
-    }
-
-
-    /**
      * @dev Event emitted on creation of a new vesting schedule
      * @param superToken SuperToken to be vested
      * @param sender Vesting sender

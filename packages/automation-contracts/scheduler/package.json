@@ -1,11 +1,12 @@
 {
     "name": "scheduler",
-    "version": "0.0.1",
+    "version": "1.2.0",
     "description": "Open contracts that allow scheduling streams and vestings onchain",
     "license": "MIT",
     "scripts": {
         "test": "forge test",
         "build": "forge build",
+        "deploy": "npx hardhat deploy --network",
         "lint": "run-s lint:*",
         "lint:sol": "solhint -w 0 contracts/*.sol contracts/*/*.sol && echo '✔  Your .sol files look good.'",
         "pre-commit": "if [ ! -z \"$(git status -s .)\" ];then run-s pre-commit:*;else true;fi",

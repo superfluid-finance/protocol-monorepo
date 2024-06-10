@@ -19,7 +19,7 @@ contract FlowScheduler is IFlowScheduler, SuperAppBase {
     using CFAv1Library for CFAv1Library.InitData;
     CFAv1Library.InitData public cfaV1; //initialize cfaV1 variable
 
-    constructor(ISuperfluid host, string memory registrationKey) {
+    constructor(ISuperfluid host) {
         // Initialize CFA Library
         cfaV1 = CFAv1Library.InitData(
             host,
@@ -40,7 +40,7 @@ contract FlowScheduler is IFlowScheduler, SuperAppBase {
         SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP |
         SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP |
         SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP;
-        host.registerAppWithKey(configWord, registrationKey);
+        host.registerApp(configWord);
     }
 
     /// @dev IFlowScheduler.createFlowSchedule implementation.

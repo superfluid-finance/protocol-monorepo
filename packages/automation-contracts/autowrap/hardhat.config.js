@@ -53,7 +53,7 @@ module.exports = {
                 process.env.PRIVATE_KEY !== undefined
                     ? [process.env.PRIVATE_KEY]
                     : [],
-            gasPrice: 1000000000
+            gasPrice: 1000000000,
         },
     },
     namedAccounts: {

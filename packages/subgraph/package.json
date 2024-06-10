@@ -50,8 +50,8 @@
         "cloc": "cloc src"
     },
     "dependencies": {
-        "@graphprotocol/graph-cli": "0.69.1",
-        "@graphprotocol/graph-ts": "0.34.0",
+        "@graphprotocol/graph-cli": "0.73.0",
+        "@graphprotocol/graph-ts": "0.35.1",
         "@superfluid-finance/sdk-core": "^0.7.0",
         "mustache": "^4.2.0"
     },

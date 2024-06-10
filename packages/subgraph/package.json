@@ -52,7 +52,7 @@
     "dependencies": {
         "@graphprotocol/graph-cli": "0.69.1",
         "@graphprotocol/graph-ts": "0.34.0",
-        "@superfluid-finance/sdk-core": "^0.6.13",
+        "@superfluid-finance/sdk-core": "^0.7.0",
         "mustache": "^4.2.0"
     },
     "devDependencies": {

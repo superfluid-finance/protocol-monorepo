@@ -6,18 +6,18 @@ describe("getConfig", () => {
         delete process.env.RESOLVER_ADDRESS;
     });
 
-    it("mumbai v1", async () => {
-        const mumbaiConfig = SuperfluidSDK.getConfig(80001, "v1");
-        assert.isNotEmpty(mumbaiConfig.resolverAddress);
-        assert.isNotEmpty(mumbaiConfig.subgraphQueryEndpoint);
-        assert.isUndefined(mumbaiConfig.versions);
+    it("polygon v1", async () => {
+        const config = SuperfluidSDK.getConfig(137, "v1");
+        assert.isNotEmpty(config.resolverAddress);
+        assert.isNotEmpty(config.subgraphQueryEndpoint);
+        assert.isUndefined(config.versions);
     });
 
-    it("mumbai test", async () => {
-        const mumbaiConfig = SuperfluidSDK.getConfig(80001, "test");
-        assert.isNotEmpty(mumbaiConfig.resolverAddress);
-        assert.isUndefined(mumbaiConfig.subgraphQueryEndpoint);
-        assert.isUndefined(mumbaiConfig.versions);
+    it("polygon test", async () => {
+        const config = SuperfluidSDK.getConfig(137, "test");
+        assert.isNotEmpty(config.resolverAddress);
+        assert.isUndefined(config.subgraphQueryEndpoint);
+        assert.isUndefined(config.versions);
     });
 
     it("defaultConfig", async () => {

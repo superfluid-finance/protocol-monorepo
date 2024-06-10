@@ -893,10 +893,10 @@
   dependencies:
     "@jridgewell/trace-mapping" "0.3.9"
 
-"@d10r/truffle-plugin-verify@0.6.9":
-  version "0.6.9"
-  resolved "https://registry.yarnpkg.com/@d10r/truffle-plugin-verify/-/truffle-plugin-verify-0.6.9.tgz#fc826ada251f82a7f276d80e1d572eaf573d1555"
-  integrity sha512-E5YG+YYrbDSJlRK5590xdV6g8855pztzAKUSUZqtidq/DUXOdcbt8VjFli+H7zsFru0cywM38G7z+rWoPdolGA==
+"@d10r/truffle-plugin-verify@^0.6.10":
+  version "0.6.10"
+  resolved "https://registry.yarnpkg.com/@d10r/truffle-plugin-verify/-/truffle-plugin-verify-0.6.10.tgz#f37d0b50ea3ec3e9ce5e8beed4bdb6df59404fd6"
+  integrity sha512-aCqotcE3usTImVRM9DW9z1nyR6LA+0t5GSlgivTnHYonWpBChkz5rFHAoHwyKsZU9BeJbPwLYwpB9K2ldWojdg==
   dependencies:
     "@truffle/resolver" "^9.0.35"
     axios "^0.26.1"

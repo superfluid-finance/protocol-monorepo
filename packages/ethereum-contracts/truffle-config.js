@@ -60,7 +60,6 @@ const ALIASES = {
     "xdai-mainnet": ["xdai"],
 
     "polygon-mainnet": ["matic"],
-    "polygon-mumbai": ["mumbai"],
 
     "optimism-mainnet": ["opmainnet"],
     "optimism-sepolia": ["opsepolia"],
@@ -75,6 +74,7 @@ const ALIASES = {
     "celo-mainnet": ["celo"],
 
     "base-mainnet": ["base"],
+    "base-sepolia": ["bsepolia"],
 
     "scroll-sepolia": ["scrsepolia"],
     "scroll-mainnet": ["scroll"],
@@ -197,11 +197,6 @@ const E = (module.exports = {
             maxFeePerGas: 500e9,
         },
 
-        "polygon-mumbai": {
-            ...createNetworkDefaultConfiguration("polygon-mumbai"),
-            network_id: 80001,
-        },
-
 
         //
         // xDAI: https://www.xdaichain.com/for-users/wallets/metamask/metamask-setup
@@ -271,6 +266,10 @@ const E = (module.exports = {
             network_id: 8453,
             maxPriorityFeePerGas: 1e6, // 0.001 gwei - even 0 may do
             maxFeePerGas: 1e9, // 1 gwei
+        },
+        "base-sepolia": {
+            ...createNetworkDefaultConfiguration("base-sepolia"),
+            network_id: 84532,
         },
 
         //

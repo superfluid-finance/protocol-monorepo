@@ -81,23 +81,5 @@ module.exports = {
                 },
             },
         ],
-        customChains: [
-            {
-                network: "opsepolia",
-                chainId: 11155420,
-                urls: {
-                    apiURL: "https://api-sepolia-optimistic.etherscan.io/api",
-                    browserURL: "https://sepolia-optimism.etherscan.io/",
-                },
-            },
-            {
-                network: "base-mainnet",
-                chainId: 8453,
-                urls: {
-                    apiURL: "https://api.basescan.org/api",
-                    browserURL: "https://basescan.org/",
-                },
-            },
-        ],
     },
 };

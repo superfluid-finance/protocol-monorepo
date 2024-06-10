@@ -20,8 +20,6 @@ module.exports = {
                 runs: 200,
             },
         },
-            },
-        },
     },
     networks: {
         localhost: {
@@ -55,25 +53,7 @@ module.exports = {
                 process.env.PRIVATE_KEY !== undefined
                     ? [process.env.PRIVATE_KEY]
                     : [],
-            gasPrice: 1000000000
-                process.env.PRIVATE_KEY !== undefined
-                    ? [process.env.PRIVATE_KEY]
-                    : [],
-        },
-        opsepolia: {
-            url: process.env.OPSEPOLIA_URL || "",
-            accounts:
-                process.env.PRIVATE_KEY !== undefined
-                    ? [process.env.PRIVATE_KEY]
-                    : [],
-        },
-        "base-mainnet": {
-            url: process.env.BASE_URL || "",
-            accounts:
-                process.env.PRIVATE_KEY !== undefined
-                    ? [process.env.PRIVATE_KEY]
-                    : [],
-            gasPrice: 1000000000
+            gasPrice: 1000000000,
         },
     },
     namedAccounts: {

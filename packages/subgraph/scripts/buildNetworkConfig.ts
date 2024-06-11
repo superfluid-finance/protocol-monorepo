@@ -14,23 +14,34 @@ interface SubgraphConfig {
     readonly nativeAssetSuperTokenAddress: string;
     readonly constantOutflowNFTAddress: string;
     readonly constantInflowNFTAddress: string;
+    readonly indexerHints_prune: string;
 }
 
 const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 
-// script usage: npx ts-node ./scripts/buildNetworkConfig.ts <NETWORK_NAME>
+const vendorCliNameExceptions: Record<string, Record<string, string>> = {
+    "goldsky": {
+        "xdai-mainnet": "xdai"
+    }
+}
+
+const vendorHistoryPruning: Record<string, string> = {
+    "goldsky": "auto"
+};
+
+// script usage: npx ts-node ./scripts/buildNetworkConfig.ts <NETWORK_NAME> <VENDOR_NAME?>
 function main() {
     const networkName = process.argv[2];
+    const vendorName = process.argv[3];
 
-    const networkMetadata = metadata.getNetworkByName(networkName);
+    const networkMetadata = metadata.getNetworkByName(networkName); 
 
     if (!networkMetadata) {
         throw new Error("No metadata found");
     }
 
     const subgraphConfig: SubgraphConfig = {
-        // cliName exists for networks supported by the hosted service
-        network: networkMetadata.subgraphV1.cliName || networkMetadata.shortName,
+        network: vendorCliNameExceptions[vendorName]?.[networkMetadata.name] || networkMetadata.subgraphV1.cliName || networkMetadata.shortName,
         hostStartBlock: networkMetadata.startBlockV1,
         hostAddress: networkMetadata.contractsV1.host,
         cfaAddress: networkMetadata.contractsV1.cfaV1,
@@ -41,6 +52,7 @@ function main() {
         nativeAssetSuperTokenAddress: networkMetadata.nativeTokenWrapper,
         constantOutflowNFTAddress: networkMetadata.contractsV1.constantOutflowNFT || ADDRESS_ZERO,
         constantInflowNFTAddress: networkMetadata.contractsV1.constantInflowNFT || ADDRESS_ZERO,
+        indexerHints_prune: vendorHistoryPruning[vendorName] || "never",
     };
 
     const writeToDir = join(__dirname, '..', `config/${networkName}.json`);

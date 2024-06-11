@@ -14,7 +14,7 @@ interface SubgraphConfig {
     readonly nativeAssetSuperTokenAddress: string;
     readonly constantOutflowNFTAddress: string;
     readonly constantInflowNFTAddress: string;
-    readonly indexerHints_prune?: string;
+    readonly indexerHints_prune: string;
 }
 
 const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";

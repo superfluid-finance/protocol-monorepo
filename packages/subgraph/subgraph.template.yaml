@@ -1,5 +1,5 @@
 specVersion: 1.0.0
-description: Subgraph for the Superfluid Ethereum contracts.
+description: Subgraph for the Superfluid Protocol V1 contracts.
 repository: https://github.com/superfluid-finance/protocol-monorepo
 schema:
     file: ./schema.graphql

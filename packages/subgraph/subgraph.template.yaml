@@ -3,6 +3,8 @@ description: Subgraph for the Superfluid Ethereum contracts.
 repository: https://github.com/superfluid-finance/protocol-monorepo
 schema:
     file: ./schema.graphql
+indexerHints:
+  prune: {{#indexerHints_prune}}{{ indexerHints_prune }}{{/indexerHints_prune}}{{^indexerHints_prune}}never{{/indexerHints_prune}}
 dataSources:
     - kind: ethereum/contract
       name: SuperTokenFactory

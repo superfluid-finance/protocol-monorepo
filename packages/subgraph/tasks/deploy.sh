@@ -177,7 +177,7 @@ deploy_to() {
         exit 1
     fi
 
-    npx ts-node ./scripts/buildNetworkConfig.ts "$network"
+    npx ts-node ./scripts/buildNetworkConfig.ts "$network" "$vendor"
 
     # prepare the manifest prior to deployment
     # this generates the subgraph.yaml and

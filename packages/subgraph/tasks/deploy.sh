@@ -126,18 +126,12 @@ deploy_to_goldsky() {
     local network="$1"
     # TODO: use tagging?
 
-    # name mapping for godldsky legacy networks not using our cliNames
-    local -A legacyNetworkNames=(
-        ["xdai-mainnet"]="xdai"
-    )
+    local subgraphName="protocol-$DEPLOYMENT_ENV-$network/$VERSION_LABEL"
 
-    local goldskyNetwork="${legacyNetworkNames[$network]:-$network}"
-    local subgraphName="protocol-$DEPLOYMENT_ENV-$goldskyNetwork/$VERSION_LABEL"
-
+    # Note: when using Graph CLI to deploy, it implicitly triggers build too, but Goldsky CLI doesn't, so we do it explicitly.
     $GRAPH_CLI build
-    # Note: when using Graph CLI to deploy, it implicitly triggers build too, but Goldsky CLI doesn't.
 
-    echo "********* Deploying $goldskyNetwork subgraph $subgraphName to Goldsky. **********"
+    echo "********* Deploying $network subgraph $subgraphName to Goldsky. **********"
     $GOLDSKY_CLI subgraph deploy \
         "$subgraphName" \
         --path . \
@@ -177,7 +171,7 @@ deploy_to() {
         exit 1
     fi
 
-    npx ts-node ./scripts/buildNetworkConfig.ts "$network"
+    npx ts-node ./scripts/buildNetworkConfig.ts "$network" "$vendor"
 
     # prepare the manifest prior to deployment
     # this generates the subgraph.yaml and

@@ -6,6 +6,11 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [2.0.0]
+
+### Changed
+- Enabled history pruning which disables perfect time-travel queries.
+
 ## [1.7.1] - 2024-04-22
 
 ### Added

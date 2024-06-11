@@ -986,22 +986,28 @@ function updateATSBalanceAndUpdatedAt(
                 balanceDelta as BigInt
             );
     } else {
-        // if the account has any subscriptions with units we assume that
-        // the balance data requires a RPC call for balance because we did not
-        // have claim events there and we do not count distributions
-        // for subscribers
-        const newBalanceResult = superTokenContract.try_realtimeBalanceOf(
-            Address.fromString(accountTokenSnapshot.account),
-            block.timestamp
-        );
-        if (!newBalanceResult.reverted) {
-            accountTokenSnapshot.balanceUntilUpdatedAt =
-                newBalanceResult.value.value0;
+        if (accountTokenSnapshot.updatedAtBlockNumber === block.number) {
+            // Do nothing, because...
+            // The _assumption_ is that the balance has been updated in this block from an RPC already (we currently always do this) so no need to call it again.
+            // The RPC's `balanceOf` call gets the final balance result of the block, so every subsequent call would return the same result anyway.
+        } else {
+            // if the account has any subscriptions with units we assume that
+            // the balance data requires a RPC call for balance because we did not
+            // have claim events there and we do not count distributions
+            // for subscribers
+            const newBalanceResult = superTokenContract.try_realtimeBalanceOf(
+                Address.fromString(accountTokenSnapshot.account),
+                block.timestamp
+            );
+            if (!newBalanceResult.reverted) {
+                accountTokenSnapshot.balanceUntilUpdatedAt =
+                    newBalanceResult.value.value0;
+            }
         }
     }
 
-    accountTokenSnapshot.updatedAtTimestamp = block.timestamp;
     accountTokenSnapshot.updatedAtBlockNumber = block.number;
+    accountTokenSnapshot.updatedAtTimestamp = block.timestamp;
 
     accountTokenSnapshot.maybeCriticalAtTimestamp =
         calculateMaybeCriticalAtTimestamp(

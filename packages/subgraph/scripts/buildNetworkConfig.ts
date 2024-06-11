@@ -20,7 +20,7 @@ interface SubgraphConfig {
 const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 
 const vendorCliNameExceptions: Record<string, Record<string, string>> = {
-    ["goldsky"]: {
+    "goldsky": {
         "xdai-mainnet": "xdai"
     }
 }

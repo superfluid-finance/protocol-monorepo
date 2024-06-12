@@ -26,7 +26,7 @@ interface ContractAddresses {
 interface SubgraphData {
     readonly name: string;
     readonly cliName?: string;
-    readonly canonicalEndpoint?: string;
+    readonly hostedEndpoint?: string;
 }
 export interface NetworkMetaData {
     readonly name: string; // Superfluid canonical network name

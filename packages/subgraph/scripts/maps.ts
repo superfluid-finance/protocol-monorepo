@@ -4,7 +4,7 @@ export const chainIdToData = new Map(
     sfMetaData.networks.map((x) => [
         x.chainId,
         {
-            subgraphAPIEndpoint: x.subgraphV1.canonicalEndpoint,
+            subgraphAPIEndpoint: x.subgraphV1.hostedEndpoint,
             name: x.shortName,
             addresses: {
                 network: x.shortName,

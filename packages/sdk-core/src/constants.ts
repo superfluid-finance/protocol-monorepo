@@ -35,7 +35,7 @@ const subgraphReleaseTag =
 const getAddressesData = (chainId: number): NetworkData | null => {
     const networkData = metadata.networks.find((x) => x.chainId === chainId);
     if (!networkData) return null;
-    const subgraphEndpoint = networkData.subgraphV1.canonicalEndpoint || "";
+    const subgraphEndpoint = networkData.subgraphV1.hostedEndpoint || "";
 
     const subgraphAPIEndpoint = subgraphReleaseTag
         ? subgraphEndpoint.replace("v1", subgraphReleaseTag)

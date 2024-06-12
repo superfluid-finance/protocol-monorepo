@@ -27,6 +27,7 @@ interface SubgraphData {
     readonly name: string;
     readonly cliName?: string;
     readonly hostedEndpoint?: string;
+    readonly satsumaEndpoint?: string;
 }
 export interface NetworkMetaData {
     readonly name: string; // Superfluid canonical network name

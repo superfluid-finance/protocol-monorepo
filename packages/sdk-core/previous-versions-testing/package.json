@@ -6,7 +6,7 @@
         "run-query-tests": "npx hardhat test ./queryTests.ts"
     },
     "devDependencies": {
-        "@superfluid-finance/sdk-core": "0.5.9"
+        "@superfluid-finance/sdk-core": "0.4.3"
     },
     "resolutions": {
         "@superfluid-finance/metadata": ">1.2.0"

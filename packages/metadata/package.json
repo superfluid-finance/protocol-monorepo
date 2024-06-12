@@ -1,6 +1,6 @@
 {
   "name": "@superfluid-finance/metadata",
-  "version": "1.2.4",
+  "version": "1.2.5",
   "description": "Superfluid Metadata",
   "main": "main/index.cjs",
   "module": "module/index.js",

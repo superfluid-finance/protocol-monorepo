@@ -1,7 +1,7 @@
 version: "3"
 services:
   graph-node:
-    image: graphprotocol/graph-node:v0.35.0
+    image: graphprotocol/graph-node
     ports:
       - "8000:8000"
       - "8001:8001"
@@ -19,10 +19,11 @@ services:
       postgres_pass: let-me-in
       postgres_db: graph-node
       ipfs: "ipfs:5001"
+      GRAPH_ALLOW__NON_DETERMINISTIC_IPFS: 1
       ethereum: "mainnet:http://host.docker.internal:8545"
-      GRAPH_LOG: info
+      GRAPH_LOG: info, error
   ipfs:
-    image: ipfs/go-ipfs:v0.4.23
+    image: ipfs/go-ipfs:v0.17.0 
     ports:
       - "5001:5001"
     volumes:

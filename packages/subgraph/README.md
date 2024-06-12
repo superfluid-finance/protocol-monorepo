@@ -43,7 +43,7 @@ First install these dependencies:
 Now install the necessary node packages with the following commands:
 
 ```bash
-yarn install
+yarn install 
 ```
 
 ### Hardhat node

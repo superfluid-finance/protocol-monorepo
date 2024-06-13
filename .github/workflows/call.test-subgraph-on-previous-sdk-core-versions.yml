@@ -71,7 +71,9 @@ jobs:
         working-directory: ./packages/subgraph
 
       - name: "Docker compose"
-        run: docker-compose up &
+        run: |
+          docker rm subgraph_graph-node_1 || true
+          docker-compose up &
         working-directory: ./packages/subgraph
 
       - name: "Prepare and Deploy Local Subgraph"

@@ -100,7 +100,9 @@ jobs:
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: "Docker compose"
-        run: docker-compose up &
+        run: |
+          docker-compose down --rmi all --remove-orphans
+          docker-compose up &
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: "Run subgraph integration test suite"

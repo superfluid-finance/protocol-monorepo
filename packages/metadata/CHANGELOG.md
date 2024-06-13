@@ -3,6 +3,10 @@ All notable changes to the metadata will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.2.5]
+### Changed
+- Use superfluid public subgraph endpoints
+
 ## [v1.2.3]
 ### Changed
 - Use Goldsky automation subgraphs over The Graph's hosted service ones

@@ -36,7 +36,7 @@ module.exports =
         "subgraphV1": {
             "cliName": "fuji",
             "name": "protocol-v1-avalanche-fuji",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-avalanche-fuji"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/avalanche-fuji/protocol-v1"
         },
         "publicRPCs": [
             "https://api.avax-test.network/ext/bc/C/rpc",
@@ -79,7 +79,7 @@ module.exports =
         "subgraphV1": {
             "cliName": "sepolia",
             "name": "protocol-v1-eth-sepolia",
-            "satsumaEndpoint": "https://subgraph.satsuma-prod.com/c5br3jaVlJI6/superfluid/eth-sepolia/api"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/eth-sepolia/protocol-v1"
         },
         "publicRPCs": [
             "https://rpc.sepolia.org",
@@ -122,19 +122,19 @@ module.exports =
         "subgraphV1": {
             "cliName": "optimism-sepolia",
             "name": "protocol-v1-optimism-sepolia",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-optimism-sepolia"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/optimism-sepolia/protocol-v1"
         },
         "subgraphVesting": {
             "name": "vesting-v1-optimism-sepolia",
-            "hostedEndpoint": "https://api.goldsky.com/api/public/project_clsnd6xsoma5j012qepvucfpp/subgraphs/vesting-v1-optimism-sepolia/prod/gn"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/optimism-sepolia/vesting-scheduler"
         },
         "subgraphFlowScheduler": {
             "name": "scheduling-v1-optimism-sepolia",
-            "hostedEndpoint": "https://api.goldsky.com/api/public/project_clsnd6xsoma5j012qepvucfpp/subgraphs/scheduling-v1-optimism-sepolia/prod/gn"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/optimism-sepolia/flow-scheduler"
         },
         "subgraphAutoWrap": {
             "name": "auto-wrap-v1-optimism-sepolia",
-            "hostedEndpoint": "https://api.goldsky.com/api/public/project_clsnd6xsoma5j012qepvucfpp/subgraphs/auto-wrap-v1-optimism-sepolia/prod/gn"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/optimism-sepolia/auto-wrap"
         },
         "publicRPCs": [
             "https://sepolia.optimism.io"
@@ -170,7 +170,8 @@ module.exports =
         "explorer": "https://sepolia.scrollscan.com/",
         "subgraphV1": {
             "cliName": "scroll-sepolia",
-            "name": "protocol-v1-scroll-sepolia"
+            "name": "protocol-v1-scroll-sepolia",
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/scroll-sepolia/protocol-v1"
         },
         "publicRPCs": ["https://sepolia-rpc.scroll.io"]
     },
@@ -249,20 +250,19 @@ module.exports =
         "subgraphV1": {
             "cliName": "gnosis",
             "name": "protocol-v1-xdai",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-xdai",
-            "satsumaEndpoint": "https://subgraph.satsuma-prod.com/c5br3jaVlJI6/superfluid/xdai/api"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/xdai-mainnet/protocol-v1"
         },
         "subgraphVesting": {
             "name": "vesting-v1-xdai-mainnet",
-            "hostedEndpoint": "https://api.goldsky.com/api/public/project_clsnd6xsoma5j012qepvucfpp/subgraphs/vesting-v1-xdai-mainnet/prod/gn"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/xdai-mainnet/vesting-scheduler"
         },
         "subgraphFlowScheduler": {
             "name": "scheduling-v1-xdai-mainnet",
-            "hostedEndpoint": "https://api.goldsky.com/api/public/project_clsnd6xsoma5j012qepvucfpp/subgraphs/scheduling-v1-xdai-mainnet/prod/gn"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/xdai-mainnet/flow-scheduler"
         },
         "subgraphAutoWrap": {
             "name": "auto-wrap-v1-xdai-mainnet",
-            "hostedEndpoint": "https://api.goldsky.com/api/public/project_clsnd6xsoma5j012qepvucfpp/subgraphs/auto-wrap-v1-xdai-mainnet/prod/gn"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/xdai-mainnet/auto-wrap"
         },
         "publicRPCs": [
             "https://rpc.gnosischain.com",
@@ -311,20 +311,19 @@ module.exports =
         "subgraphV1": {
             "cliName": "matic",
             "name": "protocol-v1-matic",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-matic",
-            "satsumaEndpoint": "https://subgraph.satsuma-prod.com/c5br3jaVlJI6/superfluid/matic/api"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/polygon-mainnet/protocol-v1"
         },
         "subgraphVesting": {
             "name": "vesting-v1-polygon-mainnet",
-            "hostedEndpoint": "https://api.goldsky.com/api/public/project_clsnd6xsoma5j012qepvucfpp/subgraphs/vesting-v1-polygon-mainnet/prod/gn"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/polygon-mainnet/vesting-scheduler"
         },
         "subgraphFlowScheduler": {
             "name": "scheduling-v1-polygon-mainnet",
-            "hostedEndpoint": "https://api.goldsky.com/api/public/project_clsnd6xsoma5j012qepvucfpp/subgraphs/scheduling-v1-polygon-mainnet/prod/gn"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/polygon-mainnet/flow-scheduler"
         },
         "subgraphAutoWrap": {
             "name": "auto-wrap-v1-polygon-mainnet",
-            "hostedEndpoint": "https://api.goldsky.com/api/public/project_clsnd6xsoma5j012qepvucfpp/subgraphs/auto-wrap-v1-polygon-mainnet/prod/gn"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/polygon-mainnet/auto-wrap"
         },
         "publicRPCs": [
             "https://polygon-rpc.com",
@@ -373,19 +372,19 @@ module.exports =
         "subgraphV1": {
             "cliName": "optimism",
             "name": "protocol-v1-optimism-mainnet",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-optimism-mainnet"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/optimism-mainnet/protocol-v1"
         },
         "subgraphVesting": {
             "name": "vesting-v1-optimism-mainnet",
-            "hostedEndpoint": "https://api.goldsky.com/api/public/project_clsnd6xsoma5j012qepvucfpp/subgraphs/vesting-v1-optimism-mainnet/prod/gn"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/optimism-mainnet/vesting-scheduler"
         },
         "subgraphFlowScheduler": {
             "name": "scheduling-v1-optimism-mainnet",
-            "hostedEndpoint": "https://api.goldsky.com/api/public/project_clsnd6xsoma5j012qepvucfpp/subgraphs/scheduling-v1-optimism-mainnet/prod/gn"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/optimism-mainnet/flow-scheduler"
         },
         "subgraphAutoWrap": {
             "name": "auto-wrap-v1-optimism-mainnet",
-            "hostedEndpoint": "https://api.goldsky.com/api/public/project_clsnd6xsoma5j012qepvucfpp/subgraphs/auto-wrap-v1-optimism-mainnet/prod/gn"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/optimism-mainnet/auto-wrap"
         },
         "publicRPCs": [
             "https://mainnet.optimism.io",
@@ -434,19 +433,19 @@ module.exports =
         "subgraphV1": {
             "cliName": "arbitrum-one",
             "name": "protocol-v1-arbitrum-one",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-arbitrum-one"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/arbitrum-one/protocol-v1"
         },
         "subgraphVesting": {
             "name": "vesting-v1-arbitrum-one",
-            "hostedEndpoint": "https://api.goldsky.com/api/public/project_clsnd6xsoma5j012qepvucfpp/subgraphs/vesting-v1-arbitrum-one/prod/gn"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/arbitrum-one/vesting-scheduler"
         },
         "subgraphFlowScheduler": {
             "name": "scheduling-v1-arbitrum-one",
-            "hostedEndpoint": "https://api.goldsky.com/api/public/project_clsnd6xsoma5j012qepvucfpp/subgraphs/scheduling-v1-arbitrum-one/prod/gn"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/arbitrum-one/flow-scheduler"
         },
         "subgraphAutoWrap": {
             "name": "auto-wrap-v1-arbitrum-one",
-            "hostedEndpoint": "https://api.goldsky.com/api/public/project_clsnd6xsoma5j012qepvucfpp/subgraphs/auto-wrap-v1-arbitrum-one/prod/gn"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/arbitrum-one/auto-wrap"
         },
         "publicRPCs": [
             "https://arb1.arbitrum.io/rpc",
@@ -495,19 +494,19 @@ module.exports =
         "subgraphV1": {
             "cliName": "avalanche",
             "name": "protocol-v1-avalanche-c",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-avalanche-c"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/avalanche-c/protocol-v1"
         },
         "subgraphVesting": {
             "name": "vesting-v1-avalanche-c",
-            "hostedEndpoint": "https://api.goldsky.com/api/public/project_clsnd6xsoma5j012qepvucfpp/subgraphs/vesting-v1-avalanche-c/prod/gn"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/avalanche-c/vesting-scheduler"
         },
         "subgraphFlowScheduler": {
             "name": "scheduling-v1-avalanche-c",
-            "hostedEndpoint": "https://api.goldsky.com/api/public/project_clsnd6xsoma5j012qepvucfpp/subgraphs/scheduling-v1-avalanche-c/prod/gn"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/avalanche-c/flow-scheduler"
         },
         "subgraphAutoWrap": {
             "name": "auto-wrap-v1-avalanche-c",
-            "hostedEndpoint": "https://api.goldsky.com/api/public/project_clsnd6xsoma5j012qepvucfpp/subgraphs/auto-wrap-v1-avalanche-c/prod/gn"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/avalanche-c/auto-wrap"
         },
         "publicRPCs": [
             "https://api.avax.network/ext/bc/C/rpc",
@@ -556,19 +555,19 @@ module.exports =
         "subgraphV1": {
             "cliName": "bsc",
             "name": "protocol-v1-bsc-mainnet",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-bsc-mainnet"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/bsc-mainnet/protocol-v1"
         },
         "subgraphVesting": {
             "name": "vesting-v1-bsc-mainnet",
-            "hostedEndpoint": "https://api.goldsky.com/api/public/project_clsnd6xsoma5j012qepvucfpp/subgraphs/vesting-v1-bsc-mainnet/prod/gn"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/bsc-mainnet/vesting-scheduler"
         },
         "subgraphFlowScheduler": {
             "name": "scheduling-v1-bsc-mainnet",
-            "hostedEndpoint": "https://api.goldsky.com/api/public/project_clsnd6xsoma5j012qepvucfpp/subgraphs/scheduling-v1-bsc-mainnet/prod/gn"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/bsc-mainnet/flow-scheduler"
         },
         "subgraphAutoWrap": {
             "name": "auto-wrap-v1-bsc-mainnet",
-            "hostedEndpoint": "https://api.goldsky.com/api/public/project_clsnd6xsoma5j012qepvucfpp/subgraphs/auto-wrap-v1-bsc-mainnet/prod/gn"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/bsc-mainnet/auto-wrap"
         },
         "publicRPCs": [
             "https://bscrpc.com",
@@ -612,20 +611,19 @@ module.exports =
         "subgraphV1": {
             "cliName": "mainnet",
             "name": "protocol-v1-eth-mainnet",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-eth-mainnet",
-            "satsumaEndpoint": "https://subgraph.satsuma-prod.com/c5br3jaVlJI6/superfluid/eth-mainnet/api"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/eth-mainnet/protocol-v1"
         },
         "subgraphVesting": {
             "name": "vesting-v1-eth-mainnet",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/vesting-v1-eth-mainnet"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/eth-mainnet/vesting-scheduler"
         },
         "subgraphFlowScheduler": {
             "name": "scheduling-v1-eth-mainnet",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/scheduling-v1-eth-mainnet"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/eth-mainnet/flow-scheduler"
         },
         "subgraphAutoWrap": {
             "name": "auto-wrap-v1-eth-mainnet",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/auto-wrap-v1-eth-mainnet"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/eth-mainnet/auto-wrap"
         },
         "publicRPCs": [
             "https://cloudflare-eth.com",
@@ -668,7 +666,7 @@ module.exports =
         "subgraphV1": {
             "cliName": "celo",
             "name": "protocol-v1-celo-mainnet",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-celo-mainnet"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/celo-mainnet/protocol-v1"
         },
         "publicRPCs": ["https://forno.celo.org", "https://rpc.ankr.com/celo"],
         "coinGeckoId": "celo"
@@ -714,19 +712,19 @@ module.exports =
         "subgraphV1": {
             "cliName": "base",
             "name": "protocol-v1-base-mainnet",
-            "satsumaEndpoint": "https://subgraph.satsuma-prod.com/c5br3jaVlJI6/superfluid/base-mainnet/api"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/base-mainnet/protocol-v1"
         },
         "subgraphVesting": {
             "name": "vesting-v1-base-mainnet",
-            "hostedEndpoint": "https://api.goldsky.com/api/public/project_clsnd6xsoma5j012qepvucfpp/subgraphs/vesting-v1-base-mainnet/prod/gn"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/base-mainnet/vesting-scheduler"
         },
         "subgraphFlowScheduler": {
             "name": "scheduling-v1-base-mainnet",
-            "hostedEndpoint": "https://api.goldsky.com/api/public/project_clsnd6xsoma5j012qepvucfpp/subgraphs/scheduling-v1-base-mainnet/prod/gn"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/base-mainnet/flow-scheduler"
         },
         "subgraphAutoWrap": {
             "name": "auto-wrap-v1-base-mainnet",
-            "hostedEndpoint": "https://api.goldsky.com/api/public/project_clsnd6xsoma5j012qepvucfpp/subgraphs/auto-wrap-v1-base-mainnet/prod/gn"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/base-mainnet/auto-wrap"
         },
         "publicRPCs": ["https://developer-access-mainnet.base.org"],
         "coinGeckoId": "base"
@@ -764,7 +762,8 @@ module.exports =
         "explorer": "https://scrollscan.com/",
         "subgraphV1": {
             "cliName": "scroll",
-            "name": "protocol-v1-scroll-mainnet"
+            "name": "protocol-v1-scroll-mainnet",
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/scroll-mainnet/protocol-v1"
         },
         "publicRPCs": ["https://rpc.scroll.io"]
     },
@@ -799,7 +798,9 @@ module.exports =
         "logsQueryRange": 50000,
         "explorer": "https://explorer.degen.tips/",
         "subgraphV1": {
-            "cliName": "degen"
+            "cliName": "degen",
+            "name": "protocol-v1-degenchain",
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/degenchain/protocol-v1"
 	    },
         "publicRPCs": ["https://rpc.degen.tips"]
     }

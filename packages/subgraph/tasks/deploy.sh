@@ -19,7 +19,7 @@ SATSUMA_NETWORKS=( "polygon-mainnet" "xdai-mainnet" "eth-mainnet" "eth-sepolia" 
 # shellcheck disable=SC2034
 SUPERFLUID_NETWORKS=( "polygon-mainnet" "xdai-mainnet" "base-mainnet" "optimism-mainnet" "arbitrum-one" "celo-mainnet" "bsc-mainnet" "avalanche-c" "optimism-sepolia" "scroll-sepolia" "scroll-mainnet" "degenchain" "base-sepolia")
 # shellcheck disable=SC2034
-GOLDSKY_NETWORKS=( "polygon-mainnet" "xdai-mainnet" "eth-mainnet" "base-mainnet" "optimism-mainnet" "arbitrum-one" "bsc-mainnet" "avalanche-c" "optimism-sepolia" "scroll-sepolia" "scroll-mainnet" "eth-sepolia")
+GOLDSKY_NETWORKS=( "polygon-mainnet" "xdai-mainnet" "eth-mainnet" "base-mainnet" "optimism-mainnet" "arbitrum-one" "bsc-mainnet" "avalanche-c" "optimism-sepolia" "scroll-sepolia" "scroll-mainnet" "eth-sepolia" "avalanche-fuji")
 # shellcheck disable=SC2034
 AIRSTACK_NETWORKS=( "degenchain")
 
@@ -126,7 +126,7 @@ deploy_to_goldsky() {
     local network="$1"
     # TODO: use tagging?
 
-    local subgraphName="protocol-$DEPLOYMENT_ENV-$network/$VERSION_LABEL"
+    local subgraphName="protocol-$DEPLOYMENT_ENV-$network/1.0.0"
 
     # Note: when using Graph CLI to deploy, it implicitly triggers build too, but Goldsky CLI doesn't, so we do it explicitly.
     $GRAPH_CLI build

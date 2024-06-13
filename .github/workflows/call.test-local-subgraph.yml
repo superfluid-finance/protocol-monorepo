@@ -101,7 +101,7 @@ jobs:
 
       - name: "Docker compose"
         run: |
-          docker-compose down --rmi all --remove-orphans
+          docker rm subgraph_graph-node_1 || true
           docker-compose up &
         working-directory: ${{ env.subgraph-working-directory }}
 

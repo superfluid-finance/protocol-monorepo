@@ -128,9 +128,9 @@ deploy_to_goldsky() {
 
     #Get subgraph version from package.json
     PACKAGE_JSON_PATH="package.json"
-    VERSION_LABEL=$($JQ -r '.version' $PACKAGE_JSON_PATH)
+    SUBGRAPH_VERSION=$($JQ -r '.version' $PACKAGE_JSON_PATH)
 
-    local subgraphName="protocol-$DEPLOYMENT_ENV-$network/$VERSION_LABEL"
+    local subgraphName="protocol-$DEPLOYMENT_ENV-$network/$SUBGRAPH_VERSION"
 
     # Note: when using Graph CLI to deploy, it implicitly triggers build too, but Goldsky CLI doesn't, so we do it explicitly.
     $GRAPH_CLI build

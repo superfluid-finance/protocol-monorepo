@@ -17,7 +17,6 @@ on:
         type: choice
         options:
           - superfluid
-          - graph
           - goldsky
           - airstack
       deployment_env:

@@ -126,7 +126,11 @@ deploy_to_goldsky() {
     local network="$1"
     # TODO: use tagging?
 
-    local subgraphName="protocol-$DEPLOYMENT_ENV-$network/1.0.0"
+    #Get subgraph version from package.json
+    PACKAGE_JSON_PATH="package.json"
+    SUBGRAPH_VERSION=$($JQ -r '.version' $PACKAGE_JSON_PATH)
+
+    local subgraphName="protocol-$DEPLOYMENT_ENV-$network/$SUBGRAPH_VERSION"
 
     # Note: when using Graph CLI to deploy, it implicitly triggers build too, but Goldsky CLI doesn't, so we do it explicitly.
     $GRAPH_CLI build

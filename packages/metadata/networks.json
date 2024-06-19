@@ -183,7 +183,7 @@
         "uppercaseName": "BASE_SEPOLIA",
         "humanReadableName": "Base Sepolia",
         "nativeTokenSymbol": "ETH",
-        "nativeTokenWrapper": "",
+        "nativeTokenWrapper": "0x143ea239159155B408e71CDbE836e8CFD6766732",
         "contractsV1": {
             "resolver": "0x21d4E9fbB9DB742E6ef4f29d189a7C18B0b59136",
             "host": "0x109412E3C84f0539b43d39dB691B08c90f58dC7c",

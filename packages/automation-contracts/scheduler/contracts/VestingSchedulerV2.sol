@@ -623,6 +623,8 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         bytes32 configHash = keccak256(abi.encodePacked(superToken, sender, receiver));
         VestingSchedule memory schedule = vestingSchedules[configHash];
 
+        if(schedule.cliffAndFlowDate == 0) revert AlreadyExecuted();
+
         uint32 latestExecutionDate = schedule.claimValidityDate > 0 
             ? schedule.claimValidityDate
             : schedule.cliffAndFlowDate + START_DATE_VALID_AFTER;
@@ -632,6 +634,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
             if (msg.sender != sender && msg.sender != receiver) {
                 revert CannotClaimScheduleOnBehalf();
             }
+            delete vestingSchedules[configHash].claimValidityDate;
         }
         
         // Ensure that that the claming date is after the cliff/flow date and before the early end of the schedule
@@ -680,12 +683,13 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         bytes32 configHash = keccak256(abi.encodePacked(superToken, sender, receiver));
         VestingSchedule memory schedule = vestingSchedules[configHash];
 
+        if (schedule.endDate == 0) revert AlreadyExecuted();
         if (schedule.endDate - END_DATE_VALID_BEFORE > block.timestamp) revert TimeWindowInvalid();
 
         // Invalidate configuration straight away -- avoid any chance of re-execution or re-entry.
         delete vestingSchedules[configHash];
         // If vesting is not running, we can't do anything, just emit failing event.
-        if(_isFlowOngoing(superToken, sender, receiver)) {
+        if (_isFlowOngoing(superToken, sender, receiver)) {
             // delete first the stream and unlock deposit amount.
             cfaV1.deleteFlowByOperator(sender, receiver, superToken);
 

@@ -16,6 +16,7 @@ interface IVestingSchedulerV2 {
     error ScheduleDoesNotExist();
     error ScheduleNotFlowing();
     error CannotClaimScheduleOnBehalf();
+    error AlreadyExecuted();
 
     /**
      * @dev Vesting configuration provided by user.
@@ -233,7 +234,7 @@ interface IVestingSchedulerV2 {
      * @param receiver Vesting receiver
      * @param totalAmount The total amount to be vested
      * @param totalDuration The total duration of the vesting
-     * @param claimValidityDate Date before which the claimable schedule must be claimed
+     * @param claimPeriod The claim availability period
      * @param cliffPeriod The cliff period of the vesting
      * @param startDate Timestamp when the vesting should start
      * @param ctx Superfluid context used when batching operations. (or bytes(0) if not SF batching)
@@ -243,7 +244,7 @@ interface IVestingSchedulerV2 {
         address receiver,
         uint256 totalAmount,
         uint32 totalDuration,
-        uint32 claimValidityDate,
+        uint32 claimPeriod,
         uint32 cliffPeriod,
         uint32 startDate,
         bytes memory ctx
@@ -257,7 +258,7 @@ interface IVestingSchedulerV2 {
         address receiver,
         uint256 totalAmount,
         uint32 totalDuration,
-        uint32 claimValidityDate,
+        uint32 claimPeriod,
         uint32 cliffPeriod,
         uint32 startDate
     ) external;
@@ -271,7 +272,7 @@ interface IVestingSchedulerV2 {
         address receiver,
         uint256 totalAmount,
         uint32 totalDuration,
-        uint32 claimValidityDate,
+        uint32 claimPeriod,
         uint32 cliffPeriod
     ) external;
 
@@ -285,7 +286,7 @@ interface IVestingSchedulerV2 {
         address receiver,
         uint256 totalAmount,
         uint32 totalDuration,
-        uint32 claimValidityDate
+        uint32 claimPeriod
     ) external;
 
     /**

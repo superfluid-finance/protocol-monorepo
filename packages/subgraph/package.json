@@ -52,11 +52,11 @@
     "dependencies": {
         "@graphprotocol/graph-cli": "0.73.0",
         "@graphprotocol/graph-ts": "0.35.1",
-        "@superfluid-finance/sdk-core": "^0.7.0",
+        "@superfluid-finance/sdk-core": "^0.7.1",
         "mustache": "^4.2.0"
     },
     "devDependencies": {
-        "@superfluid-finance/metadata": "^1.1.30",
+        "@superfluid-finance/metadata": "^1.2.6",
         "coingecko-api": "^1.0.10",
         "graphql": "^16.8.1",
         "graphql-request": "^6.1.0",

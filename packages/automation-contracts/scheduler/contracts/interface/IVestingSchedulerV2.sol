@@ -367,6 +367,20 @@ interface IVestingSchedulerV2 {
     );
 
     /**
+     * @dev Emitted when a claimable vesting schedule is claimed
+     * @param superToken The superToken to be vested
+     * @param sender Vesting sender
+     * @param receiver Vesting receiver
+     * @param claimer Account that claimed the vesting (can only be sender or receiver)
+     */
+    event VestingClaimed(
+        ISuperToken indexed superToken,
+        address indexed sender,
+        address indexed receiver,
+        address claimer
+    );
+
+    /**
      * @dev Executes a cliff (transfer and stream start)
      * @notice Intended to be invoked by a backend service
      * @param superToken SuperToken to be streamed

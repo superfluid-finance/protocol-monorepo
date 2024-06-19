@@ -635,6 +635,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
                 revert CannotClaimScheduleOnBehalf();
             }
             delete vestingSchedules[configHash].claimValidityDate;
+            emit VestingClaimed(superToken, sender, receiver, msg.sender);
         }
         
         // Ensure that that the claming date is after the cliff/flow date and before the early end of the schedule

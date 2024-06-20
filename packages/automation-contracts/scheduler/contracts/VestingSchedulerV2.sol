@@ -174,11 +174,9 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
             params.endDate - cliffAndFlowDate < MIN_VESTING_DURATION
         ) revert TimeWindowInvalid();
 
-        // NOTE : claimable schedule created with a claim validity date equal to 0 is considered regular schedule
+        // Note : claimable schedule created with a claim validity date equal to 0 is considered regular schedule
         if(params.claimValidityDate != 0) {
-            if (params.claimValidityDate < cliffAndFlowDate ||
-                params.claimValidityDate > params.endDate - END_DATE_VALID_BEFORE
-            ) revert TimeWindowInvalid();
+            if (params.claimValidityDate < cliffAndFlowDate) revert TimeWindowInvalid();
         }
 
         bytes32 hashConfig = keccak256(abi.encodePacked(params.superToken, sender, params.receiver));
@@ -638,7 +636,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
             emit VestingClaimed(superToken, sender, receiver, msg.sender);
         }
         
-        // Ensure that that the claming date is after the cliff/flow date and before the early end of the schedule
+        // Ensure that that the claming date is after the cliff/flow date and before the claim validity date
         if (schedule.cliffAndFlowDate > block.timestamp ||
             latestExecutionDate < block.timestamp
         ) revert TimeWindowInvalid();
@@ -647,31 +645,45 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         delete vestingSchedules[configHash].cliffAndFlowDate;
         delete vestingSchedules[configHash].cliffAmount;
 
-        // Compensate for the fact that flow will almost always be executed slightly later than scheduled.
-        uint256 flowDelayCompensation = (block.timestamp - schedule.cliffAndFlowDate) * uint96(schedule.flowRate);
-
-        // If there's cliff or compensation then transfer that amount.
-        if (schedule.cliffAmount != 0 || flowDelayCompensation != 0) {
+        // If the claim validity date is after the end date and the end date is passed, only transfer the total vested amount
+        if (schedule.claimValidityDate != 0 && block.timestamp >= schedule.endDate) {
+            // Calculate the total vested amount
+            uint256 totalVestedAmount = schedule.cliffAmount +
+                schedule.remainderAmount +
+                (schedule.endDate - schedule.cliffAndFlowDate) * 
+                SafeCast.toUint256(schedule.flowRate);
+            
             superToken.transferFrom(
                 sender,
                 receiver,
-                schedule.cliffAmount + flowDelayCompensation
+                totalVestedAmount
+            );
+        } else {
+            // Compensate for the fact that flow will almost always be executed slightly later than scheduled.
+            uint256 flowDelayCompensation = (block.timestamp - schedule.cliffAndFlowDate) * uint96(schedule.flowRate);
+
+            // If there's cliff or compensation then transfer that amount.
+            if (schedule.cliffAmount != 0 || flowDelayCompensation != 0) {
+                superToken.transferFrom(
+                    sender,
+                    receiver,
+                    schedule.cliffAmount + flowDelayCompensation
+                );
+            }
+
+            // Create a flow according to the vesting schedule configuration.
+            cfaV1.createFlowByOperator(sender, receiver, superToken, schedule.flowRate);
+            
+            emit VestingCliffAndFlowExecuted(
+                superToken,
+                sender,
+                receiver,
+                schedule.cliffAndFlowDate,
+                schedule.flowRate,
+                schedule.cliffAmount,
+                flowDelayCompensation
             );
         }
-
-        // Create a flow according to the vesting schedule configuration.
-        cfaV1.createFlowByOperator(sender, receiver, superToken, schedule.flowRate);
-
-        emit VestingCliffAndFlowExecuted(
-            superToken,
-            sender,
-            receiver,
-            schedule.cliffAndFlowDate,
-            schedule.flowRate,
-            schedule.cliffAmount,
-            flowDelayCompensation
-        );
-
         return true;
     }
 

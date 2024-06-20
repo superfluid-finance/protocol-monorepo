@@ -126,16 +126,16 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
 
     function _createVestingScheduleWithDefaultData(address sender, address receiver) private {
         vm.startPrank(sender);
-        vestingScheduler.createVestingSchedule(
-            superToken,
-            receiver,
-            START_DATE,
-            CLIFF_DATE,
-            FLOW_RATE,
-            CLIFF_TRANSFER_AMOUNT,
-            END_DATE,
-            EMPTY_CTX
-        );
+    vestingScheduler.createVestingSchedule(
+        superToken,
+        receiver,
+        START_DATE,
+        CLIFF_DATE,
+        FLOW_RATE,
+        CLIFF_TRANSFER_AMOUNT,
+        END_DATE,
+        EMPTY_CTX
+    );
         vm.stopPrank();
     }
 
@@ -850,6 +850,11 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         vm.stopPrank();
     }
 
+    struct BigTestData {
+        uint256 beforeSenderBalance;
+        uint256 beforeReceiverBalance;
+    }
+
     function test_createScheduleFromAmountAndDuration_executeCliffAndFlow_executeEndVesting(
         uint256 totalAmount,
         uint32 totalDuration,
@@ -867,29 +872,31 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         vm.assume(cliffPeriod <= totalDuration - vestingScheduler.MIN_VESTING_DURATION());
         vm.assume(totalDuration < 18250 days /* 50 years */);
 
-        uint256 beforeSenderBalance = superToken.balanceOf(alice);
-        uint256 beforeReceiverBalance = superToken.balanceOf(bob);
+        BigTestData memory $;
+
+        $.beforeSenderBalance = superToken.balanceOf(alice);
+        $.beforeReceiverBalance = superToken.balanceOf(bob);
 
         vm.assume(totalAmount > 1);
         vm.assume(totalAmount >= totalDuration);
         vm.assume(totalAmount / totalDuration <= SafeCast.toUint256(type(int96).max));
-        vm.assume(totalAmount <= beforeSenderBalance);
+        vm.assume(totalAmount <= $.beforeSenderBalance);
 
-        IVestingSchedulerV2.VestingSchedule memory nullSchedule = vestingScheduler.getVestingSchedule(address(superToken), alice, bob);
-        assertTrue(nullSchedule.endDate == 0, "Schedule should not exist");
+        assertTrue(vestingScheduler.getVestingSchedule(address(superToken), alice, bob).endDate == 0, "Schedule should not exist");
 
         // Arrange
         IVestingSchedulerV2.VestingSchedule memory expectedSchedule = _getExpectedScheduleFromAmountAndDuration(
             totalAmount,
             totalDuration,
             cliffPeriod,
-            startDate
+            startDate,
+            0
         );
         uint32 expectedCliffDate = cliffPeriod == 0 ? 0 : expectedSchedule.cliffAndFlowDate;
         uint32 expectedStartDate = startDate == 0 ? uint32(block.timestamp) : startDate;
 
         // Assume we're not getting liquidated at the end:
-        vm.assume(totalAmount <= (beforeSenderBalance - vestingScheduler.END_DATE_VALID_BEFORE() * SafeCast.toUint256(expectedSchedule.flowRate)));
+        vm.assume(totalAmount <= ($.beforeSenderBalance - vestingScheduler.END_DATE_VALID_BEFORE() * SafeCast.toUint256(expectedSchedule.flowRate)));
 
         console.log("Total amount: %s", totalAmount);
         console.log("Total duration: %s", totalDuration);
@@ -903,12 +910,40 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         console.log("Expected flow rate: %s", SafeCast.toUint256(expectedSchedule.flowRate));
         console.log("Expected cliff amount: %s", expectedSchedule.cliffAmount);
         console.log("Expected remainder amount: %s", expectedSchedule.remainderAmount);
-        console.log("Sender balance: %s", beforeSenderBalance);
+        console.log("Sender balance: %s", $.beforeSenderBalance);
 
-        _arrangeAllowances(alice, expectedSchedule.flowRate);
+        // Arrange allowance
+        assertTrue(superToken.allowance(alice, address(vestingScheduler)) == 0, "Let's start without any allowance");
+
+        vm.startPrank(alice);
+        superToken.revokeFlowPermissions(address(vestingScheduler));
+        superToken.setFlowPermissions(
+            address(vestingScheduler),
+            true, // allowCreate
+            false, // allowUpdate
+            true, // allowDelete,
+            expectedSchedule.flowRate
+        );
+        superToken.approve(address(vestingScheduler), vestingScheduler.getMaximumNeededTokenAllowance(expectedSchedule));
+        vm.stopPrank();
 
         vm.expectEmit();
         emit VestingScheduleCreated(superToken, alice, bob, expectedStartDate, expectedCliffDate, expectedSchedule.flowRate, expectedSchedule.endDate, expectedSchedule.cliffAmount, 0, expectedSchedule.remainderAmount);
+
+        // Intermediary `getCreateVestingScheduleParamsFromAmountAndDuration` test
+        assertAreScheduleCreationParamsEqual(
+            IVestingSchedulerV2.ScheduleCreationParams(
+                superToken,
+                bob,
+                expectedStartDate,
+                expectedSchedule.claimValidityDate,
+                expectedCliffDate,
+                expectedSchedule.flowRate,
+                expectedSchedule.cliffAmount,
+                expectedSchedule.endDate,
+                expectedSchedule.remainderAmount
+            ), 
+            vestingScheduler.getCreateVestingScheduleParamsFromAmountAndDuration(superToken, bob, totalAmount, totalDuration, cliffPeriod, startDate, 0));
 
         // Act
         vm.startPrank(alice);
@@ -982,11 +1017,26 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         uint256 afterSenderBalance = superToken.balanceOf(alice);
         uint256 afterReceiverBalance = superToken.balanceOf(bob);
 
-        assertEq(afterSenderBalance, beforeSenderBalance - totalAmount, "Sender balance should decrease by totalAmount");
-        assertEq(afterReceiverBalance, beforeReceiverBalance + totalAmount, "Receiver balance should increase by totalAmount");
+        assertEq(afterSenderBalance, $.beforeSenderBalance - totalAmount, "Sender balance should decrease by totalAmount");
+        assertEq(afterReceiverBalance, $.beforeReceiverBalance + totalAmount, "Receiver balance should increase by totalAmount");
 
         vm.warp(type(uint32).max);
         assertEq(afterSenderBalance, superToken.balanceOf(alice), "After the schedule has ended, the sender's balance should never change.");
+    }
+
+    function assertAreScheduleCreationParamsEqual(
+        IVestingSchedulerV2.ScheduleCreationParams memory params1,
+        IVestingSchedulerV2.ScheduleCreationParams memory params2
+    ) internal pure {
+        require(params1.superToken == params2.superToken, "SuperToken mismatch");
+        require(params1.receiver == params2.receiver, "Receiver mismatch");
+        require(params1.startDate == params2.startDate, "StartDate mismatch");
+        require(params1.claimValidityDate == params2.claimValidityDate, "ClaimValidityDate mismatch");
+        require(params1.cliffDate == params2.cliffDate, "CliffDate mismatch");
+        require(params1.flowRate == params2.flowRate, "FlowRate mismatch");
+        require(params1.cliffAmount == params2.cliffAmount, "CliffAmount mismatch");
+        require(params1.endDate == params2.endDate, "EndDate mismatch");
+        require(params1.remainderAmount == params2.remainderAmount, "RemainderAmount mismatch");
     }
 
     // Claimable Vesting Schedules tests
@@ -1645,7 +1695,6 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         assertEq(success, false);
     }
 
-
     function _getExpectedSchedule(
         uint32 startDate,
         uint32 cliffDate,
@@ -1673,7 +1722,8 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         uint256 totalAmount,
         uint32 totalDuration,
         uint32 cliffPeriod,
-        uint32 startDate
+        uint32 startDate,
+        uint32 claimPeriod
     ) public view returns (IVestingSchedulerV2.VestingSchedule memory expectedSchedule) {
         if (startDate == 0) {
             startDate = uint32(block.timestamp);
@@ -1701,10 +1751,96 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         expectedSchedule = IVestingSchedulerV2.VestingSchedule({
             cliffAndFlowDate: cliffAndFlowDate,
             endDate: endDate,
-            claimValidityDate: 0,
             flowRate: flowRate,
             cliffAmount: cliffAmount,
-            remainderAmount: remainderAmount
+            remainderAmount: remainderAmount,
+            claimValidityDate: claimPeriod == 0 ? 0 : startDate + claimPeriod
         });
+    }
+
+    function test_getMaximumNeededTokenAllowance_should_end_with_zero_if_extreme_ranges_are_used(
+        uint256 totalAmount,
+        uint32 totalDuration,
+        uint32 cliffPeriod,
+        uint32 startDate,
+        uint8 randomizer
+    ) public {
+        // Assume
+        vm.assume(randomizer != 0);
+        
+        vm.assume(startDate == 0 || startDate >= block.timestamp);
+        vm.assume(startDate < 2524600800 /* year 2050 */);
+
+        vm.assume(totalDuration > vestingScheduler.MIN_VESTING_DURATION());
+        vm.assume(cliffPeriod <= totalDuration - vestingScheduler.MIN_VESTING_DURATION());
+        vm.assume(totalDuration < 18250 days /* 50 years */);
+
+        uint256 beforeSenderBalance = superToken.balanceOf(alice);
+
+        vm.assume(totalAmount > 1);
+        vm.assume(totalAmount >= totalDuration);
+        vm.assume(totalAmount / totalDuration <= SafeCast.toUint256(type(int96).max));
+        vm.assume(totalAmount <= beforeSenderBalance);
+
+        // Arrange
+        IVestingSchedulerV2.VestingSchedule memory expectedSchedule = _getExpectedScheduleFromAmountAndDuration(
+            totalAmount,
+            totalDuration,
+            cliffPeriod,
+            startDate,
+            0 // TODO: Test with claim period.
+        );
+
+        // Assume we're not getting liquidated at the end:
+        vm.assume(totalAmount <= (beforeSenderBalance - vestingScheduler.END_DATE_VALID_BEFORE() * SafeCast.toUint256(expectedSchedule.flowRate)));
+
+        // Arrange allowance
+        vm.assume(superToken.allowance(alice, address(vestingScheduler)) == 0);
+
+        vm.startPrank(alice);
+        superToken.revokeFlowPermissions(address(vestingScheduler));
+        superToken.setFlowPermissions(
+            address(vestingScheduler),
+            true, // allowCreate
+            false, // allowUpdate
+            true, // allowDelete,
+            expectedSchedule.flowRate
+        );
+        superToken.approve(address(vestingScheduler), vestingScheduler.getMaximumNeededTokenAllowance(expectedSchedule));
+        vm.stopPrank();
+
+        // Act
+        vm.startPrank(alice);
+        vestingScheduler.createVestingScheduleFromAmountAndDuration(
+            superToken,
+            bob,
+            totalAmount,
+            totalDuration,
+            cliffPeriod,
+            startDate,
+            EMPTY_CTX
+        );
+        vm.stopPrank();
+
+        // Assert
+        assertEq(vestingScheduler.getMaximumNeededTokenAllowance(expectedSchedule), vestingScheduler.getMaximumNeededTokenAllowance(address(superToken), alice, bob), "The overloads don't return same values");
+
+        // Act
+        vm.warp(expectedSchedule.cliffAndFlowDate + (vestingScheduler.START_DATE_VALID_AFTER()));
+        assertTrue(vestingScheduler.executeCliffAndFlow(superToken, alice, bob));
+
+        if (randomizer % 2 == 0) {
+            // Let's set the allowance again half-way through.
+            vm.startPrank(alice);
+            superToken.approve(address(vestingScheduler), vestingScheduler.getMaximumNeededTokenAllowance(address(superToken), alice, bob));
+            vm.stopPrank();
+        }
+
+        // Act
+        vm.warp(expectedSchedule.endDate - (vestingScheduler.END_DATE_VALID_BEFORE()));
+        assertTrue(vestingScheduler.executeEndVesting(superToken, alice, bob));
+
+        // Assert
+        assertTrue(superToken.allowance(alice, address(vestingScheduler)) == 0, "No allowance should be left");
     }
 }

@@ -400,7 +400,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         );
 
         address sender = _getSender(ctx);
-        assert(_executeCliffAndFlow(superToken, sender, receiver));
+        assert(_executeCliffAndFlow(superToken, sender, receiver, uint32(block.timestamp)));
     }
 
     /// @dev IVestingScheduler.createClaimableVestingSchedule implementation.
@@ -609,33 +609,64 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         address sender,
         address receiver
     ) external returns (bool success) {
-        return _executeCliffAndFlow(superToken, sender, receiver);
-    }
-
-    /// @dev IVestingScheduler.executeCliffAndFlow implementation.
-    function _executeCliffAndFlow(
-        ISuperToken superToken,
-        address sender,
-        address receiver
-    ) private returns (bool success) {
         bytes32 configHash = keccak256(abi.encodePacked(superToken, sender, receiver));
         VestingSchedule memory schedule = vestingSchedules[configHash];
-
-        if(schedule.cliffAndFlowDate == 0) revert AlreadyExecuted();
-
-        uint32 latestExecutionDate = schedule.claimValidityDate > 0 
-            ? schedule.claimValidityDate
-            : schedule.cliffAndFlowDate + START_DATE_VALID_AFTER;
 
         if (schedule.claimValidityDate > 0) {
             // Ensure that the caller is the sender or the receiver if the vesting schedule requires claiming.
             if (msg.sender != sender && msg.sender != receiver) {
                 revert CannotClaimScheduleOnBehalf();
             }
+
             delete vestingSchedules[configHash].claimValidityDate;
             emit VestingClaimed(superToken, sender, receiver, msg.sender);
+            
+            if (block.timestamp > schedule.endDate - END_DATE_VALID_BEFORE) {
+
+                uint256 totalVestedAmount = schedule.cliffAmount +
+                    schedule.remainderAmount +
+                    (schedule.endDate - schedule.cliffAndFlowDate) * 
+                    SafeCast.toUint256(schedule.flowRate);
+
+                emit VestingCliffAndFlowExecuted(
+                    superToken,
+                    sender,
+                    receiver,
+                    schedule.cliffAndFlowDate,
+                    0,
+                    schedule.cliffAmount,
+                    0
+                );
+
+                emit VestingEndExecuted(
+                    superToken,
+                    sender,
+                    receiver,
+                    schedule.endDate,
+                    totalVestedAmount,
+                    false
+                );
+                return superToken.transferFrom(sender, receiver, totalVestedAmount);
+            } else {
+                return _executeCliffAndFlow(superToken, sender, receiver, schedule.claimValidityDate);
+            }
+        } else {
+            return _executeCliffAndFlow(superToken, sender, receiver, schedule.cliffAndFlowDate + START_DATE_VALID_AFTER);
         }
-        
+    }
+
+    /// @dev IVestingScheduler.executeCliffAndFlow implementation.
+    function _executeCliffAndFlow(
+        ISuperToken superToken,
+        address sender,
+        address receiver,
+        uint32 latestExecutionDate
+    ) private returns (bool success) {
+        bytes32 configHash = keccak256(abi.encodePacked(superToken, sender, receiver));
+        VestingSchedule memory schedule = vestingSchedules[configHash];
+
+        if(schedule.cliffAndFlowDate == 0) revert AlreadyExecuted();
+
         // Ensure that that the claming date is after the cliff/flow date and before the claim validity date
         if (schedule.cliffAndFlowDate > block.timestamp ||
             latestExecutionDate < block.timestamp
@@ -645,45 +676,29 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         delete vestingSchedules[configHash].cliffAndFlowDate;
         delete vestingSchedules[configHash].cliffAmount;
 
-        // If the claim validity date is after the end date and the end date is passed, only transfer the total vested amount
-        if (schedule.claimValidityDate != 0 && block.timestamp >= schedule.endDate) {
-            // Calculate the total vested amount
-            uint256 totalVestedAmount = schedule.cliffAmount +
-                schedule.remainderAmount +
-                (schedule.endDate - schedule.cliffAndFlowDate) * 
-                SafeCast.toUint256(schedule.flowRate);
-            
+        // Compensate for the fact that flow will almost always be executed slightly later than scheduled.
+        uint256 flowDelayCompensation = (block.timestamp - schedule.cliffAndFlowDate) * uint96(schedule.flowRate);
+
+        // If there's cliff or compensation then transfer that amount.
+        if (schedule.cliffAmount != 0 || flowDelayCompensation != 0) {
             superToken.transferFrom(
                 sender,
                 receiver,
-                totalVestedAmount
-            );
-        } else {
-            // Compensate for the fact that flow will almost always be executed slightly later than scheduled.
-            uint256 flowDelayCompensation = (block.timestamp - schedule.cliffAndFlowDate) * uint96(schedule.flowRate);
-
-            // If there's cliff or compensation then transfer that amount.
-            if (schedule.cliffAmount != 0 || flowDelayCompensation != 0) {
-                superToken.transferFrom(
-                    sender,
-                    receiver,
-                    schedule.cliffAmount + flowDelayCompensation
-                );
-            }
-
-            // Create a flow according to the vesting schedule configuration.
-            cfaV1.createFlowByOperator(sender, receiver, superToken, schedule.flowRate);
-            
-            emit VestingCliffAndFlowExecuted(
-                superToken,
-                sender,
-                receiver,
-                schedule.cliffAndFlowDate,
-                schedule.flowRate,
-                schedule.cliffAmount,
-                flowDelayCompensation
+                schedule.cliffAmount + flowDelayCompensation
             );
         }
+        // Create a flow according to the vesting schedule configuration.
+        cfaV1.createFlowByOperator(sender, receiver, superToken, schedule.flowRate);
+        emit VestingCliffAndFlowExecuted(
+            superToken,
+            sender,
+            receiver,
+            schedule.cliffAndFlowDate,
+            schedule.flowRate,
+            schedule.cliffAmount,
+            flowDelayCompensation
+        );
+
         return true;
     }
 

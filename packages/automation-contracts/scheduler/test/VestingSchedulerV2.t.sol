@@ -1696,7 +1696,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
 
         uint32 endDate = startDate + totalDuration;
 
-        uint256 remainderAmount = totalAmount - SafeCast.toUint256(flowRate) * totalDuration;
+        uint96 remainderAmount = SafeCast.toUint96(totalAmount - SafeCast.toUint256(flowRate) * totalDuration);
 
         expectedSchedule = IVestingSchedulerV2.VestingSchedule({
             cliffAndFlowDate: cliffAndFlowDate,

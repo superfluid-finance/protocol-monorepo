@@ -30,10 +30,12 @@ interface IVestingSchedulerV2 {
     struct VestingSchedule {
         uint32 cliffAndFlowDate;
         uint32 endDate;
-        uint32 claimValidityDate;
         int96 flowRate;
+
         uint256 cliffAmount;
-        uint256 remainderAmount; // TODO: consider packing
+
+        uint96 remainderAmount;
+        uint32 claimValidityDate;
     }
 
     /**
@@ -120,6 +122,24 @@ interface IVestingSchedulerV2 {
         uint32 startDate,
         bytes memory ctx
     ) external returns (bytes memory newCtx);
+
+    // function getExpectedVestingScheduleFromAmountAndDuration(
+    //     ISuperToken superToken,
+    //     address receiver,
+    //     uint256 totalAmount,
+    //     uint32 totalDuration,
+    //     uint32 cliffPeriod,
+    //     uint32 startDate,
+    //     uint32 claimPeriod
+    // ) external returns (bytes memory VestingSchedule);
+
+    // function getMaximumNeededTokenAllowance(
+    //     VestingSchedule memory vestingSchedule
+    // ) external returns (uint256);
+
+    // function getMaximumNeededTokenAllowance(
+    //     address superToken, address sender, address receiver
+    // ) external returns (uint256);
 
     /**
      * @dev See IVestingScheduler.createVestingScheduleFromAmountAndDuration overload for more details.

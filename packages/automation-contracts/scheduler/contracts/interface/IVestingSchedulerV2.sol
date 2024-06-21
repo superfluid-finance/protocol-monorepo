@@ -30,10 +30,37 @@ interface IVestingSchedulerV2 {
     struct VestingSchedule {
         uint32 cliffAndFlowDate;
         uint32 endDate;
+        int96 flowRate;
+
+        uint256 cliffAmount;
+
+        uint96 remainderAmount;
         uint32 claimValidityDate;
+    }
+
+        /**
+     * @dev Parameters used to create vesting schedules
+     * @param superToken SuperToken to be vested
+     * @param receiver Vesting receiver
+     * @param startDate Timestamp when the vesting should start
+     * @param claimValidityDate Date before which the claimable schedule must be claimed
+     * @param cliffDate Timestamp of cliff exectution - if 0, startDate acts as cliff
+     * @param flowRate The flowRate for the stream
+     * @param cliffAmount The amount to be transferred at the cliff
+     * @param endDate The timestamp when the stream should stop.
+     * @param remainderAmount Amount transferred during early end to achieve an accurate "total vested amount"
+     * @param ctx Superfluid context used when batching operations. (or bytes(0) if not SF batching)
+     */
+    struct ScheduleCreationParams {
+        ISuperToken superToken;
+        address receiver;
+        uint32 startDate;
+        uint32 claimValidityDate;
+        uint32 cliffDate;
         int96 flowRate;
         uint256 cliffAmount;
-        uint256 remainderAmount; // TODO: consider packing
+        uint32 endDate;
+        uint96 remainderAmount;
     }
 
     /**
@@ -120,6 +147,45 @@ interface IVestingSchedulerV2 {
         uint32 startDate,
         bytes memory ctx
     ) external returns (bytes memory newCtx);
+
+    /**
+     * @dev Returns all relevant information related to a new vesting schedule creation 
+     * @dev based on the amounts and durations.
+     * @param superToken SuperToken to be vested
+     * @param receiver Vesting receiver
+     * @param totalAmount The total amount to be vested 
+     * @param totalDuration The total duration of the vestingß
+     * @param cliffPeriod The cliff period of the vesting
+     * @param startDate Timestamp when the vesting should start
+     */
+    function getCreateVestingScheduleParamsFromAmountAndDuration(
+        ISuperToken superToken,
+        address receiver,
+        uint256 totalAmount,
+        uint32 totalDuration,
+        uint32 cliffPeriod,
+        uint32 startDate,
+        uint32 claimPeriod
+    ) external returns (ScheduleCreationParams memory params);
+
+    /**
+     * @dev Estimates the maximum possible ERC-20 token allowance needed for the vesting schedule 
+     * @dev to work properly under all circumstances.
+     * @param vestingSchedule A vesting schedule (doesn't have to exist)
+     */
+    function getMaximumNeededTokenAllowance(
+        VestingSchedule memory vestingSchedule
+    ) external returns (uint256);
+
+    /**
+     * @dev Estimates maximum ERC-20 token allowance needed for an existing vesting schedule.
+     * @param superToken SuperToken to be vested
+     * @param sender Vesting sender
+     * @param receiver Vesting receiver
+     */
+    function getMaximumNeededTokenAllowance(
+        address superToken, address sender, address receiver
+    ) external returns (uint256);
 
     /**
      * @dev See IVestingScheduler.createVestingScheduleFromAmountAndDuration overload for more details.

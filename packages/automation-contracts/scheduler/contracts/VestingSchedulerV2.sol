@@ -34,12 +34,12 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         );
         // Superfluid SuperApp registration. This is a dumb SuperApp, only for front-end tx batch calls.
         uint256 configWord = SuperAppDefinitions.APP_LEVEL_FINAL |
-            SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP |
-            SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP |
-            SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP |
-            SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP |
-            SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP |
-            SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP;
+        SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP |
+        SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP |
+        SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP |
+        SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP |
+        SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP |
+        SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP;
         host.registerApp(configWord);
     }
 
@@ -101,7 +101,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         bytes memory ctx
     ) private returns (bytes memory newCtx) {
         newCtx = ctx;
-        address sender = _getSender(newCtx);
+        address sender = _getSender(ctx);
 
         // Default to current block timestamp if no start date is provided.
         if (params.startDate == 0) {
@@ -113,24 +113,18 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         if (params.startDate < block.timestamp) revert TimeWindowInvalid();
         if (params.endDate <= END_DATE_VALID_BEFORE) revert TimeWindowInvalid();
 
-        if (params.receiver == address(0) || params.receiver == sender)
-            revert AccountInvalid();
+        if (params.receiver == address(0) || params.receiver == sender) revert AccountInvalid();
         if (address(params.superToken) == address(0)) revert ZeroAddress();
         if (params.flowRate <= 0) revert FlowRateInvalid();
-        if (params.cliffDate != 0 && params.startDate > params.cliffDate)
-            revert TimeWindowInvalid();
-        if (params.cliffDate == 0 && params.cliffAmount != 0)
-            revert CliffInvalid();
+        if (params.cliffDate != 0 && params.startDate > params.cliffDate) revert TimeWindowInvalid();
+        if (params.cliffDate == 0 && params.cliffAmount != 0) revert CliffInvalid();
 
-        uint32 cliffAndFlowDate = params.cliffDate == 0
-            ? params.startDate
-            : params.cliffDate;
+        uint32 cliffAndFlowDate = params.cliffDate == 0 ? params.startDate : params.cliffDate;
         // Note: Vesting Scheduler V2 allows cliff and flow to be in the schedule creation block, V1 didn't.
         if (
             cliffAndFlowDate < block.timestamp ||
             cliffAndFlowDate >= params.endDate ||
-            cliffAndFlowDate + START_DATE_VALID_AFTER >=
-            params.endDate - END_DATE_VALID_BEFORE ||
+            cliffAndFlowDate + START_DATE_VALID_AFTER >= params.endDate - END_DATE_VALID_BEFORE ||
             params.endDate - cliffAndFlowDate < MIN_VESTING_DURATION
         ) revert TimeWindowInvalid();
 
@@ -138,8 +132,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         if (params.claimValidityDate != 0) {
             if (
                 params.claimValidityDate < cliffAndFlowDate ||
-                params.claimValidityDate >
-                params.endDate - END_DATE_VALID_BEFORE
+                params.claimValidityDate > params.endDate - END_DATE_VALID_BEFORE
             ) revert TimeWindowInvalid();
         }
 
@@ -312,7 +305,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
                 0, // startDate
                 0 // claimValidityDate
             ),
-            bytes("")
+            ctx
         );
 
         address sender = _getSender(ctx);
@@ -477,9 +470,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         newCtx = ctx;
         address sender = _getSender(ctx);
 
-        bytes32 configHash = keccak256(
-            abi.encodePacked(superToken, sender, receiver)
-        );
+        bytes32 configHash = keccak256(abi.encodePacked(superToken, sender, receiver));
         VestingSchedule memory schedule = vestingSchedules[configHash];
 
         // TODO: It's possible that this changes the endDate to be less than the claimValidityDate
@@ -511,9 +502,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
     ) external returns (bytes memory newCtx) {
         newCtx = ctx;
         address sender = _getSender(ctx);
-        bytes32 configHash = keccak256(
-            abi.encodePacked(superToken, sender, receiver)
-        );
+        bytes32 configHash = keccak256(abi.encodePacked(superToken, sender, receiver));
 
         if (vestingSchedules[configHash].endDate != 0) {
             delete vestingSchedules[configHash];
@@ -538,9 +527,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         address sender,
         address receiver
     ) private returns (bool success) {
-        bytes32 configHash = keccak256(
-            abi.encodePacked(superToken, sender, receiver)
-        );
+        bytes32 configHash = keccak256(abi.encodePacked(superToken, sender, receiver));
         VestingSchedule memory schedule = vestingSchedules[configHash];
 
         if (schedule.cliffAndFlowDate == 0) revert AlreadyExecuted();
@@ -569,8 +556,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         delete vestingSchedules[configHash].cliffAmount;
 
         // Compensate for the fact that flow will almost always be executed slightly later than scheduled.
-        uint256 flowDelayCompensation = (block.timestamp -
-            schedule.cliffAndFlowDate) * uint96(schedule.flowRate);
+        uint256 flowDelayCompensation = (block.timestamp - schedule.cliffAndFlowDate) * uint96(schedule.flowRate);
 
         // If there's cliff or compensation then transfer that amount.
         if (schedule.cliffAmount != 0 || flowDelayCompensation != 0) {
@@ -582,12 +568,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         }
 
         // Create a flow according to the vesting schedule configuration.
-        cfaV1.createFlowByOperator(
-            sender,
-            receiver,
-            superToken,
-            schedule.flowRate
-        );
+        cfaV1.createFlowByOperator(sender, receiver, superToken, schedule.flowRate);
 
         emit VestingCliffAndFlowExecuted(
             superToken,
@@ -608,9 +589,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         address sender,
         address receiver
     ) external returns (bool success) {
-        bytes32 configHash = keccak256(
-            abi.encodePacked(superToken, sender, receiver)
-        );
+        bytes32 configHash = keccak256(abi.encodePacked(superToken, sender, receiver));
         VestingSchedule memory schedule = vestingSchedules[configHash];
 
         if (schedule.endDate == 0) revert AlreadyExecuted();
@@ -625,23 +604,15 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
             // delete first the stream and unlock deposit amount.
             cfaV1.deleteFlowByOperator(sender, receiver, superToken);
 
-            uint256 earlyEndCompensation = schedule.endDate >= block.timestamp
-                ? (schedule.endDate - block.timestamp) *
-                    uint96(schedule.flowRate) +
-                    schedule.remainderAmount
+            uint256 earlyEndCompensation = schedule.endDate >= block.timestamp 
+                ? (schedule.endDate - block.timestamp) * uint96(schedule.flowRate) + schedule.remainderAmount
                 : 0;
 
             // Note: we consider the compensation as failed if the stream is still ongoing after the end date.
             bool didCompensationFail = schedule.endDate < block.timestamp;
             if (earlyEndCompensation != 0) {
                 // Note: Super Tokens revert, not return false, i.e. we expect always true here.
-                assert(
-                    superToken.transferFrom(
-                        sender,
-                        receiver,
-                        earlyEndCompensation
-                    )
-                );
+                assert(superToken.transferFrom(sender, receiver, earlyEndCompensation));
             }
 
             emit VestingEndExecuted(
@@ -670,16 +641,11 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         address sender,
         address receiver
     ) public view returns (VestingSchedule memory) {
-        return
-            vestingSchedules[
-                keccak256(abi.encodePacked(supertoken, sender, receiver))
-            ];
+        return vestingSchedules[keccak256(abi.encodePacked(supertoken, sender, receiver))];
     }
 
     /// @dev get sender of transaction from Superfluid Context or transaction itself.
-    function _getSender(
-        bytes memory ctx
-    ) internal view returns (address sender) {
+    function _getSender(bytes memory ctx) internal view returns (address sender) {
         if (ctx.length != 0) {
             if (msg.sender != address(cfaV1.host)) revert HostInvalid();
             sender = cfaV1.host.decodeCtx(ctx).msgSender;
@@ -691,16 +657,8 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
     }
 
     /// @dev get flowRate of stream
-    function _isFlowOngoing(
-        ISuperToken superToken,
-        address sender,
-        address receiver
-    ) internal view returns (bool) {
-        (, int96 flowRate, , ) = cfaV1.cfa.getFlow(
-            superToken,
-            sender,
-            receiver
-        );
+    function _isFlowOngoing(ISuperToken superToken, address sender, address receiver) internal view returns (bool) {
+        (,int96 flowRate,,) = cfaV1.cfa.getFlow(superToken, sender, receiver);
         return flowRate != 0;
     }
 
@@ -793,22 +751,22 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
 
         if (schedule.claimValidityDate < schedule.cliffAndFlowDate + START_DATE_VALID_AFTER) {
             return
-                schedule.cliffAmount 
-              + schedule.remainderAmount 
-              + maxFlowDelayCompensationAmount 
-              + maxEarlyEndCompensationAmount;
+                schedule.cliffAmount +
+                schedule.remainderAmount +
+                maxFlowDelayCompensationAmount +
+                maxEarlyEndCompensationAmount;
         } else if (schedule.claimValidityDate > schedule.endDate) {
             // TODO: Test this once claiming after end date is merged.   
             uint256 totalVestedAmount = 
-                schedule.cliffAmount
-                + schedule.remainderAmount
-                + (schedule.endDate - schedule.cliffAndFlowDate) * SafeCast.toUint256(schedule.flowRate);
+                schedule.cliffAmount +
+                schedule.remainderAmount +
+                (schedule.endDate - schedule.cliffAndFlowDate) * SafeCast.toUint256(schedule.flowRate);
             return totalVestedAmount;
         } else {
-            return schedule.cliffAmount
-                + schedule.remainderAmount
-                + (schedule.claimValidityDate - schedule.cliffAndFlowDate) * SafeCast.toUint256(schedule.flowRate)
-                + maxEarlyEndCompensationAmount;
+            return schedule.cliffAmount +
+                   schedule.remainderAmount +
+                   (schedule.claimValidityDate - schedule.cliffAndFlowDate) * SafeCast.toUint256(schedule.flowRate) +
+                   maxEarlyEndCompensationAmount;
         }
     }
 }

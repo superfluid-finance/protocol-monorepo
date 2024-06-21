@@ -25,9 +25,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
             IConstantFlowAgreementV1(
                 address(
                     host.getAgreementClass(
-                        keccak256(
-                            "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
-                        )
+                        keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
                     )
                 )
             )
@@ -121,8 +119,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
 
         uint32 cliffAndFlowDate = params.cliffDate == 0 ? params.startDate : params.cliffDate;
         // Note: Vesting Scheduler V2 allows cliff and flow to be in the schedule creation block, V1 didn't.
-        if (
-            cliffAndFlowDate < block.timestamp ||
+        if (cliffAndFlowDate < block.timestamp ||
             cliffAndFlowDate >= params.endDate ||
             cliffAndFlowDate + START_DATE_VALID_AFTER >= params.endDate - END_DATE_VALID_BEFORE ||
             params.endDate - cliffAndFlowDate < MIN_VESTING_DURATION
@@ -130,17 +127,14 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
 
         // NOTE : claimable schedule created with a claim validity date equal to 0 is considered regular schedule
         if (params.claimValidityDate != 0) {
-            if (
-                params.claimValidityDate < cliffAndFlowDate ||
+            if (params.claimValidityDate < cliffAndFlowDate ||
                 params.claimValidityDate > params.endDate - END_DATE_VALID_BEFORE
             ) revert TimeWindowInvalid();
         }
 
-        bytes32 hashConfig = keccak256(
-            abi.encodePacked(params.superToken, sender, params.receiver)
-        );
-        if (vestingSchedules[hashConfig].endDate != 0)
-            revert ScheduleAlreadyExists();
+        bytes32 hashConfig = keccak256(abi.encodePacked(params.superToken, sender, params.receiver));
+        if (vestingSchedules[hashConfig].endDate != 0) revert ScheduleAlreadyExists();
+
         vestingSchedules[hashConfig] = VestingSchedule(
             cliffAndFlowDate,
             params.endDate,
@@ -478,8 +472,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         if (endDate <= block.timestamp) revert TimeWindowInvalid();
 
         // Only allow an update if 1. vesting exists 2. executeCliffAndFlow() has been called
-        if (schedule.cliffAndFlowDate != 0 || schedule.endDate == 0)
-            revert ScheduleNotFlowing();
+        if (schedule.cliffAndFlowDate != 0 || schedule.endDate == 0) revert ScheduleNotFlowing();
 
         vestingSchedules[configHash].endDate = endDate;
         // Note: Nullify the remainder amount when complexity of updates is introduced.

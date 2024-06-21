@@ -126,16 +126,16 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
 
     function _createVestingScheduleWithDefaultData(address sender, address receiver) private {
         vm.startPrank(sender);
-    vestingScheduler.createVestingSchedule(
-        superToken,
-        receiver,
-        START_DATE,
-        CLIFF_DATE,
-        FLOW_RATE,
-        CLIFF_TRANSFER_AMOUNT,
-        END_DATE,
-        EMPTY_CTX
-    );
+        vestingScheduler.createVestingSchedule(
+            superToken,
+            receiver,
+            START_DATE,
+            CLIFF_DATE,
+            FLOW_RATE,
+            CLIFF_TRANSFER_AMOUNT,
+            END_DATE,
+            EMPTY_CTX
+        );
         vm.stopPrank();
     }
 

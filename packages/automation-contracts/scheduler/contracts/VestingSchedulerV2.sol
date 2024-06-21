@@ -11,7 +11,6 @@ import { SafeMath } from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
-
     using CFAv1Library for CFAv1Library.InitData;
     CFAv1Library.InitData public cfaV1;
     mapping(bytes32 => VestingSchedule) public vestingSchedules; // id = keccak(supertoken, sender, receiver)
@@ -19,54 +18,6 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
     uint32 public constant MIN_VESTING_DURATION = 7 days;
     uint32 public constant START_DATE_VALID_AFTER = 3 days;
     uint32 public constant END_DATE_VALID_BEFORE = 1 days;
-
-    /**
-    * @dev Parameters used to create claimable vesting schedules
-    * @param superToken SuperToken to be vested
-    * @param receiver Vesting receiver
-    * @param totalAmount The total amount to be vested 
-    * @param totalDuration The total duration of the vestingß
-    * @param cliffPeriod The cliff period of the vesting
-    * @param startDate Timestamp when the vesting should start
-    * @param claimPeriod The claim availability period
-    * @param ctx Superfluid context used when batching operations. (or bytes(0) if not SF batching)
-    */
-    struct ScheduleCreationFromAmountAndDurationParams {
-        ISuperToken superToken;
-        address receiver;
-        uint256 totalAmount;
-        uint32 totalDuration;
-        uint32 cliffPeriod;
-        uint32 startDate;
-        uint32 claimPeriod;
-        bytes ctx;
-    }
-
-    /**
-    * @dev Parameters used to create vesting schedules
-    * @param superToken SuperToken to be vested
-    * @param receiver Vesting receiver
-    * @param startDate Timestamp when the vesting should start
-    * @param claimValidityDate Date before which the claimable schedule must be claimed
-    * @param cliffDate Timestamp of cliff exectution - if 0, startDate acts as cliff
-    * @param flowRate The flowRate for the stream
-    * @param cliffAmount The amount to be transferred at the cliff
-    * @param endDate The timestamp when the stream should stop.
-    * @param remainderAmount Amount transferred during early end to achieve an accurate "total vested amount"
-    * @param ctx Superfluid context used when batching operations. (or bytes(0) if not SF batching)
-    */
-    struct ScheduleCreationParams {
-        ISuperToken superToken;
-        address receiver;
-        uint32 startDate;
-        uint32 claimValidityDate;
-        uint32 cliffDate;
-        int96 flowRate;
-        uint256 cliffAmount;
-        uint32 endDate;
-        uint256 remainderAmount;
-        bytes ctx;
-    }
 
     constructor(ISuperfluid host) {
         cfaV1 = CFAv1Library.InitData(
@@ -111,9 +62,9 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
                 flowRate,
                 cliffAmount,
                 endDate,
-                0, // remainderAmount
-                ctx
-            )
+                0 // remainderAmount
+            ),
+            ctx
         );
     }
 
@@ -137,18 +88,19 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
                 flowRate,
                 cliffAmount,
                 endDate,
-                0, // remainderAmount
-                bytes("")
-            )
+                0 // remainderAmount
+            ),
+            bytes("")
         );
     }
 
     function _createVestingSchedule(
-        ScheduleCreationParams memory params
+        ScheduleCreationParams memory params,
+        bytes memory ctx
     ) private returns (bytes memory newCtx) {
-        newCtx = params.ctx;
-        address sender = _getSender(params.ctx);
-        
+        newCtx = ctx;
+        address sender = _getSender(ctx);
+
         // Default to current block timestamp if no start date is provided.
         if (params.startDate == 0) {
             params.startDate = uint32(block.timestamp);
@@ -158,7 +110,6 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         // V1 did but didn't allow cliff and flow to be in the past though.
         if (params.startDate < block.timestamp) revert TimeWindowInvalid();
         if (params.endDate <= END_DATE_VALID_BEFORE) revert TimeWindowInvalid();
-
 
         if (params.receiver == address(0) || params.receiver == sender) revert AccountInvalid();
         if (address(params.superToken) == address(0)) revert ZeroAddress();
@@ -175,7 +126,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         ) revert TimeWindowInvalid();
 
         // NOTE : claimable schedule created with a claim validity date equal to 0 is considered regular schedule
-        if(params.claimValidityDate != 0) {
+        if (params.claimValidityDate != 0) {
             if (params.claimValidityDate < cliffAndFlowDate ||
                 params.claimValidityDate > params.endDate - END_DATE_VALID_BEFORE
             ) revert TimeWindowInvalid();
@@ -183,13 +134,14 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
 
         bytes32 hashConfig = keccak256(abi.encodePacked(params.superToken, sender, params.receiver));
         if (vestingSchedules[hashConfig].endDate != 0) revert ScheduleAlreadyExists();
+
         vestingSchedules[hashConfig] = VestingSchedule(
             cliffAndFlowDate,
             params.endDate,
-            params.claimValidityDate,
             params.flowRate,
             params.cliffAmount,
-            params.remainderAmount
+            params.remainderAmount,
+            params.claimValidityDate
         );
 
         emit VestingScheduleCreated(
@@ -216,17 +168,17 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         uint32 startDate,
         bytes memory ctx
     ) external returns (bytes memory newCtx) {
-        newCtx = _createVestingScheduleFromAmountAndDuration(
-            ScheduleCreationFromAmountAndDurationParams(
+        newCtx = _createVestingSchedule(
+            getCreateVestingScheduleParamsFromAmountAndDuration(
                 superToken,
                 receiver,
                 totalAmount,
                 totalDuration,
                 cliffPeriod,
                 startDate,
-                0, // claimPeriod
-                ctx
-            )
+                0 // claimPeriod
+            ),
+            ctx
         );
     }
 
@@ -239,17 +191,17 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         uint32 cliffPeriod,
         uint32 startDate
     ) external {
-        _createVestingScheduleFromAmountAndDuration(
-            ScheduleCreationFromAmountAndDurationParams(
+        _createVestingSchedule(
+            getCreateVestingScheduleParamsFromAmountAndDuration(
                 superToken,
                 receiver,
                 totalAmount,
                 totalDuration,
                 cliffPeriod,
                 startDate,
-                0, // claimPeriod
-                bytes("")
-            )
+                0 // claimPeriod
+            ),
+            bytes("")
         );
     }
 
@@ -261,17 +213,17 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         uint32 totalDuration,
         uint32 cliffPeriod
     ) external {
-        _createVestingScheduleFromAmountAndDuration(
-            ScheduleCreationFromAmountAndDurationParams(
+        _createVestingSchedule(
+            getCreateVestingScheduleParamsFromAmountAndDuration(
                 superToken,
                 receiver,
                 totalAmount,
                 totalDuration,
                 cliffPeriod,
                 0, // startDate
-                0, // claimPeriod
-                bytes("")
-            )
+                0 // claimPeriod
+            ),
+            bytes("")
         );
     }
 
@@ -282,69 +234,18 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         uint256 totalAmount,
         uint32 totalDuration
     ) external {
-        _createVestingScheduleFromAmountAndDuration(
-            ScheduleCreationFromAmountAndDurationParams(
+        _createVestingSchedule(
+            getCreateVestingScheduleParamsFromAmountAndDuration(
                 superToken,
                 receiver,
                 totalAmount,
                 totalDuration,
                 0, // cliffPeriod
                 0, // startDate
-                0, // claimPeriod
-                bytes("")
-            )
+                0 // claimPeriod
+            ),
+            bytes("")
         );
-    }
-
-    function _createVestingScheduleFromAmountAndDuration(
-        ScheduleCreationFromAmountAndDurationParams memory params
-    ) private returns (bytes memory newCtx) {
-        // Default to current block timestamp if no start date is provided.
-        if (params.startDate == 0) {
-            params.startDate = uint32(block.timestamp);
-        }
-
-        uint32 claimValidityDate = params.claimPeriod != 0
-            ? params.startDate + params.claimPeriod
-            : 0;
-
-        uint32 endDate = params.startDate + params.totalDuration;
-        int96 flowRate = SafeCast.toInt96(SafeCast.toInt256(params.totalAmount / params.totalDuration));
-        uint256 remainderAmount = params.totalAmount - (SafeCast.toUint256(flowRate) * params.totalDuration);
-
-        if (params.cliffPeriod == 0) {
-            newCtx = _createVestingSchedule(
-                ScheduleCreationParams(
-                    params.superToken, 
-                    params.receiver, 
-                    params.startDate, 
-                    claimValidityDate, 
-                    0 /* cliffDate */, 
-                    flowRate, 
-                    0 /* cliffAmount */, 
-                    endDate,
-                    remainderAmount,
-                    params.ctx
-                )
-            );
-        } else {
-            uint32 cliffDate = params.startDate + params.cliffPeriod;
-            uint256 cliffAmount = SafeMath.mul(params.cliffPeriod, SafeCast.toUint256(flowRate));
-            newCtx = _createVestingSchedule(
-                ScheduleCreationParams(
-                    params.superToken, 
-                    params.receiver, 
-                    params.startDate,
-                    claimValidityDate, 
-                    cliffDate, 
-                    flowRate, 
-                    cliffAmount, 
-                    endDate, 
-                    remainderAmount,
-                    params.ctx
-                )
-            );
-        }
     }
 
     /// @dev IVestingScheduler.createAndExecuteVestingScheduleFromAmountAndDuration.
@@ -388,17 +289,17 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         uint32 totalDuration,
         bytes memory ctx
     ) private returns (bytes memory newCtx) {
-        newCtx = _createVestingScheduleFromAmountAndDuration(
-            ScheduleCreationFromAmountAndDurationParams(
+        newCtx = _createVestingSchedule(
+            getCreateVestingScheduleParamsFromAmountAndDuration(
                 superToken,
                 receiver,
                 totalAmount,
                 totalDuration,
                 0, // cliffPeriod
                 0, // startDate
-                0, // claimValidityDate
-                ctx
-            )
+                0 // claimValidityDate
+            ),
+            ctx
         );
 
         address sender = _getSender(ctx);
@@ -427,9 +328,9 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
                 flowRate,
                 cliffAmount,
                 endDate,
-                0 /* remainderAmount */,
-                ctx
-            )
+                0 /* remainderAmount */
+            ),
+            ctx
         );
     }
 
@@ -454,9 +355,9 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
                 flowRate,
                 cliffAmount,
                 endDate,
-                0 /* remainderAmount */,
-                bytes("")
-            )
+                0 /* remainderAmount */
+            ),
+            bytes("")
         );
     }
 
@@ -470,18 +371,18 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         uint32 cliffPeriod,
         uint32 startDate,
         bytes memory ctx
-    ) external returns (bytes memory newCtx) {    
-        newCtx = _createVestingScheduleFromAmountAndDuration(
-            ScheduleCreationFromAmountAndDurationParams(
+    ) external returns (bytes memory newCtx) {
+        newCtx = _createVestingSchedule(
+            getCreateVestingScheduleParamsFromAmountAndDuration(
                 superToken,
                 receiver,
                 totalAmount,
                 totalDuration,
                 cliffPeriod,
                 startDate,
-                claimPeriod,
-                ctx
-            )
+                claimPeriod
+            ),
+            ctx
         );
     }
 
@@ -495,17 +396,17 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         uint32 cliffPeriod,
         uint32 startDate
     ) external {
-        _createVestingScheduleFromAmountAndDuration(
-            ScheduleCreationFromAmountAndDurationParams(
+        _createVestingSchedule(
+            getCreateVestingScheduleParamsFromAmountAndDuration(
                 superToken,
                 receiver,
                 totalAmount,
                 totalDuration,
                 cliffPeriod,
                 startDate,
-                claimPeriod,
-                bytes("")
-            )
+                claimPeriod
+            ),
+            bytes("")
         );
     }
 
@@ -518,19 +419,17 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         uint32 claimPeriod,
         uint32 cliffPeriod
     ) external {
-        uint32 startDate = uint32(block.timestamp);
-
-        _createVestingScheduleFromAmountAndDuration(
-            ScheduleCreationFromAmountAndDurationParams(
+        _createVestingSchedule(
+            getCreateVestingScheduleParamsFromAmountAndDuration(
                 superToken,
                 receiver,
                 totalAmount,
                 totalDuration,
                 cliffPeriod,
-                startDate,
-                claimPeriod,
-                bytes("")
-            )
+                0, // startDate
+                claimPeriod
+            ),
+            bytes("")
         );
     }
 
@@ -542,19 +441,17 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         uint32 totalDuration,
         uint32 claimPeriod
     ) external {
-        uint32 startDate = uint32(block.timestamp);
-
-        _createVestingScheduleFromAmountAndDuration(
-            ScheduleCreationFromAmountAndDurationParams(
+        _createVestingSchedule(
+            getCreateVestingScheduleParamsFromAmountAndDuration(
                 superToken,
                 receiver,
                 totalAmount,
                 totalDuration,
                 0, // cliffPeriod
-                startDate,
-                claimPeriod,
-                bytes("")
-            )
+                0, // startDate
+                claimPeriod
+            ),
+            bytes("")
         );
     }
 
@@ -570,10 +467,13 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         bytes32 configHash = keccak256(abi.encodePacked(superToken, sender, receiver));
         VestingSchedule memory schedule = vestingSchedules[configHash];
 
+        // TODO: It's possible that this changes the endDate to be less than the claimValidityDate
+
         if (endDate <= block.timestamp) revert TimeWindowInvalid();
 
         // Only allow an update if 1. vesting exists 2. executeCliffAndFlow() has been called
         if (schedule.cliffAndFlowDate != 0 || schedule.endDate == 0) revert ScheduleNotFlowing();
+
         vestingSchedules[configHash].endDate = endDate;
         // Note: Nullify the remainder amount when complexity of updates is introduced.
         vestingSchedules[configHash].remainderAmount = 0;
@@ -623,9 +523,9 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         bytes32 configHash = keccak256(abi.encodePacked(superToken, sender, receiver));
         VestingSchedule memory schedule = vestingSchedules[configHash];
 
-        if(schedule.cliffAndFlowDate == 0) revert AlreadyExecuted();
+        if (schedule.cliffAndFlowDate == 0) revert AlreadyExecuted();
 
-        uint32 latestExecutionDate = schedule.claimValidityDate > 0 
+        uint32 latestExecutionDate = schedule.claimValidityDate > 0
             ? schedule.claimValidityDate
             : schedule.cliffAndFlowDate + START_DATE_VALID_AFTER;
 
@@ -637,9 +537,10 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
             delete vestingSchedules[configHash].claimValidityDate;
             emit VestingClaimed(superToken, sender, receiver, msg.sender);
         }
-        
+
         // Ensure that that the claming date is after the cliff/flow date and before the early end of the schedule
-        if (schedule.cliffAndFlowDate > block.timestamp ||
+        if (
+            schedule.cliffAndFlowDate > block.timestamp ||
             latestExecutionDate < block.timestamp
         ) revert TimeWindowInvalid();
 
@@ -680,22 +581,24 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         ISuperToken superToken,
         address sender,
         address receiver
-    ) external returns (bool success){
+    ) external returns (bool success) {
         bytes32 configHash = keccak256(abi.encodePacked(superToken, sender, receiver));
         VestingSchedule memory schedule = vestingSchedules[configHash];
 
         if (schedule.endDate == 0) revert AlreadyExecuted();
-        if (schedule.endDate - END_DATE_VALID_BEFORE > block.timestamp) revert TimeWindowInvalid();
+        if (schedule.endDate - END_DATE_VALID_BEFORE > block.timestamp)
+            revert TimeWindowInvalid();
 
         // Invalidate configuration straight away -- avoid any chance of re-execution or re-entry.
         delete vestingSchedules[configHash];
+
         // If vesting is not running, we can't do anything, just emit failing event.
         if (_isFlowOngoing(superToken, sender, receiver)) {
             // delete first the stream and unlock deposit amount.
             cfaV1.deleteFlowByOperator(sender, receiver, superToken);
 
             uint256 earlyEndCompensation = schedule.endDate >= block.timestamp 
-                ? (schedule.endDate - block.timestamp) * uint96(schedule.flowRate) + schedule.remainderAmount 
+                ? (schedule.endDate - block.timestamp) * uint96(schedule.flowRate) + schedule.remainderAmount
                 : 0;
 
             // Note: we consider the compensation as failed if the stream is still ongoing after the end date.
@@ -730,7 +633,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         address supertoken,
         address sender,
         address receiver
-    ) external view returns (VestingSchedule memory) {
+    ) public view returns (VestingSchedule memory) {
         return vestingSchedules[keccak256(abi.encodePacked(supertoken, sender, receiver))];
     }
 
@@ -750,5 +653,113 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
     function _isFlowOngoing(ISuperToken superToken, address sender, address receiver) internal view returns (bool) {
         (,int96 flowRate,,) = cfaV1.cfa.getFlow(superToken, sender, receiver);
         return flowRate != 0;
+    }
+
+
+    /// @dev IVestingScheduler.getCreateVestingScheduleParamsFromAmountAndDuration implementation.
+    function getCreateVestingScheduleParamsFromAmountAndDuration(
+        ISuperToken superToken,
+        address receiver,
+        uint256 totalAmount,
+        uint32 totalDuration,
+        uint32 cliffPeriod,
+        uint32 startDate,
+        uint32 claimPeriod
+    ) public view override returns (ScheduleCreationParams memory result) {
+        // Default to current block timestamp if no start date is provided.
+        if (startDate == 0) {
+            startDate = uint32(block.timestamp);
+        }
+
+        uint32 claimValidityDate = claimPeriod != 0
+            ? startDate + claimPeriod
+            : 0;
+
+        uint32 endDate = startDate + totalDuration;
+        int96 flowRate = SafeCast.toInt96(
+            SafeCast.toInt256(totalAmount / totalDuration)
+        );
+        uint96 remainderAmount = SafeCast.toUint96(
+            totalAmount - (SafeCast.toUint256(flowRate) * totalDuration)
+        );
+
+        if (cliffPeriod == 0) {
+            result = ScheduleCreationParams(
+                superToken,
+                receiver,
+                startDate,
+                claimValidityDate,
+                0 /* cliffDate */,
+                flowRate,
+                0 /* cliffAmount */,
+                endDate,
+                remainderAmount
+            );
+        } else {
+            uint32 cliffDate = startDate + cliffPeriod;
+            uint256 cliffAmount = SafeMath.mul(
+                cliffPeriod,
+                SafeCast.toUint256(flowRate)
+            );
+            result = ScheduleCreationParams(
+                superToken,
+                receiver,
+                startDate,
+                claimValidityDate,
+                cliffDate,
+                flowRate,
+                cliffAmount,
+                endDate,
+                remainderAmount
+            );
+        }
+    }
+
+    /// @dev IVestingScheduler.getMaximumNeededTokenAllowance implementation.
+    function getMaximumNeededTokenAllowance(
+        address superToken,
+        address sender,
+        address receiver
+    ) public view override returns (uint256) {
+        VestingSchedule memory vestingSchedule = getVestingSchedule(
+            superToken,
+            sender,
+            receiver
+        );
+        return getMaximumNeededTokenAllowance(vestingSchedule);
+    }
+
+    /// @dev IVestingScheduler.getMaximumNeededTokenAllowance implementation.
+    function getMaximumNeededTokenAllowance(
+        VestingSchedule memory schedule
+    ) public pure override returns (uint256) {
+        uint256 maxFlowDelayCompensationAmount = 
+            schedule.cliffAndFlowDate == 0 
+                ? 0 
+                : START_DATE_VALID_AFTER * SafeCast.toUint256(schedule.flowRate);
+        uint256 maxEarlyEndCompensationAmount = 
+            schedule.endDate == 0 
+                ? 0 
+                : END_DATE_VALID_BEFORE * SafeCast.toUint256(schedule.flowRate);
+
+        if (schedule.claimValidityDate < schedule.cliffAndFlowDate + START_DATE_VALID_AFTER) {
+            return
+                schedule.cliffAmount +
+                schedule.remainderAmount +
+                maxFlowDelayCompensationAmount +
+                maxEarlyEndCompensationAmount;
+        } else if (schedule.claimValidityDate > schedule.endDate) {
+            // TODO: Test this once claiming after end date is merged.   
+            uint256 totalVestedAmount = 
+                schedule.cliffAmount +
+                schedule.remainderAmount +
+                (schedule.endDate - schedule.cliffAndFlowDate) * SafeCast.toUint256(schedule.flowRate);
+            return totalVestedAmount;
+        } else {
+            return schedule.cliffAmount +
+                   schedule.remainderAmount +
+                   (schedule.claimValidityDate - schedule.cliffAndFlowDate) * SafeCast.toUint256(schedule.flowRate) +
+                   maxEarlyEndCompensationAmount;
+        }
     }
 }

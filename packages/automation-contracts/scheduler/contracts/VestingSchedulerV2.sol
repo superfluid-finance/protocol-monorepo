@@ -704,6 +704,8 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         return flowRate != 0;
     }
 
+
+    /// @dev IVestingScheduler.getCreateVestingScheduleParamsFromAmountAndDuration implementation.
     function getCreateVestingScheduleParamsFromAmountAndDuration(
         ISuperToken superToken,
         address receiver,
@@ -762,6 +764,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         }
     }
 
+    /// @dev IVestingScheduler.getMaximumNeededTokenAllowance implementation.
     function getMaximumNeededTokenAllowance(
         address superToken,
         address sender,
@@ -775,6 +778,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         return getMaximumNeededTokenAllowance(vestingSchedule);
     }
 
+    /// @dev IVestingScheduler.getMaximumNeededTokenAllowance implementation.
     function getMaximumNeededTokenAllowance(
         VestingSchedule memory schedule
     ) public pure override returns (uint256) {
@@ -794,6 +798,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
               + maxFlowDelayCompensationAmount 
               + maxEarlyEndCompensationAmount;
         } else if (schedule.claimValidityDate > schedule.endDate) {
+            // TODO: Test this once claiming after end date is merged.   
             uint256 totalVestedAmount = 
                 schedule.cliffAmount
                 + schedule.remainderAmount

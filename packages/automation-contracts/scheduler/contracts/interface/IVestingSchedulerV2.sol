@@ -148,6 +148,16 @@ interface IVestingSchedulerV2 {
         bytes memory ctx
     ) external returns (bytes memory newCtx);
 
+    /**
+     * @dev Returns all relevant information related to a new vesting schedule creation 
+     * @dev based on the amounts and durations.
+     * @param superToken SuperToken to be vested
+     * @param receiver Vesting receiver
+     * @param totalAmount The total amount to be vested 
+     * @param totalDuration The total duration of the vestingß
+     * @param cliffPeriod The cliff period of the vesting
+     * @param startDate Timestamp when the vesting should start
+     */
     function getCreateVestingScheduleParamsFromAmountAndDuration(
         ISuperToken superToken,
         address receiver,
@@ -158,10 +168,21 @@ interface IVestingSchedulerV2 {
         uint32 claimPeriod
     ) external returns (ScheduleCreationParams memory params);
 
+    /**
+     * @dev Estimates the maximum possible ERC-20 token allowance needed for the vesting schedule 
+     * @dev to work properly under all circumstances.
+     * @param vestingSchedule A vesting schedule (doesn't have to exist)
+     */
     function getMaximumNeededTokenAllowance(
         VestingSchedule memory vestingSchedule
     ) external returns (uint256);
 
+    /**
+     * @dev Estimates maximum ERC-20 token allowance needed for an existing vesting schedule.
+     * @param superToken SuperToken to be vested
+     * @param sender Vesting sender
+     * @param receiver Vesting receiver
+     */
     function getMaximumNeededTokenAllowance(
         address superToken, address sender, address receiver
     ) external returns (uint256);

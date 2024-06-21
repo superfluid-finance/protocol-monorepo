@@ -19,7 +19,7 @@ SATSUMA_NETWORKS=( "polygon-mainnet" "xdai-mainnet" "eth-mainnet" "eth-sepolia" 
 # shellcheck disable=SC2034
 SUPERFLUID_NETWORKS=( "polygon-mainnet" "xdai-mainnet" "base-mainnet" "optimism-mainnet" "arbitrum-one" "celo-mainnet" "bsc-mainnet" "avalanche-c" "optimism-sepolia" "scroll-sepolia" "scroll-mainnet" "degenchain" "base-sepolia")
 # shellcheck disable=SC2034
-GOLDSKY_NETWORKS=( "polygon-mainnet" "xdai-mainnet" "eth-mainnet" "base-mainnet" "optimism-mainnet" "arbitrum-one" "bsc-mainnet" "avalanche-c" "optimism-sepolia" "scroll-sepolia" "scroll-mainnet" "eth-sepolia")
+GOLDSKY_NETWORKS=( "polygon-mainnet" "xdai-mainnet" "eth-mainnet" "base-mainnet" "optimism-mainnet" "arbitrum-one" "bsc-mainnet" "avalanche-c" "optimism-sepolia" "scroll-sepolia" "scroll-mainnet" "eth-sepolia" "avalanche-fuji" "base-sepolia")
 # shellcheck disable=SC2034
 AIRSTACK_NETWORKS=( "degenchain")
 
@@ -126,18 +126,16 @@ deploy_to_goldsky() {
     local network="$1"
     # TODO: use tagging?
 
-    # name mapping for godldsky legacy networks not using our cliNames
-    local -A legacyNetworkNames=(
-        ["xdai-mainnet"]="xdai"
-    )
+    #Get subgraph version from package.json
+    PACKAGE_JSON_PATH="package.json"
+    SUBGRAPH_VERSION=$($JQ -r '.version' $PACKAGE_JSON_PATH)
 
-    local goldskyNetwork="${legacyNetworkNames[$network]:-$network}"
-    local subgraphName="protocol-$DEPLOYMENT_ENV-$goldskyNetwork/$VERSION_LABEL"
+    local subgraphName="protocol-$DEPLOYMENT_ENV-$network/$SUBGRAPH_VERSION"
 
+    # Note: when using Graph CLI to deploy, it implicitly triggers build too, but Goldsky CLI doesn't, so we do it explicitly.
     $GRAPH_CLI build
-    # Note: when using Graph CLI to deploy, it implicitly triggers build too, but Goldsky CLI doesn't.
 
-    echo "********* Deploying $goldskyNetwork subgraph $subgraphName to Goldsky. **********"
+    echo "********* Deploying $network subgraph $subgraphName to Goldsky. **********"
     $GOLDSKY_CLI subgraph deploy \
         "$subgraphName" \
         --path . \
@@ -177,7 +175,7 @@ deploy_to() {
         exit 1
     fi
 
-    npx ts-node ./scripts/buildNetworkConfig.ts "$network"
+    npx ts-node ./scripts/buildNetworkConfig.ts "$network" "$vendor"
 
     # prepare the manifest prior to deployment
     # this generates the subgraph.yaml and

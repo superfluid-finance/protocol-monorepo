@@ -71,7 +71,9 @@ jobs:
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: "Docker compose"
-        run: docker-compose up &
+        run: |
+          docker rm subgraph_graph-node_1 || true
+          docker-compose up &
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: "Build and deploy local subgraph"

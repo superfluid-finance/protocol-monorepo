@@ -132,6 +132,8 @@ jobs:
     name: Upload Coverage Reports (Feature Branch)
     uses: ./.github/workflows/call.upload-coverage-reports.yml
     needs: [coverage-ethereum-contracts, coverage-sdk-core]
+    secrets:
+      codecov_token: ${{ secrets.CODECOV_TOKEN }}
 
   all-packages-tested:
     name: All packages tested (Dev Branch)

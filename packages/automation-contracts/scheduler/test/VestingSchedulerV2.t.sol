@@ -465,6 +465,10 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         uint256 aliceShouldStream = (END_DATE-CLIFF_DATE) * uint96(FLOW_RATE) + CLIFF_TRANSFER_AMOUNT ;
         assertEq(aliceInitialBalance - aliceFinalBalance, aliceShouldStream, "(sender) wrong final balance");
         assertEq(bobFinalBalance, bobInitialBalance + aliceShouldStream, "(receiver) wrong final balance");
+
+        vm.expectRevert(IVestingSchedulerV2.AlreadyExecuted.selector);
+        success = vestingScheduler.executeEndVesting(superToken, alice, bob);
+
     }
 
     function testExecuteCliffAndFlowWithoutCliffAmountOrAdjustment() public {

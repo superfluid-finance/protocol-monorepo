@@ -126,9 +126,8 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         ) revert TimeWindowInvalid();
 
         // Note : claimable schedule created with a claim validity date equal to 0 is considered regular schedule
-        if(params.claimValidityDate != 0) {
-            if (params.claimValidityDate < cliffAndFlowDate) revert TimeWindowInvalid();
-        }
+        if (params.claimValidityDate != 0 && params.claimValidityDate < cliffAndFlowDate) 
+            revert TimeWindowInvalid();
 
         bytes32 hashConfig = keccak256(abi.encodePacked(params.superToken, sender, params.receiver));
         if (vestingSchedules[hashConfig].endDate != 0) revert ScheduleAlreadyExists();
@@ -522,11 +521,12 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
             emit VestingClaimed(superToken, sender, receiver, msg.sender);
             
             if (block.timestamp > schedule.endDate - END_DATE_VALID_BEFORE) {
-
-                uint256 totalVestedAmount = schedule.cliffAmount +
+                uint256 totalVestedAmount =
+                    schedule.cliffAmount +
                     schedule.remainderAmount +
-                    (schedule.endDate - schedule.cliffAndFlowDate) * 
-                    SafeCast.toUint256(schedule.flowRate);
+                    (schedule.endDate - schedule.cliffAndFlowDate) * SafeCast.toUint256(schedule.flowRate);
+
+                superToken.transferFrom(sender, receiver, totalVestedAmount);
 
                 emit VestingCliffAndFlowExecuted(
                     superToken,
@@ -546,12 +546,14 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
                     totalVestedAmount,
                     false
                 );
-                return superToken.transferFrom(sender, receiver, totalVestedAmount);
+
+                return true;
             } else {
                 return _executeCliffAndFlow(superToken, sender, receiver, schedule.claimValidityDate);
             }
         } else {
-            return _executeCliffAndFlow(superToken, sender, receiver, schedule.cliffAndFlowDate + START_DATE_VALID_AFTER);
+            return _executeCliffAndFlow(
+                superToken, sender, receiver, schedule.cliffAndFlowDate + START_DATE_VALID_AFTER);
         }
     }
 
@@ -565,7 +567,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         bytes32 configHash = keccak256(abi.encodePacked(superToken, sender, receiver));
         VestingSchedule memory schedule = vestingSchedules[configHash];
 
-        if(schedule.cliffAndFlowDate == 0) revert AlreadyExecuted();
+        if (schedule.cliffAndFlowDate == 0) revert AlreadyExecuted();
 
         // Ensure that that the claming date is after the cliff/flow date and before the claim validity date
         if (schedule.cliffAndFlowDate > block.timestamp ||
@@ -581,11 +583,8 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
 
         // If there's cliff or compensation then transfer that amount.
         if (schedule.cliffAmount != 0 || flowDelayCompensation != 0) {
-            superToken.transferFrom(
-                sender,
-                receiver,
-                schedule.cliffAmount + flowDelayCompensation
-            );
+            // Note: Super Tokens revert, not return false, i.e. we expect always true here.
+            assert(superToken.transferFrom(sender, receiver, schedule.cliffAmount + flowDelayCompensation));
         }
         // Create a flow according to the vesting schedule configuration.
         cfaV1.createFlowByOperator(sender, receiver, superToken, schedule.flowRate);
@@ -610,6 +609,8 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
     ) external returns (bool success) {
         bytes32 configHash = keccak256(abi.encodePacked(superToken, sender, receiver));
         VestingSchedule memory schedule = vestingSchedules[configHash];
+
+        // TODO: check that it's claimed
 
         if (schedule.endDate == 0) revert AlreadyExecuted();
         if (schedule.endDate - END_DATE_VALID_BEFORE > block.timestamp)

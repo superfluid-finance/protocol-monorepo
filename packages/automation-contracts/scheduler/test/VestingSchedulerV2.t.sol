@@ -1654,6 +1654,9 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         vm.warp(claimDate);
 
         vm.expectEmit(true, true, true, true);
+        emit Transfer(alice, bob, totalExpectedAmount);
+
+        vm.expectEmit(true, true, true, true);
         emit VestingCliffAndFlowExecuted(
             superToken, alice, bob, CLIFF_DATE, 0, CLIFF_TRANSFER_AMOUNT, 0
         );
@@ -1663,11 +1666,8 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
             superToken, alice, bob, END_DATE, totalExpectedAmount, false
         );
 
-        vm.expectEmit(true, true, true, true);
-        emit Transfer(alice, bob, totalExpectedAmount);
-
         vm.prank(bob);
-        vestingScheduler.executeCliffAndFlow(superToken, alice, bob);
+        assertTrue(vestingScheduler.executeCliffAndFlow(superToken, alice, bob));
 
         assertEq(superToken.balanceOf(alice), aliceInitialBalance - totalExpectedAmount);
         assertEq(superToken.balanceOf(bob), bobInitialBalance + totalExpectedAmount);

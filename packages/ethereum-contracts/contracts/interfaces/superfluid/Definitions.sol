@@ -193,6 +193,24 @@ library BatchOperation {
      */
     uint32 constant internal OPERATION_TYPE_SUPERTOKEN_DOWNGRADE = 2 + 100;
     /**
+     * @dev SuperToken.upgradeTo batch operation type
+     *
+     * Call spec:
+     * ISuperToken(target).operationUpgradeTo(
+     *     abi.decode(data, (address to, uint256 amount)
+     * )
+     */
+    uint32 constant internal OPERATION_TYPE_SUPERTOKEN_UPGRADE_TO = 3 + 100;
+    /**
+     * @dev SuperToken.downgradeTo batch operation type
+     *
+     * Call spec:
+     * ISuperToken(target).operationDowngradeTo(
+     *     abi.decode(data, (address to, uint256 amount)
+     * )
+     */
+    uint32 constant internal OPERATION_TYPE_SUPERTOKEN_DOWNGRADE_TO = 4 + 100;
+    /**
      * @dev Superfluid.callAgreement batch operation type
      *
      * Call spec:

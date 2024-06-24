@@ -312,7 +312,7 @@ contract Superfluid is
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Superfluid Upgradeable Beacon
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
+
     /// @inheritdoc ISuperfluid
     function updatePoolBeaconLogic(address newLogic) external override onlyGovernance {
         GeneralDistributionAgreementV1 gda = GeneralDistributionAgreementV1(
@@ -847,6 +847,18 @@ contract Superfluid is
                 ISuperToken(operations[i].target).operationDowngrade(
                     msgSender,
                     abi.decode(operations[i].data, (uint256))); // amount
+            } else if (operationType == BatchOperation.OPERATION_TYPE_SUPERTOKEN_UPGRADE_TO) {
+                (address to, uint256 amount) = abi.decode(operations[i].data, (address, uint256));
+                ISuperToken(operations[i].target).operationUpgradeTo(
+                    msgSender,
+                    to,
+                    amount);
+            } else if (operationType == BatchOperation.OPERATION_TYPE_SUPERTOKEN_DOWNGRADE_TO) {
+                (address to, uint256 amount) = abi.decode(operations[i].data, (address, uint256));
+                ISuperToken(operations[i].target).operationDowngradeTo(
+                    msgSender,
+                    to,
+                    amount);
             } else if (operationType == BatchOperation.OPERATION_TYPE_SUPERFLUID_CALL_AGREEMENT) {
                 (bytes memory callData, bytes memory userData) = abi.decode(operations[i].data, (bytes, bytes));
                 _callAgreement(

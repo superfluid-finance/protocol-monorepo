@@ -882,6 +882,20 @@ contract SuperToken is
         _downgrade(msg.sender, account, account, amount, "", "");
     }
 
+    function operationUpgradeTo(address account, address to, uint256 amount)
+        external virtual override
+        onlyHost
+    {
+        _upgrade(msg.sender, account, to, amount, "", "");
+    }
+
+    function operationDowngradeTo(address account, address to, uint256 amount)
+        external virtual override
+        onlyHost
+    {
+        _downgrade(msg.sender, account, to, amount, "", "");
+    }
+
     /**************************************************************************
     * Modifiers
     *************************************************************************/

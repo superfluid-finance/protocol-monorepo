@@ -208,4 +208,79 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
         vm.expectRevert("CallUtils: target revert()");
         sf.host.batchCall{value: 42}(ops);
     }
+
+    function testRevertIfOperationUpgradeToIsNotCalledByHost(address notHost) public {
+        vm.assume(notHost != address(sf.host));
+
+        vm.expectRevert(ISuperfluidToken.SF_TOKEN_ONLY_HOST.selector);
+        vm.prank(notHost);
+        superToken.operationUpgradeTo(alice, bob, 100);
+    }
+
+    function testUpgradeTo(uint256 amount) public {
+        vm.assume(amount < type(uint64).max);
+
+        vm.prank(alice);
+        token.approve(address(superToken), amount);
+
+        uint256 bobBalanceBefore = superToken.balanceOf(bob);
+        vm.prank(address(sf.host));
+        superToken.operationUpgradeTo(alice, bob, amount);
+        uint256 bobBalanceAfter = superToken.balanceOf(bob);
+        assertEq(bobBalanceAfter, bobBalanceBefore + amount, "Bob has unexpected final balance");
+    }
+
+    function testUpgradeToBatchCall(uint256 amount) public {
+        vm.assume(amount < type(uint64).max);
+
+        vm.prank(alice);
+        token.approve(address(superToken), amount);
+
+        ISuperfluid.Operation[] memory ops = new ISuperfluid.Operation[](1);
+        uint256 bobBalanceBefore = superToken.balanceOf(bob);
+        ops[0] = ISuperfluid.Operation({
+            operationType: BatchOperation.OPERATION_TYPE_SUPERTOKEN_UPGRADE_TO,
+            target: address(superToken),
+            data: abi.encode(bob, amount)
+        });
+        vm.prank(alice);
+        sf.host.batchCall(ops);
+        uint256 bobBalanceAfter = superToken.balanceOf(bob);
+        assertEq(bobBalanceAfter, bobBalanceBefore + amount, "Bob has unexpected final balance");
+    }
+
+    function testRevertIfOperationDowngradeToIsNotCalledByHost(address notHost) public {
+        vm.assume(notHost != address(sf.host));
+
+        vm.expectRevert(ISuperfluidToken.SF_TOKEN_ONLY_HOST.selector);
+        vm.prank(notHost);
+        superToken.operationDowngradeTo(alice, bob, 100);
+    }
+
+    function testDowngradeTo(uint256 amount) public {
+        vm.assume(amount < type(uint64).max);
+
+        uint256 bobBalanceBefore = token.balanceOf(bob);
+        vm.prank(address(sf.host));
+        superToken.operationDowngradeTo(alice, bob, amount);
+        uint256 bobBalanceAfter = token.balanceOf(bob);
+        assertEq(bobBalanceAfter, bobBalanceBefore + amount, "Bob has unexpected final balance");
+    }
+
+    function testDowngradeToBatchCall(uint256 amount) public {
+        vm.assume(amount < type(uint64).max);
+
+        ISuperfluid.Operation[] memory ops = new ISuperfluid.Operation[](1);
+        uint256 bobBalanceBefore = token.balanceOf(bob);
+        ops[0] = ISuperfluid.Operation({
+            operationType: BatchOperation.OPERATION_TYPE_SUPERTOKEN_DOWNGRADE_TO,
+            target: address(superToken),
+            data: abi.encode(bob, amount)
+        });
+        vm.prank(alice);
+        sf.host.batchCall(ops);
+        uint256 bobBalanceAfter = token.balanceOf(bob);
+        assertEq(bobBalanceAfter, bobBalanceBefore + amount, "Bob has unexpected final balance");
+    }
+
 }

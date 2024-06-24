@@ -6,6 +6,7 @@ import { stdError } from "forge-std/Test.sol";
 import { BatchOperation, ISuperfluid, Superfluid } from "../../../contracts/superfluid/Superfluid.sol";
 import { SuperToken } from "../../../contracts/superfluid/SuperToken.sol";
 import { IConstantFlowAgreementV1 } from "../../../contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
+import { IGeneralDistributionAgreementV1, ISuperfluidPool, PoolConfig } from "../../../contracts/interfaces/agreements/gdav1/IGeneralDistributionAgreementV1.sol";
 import { ISuperfluidToken } from "../../../contracts/interfaces/superfluid/ISuperfluidToken.sol";
 import { FoundrySuperfluidTester } from "../FoundrySuperfluidTester.sol";
 import { SuperTokenV1Library } from "../../../contracts/apps/SuperTokenV1Library.sol";
@@ -283,4 +284,22 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
         assertEq(bobBalanceAfter, bobBalanceBefore + amount, "Bob has unexpected final balance");
     }
 
+    function testCallAgreementConnectPoolBatchCall() public {
+        PoolConfig memory config = PoolConfig({ transferabilityForUnitsOwner: true, distributionFromAnyAddress: false });
+        ISuperfluidPool pool = _helperCreatePool(superToken, alice, alice, false, config);
+
+        ISuperfluid.Operation[] memory ops = new ISuperfluid.Operation[](1);
+        bytes memory connectPoolCallData =
+            abi.encodeCall(IGeneralDistributionAgreementV1.connectPool, (pool, new bytes(0)));
+        ops[0] = ISuperfluid.Operation({
+            operationType: BatchOperation.OPERATION_TYPE_SUPERFLUID_CALL_AGREEMENT,
+            target: address(sf.gda),
+            data: abi.encode(connectPoolCallData, new bytes(0))
+        });
+
+        vm.prank(alice);
+        sf.host.batchCall(ops);
+
+        assertTrue(sf.gda.isMemberConnected(pool, alice), "Alice: Pool is not connected");
+    }
 }

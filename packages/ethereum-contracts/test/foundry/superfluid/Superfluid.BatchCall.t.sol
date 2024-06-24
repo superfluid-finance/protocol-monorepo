@@ -11,6 +11,27 @@ import { ISuperfluidToken } from "../../../contracts/interfaces/superfluid/ISupe
 import { FoundrySuperfluidTester } from "../FoundrySuperfluidTester.sol";
 import { SuperTokenV1Library } from "../../../contracts/apps/SuperTokenV1Library.sol";
 import { SuperAppMock } from "../../../contracts/mocks/SuperAppMocks.sol";
+import { DMZForwarder } from "../../../contracts/utils/DMZForwarder.sol";
+
+// A mock for an arbitrary external contract
+contract MockExtContract {
+    uint256 public val;
+
+    error SomeError();
+
+    constructor(uint256 initialVal) {
+        val = initialVal;
+    }
+
+    function setVal(uint256 val_) external returns (uint256 prevVal) {
+        prevVal = val;
+        val = val_;
+    }
+
+    function doRevert() external {
+        revert SomeError();
+    }
+}
 
 contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
     using SuperTokenV1Library for SuperToken;
@@ -301,5 +322,53 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
         sf.host.batchCall(ops);
 
         assertTrue(sf.gda.isMemberConnected(pool, alice), "Alice: Pool is not connected");
+    }
+
+    function testDMZForwarder() public {
+        DMZForwarder forwarder = new DMZForwarder();
+        uint256 initialVal = 1;
+        MockExtContract testContract = new MockExtContract(initialVal);
+
+        uint256 newVal = 42;
+        (bool success, bytes memory returnValue) = forwarder.forwardCall(
+            address(testContract),
+            abi.encodeCall(testContract.setVal, (newVal))
+        );
+        // decoded return value
+        uint256 oldVal = abi.decode(returnValue, (uint256));
+        assertTrue(success, "DMZForwarder: call failed");
+        assertEq(testContract.val(), newVal, "TestContract: unexpected test contract state");
+        assertEq(oldVal, initialVal, "DMZForwarder: unexpected return value");
+    }
+
+    function testDMZForwarderBatchCall() public {
+        uint256 initialVal = 1;
+        MockExtContract testContract = new MockExtContract(initialVal);
+
+        uint256 newVal = 42;
+        ISuperfluid.Operation[] memory ops = new ISuperfluid.Operation[](1);
+        ops[0] = ISuperfluid.Operation({
+            operationType: BatchOperation.OPERATION_TYPE_SIMPLE_FORWARD_CALL,
+            target: address(testContract),
+            data: abi.encodeCall(testContract.setVal, (newVal))
+        });
+        sf.host.batchCall(ops);
+        assertEq(testContract.val(), newVal, "TestContract: unexpected test contract state");
+    }
+
+    function testDMZForwarderRevertInBatchCall() public {
+        uint256 initialVal = 1;
+        MockExtContract testContract = new MockExtContract(initialVal);
+
+        uint256 newVal = 42;
+        ISuperfluid.Operation[] memory ops = new ISuperfluid.Operation[](1);
+        ops[0] = ISuperfluid.Operation({
+            operationType: BatchOperation.OPERATION_TYPE_SIMPLE_FORWARD_CALL,
+            target: address(testContract),
+            data: abi.encodeCall(testContract.doRevert, ())
+        });
+
+        vm.expectRevert(MockExtContract.SomeError.selector);
+        sf.host.batchCall(ops);
     }
 }

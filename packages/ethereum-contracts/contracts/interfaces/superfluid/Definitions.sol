@@ -230,6 +230,16 @@ library BatchOperation {
      * )
      */
     uint32 constant internal OPERATION_TYPE_SUPERFLUID_CALL_APP_ACTION = 2 + 200;
+    /**
+     * @dev DMZForwarder.forwardCall batch operation type
+     *
+     * Call spec:
+     * forwardCall(
+     *     target,
+     *     data
+     * )
+     */
+    uint32 constant internal OPERATION_TYPE_SIMPLE_FORWARD_CALL = 1 + 300;
 }
 
 /**

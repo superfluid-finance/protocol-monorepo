@@ -23,6 +23,7 @@ import { GeneralDistributionAgreementV1 } from "../agreements/gdav1/GeneralDistr
 import { SuperfluidUpgradeableBeacon } from "../upgradability/SuperfluidUpgradeableBeacon.sol";
 import { CallUtils } from "../libs/CallUtils.sol";
 import { BaseRelayRecipient } from "../libs/BaseRelayRecipient.sol";
+import { DMZForwarder } from "../utils/DMZForwarder.sol";
 
 /**
  * @dev The Superfluid host implementation.
@@ -50,6 +51,8 @@ contract Superfluid is
 
     // solhint-disable-next-line var-name-mixedcase
     bool immutable public APP_WHITE_LISTING_ENABLED;
+
+    DMZForwarder immutable public DMZ_FORWARDER;
 
     /**
      * @dev Maximum number of level of apps can be composed together
@@ -98,6 +101,7 @@ contract Superfluid is
     constructor(bool nonUpgradable, bool appWhiteListingEnabled) {
         NON_UPGRADABLE_DEPLOYMENT = nonUpgradable;
         APP_WHITE_LISTING_ENABLED = appWhiteListingEnabled;
+        DMZ_FORWARDER = new DMZForwarder();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -873,6 +877,12 @@ contract Superfluid is
                     valueForwarded ? 0 : msg.value,
                     operations[i].data);
                 valueForwarded = true;
+            } else if (operationType == BatchOperation.OPERATION_TYPE_SIMPLE_FORWARD_CALL) {
+                (bool success, bytes memory returnData) =
+                    DMZ_FORWARDER.forwardCall(operations[i].target, operations[i].data);
+                if (!success) {
+                    CallUtils.revertFromReturnedData(returnData);
+                }
             } else {
                revert HOST_UNKNOWN_BATCH_CALL_OPERATION_TYPE();
             }

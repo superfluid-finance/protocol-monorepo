@@ -464,9 +464,9 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         bytes32 configHash = keccak256(abi.encodePacked(superToken, sender, receiver));
         VestingSchedule memory schedule = vestingSchedules[configHash];
 
-        // TODO: It's possible that this changes the endDate to be less than the claimValidityDate
-
         if (endDate <= block.timestamp) revert TimeWindowInvalid();
+
+        // Note : Claimable schedules that has not been claimed cannot be updated
 
         // Only allow an update if 1. vesting exists 2. executeCliffAndFlow() has been called
         if (schedule.cliffAndFlowDate != 0 || schedule.endDate == 0) revert ScheduleNotFlowing();
@@ -610,8 +610,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         bytes32 configHash = keccak256(abi.encodePacked(superToken, sender, receiver));
         VestingSchedule memory schedule = vestingSchedules[configHash];
 
-        // TODO: check that it's claimed
-
+        if (schedule.claimValidityDate != 0) revert ScheduleNotClaimed();
         if (schedule.endDate == 0) revert AlreadyExecuted();
         if (schedule.endDate - END_DATE_VALID_BEFORE > block.timestamp)
             revert TimeWindowInvalid();

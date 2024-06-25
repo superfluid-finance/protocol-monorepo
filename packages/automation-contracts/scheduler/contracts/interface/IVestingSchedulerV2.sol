@@ -17,6 +17,7 @@ interface IVestingSchedulerV2 {
     error ScheduleNotFlowing();
     error CannotClaimScheduleOnBehalf();
     error AlreadyExecuted();
+    error ScheduleNotClaimed();
 
     /**
      * @dev Vesting configuration provided by user.

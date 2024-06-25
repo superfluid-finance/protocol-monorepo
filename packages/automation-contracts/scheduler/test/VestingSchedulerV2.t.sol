@@ -1666,6 +1666,10 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
             superToken, alice, bob, END_DATE, totalExpectedAmount, false
         );
 
+        IVestingSchedulerV2.VestingSchedule memory schedule = vestingScheduler.getVestingSchedule(address(superToken), alice, bob);
+        assertEq(vestingScheduler.getMaximumNeededTokenAllowance(schedule), totalExpectedAmount);
+        assertEq(vestingScheduler.getMaximumNeededTokenAllowance(address(superToken), alice, bob), totalExpectedAmount);
+
         vm.prank(bob);
         assertTrue(vestingScheduler.executeCliffAndFlow(superToken, alice, bob));
 

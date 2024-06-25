@@ -369,7 +369,8 @@ interface IVestingSchedulerV2 {
         address indexed sender,
         address indexed receiver,
         uint32 oldEndDate,
-        uint32 endDate
+        uint32 endDate,
+        uint96 remainderAmount
     );
 
     /**

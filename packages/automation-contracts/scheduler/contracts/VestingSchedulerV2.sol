@@ -480,7 +480,8 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
             sender,
             receiver,
             schedule.endDate,
-            endDate
+            endDate,
+            vestingSchedules[configHash].remainderAmount
         );
     }
 

@@ -34,7 +34,8 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         address indexed sender,
         address indexed receiver,
         uint32 oldEndDate,
-        uint32 endDate
+        uint32 endDate,
+        uint96 remainderAmount
     );
 
     event VestingScheduleDeleted(
@@ -531,7 +532,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         vm.stopPrank();
         vm.prank(alice);
         vm.expectEmit(true, true, true, true);
-        emit VestingScheduleUpdated(superToken, alice, bob, END_DATE, NEW_END_DATE);
+        emit VestingScheduleUpdated(superToken, alice, bob, END_DATE, NEW_END_DATE, 0);
         vestingScheduler.updateVestingSchedule(superToken, bob, NEW_END_DATE, EMPTY_CTX);
         uint256 finalTimestamp = block.timestamp + 10 days - 3600;
         vm.warp(finalTimestamp);

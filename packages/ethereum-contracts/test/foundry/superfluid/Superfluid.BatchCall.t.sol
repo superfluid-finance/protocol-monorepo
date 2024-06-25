@@ -12,9 +12,11 @@ import { FoundrySuperfluidTester } from "../FoundrySuperfluidTester.sol";
 import { SuperTokenV1Library } from "../../../contracts/apps/SuperTokenV1Library.sol";
 import { SuperAppMock } from "../../../contracts/mocks/SuperAppMocks.sol";
 import { DMZForwarder } from "../../../contracts/utils/DMZForwarder.sol";
+import { Ownable } from '@openzeppelin/contracts/access/Ownable.sol';
+import { BaseRelayRecipient } from "../../../contracts/libs/BaseRelayRecipient.sol";
 
 // A mock for an arbitrary external contract
-contract MockExtContract {
+contract TestContract {
     uint256 public val;
 
     error SomeError();
@@ -23,13 +25,53 @@ contract MockExtContract {
         val = initialVal;
     }
 
-    function setVal(uint256 val_) external returns (uint256 prevVal) {
+    function setVal(uint256 val_) public virtual returns (uint256 prevVal) {
         prevVal = val;
         val = val_;
     }
 
-    function doRevert() external {
+    function doRevert() external pure {
         revert SomeError();
+    }
+}
+
+// A mock for an external contract that uses ERC-2771
+contract TestContract2771 is TestContract, Ownable, BaseRelayRecipient {
+    error NotOwner();
+
+    constructor(uint256 initialVal) TestContract(initialVal) { }
+
+    // Expects the msgSender to be encoded in calldata as specified by ERC-2771.
+    // Will revert if relayed for anybody but the contract owner.
+    function setVal(uint256 val_) public override returns (uint256 prevVal) {
+        if (_getTransactionSigner() != owner()) revert NotOwner();
+        return super.setVal(val_);
+    }
+
+    /// @dev BaseRelayRecipient.isTrustedForwarder implementation
+    function isTrustedForwarder(address /*forwarder*/) public view virtual override returns(bool) {
+        // we don't enforce any restrictions for this test
+        return true;
+    }
+
+    /// @dev IRelayRecipient.versionRecipient implementation
+    function versionRecipient() external override pure returns (string memory) {
+        return "v1";
+    }
+}
+
+// Same as TestContract2771, but only trusts the host's DMZForwarder
+contract TestContract2771Checked is TestContract2771 {
+    Superfluid internal _host;
+
+    constructor(uint256 initialVal, Superfluid host) TestContract2771(initialVal) {
+        _host = host;
+    }
+
+    /// @dev BaseRelayRecipient.isTrustedForwarder implementation
+    function isTrustedForwarder(address forwarder) public view override returns(bool) {
+        // TODO: shall we add this to ISuperfluid and recommend as general pattern?
+        return forwarder == address(_host.DMZ_FORWARDER());
     }
 }
 
@@ -327,7 +369,7 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
     function testDMZForwarder() public {
         DMZForwarder forwarder = new DMZForwarder();
         uint256 initialVal = 1;
-        MockExtContract testContract = new MockExtContract(initialVal);
+        TestContract testContract = new TestContract(initialVal);
 
         uint256 newVal = 42;
         (bool success, bytes memory returnValue) = forwarder.forwardCall(
@@ -343,7 +385,7 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
 
     function testDMZForwarderBatchCall() public {
         uint256 initialVal = 1;
-        MockExtContract testContract = new MockExtContract(initialVal);
+        TestContract testContract = new TestContract(initialVal);
 
         uint256 newVal = 42;
         ISuperfluid.Operation[] memory ops = new ISuperfluid.Operation[](1);
@@ -358,9 +400,8 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
 
     function testDMZForwarderRevertInBatchCall() public {
         uint256 initialVal = 1;
-        MockExtContract testContract = new MockExtContract(initialVal);
+        TestContract testContract = new TestContract(initialVal);
 
-        uint256 newVal = 42;
         ISuperfluid.Operation[] memory ops = new ISuperfluid.Operation[](1);
         ops[0] = ISuperfluid.Operation({
             operationType: BatchOperation.OPERATION_TYPE_SIMPLE_FORWARD_CALL,
@@ -368,7 +409,73 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
             data: abi.encodeCall(testContract.doRevert, ())
         });
 
-        vm.expectRevert(MockExtContract.SomeError.selector);
+        vm.expectRevert(TestContract.SomeError.selector);
         sf.host.batchCall(ops);
+    }
+
+    function testDMZForwarder2771() public {
+        DMZForwarder forwarder = new DMZForwarder();
+        uint256 initialVal = 1;
+
+        TestContract2771 testContract = new TestContract2771(initialVal);
+        // only alice shall be allowed to change val
+        testContract.transferOwnership(alice);
+
+        uint256 newVal = 42;
+        // we relay a call for alice
+        (bool success, bytes memory returnValue) = forwarder.forward2771Call(
+            address(testContract),
+            alice,
+            abi.encodeCall(testContract.setVal, (newVal))
+        );
+        // decoded return value
+        uint256 oldVal = abi.decode(returnValue, (uint256));
+        assertTrue(success, "DMZForwarder: call failed");
+        assertEq(testContract.val(), newVal, "TestContract: unexpected test contract state");
+        assertEq(oldVal, initialVal, "DMZForwarder: unexpected return value");
+
+        // if relaying for bob, it should fail
+        (success,) = forwarder.forward2771Call(
+            address(testContract),
+            bob,
+            abi.encodeCall(testContract.setVal, (newVal))
+        );
+        assertFalse(success, "DMZForwarder: call should have failed");
+
+        // only the owner of the forwarder shall be allowed to relay
+        vm.startPrank(eve);
+        vm.expectRevert("Ownable: caller is not the owner");
+        forwarder.forward2771Call(
+            address(testContract),
+            alice,
+            abi.encodeCall(testContract.setVal, (newVal))
+        );
+        vm.stopPrank();
+    }
+
+    function testDMZForwarder2771BatchCall() public {
+        uint256 initialVal = 1;
+        TestContract2771Checked testContract = new TestContract2771Checked(initialVal, sf.host);
+        testContract.transferOwnership(alice);
+
+        uint256 newVal = 42;
+        ISuperfluid.Operation[] memory ops = new ISuperfluid.Operation[](1);
+        ops[0] = ISuperfluid.Operation({
+            operationType: BatchOperation.OPERATION_TYPE_ERC2771_FORWARD_CALL,
+            target: address(testContract),
+            data: abi.encodeCall(testContract.setVal, (newVal))
+        });
+
+        // should fail if called by bob (not the owner of testContract)
+        vm.startPrank(bob);
+        vm.expectRevert(TestContract2771.NotOwner.selector);
+        sf.host.batchCall(ops);
+        vm.stopPrank();
+
+        // should succeed if called by alice
+        vm.startPrank(alice);
+        sf.host.batchCall(ops);
+        assertEq(testContract.val(), newVal, "TestContract: unexpected test contract state");
+        vm.stopPrank();
     }
 }

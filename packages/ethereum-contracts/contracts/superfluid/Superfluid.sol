@@ -883,6 +883,12 @@ contract Superfluid is
                 if (!success) {
                     CallUtils.revertFromReturnedData(returnData);
                 }
+            } else if (operationType == BatchOperation.OPERATION_TYPE_ERC2771_FORWARD_CALL) {
+                (bool success, bytes memory returnData) =
+                    DMZ_FORWARDER.forward2771Call(operations[i].target, msgSender, operations[i].data);
+                if (!success) {
+                    CallUtils.revertFromReturnedData(returnData);
+                }
             } else {
                revert HOST_UNKNOWN_BATCH_CALL_OPERATION_TYPE();
             }
@@ -921,7 +927,7 @@ contract Superfluid is
         ) != 0;
     }
 
-    /// @dev IRelayRecipient.isTrustedForwarder implementation
+    /// @dev IRelayRecipient.versionRecipient implementation
     function versionRecipient()
         external override pure
         returns (string memory)

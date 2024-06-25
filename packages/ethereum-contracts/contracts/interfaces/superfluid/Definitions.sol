@@ -240,6 +240,17 @@ library BatchOperation {
      * )
      */
     uint32 constant internal OPERATION_TYPE_SIMPLE_FORWARD_CALL = 1 + 300;
+    /**
+     * @dev DMZForwarder.forward2771Call batch operation type
+     *
+     * Call spec:
+     * forward2771Call(
+     *     target,
+     *     msg.sender,
+     *     data
+     * )
+     */
+    uint32 constant internal OPERATION_TYPE_ERC2771_FORWARD_CALL = 2 + 300;
 }
 
 /**

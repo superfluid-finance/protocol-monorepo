@@ -514,20 +514,23 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
 
         if (schedule.claimValidityDate > 0) {
             // Ensure that the caller is the sender or the receiver if the vesting schedule requires claiming.
-            if (msg.sender != sender && msg.sender != receiver) {
-                revert CannotClaimScheduleOnBehalf();
-            }
+            if (msg.sender != sender && msg.sender != receiver) revert CannotClaimScheduleOnBehalf();
+            if (schedule.claimValidityDate < block.timestamp)
+                revert TimeWindowInvalid(); // TODO: Use more explicit Expired error? Add a good test.
 
             delete vestingSchedules[configHash].claimValidityDate;
             emit VestingClaimed(superToken, sender, receiver, msg.sender);
             
-            if (block.timestamp > schedule.endDate - END_DATE_VALID_BEFORE) {
+            if (block.timestamp >= schedule.endDate - END_DATE_VALID_BEFORE) {
                 uint256 totalVestedAmount =
                     schedule.cliffAmount +
                     schedule.remainderAmount +
                     (schedule.endDate - schedule.cliffAndFlowDate) * SafeCast.toUint256(schedule.flowRate);
 
-                superToken.transferFrom(sender, receiver, totalVestedAmount);
+                delete vestingSchedules[configHash]; // TODO: Add a good test.
+
+                // Note: Super Tokens revert, not return false, i.e. we expect always true here.
+                assert(superToken.transferFrom(sender, receiver, totalVestedAmount));
 
                 emit VestingCliffAndFlowExecuted(
                     superToken,
@@ -682,7 +685,6 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         return flowRate != 0;
     }
 
-
     /// @dev IVestingScheduler.getCreateVestingScheduleParamsFromAmountAndDuration implementation.
     function getCreateVestingScheduleParamsFromAmountAndDuration(
         ISuperToken superToken,
@@ -769,14 +771,13 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
                 ? 0 
                 : END_DATE_VALID_BEFORE * SafeCast.toUint256(schedule.flowRate);
 
-        if (schedule.claimValidityDate < schedule.cliffAndFlowDate + START_DATE_VALID_AFTER) {
+        if (schedule.claimValidityDate == 0) {
             return
                 schedule.cliffAmount +
                 schedule.remainderAmount +
                 maxFlowDelayCompensationAmount +
                 maxEarlyEndCompensationAmount;
-        } else if (schedule.claimValidityDate > schedule.endDate) {
-            // TODO: Test this once claiming after end date is merged.   
+        } else if (schedule.claimValidityDate >= schedule.endDate - END_DATE_VALID_BEFORE) {
             uint256 totalVestedAmount = 
                 schedule.cliffAmount +
                 schedule.remainderAmount +

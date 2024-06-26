@@ -889,9 +889,8 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         vm.assume(startDate == 0 || startDate >= block.timestamp);
         vm.assume(startDate < 2524600800 /* year 2050 */);
 
-        vm.assume(totalDuration > vestingScheduler.MIN_VESTING_DURATION());
+        totalDuration = SafeCast.toUint32(bound(totalDuration, vestingScheduler.MIN_VESTING_DURATION(), 18250 days));
         vm.assume(cliffPeriod <= totalDuration - vestingScheduler.MIN_VESTING_DURATION());
-        vm.assume(totalDuration < 18250 days /* 50 years */);
 
         BigTestData memory $;
 
@@ -917,7 +916,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         uint32 expectedStartDate = startDate == 0 ? uint32(block.timestamp) : startDate;
 
         // Assume we're not getting liquidated at the end:
-        vm.assume(totalAmount <= ($.beforeSenderBalance - vestingScheduler.END_DATE_VALID_BEFORE() * SafeCast.toUint256(expectedSchedule.flowRate)));
+        vm.assume($.beforeSenderBalance >= totalAmount + vestingScheduler.END_DATE_VALID_BEFORE() * SafeCast.toUint256(expectedSchedule.flowRate));
 
         console.log("Total amount: %s", totalAmount);
         console.log("Total duration: %s", totalDuration);
@@ -1092,7 +1091,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         assertTrue(schedule.cliffAmount == CLIFF_TRANSFER_AMOUNT , "schedule.cliffAmount");
     }
 
-        function test_createClaimableVestingSchedule_claimValidity() public {
+    function test_createClaimableVestingSchedule_claimValidity() public {
         vm.expectEmit(true, true, true, true);
         emit VestingScheduleCreated(
             superToken, alice, bob, START_DATE, CLIFF_DATE, FLOW_RATE, END_DATE, CLIFF_TRANSFER_AMOUNT, CLAIM_VALIDITY_DATE, 0);
@@ -1849,9 +1848,8 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         vm.assume(startDate == 0 || startDate >= block.timestamp);
         vm.assume(startDate < 2524600800 /* year 2050 */);
 
-        vm.assume(totalDuration > vestingScheduler.MIN_VESTING_DURATION());
+        totalDuration = SafeCast.toUint32(bound(totalDuration, vestingScheduler.MIN_VESTING_DURATION(), 18250 days));
         vm.assume(cliffPeriod <= totalDuration - vestingScheduler.MIN_VESTING_DURATION());
-        vm.assume(totalDuration < 18250 days /* 50 years */);
 
         uint256 beforeSenderBalance = superToken.balanceOf(alice);
 
@@ -1866,11 +1864,11 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
             totalDuration,
             cliffPeriod,
             startDate,
-            0 // TODO: Test with claim period.
+            0
         );
 
         // Assume we're not getting liquidated at the end:
-        vm.assume(totalAmount <= (beforeSenderBalance - vestingScheduler.END_DATE_VALID_BEFORE() * SafeCast.toUint256(expectedSchedule.flowRate)));
+        vm.assume(beforeSenderBalance >= totalAmount + vestingScheduler.END_DATE_VALID_BEFORE() * SafeCast.toUint256(expectedSchedule.flowRate));
 
         // Arrange allowance
         vm.assume(superToken.allowance(alice, address(vestingScheduler)) == 0);
@@ -1919,6 +1917,108 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         assertTrue(vestingScheduler.executeEndVesting(superToken, alice, bob));
 
         // Assert
-        assertTrue(superToken.allowance(alice, address(vestingScheduler)) == 0, "No allowance should be left");
+        assertEq(superToken.allowance(alice, address(vestingScheduler)), 0, "No allowance should be left");
+        (,,,int96 flowRateAllowance) = superToken.getFlowPermissions(alice, address(vestingScheduler));
+        assertEq(flowRateAllowance, 0, "No flow rate allowance should be left");
+    }
+
+    function test_getMaximumNeededTokenAllowance_with_claim_should_end_with_zero_if_extreme_ranges_are_used(
+        uint256 totalAmount,
+        uint32 totalDuration,
+        uint32 cliffPeriod,
+        uint32 startDate,
+        uint32 claimPeriod,
+        uint8 randomizer
+    ) public {
+        // Assume
+        vm.assume(randomizer != 0);
+        
+        vm.assume(startDate == 0 || startDate >= block.timestamp);
+        vm.assume(startDate < 2524600800 /* year 2050 */);
+
+        claimPeriod = SafeCast.toUint32(bound(claimPeriod, 1, 18250 days));
+        vm.assume(claimPeriod >= cliffPeriod);
+
+        totalDuration = SafeCast.toUint32(bound(totalDuration, vestingScheduler.MIN_VESTING_DURATION(), 18250 days));
+        vm.assume(cliffPeriod <= totalDuration - vestingScheduler.MIN_VESTING_DURATION());
+
+        uint256 beforeSenderBalance = superToken.balanceOf(alice);
+
+        vm.assume(totalAmount > 1);
+        vm.assume(totalAmount >= totalDuration);
+        vm.assume(totalAmount / totalDuration <= SafeCast.toUint256(type(int96).max));
+        vm.assume(totalAmount <= beforeSenderBalance);
+
+        // Arrange
+        IVestingSchedulerV2.VestingSchedule memory expectedSchedule = _getExpectedScheduleFromAmountAndDuration(
+            totalAmount,
+            totalDuration,
+            cliffPeriod,
+            startDate,
+            claimPeriod
+        );
+
+        // Assume we're not getting liquidated at the end:
+        vm.assume(beforeSenderBalance >= totalAmount + vestingScheduler.END_DATE_VALID_BEFORE() * SafeCast.toUint256(expectedSchedule.flowRate));
+
+        // Arrange allowance
+        vm.assume(superToken.allowance(alice, address(vestingScheduler)) == 0);
+
+        vm.startPrank(alice);
+        superToken.revokeFlowPermissions(address(vestingScheduler));
+        bool willThereBeFullTransfer = expectedSchedule.claimValidityDate >= expectedSchedule.endDate - vestingScheduler.END_DATE_VALID_BEFORE();
+        if (!willThereBeFullTransfer) {
+            // No flow needed in this case.
+            superToken.setFlowPermissions(
+                address(vestingScheduler),
+                true, // allowCreate
+                false, // allowUpdate
+                true, // allowDelete,
+                expectedSchedule.flowRate
+            );
+        }
+        superToken.approve(address(vestingScheduler), vestingScheduler.getMaximumNeededTokenAllowance(expectedSchedule));
+        vm.stopPrank();
+
+        // Act
+        vm.startPrank(alice);
+        vestingScheduler.createClaimableVestingScheduleFromAmountAndDuration(
+            superToken,
+            bob,
+            totalAmount,
+            totalDuration,
+            claimPeriod,
+            cliffPeriod,
+            startDate,
+            EMPTY_CTX
+        );
+        vm.stopPrank();
+
+        // Assert
+        assertEq(vestingScheduler.getMaximumNeededTokenAllowance(expectedSchedule), vestingScheduler.getMaximumNeededTokenAllowance(address(superToken), alice, bob), "The overloads don't return same values");
+
+        // Act
+        vm.warp(expectedSchedule.claimValidityDate);
+        vm.startPrank(randomizer % 3 == 0 ? alice : bob); // Both sender and receiver can execute
+        assertTrue(vestingScheduler.executeCliffAndFlow(superToken, alice, bob));
+        vm.stopPrank();
+
+        if (randomizer % 2 == 0) {
+            // Let's set the allowance again half-way through.
+            vm.startPrank(alice);
+            superToken.approve(address(vestingScheduler), vestingScheduler.getMaximumNeededTokenAllowance(address(superToken), alice, bob));
+            vm.stopPrank();
+        }
+
+        // Act
+        if (!willThereBeFullTransfer) {
+            vm.warp(expectedSchedule.endDate - vestingScheduler.END_DATE_VALID_BEFORE());
+            assertTrue(vestingScheduler.executeEndVesting(superToken, alice, bob));
+        }
+
+        // Assert
+        assertEq(superToken.allowance(alice, address(vestingScheduler)), 0, "No allowance should be left");
+        (,,,int96 flowRateAllowance) = superToken.getFlowPermissions(alice, address(vestingScheduler));
+        assertEq(flowRateAllowance, 0, "No flow rate allowance should be left");
     }
 }

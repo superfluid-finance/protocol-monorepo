@@ -534,7 +534,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         bytes32 configHash = keccak256(abi.encodePacked(superToken, sender, receiver));
         VestingSchedule memory schedule = vestingSchedules[configHash];
 
-        delete vestingSchedules[configHash]; // TODO: Add a good test.
+        delete vestingSchedules[configHash];
 
         uint256 totalVestedAmount = _getTotalVestedAmount(schedule);
 

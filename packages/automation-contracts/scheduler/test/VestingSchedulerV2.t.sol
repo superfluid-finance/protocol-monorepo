@@ -172,6 +172,37 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         vm.stopPrank();
     }
 
+    function assertAreScheduleCreationParamsEqual(
+        IVestingSchedulerV2.ScheduleCreationParams memory params1,
+        IVestingSchedulerV2.ScheduleCreationParams memory params2
+    ) internal pure {
+        require(params1.superToken == params2.superToken, "SuperToken mismatch");
+        require(params1.receiver == params2.receiver, "Receiver mismatch");
+        require(params1.startDate == params2.startDate, "StartDate mismatch");
+        require(params1.claimValidityDate == params2.claimValidityDate, "ClaimValidityDate mismatch");
+        require(params1.cliffDate == params2.cliffDate, "CliffDate mismatch");
+        require(params1.flowRate == params2.flowRate, "FlowRate mismatch");
+        require(params1.cliffAmount == params2.cliffAmount, "CliffAmount mismatch");
+        require(params1.endDate == params2.endDate, "EndDate mismatch");
+        require(params1.remainderAmount == params2.remainderAmount, "RemainderAmount mismatch");
+    }
+
+    function testAssertScheduleDoesNotExist(
+        address superToken,
+        address sender,
+        address receiver
+    ) public {
+        VestingSchedulerV2.VestingSchedule memory schedule = vestingScheduler.getVestingSchedule(superToken, sender, receiver);
+        VestingSchedulerV2.VestingSchedule memory deletedSchedule;
+
+        assertEq(schedule.cliffAndFlowDate, deletedSchedule.cliffAndFlowDate, "cliffAndFlowDate mismatch");
+        assertEq(schedule.endDate, deletedSchedule.endDate, "endDate mismatch");
+        assertEq(schedule.flowRate, deletedSchedule.flowRate, "flowRate mismatch");
+        assertEq(schedule.cliffAmount, deletedSchedule.cliffAmount, "cliffAmount mismatch");
+        assertEq(schedule.remainderAmount, deletedSchedule.remainderAmount, "remainderAmount mismatch");
+        assertEq(schedule.claimValidityDate, deletedSchedule.claimValidityDate, "claimValidityDate mismatch");
+    }
+
     /// TESTS
 
     function testCreateVestingSchedule() public {
@@ -418,6 +449,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         vm.expectEmit(true, true, true, true);
         emit VestingScheduleDeleted(superToken, alice, bob);
         vestingScheduler.deleteVestingSchedule(superToken, bob, EMPTY_CTX);
+        testAssertScheduleDoesNotExist(address(superToken), alice, bob);
     }
 
     function testCannotDeleteVestingScheduleIfDataDontExist() public {
@@ -1042,21 +1074,8 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
 
         vm.warp(type(uint32).max);
         assertEq(afterSenderBalance, superToken.balanceOf(alice), "After the schedule has ended, the sender's balance should never change.");
-    }
 
-    function assertAreScheduleCreationParamsEqual(
-        IVestingSchedulerV2.ScheduleCreationParams memory params1,
-        IVestingSchedulerV2.ScheduleCreationParams memory params2
-    ) internal pure {
-        require(params1.superToken == params2.superToken, "SuperToken mismatch");
-        require(params1.receiver == params2.receiver, "Receiver mismatch");
-        require(params1.startDate == params2.startDate, "StartDate mismatch");
-        require(params1.claimValidityDate == params2.claimValidityDate, "ClaimValidityDate mismatch");
-        require(params1.cliffDate == params2.cliffDate, "CliffDate mismatch");
-        require(params1.flowRate == params2.flowRate, "FlowRate mismatch");
-        require(params1.cliffAmount == params2.cliffAmount, "CliffAmount mismatch");
-        require(params1.endDate == params2.endDate, "EndDate mismatch");
-        require(params1.remainderAmount == params2.remainderAmount, "RemainderAmount mismatch");
+        testAssertScheduleDoesNotExist(address(superToken), alice, bob);
     }
 
     // Claimable Vesting Schedules tests
@@ -1634,6 +1653,8 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         uint256 aliceShouldStream = (END_DATE-CLIFF_DATE) * uint96(FLOW_RATE) + CLIFF_TRANSFER_AMOUNT ;
         assertEq(aliceInitialBalance - aliceFinalBalance, aliceShouldStream, "(sender) wrong final balance");
         assertEq(bobFinalBalance, bobInitialBalance + aliceShouldStream, "(receiver) wrong final balance");
+
+        testAssertScheduleDoesNotExist(address(superToken), alice, bob);
     }
 
     function test_executeCliffAndFlow_claimAfterEndDate(uint256 delayAfterEndDate, uint256 claimDate) public {
@@ -1645,7 +1666,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
             SafeCast.toUint256(FLOW_RATE);
 
         delayAfterEndDate = bound(delayAfterEndDate, 1, 1e8);
-        claimDate = bound(claimDate, END_DATE - vestingScheduler.END_DATE_VALID_BEFORE() + 1, END_DATE + delayAfterEndDate);
+        claimDate = bound(claimDate, END_DATE - vestingScheduler.END_DATE_VALID_BEFORE(), END_DATE + delayAfterEndDate);
 
         _createClaimableVestingScheduleWithClaimDateAfterEndDate(alice, bob, delayAfterEndDate);
         vm.prank(alice);
@@ -1675,6 +1696,8 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
 
         assertEq(superToken.balanceOf(alice), aliceInitialBalance - totalExpectedAmount);
         assertEq(superToken.balanceOf(bob), bobInitialBalance + totalExpectedAmount);
+
+        testAssertScheduleDoesNotExist(address(superToken), alice, bob);
     }
 
     function test_executeCliffAndFlow_claimableScheduleWithCliffAmount_senderClaim() public {
@@ -1920,6 +1943,8 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         assertEq(superToken.allowance(alice, address(vestingScheduler)), 0, "No allowance should be left");
         (,,,int96 flowRateAllowance) = superToken.getFlowPermissions(alice, address(vestingScheduler));
         assertEq(flowRateAllowance, 0, "No flow rate allowance should be left");
+
+        testAssertScheduleDoesNotExist(address(superToken), alice, bob);
     }
 
     function test_getMaximumNeededTokenAllowance_with_claim_should_end_with_zero_if_extreme_ranges_are_used(
@@ -2020,5 +2045,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         assertEq(superToken.allowance(alice, address(vestingScheduler)), 0, "No allowance should be left");
         (,,,int96 flowRateAllowance) = superToken.getFlowPermissions(alice, address(vestingScheduler));
         assertEq(flowRateAllowance, 0, "No flow rate allowance should be left");
+
+        testAssertScheduleDoesNotExist(address(superToken), alice, bob);
     }
 }

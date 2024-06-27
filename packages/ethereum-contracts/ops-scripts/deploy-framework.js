@@ -228,6 +228,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         "PoolAdminNFT",
         "PoolMemberNFT",
         "IAccessControlEnumerable",
+        "DMZForwarder",
     ];
     const mockContracts = [
         "SuperfluidMock",
@@ -268,6 +269,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         PoolAdminNFT,
         PoolMemberNFT,
         IAccessControlEnumerable,
+        DMZForwarder,
     } = await SuperfluidSDK.loadContracts({
         ...extractWeb3Options(options),
         additionalContracts: contracts.concat(useMocks ? mockContracts : []),
@@ -348,11 +350,14 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         `Superfluid.${protocolReleaseVersion}`,
         async (contractAddress) => !(await hasCode(web3, contractAddress)),
         async () => {
+            const dmzForwarder = await web3tx(DMZForwarder.new, "DMZForwarder.new")();
+            output += `DMZ_FORWARDER=${dmzForwarder.address}\n`;
+
             let superfluidAddress;
             const superfluidLogic = await web3tx(
                 SuperfluidLogic.new,
                 "SuperfluidLogic.new"
-            )(nonUpgradable, appWhiteListing);
+            )(nonUpgradable, appWhiteListing, dmzForwarder.address);
             console.log(
                 `Superfluid new code address ${superfluidLogic.address}`
             );
@@ -372,6 +377,10 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 superfluidAddress = superfluidLogic.address;
             }
             const superfluid = await Superfluid.at(superfluidAddress);
+            await web3tx(
+                dmzForwarder.transferOwnership,
+                "dmzForwarder.transferOwnership"
+            )(superfluid.address);
             await web3tx(
                 superfluid.initialize,
                 "Superfluid.initialize"
@@ -796,6 +805,30 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             throw new Error("Superfluid is not upgradable");
         }
 
+        async function getPrevDMZForwarderAddr() {
+            console.log("Getting DMZForwarder address...");
+            try {
+                return await superfluid.DMZ_FORWARDER();
+            } catch (err) {
+                return ZERO_ADDRESS; // fallback
+            }
+        }
+
+        const dmzForwarderAddress = await deployContractIfCodeChanged(
+            web3,
+            DMZForwarder,
+            await getPrevDMZForwarderAddr(),
+            async () => {
+                const dmzForwarder = await web3tx(DMZForwarder.new, "DMZForwarder.new")();
+                await web3tx(
+                    dmzForwarder.transferOwnership,
+                    "dmzForwarder.transferOwnership"
+                )(superfluid.address);
+                output += `DMZ_FORWARDER=${dmzForwarder.address}\n`;
+                return dmzForwarder.address;
+            }
+        );
+
         // deploy new superfluid host logic
         superfluidNewLogicAddress = await deployContractIfCodeChanged(
             web3,
@@ -808,7 +841,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 const superfluidLogic = await web3tx(
                     SuperfluidLogic.new,
                     "SuperfluidLogic.new"
-                )(nonUpgradable, appWhiteListing);
+                )(nonUpgradable, appWhiteListing, dmzForwarderAddress);
                 output += `SUPERFLUID_HOST_LOGIC=${superfluidLogic.address}\n`;
                 return superfluidLogic.address;
             }

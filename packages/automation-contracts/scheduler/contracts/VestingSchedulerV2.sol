@@ -513,45 +513,10 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         VestingSchedule memory schedule = vestingSchedules[configHash];
 
         if (schedule.claimValidityDate > 0) {
-            // Ensure that the caller is the sender or the receiver if the vesting schedule requires claiming.
-            if (msg.sender != sender && msg.sender != receiver) revert CannotClaimScheduleOnBehalf();
-            if (schedule.claimValidityDate < block.timestamp)
-                revert TimeWindowInvalid(); // TODO: Use more explicit Expired error? Add a good test.
-
-            delete vestingSchedules[configHash].claimValidityDate;
-            emit VestingClaimed(superToken, sender, receiver, msg.sender);
+            _claim(superToken, sender, receiver);
             
             if (block.timestamp >= schedule.endDate - END_DATE_VALID_BEFORE) {
-                uint256 totalVestedAmount =
-                    schedule.cliffAmount +
-                    schedule.remainderAmount +
-                    (schedule.endDate - schedule.cliffAndFlowDate) * SafeCast.toUint256(schedule.flowRate);
-
-                delete vestingSchedules[configHash]; // TODO: Add a good test.
-
-                // Note: Super Tokens revert, not return false, i.e. we expect always true here.
-                assert(superToken.transferFrom(sender, receiver, totalVestedAmount));
-
-                emit VestingCliffAndFlowExecuted(
-                    superToken,
-                    sender,
-                    receiver,
-                    schedule.cliffAndFlowDate,
-                    0,
-                    schedule.cliffAmount,
-                    0
-                );
-
-                emit VestingEndExecuted(
-                    superToken,
-                    sender,
-                    receiver,
-                    schedule.endDate,
-                    totalVestedAmount,
-                    false
-                );
-
-                return true;
+                return _executeScheduleAsSingleTransfer(superToken, sender, receiver);
             } else {
                 return _executeCliffAndFlow(superToken, sender, receiver, schedule.claimValidityDate);
             }
@@ -559,6 +524,60 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
             return _executeCliffAndFlow(
                 superToken, sender, receiver, schedule.cliffAndFlowDate + START_DATE_VALID_AFTER);
         }
+    }
+
+    function _executeScheduleAsSingleTransfer(
+        ISuperToken superToken,
+        address sender,
+        address receiver
+    ) private returns (bool success) {
+        bytes32 configHash = keccak256(abi.encodePacked(superToken, sender, receiver));
+        VestingSchedule memory schedule = vestingSchedules[configHash];
+
+        delete vestingSchedules[configHash]; // TODO: Add a good test.
+
+        uint256 totalVestedAmount = _getTotalVestedAmount(schedule);
+
+        // Note: Super Tokens revert, not return false, i.e. we expect always true here.
+        assert(superToken.transferFrom(sender, receiver, totalVestedAmount));
+
+        emit VestingCliffAndFlowExecuted(
+            superToken,
+            sender,
+            receiver,
+            schedule.cliffAndFlowDate,
+            0,
+            schedule.cliffAmount,
+            0
+        );
+
+        emit VestingEndExecuted(
+            superToken,
+            sender,
+            receiver,
+            schedule.endDate,
+            totalVestedAmount,
+            false
+        );
+
+        return true;
+    }
+
+    function _claim(
+        ISuperToken superToken,
+        address sender,
+        address receiver
+    ) private {
+        bytes32 configHash = keccak256(abi.encodePacked(superToken, sender, receiver));
+        VestingSchedule memory schedule = vestingSchedules[configHash];
+
+        // Ensure that the caller is the sender or the receiver if the vesting schedule requires claiming.
+        if (msg.sender != sender && msg.sender != receiver) revert CannotClaimScheduleOnBehalf();
+        if (schedule.claimValidityDate < block.timestamp)
+            revert TimeWindowInvalid(); // TODO: Use more explicit Expired error? Add a good test.
+
+        delete vestingSchedules[configHash].claimValidityDate;
+        emit VestingClaimed(superToken, sender, receiver, msg.sender);
     }
 
     /// @dev IVestingScheduler.executeCliffAndFlow implementation.
@@ -778,16 +797,21 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
                 maxFlowDelayCompensationAmount +
                 maxEarlyEndCompensationAmount;
         } else if (schedule.claimValidityDate >= schedule.endDate - END_DATE_VALID_BEFORE) {
-            uint256 totalVestedAmount = 
-                schedule.cliffAmount +
-                schedule.remainderAmount +
-                (schedule.endDate - schedule.cliffAndFlowDate) * SafeCast.toUint256(schedule.flowRate);
-            return totalVestedAmount;
+            return _getTotalVestedAmount(schedule);
         } else {
             return schedule.cliffAmount +
                    schedule.remainderAmount +
                    (schedule.claimValidityDate - schedule.cliffAndFlowDate) * SafeCast.toUint256(schedule.flowRate) +
                    maxEarlyEndCompensationAmount;
         }
+    }
+
+    function _getTotalVestedAmount(
+        VestingSchedule memory schedule
+    ) private pure returns (uint256) {
+        return
+            schedule.cliffAmount + 
+            schedule.remainderAmount + 
+            (schedule.endDate - schedule.cliffAndFlowDate) * SafeCast.toUint256(schedule.flowRate);
     }
 }

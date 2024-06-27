@@ -7,12 +7,17 @@ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
  * @title DMZForwarder
  * @dev The purpose of this contract is to make arbitrary contract calls batchable
  * alongside Superfluid specific batch operations.
- * We route the callse through this dedicated contract in order to not have msg.sender set
+ * We route the calls through this dedicated contract in order to not have msg.sender set
  * to the host contract, for security reasons.
  * Forwarded calls can optionally use ERC-2771 to preserve the original msg.sender.
  * If native tokens (msg.value) are provided, they are forwarded as well.
  */
 contract DMZForwarder is Ownable {
+    /**
+     * @dev Forwards a call for which msg.sender doesn't matter
+     * @param target The target contract to call
+     * @param data The call data
+     */
     function forwardCall(address target, bytes memory data)
         external payable
         returns(bool success, bytes memory returnData)
@@ -21,9 +26,12 @@ contract DMZForwarder is Ownable {
         (success, returnData) = target.call{value: msg.value}(data);
     }
 
-    // Forwards a call using ERC-2771.
-    // That means the original msg.sender (provided by the host) is passed along in a trusted way.
-    // A recipient contract needs to trust this contract (trusted forwarder).
+    /**
+     * @dev Forwards a call passing along the original msg.sender encoded as specified in ERC-2771.
+     * @param target The target contract to call
+     * @param msgSender The original msg.sender passed along by the trusted contract owner
+     * @param data The call data
+     */
     function forward2771Call(address target, address msgSender, bytes memory data)
         external payable onlyOwner
         returns(bool success, bytes memory returnData)

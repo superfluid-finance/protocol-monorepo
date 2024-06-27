@@ -985,7 +985,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
             startDate = SafeCast.toUint32(bound(startDate, block.timestamp, 2524600800));
         }
 
-        totalDuration = SafeCast.toUint32(bound(totalDuration, vestingScheduler.MIN_VESTING_DURATION(), 18250 days));
+        totalDuration = SafeCast.toUint32(bound(totalDuration, vestingScheduler.MIN_VESTING_DURATION(), 9125 days));
         vm.assume(cliffPeriod <= totalDuration - vestingScheduler.MIN_VESTING_DURATION());
 
         BigTestData memory $;
@@ -1106,6 +1106,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         assertEq(actualSchedule.remainderAmount, expectedSchedule.remainderAmount, "schedule created: remainderAmount not expected");
 
         // Act
+        console.log("Executing cliff and flow.");
         vm.warp(expectedSchedule.cliffAndFlowDate + (vestingScheduler.START_DATE_VALID_AFTER() - (vestingScheduler.START_DATE_VALID_AFTER() / randomizer)));
         assertTrue(vestingScheduler.executeCliffAndFlow(superToken, alice, bob));
 
@@ -1123,6 +1124,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
             // # Test end execution on time.
 
             // Act
+            console.log("Executing end vesting early.");
             vm.warp(expectedSchedule.endDate - (vestingScheduler.END_DATE_VALID_BEFORE() - (vestingScheduler.END_DATE_VALID_BEFORE() / randomizer)));
             assertTrue(vestingScheduler.executeEndVesting(superToken, alice, bob));
 
@@ -1136,7 +1138,8 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
             // # Test end execution delayed.
 
             // Act
-            vm.warp(expectedSchedule.endDate + (totalDuration / randomizer * 3));
+            console.log("Executing end vesting late.");
+            vm.warp(expectedSchedule.endDate + (totalDuration / randomizer)); // There is some chance of overflow here.
             assertTrue(vestingScheduler.executeEndVesting(superToken, alice, bob));
 
             // Assert

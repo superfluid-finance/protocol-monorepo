@@ -203,6 +203,69 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         assertEq(schedule.claimValidityDate, deletedSchedule.claimValidityDate, "claimValidityDate mismatch");
     }
 
+        function _getExpectedSchedule(
+        uint32 startDate,
+        uint32 cliffDate,
+        int96 flowRate,
+        uint256 cliffAmount,
+        uint32 endDate
+    ) public view returns (IVestingSchedulerV2.VestingSchedule memory expectedSchedule) {
+        if (startDate == 0) {
+            startDate = uint32(block.timestamp);
+        }
+
+        uint32 cliffAndFlowDate = cliffDate == 0 ? startDate : cliffDate;
+
+        expectedSchedule = IVestingSchedulerV2.VestingSchedule({
+            cliffAndFlowDate: cliffAndFlowDate,
+            endDate: endDate,
+            claimValidityDate: 0,
+            flowRate: flowRate,
+            cliffAmount: cliffAmount,
+            remainderAmount: 0
+        });
+    }
+
+    function _getExpectedScheduleFromAmountAndDuration(
+        uint256 totalAmount,
+        uint32 totalDuration,
+        uint32 cliffPeriod,
+        uint32 startDate,
+        uint32 claimPeriod
+    ) public view returns (IVestingSchedulerV2.VestingSchedule memory expectedSchedule) {
+        if (startDate == 0) {
+            startDate = uint32(block.timestamp);
+        }
+
+        int96 flowRate = SafeCast.toInt96(SafeCast.toInt256(totalAmount / totalDuration));
+
+        uint32 cliffDate;
+        uint32 cliffAndFlowDate;
+        uint256 cliffAmount;
+        if (cliffPeriod > 0) {
+            cliffDate = startDate + cliffPeriod;
+            cliffAmount = cliffPeriod * SafeCast.toUint256(flowRate);
+            cliffAndFlowDate = cliffDate;
+        } else {
+            cliffDate = 0;
+            cliffAmount = 0;
+            cliffAndFlowDate = startDate;
+        }
+
+        uint32 endDate = startDate + totalDuration;
+
+        uint96 remainderAmount = SafeCast.toUint96(totalAmount - SafeCast.toUint256(flowRate) * totalDuration);
+
+        expectedSchedule = IVestingSchedulerV2.VestingSchedule({
+            cliffAndFlowDate: cliffAndFlowDate,
+            endDate: endDate,
+            flowRate: flowRate,
+            cliffAmount: cliffAmount,
+            remainderAmount: remainderAmount,
+            claimValidityDate: claimPeriod == 0 ? 0 : startDate + claimPeriod
+        });
+    }
+
     /// TESTS
 
     function testCreateVestingSchedule() public {
@@ -908,7 +971,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         uint256 beforeReceiverBalance;
     }
 
-    function test_createScheduleFromAmountAndDuration_executeCliffAndFlow_executeEndVesting(
+    function test_createScheduleFromAmountAndDuration_executeCliffAndFlow_executeEndVesting_withoutClaim(
         uint256 totalAmount,
         uint32 totalDuration,
         uint32 cliffPeriod,
@@ -916,10 +979,11 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         uint8 randomizer
     ) public {
         // Assume
-        vm.assume(randomizer != 0);
+        randomizer = SafeCast.toUint8(bound(randomizer, 1, type(uint8).max));
         
-        vm.assume(startDate == 0 || startDate >= block.timestamp);
-        vm.assume(startDate < 2524600800 /* year 2050 */);
+        if (startDate != 0) {
+            startDate = SafeCast.toUint32(bound(startDate, block.timestamp, 2524600800));
+        }
 
         totalDuration = SafeCast.toUint32(bound(totalDuration, vestingScheduler.MIN_VESTING_DURATION(), 18250 days));
         vm.assume(cliffPeriod <= totalDuration - vestingScheduler.MIN_VESTING_DURATION());
@@ -929,10 +993,9 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         $.beforeSenderBalance = superToken.balanceOf(alice);
         $.beforeReceiverBalance = superToken.balanceOf(bob);
 
-        vm.assume(totalAmount > 1);
+        totalAmount = bound(totalAmount, 1, $.beforeSenderBalance);
         vm.assume(totalAmount >= totalDuration);
         vm.assume(totalAmount / totalDuration <= SafeCast.toUint256(type(int96).max));
-        vm.assume(totalAmount <= $.beforeSenderBalance);
 
         assertTrue(vestingScheduler.getVestingSchedule(address(superToken), alice, bob).endDate == 0, "Schedule should not exist");
 
@@ -1795,69 +1858,6 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         vm.stopPrank();
     }
 
-    function _getExpectedSchedule(
-        uint32 startDate,
-        uint32 cliffDate,
-        int96 flowRate,
-        uint256 cliffAmount,
-        uint32 endDate
-    ) public view returns (IVestingSchedulerV2.VestingSchedule memory expectedSchedule) {
-        if (startDate == 0) {
-            startDate = uint32(block.timestamp);
-        }
-
-        uint32 cliffAndFlowDate = cliffDate == 0 ? startDate : cliffDate;
-
-        expectedSchedule = IVestingSchedulerV2.VestingSchedule({
-            cliffAndFlowDate: cliffAndFlowDate,
-            endDate: endDate,
-            claimValidityDate: 0,
-            flowRate: flowRate,
-            cliffAmount: cliffAmount,
-            remainderAmount: 0
-        });
-    }
-
-    function _getExpectedScheduleFromAmountAndDuration(
-        uint256 totalAmount,
-        uint32 totalDuration,
-        uint32 cliffPeriod,
-        uint32 startDate,
-        uint32 claimPeriod
-    ) public view returns (IVestingSchedulerV2.VestingSchedule memory expectedSchedule) {
-        if (startDate == 0) {
-            startDate = uint32(block.timestamp);
-        }
-
-        int96 flowRate = SafeCast.toInt96(SafeCast.toInt256(totalAmount / totalDuration));
-
-        uint32 cliffDate;
-        uint32 cliffAndFlowDate;
-        uint256 cliffAmount;
-        if (cliffPeriod > 0) {
-            cliffDate = startDate + cliffPeriod;
-            cliffAmount = cliffPeriod * SafeCast.toUint256(flowRate);
-            cliffAndFlowDate = cliffDate;
-        } else {
-            cliffDate = 0;
-            cliffAmount = 0;
-            cliffAndFlowDate = startDate;
-        }
-
-        uint32 endDate = startDate + totalDuration;
-
-        uint96 remainderAmount = SafeCast.toUint96(totalAmount - SafeCast.toUint256(flowRate) * totalDuration);
-
-        expectedSchedule = IVestingSchedulerV2.VestingSchedule({
-            cliffAndFlowDate: cliffAndFlowDate,
-            endDate: endDate,
-            flowRate: flowRate,
-            cliffAmount: cliffAmount,
-            remainderAmount: remainderAmount,
-            claimValidityDate: claimPeriod == 0 ? 0 : startDate + claimPeriod
-        });
-    }
-
     function test_getMaximumNeededTokenAllowance_should_end_with_zero_if_extreme_ranges_are_used(
         uint256 totalAmount,
         uint32 totalDuration,
@@ -1866,20 +1866,20 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         uint8 randomizer
     ) public {
         // Assume
-        vm.assume(randomizer != 0);
+        randomizer = SafeCast.toUint8(bound(randomizer, 1, type(uint8).max));
         
-        vm.assume(startDate == 0 || startDate >= block.timestamp);
-        vm.assume(startDate < 2524600800 /* year 2050 */);
+        if (startDate != 0) {
+            startDate = SafeCast.toUint32(bound(startDate, block.timestamp, 2524600800));
+        }
 
         totalDuration = SafeCast.toUint32(bound(totalDuration, vestingScheduler.MIN_VESTING_DURATION(), 18250 days));
         vm.assume(cliffPeriod <= totalDuration - vestingScheduler.MIN_VESTING_DURATION());
 
         uint256 beforeSenderBalance = superToken.balanceOf(alice);
 
-        vm.assume(totalAmount > 1);
+        totalAmount = bound(totalAmount, 1, beforeSenderBalance);
         vm.assume(totalAmount >= totalDuration);
         vm.assume(totalAmount / totalDuration <= SafeCast.toUint256(type(int96).max));
-        vm.assume(totalAmount <= beforeSenderBalance);
 
         // Arrange
         IVestingSchedulerV2.VestingSchedule memory expectedSchedule = _getExpectedScheduleFromAmountAndDuration(
@@ -1956,10 +1956,11 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         uint8 randomizer
     ) public {
         // Assume
-        vm.assume(randomizer != 0);
+        randomizer = SafeCast.toUint8(bound(randomizer, 1, type(uint8).max));
         
-        vm.assume(startDate == 0 || startDate >= block.timestamp);
-        vm.assume(startDate < 2524600800 /* year 2050 */);
+        if (startDate != 0) {
+            startDate = SafeCast.toUint32(bound(startDate, block.timestamp, 2524600800));
+        }
 
         claimPeriod = SafeCast.toUint32(bound(claimPeriod, 1, 18250 days));
         vm.assume(claimPeriod >= cliffPeriod);
@@ -1969,10 +1970,9 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
 
         uint256 beforeSenderBalance = superToken.balanceOf(alice);
 
-        vm.assume(totalAmount > 1);
+        totalAmount = bound(totalAmount, 1, beforeSenderBalance);
         vm.assume(totalAmount >= totalDuration);
         vm.assume(totalAmount / totalDuration <= SafeCast.toUint256(type(int96).max));
-        vm.assume(totalAmount <= beforeSenderBalance);
 
         // Arrange
         IVestingSchedulerV2.VestingSchedule memory expectedSchedule = _getExpectedScheduleFromAmountAndDuration(

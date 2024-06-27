@@ -129,9 +129,8 @@ contract SuperfluidUpgradabilityTester is Superfluid {
 
 contract SuperfluidMock is Superfluid {
 
-
-    constructor(bool nonUpgradable, bool appWhiteListingEnabled)
-        Superfluid(nonUpgradable, appWhiteListingEnabled, address(0))
+    constructor(bool nonUpgradable, bool appWhiteListingEnabled, address dmzForwarder)
+        Superfluid(nonUpgradable, appWhiteListingEnabled, dmzForwarder)
     // solhint-disable-next-line no-empty-blocks
     {
     }

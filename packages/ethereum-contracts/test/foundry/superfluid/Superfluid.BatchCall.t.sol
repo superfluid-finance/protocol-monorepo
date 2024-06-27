@@ -17,17 +17,21 @@ import { BaseRelayRecipient } from "../../../contracts/libs/BaseRelayRecipient.s
 
 // A mock for an arbitrary external contract
 contract TestContract {
-    uint256 public val;
-
     error SomeError();
+    error IncorrectPayment();
 
-    constructor(uint256 initialVal) {
-        val = initialVal;
+    bool public stateChanged;
+
+    function permissionlessFn() public returns (bool) {
+        stateChanged = true;
+        return true;
     }
 
-    function setVal(uint256 val_) public virtual returns (uint256 prevVal) {
-        prevVal = val;
-        val = val_;
+    // accept native coins
+    receive() external payable {}
+
+    function pay(uint256 expectedAmount) external payable {
+        if (msg.value != expectedAmount) revert IncorrectPayment();
     }
 
     function doRevert() external pure {
@@ -39,13 +43,12 @@ contract TestContract {
 contract TestContract2771 is TestContract, Ownable, BaseRelayRecipient {
     error NotOwner();
 
-    constructor(uint256 initialVal) TestContract(initialVal) { }
-
     // Expects the msgSender to be encoded in calldata as specified by ERC-2771.
     // Will revert if relayed for anybody but the contract owner.
-    function setVal(uint256 val_) public override returns (uint256 prevVal) {
+    function privilegedFn() public returns (bool) {
         if (_getTransactionSigner() != owner()) revert NotOwner();
-        return super.setVal(val_);
+        stateChanged = true;
+        return true;
     }
 
     /// @dev BaseRelayRecipient.isTrustedForwarder implementation
@@ -64,7 +67,7 @@ contract TestContract2771 is TestContract, Ownable, BaseRelayRecipient {
 contract TestContract2771Checked is TestContract2771 {
     Superfluid internal _host;
 
-    constructor(uint256 initialVal, Superfluid host) TestContract2771(initialVal) {
+    constructor(Superfluid host) {
         _host = host;
     }
 
@@ -74,6 +77,7 @@ contract TestContract2771Checked is TestContract2771 {
         return forwarder == address(_host.DMZ_FORWARDER());
     }
 }
+
 
 contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
     using SuperTokenV1Library for SuperToken;
@@ -368,39 +372,33 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
 
     function testDMZForwarder() public {
         DMZForwarder forwarder = new DMZForwarder();
-        uint256 initialVal = 1;
-        TestContract testContract = new TestContract(initialVal);
+        TestContract testContract = new TestContract();
 
-        uint256 newVal = 42;
         (bool success, bytes memory returnValue) = forwarder.forwardCall(
             address(testContract),
-            abi.encodeCall(testContract.setVal, (newVal))
+            abi.encodeCall(testContract.permissionlessFn, ())
         );
         // decoded return value
-        uint256 oldVal = abi.decode(returnValue, (uint256));
+        bool retVal = abi.decode(returnValue, (bool));
         assertTrue(success, "DMZForwarder: call failed");
-        assertEq(testContract.val(), newVal, "TestContract: unexpected test contract state");
-        assertEq(oldVal, initialVal, "DMZForwarder: unexpected return value");
+        assertEq(retVal, true, "DMZForwarder: unexpected return value");
     }
 
     function testDMZForwarderBatchCall() public {
-        uint256 initialVal = 1;
-        TestContract testContract = new TestContract(initialVal);
+        TestContract testContract = new TestContract();
 
-        uint256 newVal = 42;
         ISuperfluid.Operation[] memory ops = new ISuperfluid.Operation[](1);
         ops[0] = ISuperfluid.Operation({
             operationType: BatchOperation.OPERATION_TYPE_SIMPLE_FORWARD_CALL,
             target: address(testContract),
-            data: abi.encodeCall(testContract.setVal, (newVal))
+            data: abi.encodeCall(testContract.permissionlessFn, ())
         });
         sf.host.batchCall(ops);
-        assertEq(testContract.val(), newVal, "TestContract: unexpected test contract state");
+        assertEq(testContract.stateChanged(), true, "TestContract: unexpected state");
     }
 
     function testDMZForwarderRevertInBatchCall() public {
-        uint256 initialVal = 1;
-        TestContract testContract = new TestContract(initialVal);
+        TestContract testContract = new TestContract();
 
         ISuperfluid.Operation[] memory ops = new ISuperfluid.Operation[](1);
         ops[0] = ISuperfluid.Operation({
@@ -415,10 +413,9 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
 
     function testDMZForwarder2771() public {
         DMZForwarder forwarder = new DMZForwarder();
-        uint256 initialVal = 1;
 
-        TestContract2771 testContract = new TestContract2771(initialVal);
-        // only alice shall be allowed to change val
+        TestContract2771 testContract = new TestContract2771();
+        // alice has privileged access to the testContract
         testContract.transferOwnership(alice);
 
         uint256 newVal = 42;
@@ -426,19 +423,19 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
         (bool success, bytes memory returnValue) = forwarder.forward2771Call(
             address(testContract),
             alice,
-            abi.encodeCall(testContract.setVal, (newVal))
+            abi.encodeCall(testContract.privilegedFn, ())
         );
         // decoded return value
-        uint256 oldVal = abi.decode(returnValue, (uint256));
+        bool retVal = abi.decode(returnValue, (bool));
         assertTrue(success, "DMZForwarder: call failed");
-        assertEq(testContract.val(), newVal, "TestContract: unexpected test contract state");
-        assertEq(oldVal, initialVal, "DMZForwarder: unexpected return value");
+        assertEq(testContract.stateChanged(), true, "TestContract: unexpected state");
+        assertEq(retVal, true, "DMZForwarder: unexpected return value");
 
         // if relaying for bob, it should fail
         (success,) = forwarder.forward2771Call(
             address(testContract),
             bob,
-            abi.encodeCall(testContract.setVal, (newVal))
+            abi.encodeCall(testContract.privilegedFn, ())
         );
         assertFalse(success, "DMZForwarder: call should have failed");
 
@@ -448,22 +445,20 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
         forwarder.forward2771Call(
             address(testContract),
             alice,
-            abi.encodeCall(testContract.setVal, (newVal))
+            abi.encodeCall(testContract.privilegedFn, ())
         );
         vm.stopPrank();
     }
 
     function testDMZForwarder2771BatchCall() public {
-        uint256 initialVal = 1;
-        TestContract2771Checked testContract = new TestContract2771Checked(initialVal, sf.host);
+        TestContract2771Checked testContract = new TestContract2771Checked(sf.host);
         testContract.transferOwnership(alice);
 
-        uint256 newVal = 42;
         ISuperfluid.Operation[] memory ops = new ISuperfluid.Operation[](1);
         ops[0] = ISuperfluid.Operation({
             operationType: BatchOperation.OPERATION_TYPE_ERC2771_FORWARD_CALL,
             target: address(testContract),
-            data: abi.encodeCall(testContract.setVal, (newVal))
+            data: abi.encodeCall(testContract.privilegedFn, ())
         });
 
         // should fail if called by bob (not the owner of testContract)
@@ -475,7 +470,72 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
         // should succeed if called by alice
         vm.startPrank(alice);
         sf.host.batchCall(ops);
-        assertEq(testContract.val(), newVal, "TestContract: unexpected test contract state");
+        assertEq(testContract.stateChanged(), true, "TestContract: unexpected state");
         vm.stopPrank();
+    }
+
+    function testDMZForwarderBatchCallWithValue() public {
+        TestContract testContract = new TestContract();
+
+        uint256 amount = 42;
+        ISuperfluid.Operation[] memory ops = new ISuperfluid.Operation[](2);
+        ops[0] = ISuperfluid.Operation({
+            operationType: BatchOperation.OPERATION_TYPE_SIMPLE_FORWARD_CALL,
+            target: address(testContract),
+            data: abi.encodeCall(testContract.pay, (amount))
+        });
+        ops[1] = ISuperfluid.Operation({
+            operationType: BatchOperation.OPERATION_TYPE_SIMPLE_FORWARD_CALL,
+            target: address(testContract),
+            data: abi.encodeCall(testContract.permissionlessFn, ())
+        });
+
+        // the first operation shall forward the value, the second shall not (and thus succeed)
+        sf.host.batchCall{value: amount}(ops);
+        assertEq(address(testContract).balance, amount, "TestContract: unexpected balance");
+    }
+
+    function testDMZForwarderBatchCallWithValueUnsupportedOrder() public {
+        TestContract testContract = new TestContract();
+
+        uint256 amount = 42;
+        ISuperfluid.Operation[] memory ops = new ISuperfluid.Operation[](2);
+        ops[0] = ISuperfluid.Operation({
+            operationType: BatchOperation.OPERATION_TYPE_SIMPLE_FORWARD_CALL,
+            target: address(testContract),
+            data: abi.encodeCall(testContract.permissionlessFn, ())
+        });
+        ops[1] = ISuperfluid.Operation({
+            operationType: BatchOperation.OPERATION_TYPE_SIMPLE_FORWARD_CALL,
+            target: address(testContract),
+            data: abi.encodeCall(testContract.pay, (amount))
+        });
+
+        // This fails because the native tokens are forwarded to the first operation,
+        // which calls a non-payable function and thus reverts
+        vm.expectRevert();
+        sf.host.batchCall{value: amount}(ops);
+    }
+
+    function testDMZForwarder2771BatchCallWithValueUsingReceiveFn() public {
+        TestContract2771Checked testContract = new TestContract2771Checked(sf.host);
+
+        uint256 amount = 42;
+        ISuperfluid.Operation[] memory ops = new ISuperfluid.Operation[](2);
+        ops[0] = ISuperfluid.Operation({
+            operationType: BatchOperation.OPERATION_TYPE_SIMPLE_FORWARD_CALL,
+            target: address(testContract),
+            data: ""
+        });
+        ops[1] = ISuperfluid.Operation({
+            operationType: BatchOperation.OPERATION_TYPE_SIMPLE_FORWARD_CALL,
+            target: address(testContract),
+            data: abi.encodeCall(testContract.permissionlessFn, ())
+        });
+
+        // This shall work because we first forward native tokens to the contract,
+        // then call the contract's setVal function
+        sf.host.batchCall{value: amount}(ops);
+        assertEq(address(testContract).balance, amount, "TestContract: unexpected test contract balance");
     }
 }

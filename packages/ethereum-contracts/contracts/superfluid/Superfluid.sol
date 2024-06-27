@@ -803,7 +803,6 @@ contract Superfluid is
     )
        internal
     {
-        bool valueForwarded = false;
         for (uint256 i = 0; i < operations.length; ++i) {
             uint32 operationType = operations[i].operationType;
             if (operationType == BatchOperation.OPERATION_TYPE_ERC20_APPROVE) {
@@ -874,12 +873,13 @@ contract Superfluid is
                 _callAppAction(
                     msgSender,
                     ISuperApp(operations[i].target),
-                    valueForwarded ? 0 : msg.value,
+                    address(this).balance,
                     operations[i].data);
-                valueForwarded = true;
             } else if (operationType == BatchOperation.OPERATION_TYPE_SIMPLE_FORWARD_CALL) {
                 (bool success, bytes memory returnData) =
-                    DMZ_FORWARDER.forwardCall(operations[i].target, operations[i].data);
+                    DMZ_FORWARDER.forwardCall{value: address(this).balance}(
+                        operations[i].target,
+                        operations[i].data);
                 if (!success) {
                     CallUtils.revertFromReturnedData(returnData);
                 }
@@ -893,9 +893,9 @@ contract Superfluid is
                revert HOST_UNKNOWN_BATCH_CALL_OPERATION_TYPE();
             }
         }
-        if (msg.value != 0 && !valueForwarded) {
-            // return ETH provided if not forwarded
-            payable(msg.sender).transfer(msg.value);
+        if (address(this).balance != 0) {
+            // return any native tokens left to the sender.
+            payable(msg.sender).transfer(address(this).balance);
         }
     }
 

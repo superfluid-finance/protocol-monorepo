@@ -10,24 +10,25 @@ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
  * We route the callse through this dedicated contract in order to not have msg.sender set
  * to the host contract, for security reasons.
  * Forwarded calls can optionally use ERC-2771 to preserve the original msg.sender.
+ * If native tokens (msg.value) are provided, they are forwarded as well.
  */
 contract DMZForwarder is Ownable {
     function forwardCall(address target, bytes memory data)
-        external
+        external payable
         returns(bool success, bytes memory returnData)
     {
         // solhint-disable-next-line avoid-low-level-calls
-        (success, returnData) = target.call(data);
+        (success, returnData) = target.call{value: msg.value}(data);
     }
 
     // Forwards a call using ERC-2771.
     // That means the original msg.sender (provided by the host) is passed along in a trusted way.
     // A recipient contract needs to trust this contract (trusted forwarder).
     function forward2771Call(address target, address msgSender, bytes memory data)
-        external onlyOwner
+        external payable onlyOwner
         returns(bool success, bytes memory returnData)
     {
         // solhint-disable-next-line avoid-low-level-calls
-        (success, returnData) = target.call(abi.encodePacked(data, msgSender));
+        (success, returnData) = target.call{value: msg.value}(abi.encodePacked(data, msgSender));
     }
 }

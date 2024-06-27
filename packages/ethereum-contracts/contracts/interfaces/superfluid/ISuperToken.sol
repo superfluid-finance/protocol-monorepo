@@ -581,6 +581,7 @@ interface ISuperToken is ISuperfluidToken, IERC20Metadata, IERC777 {
     /**
     * @dev Upgrade ERC20 to SuperToken by host contract and transfer immediately.
     * @param account The account to be changed.
+    * @param to The account to receive upgraded tokens
     * @param amount Number of tokens to be upgraded (in 18 decimals)
     *
     * @custom:modifiers
@@ -591,7 +592,7 @@ interface ISuperToken is ISuperfluidToken, IERC20Metadata, IERC777 {
     /**
     * @dev Downgrade ERC20 to SuperToken by host contract and transfer immediately.
     * @param account The account to be changed.
-    * @param to The account to receive upgraded tokens
+    * @param to The account to receive downgraded tokens
     * @param amount Number of tokens to be downgraded (in 18 decimals)
     *
     * @custom:modifiers

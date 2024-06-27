@@ -51,6 +51,12 @@ contract TestContract2771 is TestContract, Ownable, BaseRelayRecipient {
         return true;
     }
 
+    // this can be used to check correct association of the payment
+    function privilegedPay(uint256 expectedAmount) external payable {
+        if (_getTransactionSigner() != owner()) revert NotOwner();
+        if (msg.value != expectedAmount) revert IncorrectPayment();
+    }
+
     /// @dev BaseRelayRecipient.isTrustedForwarder implementation
     function isTrustedForwarder(address /*forwarder*/) public view virtual override returns(bool) {
         // we don't enforce any restrictions for this test
@@ -418,7 +424,6 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
         // alice has privileged access to the testContract
         testContract.transferOwnership(alice);
 
-        uint256 newVal = 42;
         // we relay a call for alice
         (bool success, bytes memory returnValue) = forwarder.forward2771Call(
             address(testContract),
@@ -490,6 +495,28 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
             data: abi.encodeCall(testContract.permissionlessFn, ())
         });
 
+        // This shall work because we first forward native tokens to the contract,
+        // then call the non-payable function
+        sf.host.batchCall{value: amount}(ops);
+        assertEq(address(testContract).balance, amount, "TestContract: unexpected balance");
+    }
+
+    function testDMZForwarderBatchCallWithValueUsingReceiveFn() public {
+        TestContract testContract = new TestContract();
+
+        uint256 amount = 42;
+        ISuperfluid.Operation[] memory ops = new ISuperfluid.Operation[](2);
+        ops[0] = ISuperfluid.Operation({
+            operationType: BatchOperation.OPERATION_TYPE_SIMPLE_FORWARD_CALL,
+            target: address(testContract),
+            data: ""
+        });
+        ops[1] = ISuperfluid.Operation({
+            operationType: BatchOperation.OPERATION_TYPE_SIMPLE_FORWARD_CALL,
+            target: address(testContract),
+            data: abi.encodeCall(testContract.permissionlessFn, ())
+        });
+
         // the first operation shall forward the value, the second shall not (and thus succeed)
         sf.host.batchCall{value: amount}(ops);
         assertEq(address(testContract).balance, amount, "TestContract: unexpected balance");
@@ -517,25 +544,27 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
         sf.host.batchCall{value: amount}(ops);
     }
 
-    function testDMZForwarder2771BatchCallWithValueUsingReceiveFn() public {
+    function testDMZForwarder2771BatchCallWithValue() public {
         TestContract2771Checked testContract = new TestContract2771Checked(sf.host);
+        testContract.transferOwnership(alice);
 
         uint256 amount = 42;
         ISuperfluid.Operation[] memory ops = new ISuperfluid.Operation[](2);
         ops[0] = ISuperfluid.Operation({
-            operationType: BatchOperation.OPERATION_TYPE_SIMPLE_FORWARD_CALL,
+            operationType: BatchOperation.OPERATION_TYPE_ERC2771_FORWARD_CALL,
             target: address(testContract),
-            data: ""
+            data: abi.encodeCall(testContract.privilegedPay, (amount))
         });
         ops[1] = ISuperfluid.Operation({
-            operationType: BatchOperation.OPERATION_TYPE_SIMPLE_FORWARD_CALL,
+            operationType: BatchOperation.OPERATION_TYPE_ERC2771_FORWARD_CALL,
             target: address(testContract),
             data: abi.encodeCall(testContract.permissionlessFn, ())
         });
 
-        // This shall work because we first forward native tokens to the contract,
-        // then call the contract's setVal function
+        vm.deal(alice, 1 ether);
+        vm.startPrank(alice);
         sf.host.batchCall{value: amount}(ops);
         assertEq(address(testContract).balance, amount, "TestContract: unexpected test contract balance");
+        vm.stopPrank();
     }
 }

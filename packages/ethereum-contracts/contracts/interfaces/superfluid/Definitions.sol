@@ -246,9 +246,23 @@ library BatchOperation {
      * Call spec:
      * forward2771Call(
      *     target,
-     *     msg.sender,
+     *     msgSender,
      *     data
      * )
+     *
+     * NOTE: In the context of this operation, the `DZMForwarder` contract acts as the
+     * _trusted forwarder_ which must be trusted by the _recipient contract_ (operation target).
+     * It shall do so by dynamically looking up the DMZForwarder used by the host, like this:
+     *
+     * function isTrustedForwarder(address forwarder) public view returns(bool) {
+     *     return forwarder == address(host.DMZ_FORWARDER());
+     * }
+     *
+     * If used in the context of a `forwardBatchCall`, we effectively have a chaining/nesting
+     * of ERC-2771 calls where the host acts as _recipient contract_ of the enveloping 2771 call
+     * and the DMZForwarder acts as the _trusted forwarder_ of the nested 2771 call(s).
+     * That's why `msgSender` could be either the actual `msg.sender` (if using `batchCall`)
+     * or the relayed sender address (if using `forwardBatchCall`).
      */
     uint32 constant internal OPERATION_TYPE_ERC2771_FORWARD_CALL = 2 + 300;
 }

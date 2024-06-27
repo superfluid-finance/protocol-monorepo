@@ -869,7 +869,13 @@ contract Superfluid is
                     ISuperAgreement(operations[i].target),
                     callData,
                     userData);
-            } else if (operationType == BatchOperation.OPERATION_TYPE_SUPERFLUID_CALL_APP_ACTION) {
+            }
+            // The following operations for call proxies allow forwarding of native tokens.
+            // we use `address(this).balance` instead of `msg.value`, because the latter ist not
+            // updated after forwarding to the first operation, while `balance` is.
+            // The initial balance is equal to `msg.value` because there's no other path
+            // for the contract to receive native tokens.
+            else if (operationType == BatchOperation.OPERATION_TYPE_SUPERFLUID_CALL_APP_ACTION) {
                 _callAppAction(
                     msgSender,
                     ISuperApp(operations[i].target),
@@ -885,7 +891,10 @@ contract Superfluid is
                 }
             } else if (operationType == BatchOperation.OPERATION_TYPE_ERC2771_FORWARD_CALL) {
                 (bool success, bytes memory returnData) =
-                    DMZ_FORWARDER.forward2771Call(operations[i].target, msgSender, operations[i].data);
+                    DMZ_FORWARDER.forward2771Call{value: address(this).balance}(
+                        operations[i].target,
+                        msgSender,
+                        operations[i].data);
                 if (!success) {
                     CallUtils.revertFromReturnedData(returnData);
                 }

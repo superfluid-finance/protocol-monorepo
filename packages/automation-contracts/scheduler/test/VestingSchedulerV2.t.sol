@@ -1117,32 +1117,44 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         assertEq(actualSchedule.endDate, expectedSchedule.endDate, "schedule started: endDate not expected");
         assertEq(actualSchedule.remainderAmount, expectedSchedule.remainderAmount, "schedule started: remainderAmount not expected");
 
-        // Act
-        vm.warp(expectedSchedule.endDate - (vestingScheduler.END_DATE_VALID_BEFORE() - (vestingScheduler.END_DATE_VALID_BEFORE() / randomizer)));
-        assertTrue(vestingScheduler.executeEndVesting(superToken, alice, bob));
+        uint256 afterSenderBalance;
+        uint256 afterReceiverBalance;
+        if (randomizer % 7 != 0) {
+            // # Test end execution on time.
 
-        actualSchedule = vestingScheduler.getVestingSchedule(address(superToken), alice, bob);
-        assertEq(actualSchedule.cliffAndFlowDate, 0, "schedule ended: cliffAndFlowDate not expected");
-        assertEq(actualSchedule.cliffAmount, 0, "schedule ended: cliffAmount not expected");
-        assertEq(actualSchedule.flowRate, 0, "schedule ended: flowRate not expected");
-        assertEq(actualSchedule.endDate, 0, "schedule ended: endDate not expected");
-        assertEq(actualSchedule.remainderAmount, 0, "schedule ended: remainderAmount not expected");
+            // Act
+            vm.warp(expectedSchedule.endDate - (vestingScheduler.END_DATE_VALID_BEFORE() - (vestingScheduler.END_DATE_VALID_BEFORE() / randomizer)));
+            assertTrue(vestingScheduler.executeEndVesting(superToken, alice, bob));
 
-        // Assert
-        uint256 afterSenderBalance = superToken.balanceOf(alice);
-        uint256 afterReceiverBalance = superToken.balanceOf(bob);
+            // Assert
+            afterSenderBalance = superToken.balanceOf(alice);
+            afterReceiverBalance = superToken.balanceOf(bob);
 
-        assertEq(afterSenderBalance, $.beforeSenderBalance - totalAmount, "Sender balance should decrease by totalAmount");
-        assertEq(afterReceiverBalance, $.beforeReceiverBalance + totalAmount, "Receiver balance should increase by totalAmount");
+            assertEq(afterSenderBalance, $.beforeSenderBalance - totalAmount, "Sender balance should decrease by totalAmount");
+            assertEq(afterReceiverBalance, $.beforeReceiverBalance + totalAmount, "Receiver balance should increase by totalAmount");
+        } else {
+            // # Test end execution delayed.
+
+            // Act
+            vm.warp(expectedSchedule.endDate + (totalDuration / randomizer * 3));
+            assertTrue(vestingScheduler.executeEndVesting(superToken, alice, bob));
+
+            // Assert
+            afterSenderBalance = superToken.balanceOf(alice);
+            afterReceiverBalance = superToken.balanceOf(bob);
+
+            assertLt(afterSenderBalance, $.beforeSenderBalance - totalAmount + expectedSchedule.remainderAmount, "Sender balance should decrease by at least totalAmount");
+            assertGt(afterReceiverBalance, $.beforeReceiverBalance + totalAmount - expectedSchedule.remainderAmount, "Receiver balance should increase by at least totalAmount");
+        }
+
+        testAssertScheduleDoesNotExist(address(superToken), alice, bob);
 
         vm.warp(type(uint32).max);
         assertEq(afterSenderBalance, superToken.balanceOf(alice), "After the schedule has ended, the sender's balance should never change.");
-
-        testAssertScheduleDoesNotExist(address(superToken), alice, bob);
     }
 
     // Claimable Vesting Schedules tests
-
+ 
     function test_createClaimableVestingSchedule() public {
 
         vm.expectEmit(true, true, true, true);

@@ -6,7 +6,7 @@ import {
     ISuperApp
 } from "../superfluid/Superfluid.sol";
 
-import { CallUtils } from "../libs/CallUtils.sol";
+//import { CallUtils } from "../libs/CallUtils.sol";
 
 
 contract SuperfluidUpgradabilityTester is Superfluid {
@@ -135,6 +135,8 @@ contract SuperfluidMock is Superfluid {
     {
     }
 
+    // disabled code because contract size limit hit
+    /*
     function ctxFunc1(uint256 n, bytes calldata ctx)
         external pure
         returns (uint256, bytes memory)
@@ -166,6 +168,7 @@ contract SuperfluidMock is Superfluid {
         if (success) return returnedData;
         else CallUtils.revertFromReturnedData(returnedData);
     }
+    */
 
     function jailApp(ISuperApp app)
         external

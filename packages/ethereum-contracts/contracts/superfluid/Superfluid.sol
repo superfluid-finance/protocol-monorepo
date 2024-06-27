@@ -98,10 +98,10 @@ contract Superfluid is
     /// function in its respective mock contract to ensure that it doesn't break anything or lead to unexpected
     /// behaviors/layout when upgrading
 
-    constructor(bool nonUpgradable, bool appWhiteListingEnabled) {
+    constructor(bool nonUpgradable, bool appWhiteListingEnabled, address dmzForwarderAddress) {
         NON_UPGRADABLE_DEPLOYMENT = nonUpgradable;
         APP_WHITE_LISTING_ENABLED = appWhiteListingEnabled;
-        DMZ_FORWARDER = new DMZForwarder();
+        DMZ_FORWARDER = DMZForwarder(dmzForwarderAddress);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

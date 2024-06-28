@@ -87,7 +87,7 @@ interface IVestingSchedulerV2 {
         uint32 endDate,
         uint256 cliffAmount,
         uint32 claimValidityDate,
-        uint256 remainderAmount
+        uint96 remainderAmount
     );
 
     /**

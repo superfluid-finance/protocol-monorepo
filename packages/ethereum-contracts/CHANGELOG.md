@@ -3,6 +3,17 @@ All notable changes to the ethereum-contracts will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [unreleased]
+
+### Added
+
+- `batchCall` now supports 4 additional operation types:
+  - `OPERATION_TYPE_SUPERTOKEN_UPGRADE_TO`
+  - `OPERATION_TYPE_SUPERTOKEN_DOWNGRADE_TO`
+  - `OPERATION_TYPE_SIMPLE_FORWARD_CALL`
+  - `OPERATION_TYPE_ERC2771_FORWARD_CALL`
+  The latter 2 allow to add arbitrary contract calls to batch call.
+
 ## [v1.9.1] - 2024-03-19
 
 ### Breaking

@@ -203,7 +203,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         assertEq(schedule.claimValidityDate, deletedSchedule.claimValidityDate, "claimValidityDate mismatch");
     }
 
-        function _getExpectedSchedule(
+    function _getExpectedSchedule(
         uint32 startDate,
         uint32 cliffDate,
         int96 flowRate,

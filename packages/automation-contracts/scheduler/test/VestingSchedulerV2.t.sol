@@ -26,7 +26,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         uint32 endDate,
         uint256 cliffAmount,
         uint32 claimValidityDate,
-        uint256 remainderAmount
+        uint96 remainderAmount
     );
 
     event VestingScheduleUpdated(
@@ -68,6 +68,13 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         address indexed sender,
         address indexed receiver,
         uint32 endDate
+    );
+
+    event VestingClaimed(
+        ISuperToken indexed superToken,
+        address indexed sender,
+        address indexed receiver,
+        address claimer
     );
 
     event Transfer(address indexed from, address indexed to, uint256 value);
@@ -1759,7 +1766,9 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         testAssertScheduleDoesNotExist(address(superToken), alice, bob);
     }
 
-    function test_executeCliffAndFlow_claimAfterEndDate(uint256 delayAfterEndDate, uint256 claimDate) public {
+    function test_executeCliffAndFlow_claimAfterEndDate(uint256 delayAfterEndDate, uint256 claimDate, uint8 randomizer) public {
+        randomizer = SafeCast.toUint8(bound(randomizer, 1, type(uint8).max));
+
         uint256 aliceInitialBalance = superToken.balanceOf(alice);
         uint256 bobInitialBalance = superToken.balanceOf(bob);
 
@@ -1775,6 +1784,12 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         superToken.increaseAllowance(address(vestingScheduler), type(uint256).max);
         
         vm.warp(claimDate);
+
+        address claimer = randomizer % 2 == 0 ? bob : alice;
+        vm.expectEmit(true, true, true, false);
+        emit VestingClaimed(
+            superToken, alice, bob, claimer
+        );
 
         vm.expectEmit(true, true, true, true);
         emit Transfer(alice, bob, totalExpectedAmount);
@@ -1793,7 +1808,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         assertEq(vestingScheduler.getMaximumNeededTokenAllowance(schedule), totalExpectedAmount);
         assertEq(vestingScheduler.getMaximumNeededTokenAllowance(address(superToken), alice, bob), totalExpectedAmount);
 
-        vm.prank(bob);
+        vm.prank(claimer);
         assertTrue(vestingScheduler.executeCliffAndFlow(superToken, alice, bob));
 
         assertEq(superToken.balanceOf(alice), aliceInitialBalance - totalExpectedAmount);

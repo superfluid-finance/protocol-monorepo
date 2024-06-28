@@ -713,39 +713,6 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         return vestingSchedules[keccak256(abi.encodePacked(superToken, sender, receiver))];
     }
 
-    function _getVestingScheduleAggregate(
-        ISuperToken superToken,
-        address sender,
-        address receiver
-    ) public view returns (ScheduleAggregate memory) {
-        bytes32 id = keccak256(abi.encodePacked(superToken, sender, receiver));
-        return ScheduleAggregate({
-            superToken: superToken,
-            sender: sender,
-            receiver: receiver,
-            id: id,
-            schedule: vestingSchedules[id]
-        });
-    }
-
-    /// @dev get sender of transaction from Superfluid Context or transaction itself.
-    function _getSender(bytes memory ctx) internal view returns (address sender) {
-        if (ctx.length != 0) {
-            if (msg.sender != address(cfaV1.host)) revert HostInvalid();
-            sender = cfaV1.host.decodeCtx(ctx).msgSender;
-        } else {
-            sender = msg.sender;
-        }
-        // This is an invariant and should never happen.
-        assert(sender != address(0));
-    }
-
-    /// @dev get flowRate of stream
-    function _isFlowOngoing(ISuperToken superToken, address sender, address receiver) internal view returns (bool) {
-        (,int96 flowRate,,) = cfaV1.cfa.getFlow(superToken, sender, receiver);
-        return flowRate != 0;
-    }
-
     /// @dev IVestingScheduler.getCreateVestingScheduleParamsFromAmountAndDuration implementation.
     function getCreateVestingScheduleParamsFromAmountAndDuration(
         ISuperToken superToken,
@@ -846,6 +813,39 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
                    (schedule.claimValidityDate - schedule.cliffAndFlowDate) * SafeCast.toUint256(schedule.flowRate) +
                    maxEarlyEndCompensationAmount;
         }
+    }
+
+    function _getVestingScheduleAggregate(
+        ISuperToken superToken,
+        address sender,
+        address receiver
+    ) public view returns (ScheduleAggregate memory) {
+        bytes32 id = keccak256(abi.encodePacked(superToken, sender, receiver));
+        return ScheduleAggregate({
+            superToken: superToken,
+            sender: sender,
+            receiver: receiver,
+            id: id,
+            schedule: vestingSchedules[id]
+        });
+    }
+
+    /// @dev get sender of transaction from Superfluid Context or transaction itself.
+    function _getSender(bytes memory ctx) internal view returns (address sender) {
+        if (ctx.length != 0) {
+            if (msg.sender != address(cfaV1.host)) revert HostInvalid();
+            sender = cfaV1.host.decodeCtx(ctx).msgSender;
+        } else {
+            sender = msg.sender;
+        }
+        // This is an invariant and should never happen.
+        assert(sender != address(0));
+    }
+
+    /// @dev get flowRate of stream
+    function _isFlowOngoing(ISuperToken superToken, address sender, address receiver) internal view returns (bool) {
+        (,int96 flowRate,,) = cfaV1.cfa.getFlow(superToken, sender, receiver);
+        return flowRate != 0;
     }
 
     function _getTotalVestedAmount(

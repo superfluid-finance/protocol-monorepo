@@ -491,7 +491,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
             receiver,
             schedule.endDate,
             endDate,
-            0
+            0 // remainderAmount
         );
     }
 

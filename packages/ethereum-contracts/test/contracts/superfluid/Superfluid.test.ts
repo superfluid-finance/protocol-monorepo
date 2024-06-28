@@ -665,7 +665,7 @@ describe("Superfluid Host Contract", function () {
         });
 
         // disabled due to contract size limit
-        describe.skip("#5 Context Utilities", () => {
+        describe("#5 Context Utilities", () => {
             it("#5.1 test replacePlaceholderCtx with testCtxFuncX", async () => {
                 const testCtxFunc = async (
                     ctxFuncX: string,
@@ -697,15 +697,17 @@ describe("Superfluid Host Contract", function () {
                     );
                 }
 
+                // disabled code because contract size limit hit
                 // more complicated ABI
+                /*
                 await testCtxFunc(
                     "ctxFunc2",
                     [
                         governance.address,
                         t.contracts.ida.address,
                         ethers.utils.hexZeroPad("0x2020", 32),
-                        "0x" /* agreementData */,
-                        "0x" /* cbdata */,
+                        "0x", // agreementData
+                        "0x", // cbdata
                     ],
                     "0x" + "dead".repeat(20)
                 );
@@ -715,11 +717,12 @@ describe("Superfluid Host Contract", function () {
                         governance.address,
                         t.contracts.ida.address,
                         ethers.utils.hexZeroPad("0x2020", 32),
-                        "0xdead" /* agreementData */,
-                        "0xbeef" /* cbdata */,
+                        "0xdead", // agreementData
+                        "0xbeef", // cbdata
                     ],
                     "0x" + "faec".repeat(20)
                 );
+                */
 
                 // error case
                 await expectCustomError(

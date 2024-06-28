@@ -11,6 +11,8 @@ import { SafeMath } from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
+    string public constant VERSION = "2.0.0-beta";
+
     using CFAv1Library for CFAv1Library.InitData;
     CFAv1Library.InitData public cfaV1;
     mapping(bytes32 => VestingSchedule) public vestingSchedules; // id = keccak(supertoken, sender, receiver)
@@ -583,7 +585,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         // Compensate for the fact that flow will almost always be executed slightly later than scheduled.
         uint256 flowDelayCompensation = 
             (block.timestamp - schedule.cliffAndFlowDate) * uint96(schedule.flowRate);
-
+        
         // If there's cliff or compensation then transfer that amount.
         if (schedule.cliffAmount != 0 || flowDelayCompensation != 0) {
             // Note: Super Tokens revert, not return false, i.e. we expect always true here.

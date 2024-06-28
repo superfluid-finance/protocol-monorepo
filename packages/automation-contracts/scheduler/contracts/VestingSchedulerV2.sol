@@ -746,9 +746,9 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
                 receiver: receiver,
                 startDate: startDate,
                 claimValidityDate: claimValidityDate,
-                cliffDate: 0 /* cliffDate */,
+                cliffDate: 0,
                 flowRate: flowRate,
-                cliffAmount: 0 /* cliffAmount */,
+                cliffAmount: 0,
                 endDate: endDate,
                 remainderAmount: remainderAmount
             });

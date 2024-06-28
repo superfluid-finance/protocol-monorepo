@@ -19,7 +19,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
     uint32 public constant START_DATE_VALID_AFTER = 3 days;
     uint32 public constant END_DATE_VALID_BEFORE = 1 days;
 
-    struct VestingScheduleAggregate {
+    struct ScheduleAggregate {
         ISuperToken superToken;
         address sender;
         address receiver;
@@ -517,35 +517,35 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         address sender,
         address receiver
     ) public returns (bool success) {
-        VestingScheduleAggregate memory aggr = _getVestingScheduleAggregate(superToken, sender, receiver);
+        ScheduleAggregate memory agg = _getVestingScheduleAggregate(superToken, sender, receiver);
 
-        if (aggr.schedule.claimValidityDate != 0) {
-            _validateAndClaim(aggr);
-            _validateBeforeCliffAndFlow(aggr.schedule, true);
-            if (block.timestamp >= _minDateToExecuteEndInclusive(aggr.schedule)) {
-                _validateBeforeEndVesting(aggr.schedule, true);
-                success = _executeVestingAsSingleTransfer(aggr);
+        if (agg.schedule.claimValidityDate != 0) {
+            _validateAndClaim(agg);
+            _validateBeforeCliffAndFlow(agg.schedule, true);
+            if (block.timestamp >= _minDateToExecuteEndInclusive(agg.schedule)) {
+                _validateBeforeEndVesting(agg.schedule, true);
+                success = _executeVestingAsSingleTransfer(agg);
             } else {
-                success = _executeCliffAndFlow(aggr);
+                success = _executeCliffAndFlow(agg);
             }
         } else {
-            _validateBeforeCliffAndFlow(aggr.schedule, false);
-            success = _executeCliffAndFlow(aggr);
+            _validateBeforeCliffAndFlow(agg.schedule, false);
+            success = _executeCliffAndFlow(agg);
         }
     }
 
     function _validateAndClaim(
-        VestingScheduleAggregate memory aggr
+        ScheduleAggregate memory agg
     ) private {
         // Ensure that the caller is the sender or the receiver if the vesting schedule requires claiming.
-        if (msg.sender != aggr.sender && msg.sender != aggr.receiver)
+        if (msg.sender != agg.sender && msg.sender != agg.receiver)
             revert CannotClaimScheduleOnBehalf();
 
-        if (aggr.schedule.claimValidityDate < block.timestamp)
-            revert TimeWindowInvalid(); // TODO: Use more explicit Expired error? Add a good test.
+        if (agg.schedule.claimValidityDate < block.timestamp)
+            revert TimeWindowInvalid();
         
-        emit VestingClaimed(aggr.superToken, aggr.sender, aggr.receiver, msg.sender);
-        delete vestingSchedules[aggr.id].claimValidityDate;
+        emit VestingClaimed(agg.superToken, agg.sender, agg.receiver, msg.sender);
+        delete vestingSchedules[agg.id].claimValidityDate;
     }
 
     function _validateBeforeCliffAndFlow(
@@ -566,32 +566,32 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
 
     /// @dev IVestingScheduler.executeCliffAndFlow implementation.
     function _executeCliffAndFlow(
-        VestingScheduleAggregate memory aggr
+        ScheduleAggregate memory agg
     ) private returns (bool success) {
         // Invalidate configuration straight away -- avoid any chance of re-execution or re-entry.
-        delete vestingSchedules[aggr.id].cliffAndFlowDate;
-        delete vestingSchedules[aggr.id].cliffAmount;
+        delete vestingSchedules[agg.id].cliffAndFlowDate;
+        delete vestingSchedules[agg.id].cliffAmount;
 
         // Compensate for the fact that flow will almost always be executed slightly later than scheduled.
         uint256 flowDelayCompensation = 
-            (block.timestamp - aggr.schedule.cliffAndFlowDate) * uint96(aggr.schedule.flowRate);
+            (block.timestamp - agg.schedule.cliffAndFlowDate) * uint96(agg.schedule.flowRate);
 
         // If there's cliff or compensation then transfer that amount.
-        if (aggr.schedule.cliffAmount != 0 || flowDelayCompensation != 0) {
+        if (agg.schedule.cliffAmount != 0 || flowDelayCompensation != 0) {
             // Note: Super Tokens revert, not return false, i.e. we expect always true here.
             assert(
-                aggr.superToken.transferFrom(
-                    aggr.sender, aggr.receiver, aggr.schedule.cliffAmount + flowDelayCompensation));
+                agg.superToken.transferFrom(
+                    agg.sender, agg.receiver, agg.schedule.cliffAmount + flowDelayCompensation));
         }
         // Create a flow according to the vesting schedule configuration.
-        cfaV1.createFlowByOperator(aggr.sender, aggr.receiver, aggr.superToken, aggr.schedule.flowRate);
+        cfaV1.createFlowByOperator(agg.sender, agg.receiver, agg.superToken, agg.schedule.flowRate);
         emit VestingCliffAndFlowExecuted(
-            aggr.superToken,
-            aggr.sender,
-            aggr.receiver,
-            aggr.schedule.cliffAndFlowDate,
-            aggr.schedule.flowRate,
-            aggr.schedule.cliffAmount,
+            agg.superToken,
+            agg.sender,
+            agg.receiver,
+            agg.schedule.cliffAndFlowDate,
+            agg.schedule.flowRate,
+            agg.schedule.cliffAmount,
             flowDelayCompensation
         );
 
@@ -599,30 +599,30 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
     }
 
     function _executeVestingAsSingleTransfer(
-        VestingScheduleAggregate memory aggr
+        ScheduleAggregate memory agg
     ) private returns (bool success) {
-        delete vestingSchedules[aggr.id];
+        delete vestingSchedules[agg.id];
 
-        uint256 totalVestedAmount = _getTotalVestedAmount(aggr.schedule);
+        uint256 totalVestedAmount = _getTotalVestedAmount(agg.schedule);
 
         // Note: Super Tokens revert, not return false, i.e. we expect always true here.
-        assert(aggr.superToken.transferFrom(aggr.sender, aggr.receiver, totalVestedAmount));
+        assert(agg.superToken.transferFrom(agg.sender, agg.receiver, totalVestedAmount));
 
         emit VestingCliffAndFlowExecuted(
-            aggr.superToken,
-            aggr.sender,
-            aggr.receiver,
-            aggr.schedule.cliffAndFlowDate,
+            agg.superToken,
+            agg.sender,
+            agg.receiver,
+            agg.schedule.cliffAndFlowDate,
             0,
-            aggr.schedule.cliffAmount,
+            agg.schedule.cliffAmount,
             0
         );
 
         emit VestingEndExecuted(
-            aggr.superToken,
-            aggr.sender,
-            aggr.receiver,
-            aggr.schedule.endDate,
+            agg.superToken,
+            agg.sender,
+            agg.receiver,
+            agg.schedule.endDate,
             totalVestedAmount,
             false
         );
@@ -707,9 +707,9 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         ISuperToken superToken,
         address sender,
         address receiver
-    ) public view returns (VestingScheduleAggregate memory) {
+    ) public view returns (ScheduleAggregate memory) {
         bytes32 id = keccak256(abi.encodePacked(superToken, sender, receiver));
-        return VestingScheduleAggregate({
+        return ScheduleAggregate({
             superToken: superToken,
             sender: sender,
             receiver: receiver,
@@ -851,7 +851,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         VestingSchedule memory schedule
     ) private pure returns (uint32) {
         if (schedule.cliffAndFlowDate == 0) 
-            revert TimeWindowInvalid();
+            revert AlreadyExecuted();
 
         if (schedule.claimValidityDate != 0) {
             return schedule.claimValidityDate;
@@ -864,7 +864,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         VestingSchedule memory schedule
     ) private pure returns (uint32) {
         if (schedule.endDate == 0)
-            revert TimeWindowInvalid();
+            revert AlreadyExecuted();
 
         return schedule.endDate - END_DATE_VALID_BEFORE;
     }

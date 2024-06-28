@@ -112,11 +112,13 @@ describe("Superfluid Host Contract", function () {
                     await ethers.getContractFactory("SuperfluidMock");
                 const mock1 = await sfMockFactory.deploy(
                     false /* nonUpgradable */,
-                    false /* appWhiteListingEnabled */
+                    false /* appWhiteListingEnabled */,
+                    ZERO_ADDRESS /* dmzForwader */
                 );
                 const mock2 = await sfMockFactory.deploy(
                     true /* nonUpgradable */,
-                    false /* appWhiteListingEnabled */
+                    false /* appWhiteListingEnabled */,
+                    ZERO_ADDRESS /* dmzForwader */
                 );
                 await governance.updateContracts(
                     superfluid.address,
@@ -2698,7 +2700,8 @@ describe("Superfluid Host Contract", function () {
                     await ethers.getContractFactory("SuperfluidMock");
                 const mock1 = await mock1Factory.deploy(
                     false /* nonUpgradable */,
-                    false /* appWhiteListingEnabled */
+                    false /* appWhiteListingEnabled */,
+                    ZERO_ADDRESS /* dmzForwader */
                 );
                 await expectCustomError(
                     governance.updateContracts(

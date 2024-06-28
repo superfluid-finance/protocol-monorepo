@@ -109,7 +109,7 @@ describe("SuperTokenV1Library.GDA", function () {
         t.afterEachTestCaseBenchmark();
     });
 
-    it("#1.1 Should be able to create pool", async () => {
+    it.only("#1.1 Should be able to create pool", async () => {
         const createPoolTxn = await superTokenLibraryGDAMock.createPoolTest(
             superToken.address,
             alice,

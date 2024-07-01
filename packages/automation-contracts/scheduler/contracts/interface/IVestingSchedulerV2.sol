@@ -101,6 +101,7 @@ interface IVestingSchedulerV2 {
      * @param flowRate The flowRate for the stream
      * @param cliffAmount The amount to be transferred at the cliff
      * @param endDate The timestamp when the stream should stop.
+     * @param claimValidityDate Date before which the claimable schedule must be claimed
      * @param ctx Superfluid context used when batching operations. (or bytes(0) if not SF batching)
      */
     function createVestingSchedule(
@@ -111,6 +112,7 @@ interface IVestingSchedulerV2 {
         int96 flowRate,
         uint256 cliffAmount,
         uint32 endDate,
+        uint32 claimValidityDate,
         bytes memory ctx
     ) external returns (bytes memory newCtx);
 
@@ -124,7 +126,8 @@ interface IVestingSchedulerV2 {
         uint32 cliffDate,
         int96 flowRate,
         uint256 cliffAmount,
-        uint32 endDate
+        uint32 endDate,
+        uint32 claimValidityDate
     ) external;
 
     /**
@@ -251,46 +254,6 @@ interface IVestingSchedulerV2 {
         address receiver,
         uint256 totalAmount,
         uint32 totalDuration
-    ) external;
-
-    /**
-     * @dev Creates a new vesting schedule that needs to be claimed by the receiver to start flowing.
-     * @dev If a non-zero cliffDate is set, the startDate has no effect other than being logged in an event.
-     * @dev If cliffDate is set to zero, the startDate becomes the cliff (transfer cliffAmount and start stream).
-     * @param superToken SuperToken to be vested
-     * @param receiver Vesting receiver
-     * @param startDate Timestamp when the vesting should start
-     * @param claimValidityDate Date before which the claimable schedule must be claimed
-     * @param cliffDate Timestamp of cliff exectution - if 0, startDate acts as cliff
-     * @param flowRate The flowRate for the stream
-     * @param cliffAmount The amount to be transferred at the cliff
-     * @param endDate The timestamp when the stream should stop.
-     * @param ctx Superfluid context used when batching operations. (or bytes(0) if not SF batching)
-     */
-    function createClaimableVestingSchedule(
-        ISuperToken superToken,
-        address receiver,
-        uint32 startDate,
-        uint32 claimValidityDate,
-        uint32 cliffDate,
-        int96 flowRate,
-        uint256 cliffAmount,
-        uint32 endDate,
-        bytes memory ctx
-    ) external returns (bytes memory newCtx);
-
-    /**
-     * @dev See IVestingScheduler.createClaimableVestingSchedule overload for more details.
-     */
-    function createClaimableVestingSchedule(
-        ISuperToken superToken,
-        address receiver,
-        uint32 startDate,
-        uint32 claimValidityDate,
-        uint32 cliffDate,
-        int96 flowRate,
-        uint256 cliffAmount,
-        uint32 endDate
     ) external;
 
     /**

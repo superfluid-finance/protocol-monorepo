@@ -60,6 +60,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         int96 flowRate,
         uint256 cliffAmount,
         uint32 endDate,
+        uint32 claimValidityDate,
         bytes memory ctx
     ) external returns (bytes memory newCtx) {
         newCtx = _validateAndCreateVestingSchedule(
@@ -67,7 +68,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
                 superToken: superToken,
                 receiver: receiver,
                 startDate: startDate,
-                claimValidityDate: 0,
+                claimValidityDate: claimValidityDate,
                 cliffDate: cliffDate,
                 flowRate: flowRate,
                 cliffAmount: cliffAmount,
@@ -86,14 +87,15 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         uint32 cliffDate,
         int96 flowRate,
         uint256 cliffAmount,
-        uint32 endDate
+        uint32 endDate,
+        uint32 claimValidityDate
     ) external {
         _validateAndCreateVestingSchedule(
             ScheduleCreationParams({
                 superToken: superToken,
                 receiver: receiver,
                 startDate: startDate,
-                claimValidityDate: 0,
+                claimValidityDate: claimValidityDate,
                 cliffDate: cliffDate,
                 flowRate: flowRate,
                 cliffAmount: cliffAmount,
@@ -314,61 +316,6 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
 
         _validateBeforeCliffAndFlow(agg.schedule, /* disableClaimCheck: */ false);
         assert(_executeCliffAndFlow(agg));
-    }
-
-    /// @dev IVestingScheduler.createClaimableVestingSchedule implementation.
-    function createClaimableVestingSchedule(
-        ISuperToken superToken,
-        address receiver,
-        uint32 startDate,
-        uint32 claimValidityDate,
-        uint32 cliffDate,
-        int96 flowRate,
-        uint256 cliffAmount,
-        uint32 endDate,
-        bytes memory ctx
-    ) external returns (bytes memory newCtx) {
-        newCtx = _validateAndCreateVestingSchedule(
-            ScheduleCreationParams({
-                superToken: superToken,
-                receiver: receiver,
-                startDate: startDate,
-                claimValidityDate: claimValidityDate,
-                cliffDate: cliffDate,
-                flowRate: flowRate,
-                cliffAmount: cliffAmount,
-                endDate: endDate,
-                remainderAmount: 0
-            }),
-            ctx
-        );
-    }
-
-    /// @dev IVestingScheduler.createClaimableVestingSchedule implementation.
-    function createClaimableVestingSchedule(
-        ISuperToken superToken,
-        address receiver,
-        uint32 startDate,
-        uint32 claimValidityDate,
-        uint32 cliffDate,
-        int96 flowRate,
-        uint256 cliffAmount,
-        uint32 endDate
-    ) external {
-        _validateAndCreateVestingSchedule(
-            ScheduleCreationParams({
-                superToken: superToken,
-                receiver: receiver,
-                startDate: startDate,
-                claimValidityDate: claimValidityDate,
-                cliffDate: cliffDate,
-                flowRate: flowRate,
-                cliffAmount: cliffAmount,
-                endDate: endDate,
-                remainderAmount: 0
-            }),
-            bytes("")
-        );
     }
 
     /// @dev IVestingScheduler.createClaimableVestingScheduleFromAmountAndDuration implementation.

@@ -39,6 +39,13 @@ module.exports = {
                     ? [process.env.PRIVATE_KEY]
                     : [],
         },
+        optimism: {
+            url: "https://mainnet.optimism.io",
+            accounts:
+                process.env.PRIVATE_KEY !== undefined
+                    ? [process.env.PRIVATE_KEY]
+                    : [],
+        },
         opsepolia: {
             url: process.env.OPSEPOLIA_URL || "",
             accounts:

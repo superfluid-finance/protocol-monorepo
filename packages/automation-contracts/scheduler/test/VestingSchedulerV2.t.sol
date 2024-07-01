@@ -850,6 +850,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
             1209600, // duration
             uint32(block.timestamp), // startDate
             604800, // cliffPeriod
+            0, // claimPeriod
             EMPTY_CTX
         );
 
@@ -862,6 +863,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
             1209600, // duration
             uint32(block.timestamp - 1), // startDate
             0, // cliffPeriod
+            0, // claimPeriod
             EMPTY_CTX
         );
 
@@ -874,6 +876,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
             1209600, // duration
             uint32(block.timestamp), // startDate
             0, // cliffPeriod
+            0, // claimPeriod
             EMPTY_CTX
         );
 
@@ -886,6 +889,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
             type(uint32).max, // duration
             uint32(block.timestamp), // startDate
             0, // cliffPeriod
+            0, // claimPeriod
             EMPTY_CTX
         );
 
@@ -898,6 +902,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
             1209600, // duration
             uint32(block.timestamp - 1), // startDate
             604800, // cliffPeriod
+            0, // claimPeriod
             EMPTY_CTX
         );
     }
@@ -928,6 +933,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
                 vestingDuration,
                 startDate, 
                 0, // cliffPeriod
+                0, // claimPeriod
                 EMPTY_CTX
             );
         } else {
@@ -937,7 +943,8 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
                 totalVestedAmount,
                 vestingDuration,
                 startDate,
-                0 // cliffPeriod
+                0, // cliffPeriod
+                0 // claimPeriod
             );
         }
         vm.stopPrank();
@@ -973,6 +980,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
                 vestingDuration,
                 startDate,
                 cliffPeriod,
+                0,
                 EMPTY_CTX
             );
         } else {
@@ -982,7 +990,8 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
                 totalVestedAmount,
                 vestingDuration,
                 startDate,
-                cliffPeriod
+                cliffPeriod,
+                0
             );
         }
         vm.stopPrank();
@@ -1079,7 +1088,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
                 expectedSchedule.endDate,
                 expectedSchedule.remainderAmount
             ), 
-            vestingScheduler.getCreateVestingScheduleParamsFromAmountAndDuration(superToken, bob, totalAmount, totalDuration, cliffPeriod, startDate, 0));
+            vestingScheduler.getCreateVestingScheduleParamsFromAmountAndDuration(superToken, bob, totalAmount, totalDuration, startDate, cliffPeriod, 0));
 
         vm.expectEmit();
         emit VestingScheduleCreated(superToken, alice, bob, $.expectedStartDate, $.expectedCliffDate, expectedSchedule.flowRate, expectedSchedule.endDate, expectedSchedule.cliffAmount, 0, expectedSchedule.remainderAmount);
@@ -1093,7 +1102,8 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
                 bob,
                 totalAmount,
                 totalDuration,
-                cliffPeriod
+                cliffPeriod,
+                0
             );
         } else {
             if (randomizer % 3 == 0) {
@@ -1104,7 +1114,8 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
                     totalAmount,
                     totalDuration,
                     startDate,
-                    cliffPeriod
+                    cliffPeriod,
+                    0
                 );
             } else {
                 console.log("Using the overload with superfluid context.");
@@ -1115,6 +1126,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
                     totalDuration,
                     startDate,
                     cliffPeriod,
+                    0,
                     EMPTY_CTX
                 );
             }
@@ -1529,25 +1541,25 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         vm.startPrank(alice);
         bool useCtx = randomizer % 2 == 0;
         if (useCtx) {
-            vestingScheduler.createClaimableVestingScheduleFromAmountAndDuration(
+            vestingScheduler.createVestingScheduleFromAmountAndDuration(
                 superToken,
                 bob,
                 totalVestedAmount,
                 vestingDuration,
-                claimPeriod,
-                0,
                 startDate,
+                0, // cliffPeriod
+                claimPeriod,
                 EMPTY_CTX
             );
         } else {
-            vestingScheduler.createClaimableVestingScheduleFromAmountAndDuration(
+            vestingScheduler.createVestingScheduleFromAmountAndDuration(
                 superToken,
                 bob,
                 totalVestedAmount,
                 vestingDuration,
-                claimPeriod,
-                0,
-                startDate
+                startDate,
+                0, // cliffPeriod
+                claimPeriod
             );
         }
         vm.stopPrank();
@@ -1582,7 +1594,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
 
         vm.startPrank(alice);
 
-        vestingScheduler.createClaimableVestingScheduleFromAmountAndDuration(
+        vestingScheduler.createVestingScheduleFromAmountAndDuration(
             superToken,
             bob,
             totalVestedAmount,
@@ -1613,25 +1625,25 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         vm.startPrank(alice);
         bool useCtx = randomizer % 2 == 0;
         if (useCtx) {
-            vestingScheduler.createClaimableVestingScheduleFromAmountAndDuration(
+            vestingScheduler.createVestingScheduleFromAmountAndDuration(
                 superToken,
                 bob,
                 totalVestedAmount,
                 vestingDuration,
-                claimPeriod,
-                cliffPeriod,
                 startDate,
+                cliffPeriod,
+                claimPeriod,
                 EMPTY_CTX
             );
         } else {
-            vestingScheduler.createClaimableVestingScheduleFromAmountAndDuration(
+            vestingScheduler.createVestingScheduleFromAmountAndDuration(
                 superToken,
                 bob,
                 totalVestedAmount,
                 vestingDuration,
-                claimPeriod,
+                startDate,
                 cliffPeriod,
-                startDate
+                claimPeriod
             );
         }
         vm.stopPrank();
@@ -1659,13 +1671,13 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
 
         vm.startPrank(alice);
 
-        vestingScheduler.createClaimableVestingScheduleFromAmountAndDuration(
+        vestingScheduler.createVestingScheduleFromAmountAndDuration(
             superToken,
             bob,
             totalVestedAmount,
             vestingDuration,
-            claimPeriod,
-            cliffPeriod
+            cliffPeriod,
+            claimPeriod
         );
 
         vm.stopPrank();
@@ -1676,66 +1688,66 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         superToken.increaseAllowance(address(vestingScheduler), type(uint256).max);
 
         vm.expectRevert(IVestingSchedulerV2.FlowRateInvalid.selector);
-        vestingScheduler.createClaimableVestingScheduleFromAmountAndDuration(
+        vestingScheduler.createVestingScheduleFromAmountAndDuration(
             superToken,
             bob,
-            0,
-            1209600,
-            15 days,
-            604800,
-            uint32(block.timestamp),
+            0, // amount 
+            1209600, // duration
+            uint32(block.timestamp), // startDate
+            604800, // cliffPeriod
+            15 days, // claimPeriod
             EMPTY_CTX
         );
 
         console.log("Revert with cliff and start in history.");
         vm.expectRevert(IVestingSchedulerV2.TimeWindowInvalid.selector);
-        vestingScheduler.createClaimableVestingScheduleFromAmountAndDuration(
+        vestingScheduler.createVestingScheduleFromAmountAndDuration(
             superToken,
             bob,
-            1 ether,
-            1209600,
-            15 days,
-            0,
-            uint32(block.timestamp - 1),
+            1 ether, // amount
+            1209600, // duration
+            uint32(block.timestamp - 1), // startDate
+            0, // cliffPeriod
+            15 days, // claimPeriod
             EMPTY_CTX
         );
 
         console.log("Revert with overflow.");
         vm.expectRevert("SafeCast: value doesn't fit in 96 bits"); 
-        vestingScheduler.createClaimableVestingScheduleFromAmountAndDuration(
+        vestingScheduler.createVestingScheduleFromAmountAndDuration(
             superToken,
             bob,
-            type(uint256).max,
-            1209600,
-            15 days,
-            0,
-            uint32(block.timestamp),
+            type(uint256).max, // amount
+            1209600, // duration
+            uint32(block.timestamp), // startDate
+            0, // cliffPeriod
+            15 days, // claimPeriod
             EMPTY_CTX
         );
 
         console.log("Revert with underflow/overflow.");
         vm.expectRevert(); // todo: the right error
-        vestingScheduler.createClaimableVestingScheduleFromAmountAndDuration(
+        vestingScheduler.createVestingScheduleFromAmountAndDuration(
             superToken,
             bob,
-            1 ether,
-            type(uint32).max,
-            15 days,
-            0,
-            uint32(block.timestamp),
+            1 ether, // amount
+            type(uint32).max, // duration
+            uint32(block.timestamp), // startDate
+            0, // cliffPeriod
+            15 days, // claimPeriod
             EMPTY_CTX
         );
 
         console.log("Revert with start date in history.");
         vm.expectRevert(IVestingSchedulerV2.TimeWindowInvalid.selector);
-        vestingScheduler.createClaimableVestingScheduleFromAmountAndDuration(
+        vestingScheduler.createVestingScheduleFromAmountAndDuration(
             superToken,
             bob,
-            1 ether,
-            1209600,
-            15 days,
-            604800,
-            uint32(block.timestamp - 1),
+            1 ether, // amount
+            1209600, // duration
+            uint32(block.timestamp - 1), // startDate
+            604800, // cliffPeriod
+            15 days, // claimPeriod
             EMPTY_CTX
         );
     }
@@ -1986,6 +1998,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
             totalDuration,
             startDate,
             cliffPeriod,
+            0,
             EMPTY_CTX
         );
         vm.stopPrank();
@@ -2076,14 +2089,14 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
 
         // Act
         vm.startPrank(alice);
-        vestingScheduler.createClaimableVestingScheduleFromAmountAndDuration(
+        vestingScheduler.createVestingScheduleFromAmountAndDuration(
             superToken,
             bob,
             totalAmount,
             totalDuration,
-            claimPeriod,
-            cliffPeriod,
             startDate,
+            cliffPeriod,
+            claimPeriod,
             EMPTY_CTX
         );
         vm.stopPrank();

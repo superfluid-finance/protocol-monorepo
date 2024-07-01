@@ -175,6 +175,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         uint32 totalDuration,
         uint32 startDate,
         uint32 cliffPeriod,
+        uint32 claimPeriod,
         bytes memory ctx
     ) external returns (bytes memory newCtx) {
         newCtx = _validateAndCreateVestingSchedule(
@@ -183,9 +184,9 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
                 receiver,
                 totalAmount,
                 totalDuration,
-                cliffPeriod,
                 startDate,
-                0 // claimPeriod
+                cliffPeriod,
+                claimPeriod
             ),
             ctx
         );
@@ -198,7 +199,8 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         uint256 totalAmount,
         uint32 totalDuration,
         uint32 startDate,
-        uint32 cliffPeriod
+        uint32 cliffPeriod,
+        uint32 claimPeriod
     ) external {
         _validateAndCreateVestingSchedule(
             getCreateVestingScheduleParamsFromAmountAndDuration(
@@ -206,9 +208,9 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
                 receiver,
                 totalAmount,
                 totalDuration,
-                cliffPeriod,
                 startDate,
-                0 // claimPeriod
+                cliffPeriod,
+                claimPeriod
             ),
             bytes("")
         );
@@ -220,7 +222,8 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         address receiver,
         uint256 totalAmount,
         uint32 totalDuration,
-        uint32 cliffPeriod
+        uint32 cliffPeriod,
+        uint32 claimPeriod
     ) external {
         _validateAndCreateVestingSchedule(
             getCreateVestingScheduleParamsFromAmountAndDuration(
@@ -228,9 +231,9 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
                 receiver,
                 totalAmount,
                 totalDuration,
-                cliffPeriod,
                 0, // startDate
-                0 // claimPeriod
+                cliffPeriod,
+                claimPeriod
             ),
             bytes("")
         );
@@ -241,7 +244,8 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         ISuperToken superToken,
         address receiver,
         uint256 totalAmount,
-        uint32 totalDuration
+        uint32 totalDuration,
+        uint32 claimPeriod
     ) external {
         _validateAndCreateVestingSchedule(
             getCreateVestingScheduleParamsFromAmountAndDuration(
@@ -249,9 +253,9 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
                 receiver,
                 totalAmount,
                 totalDuration,
-                0, // cliffPeriod
                 0, // startDate
-                0 // claimPeriod
+                0, // cliffPeriod
+                claimPeriod
             ),
             bytes("")
         );
@@ -304,8 +308,8 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
                 receiver,
                 totalAmount,
                 totalDuration,
-                0, // cliffPeriod
                 0, // startDate
+                0, // cliffPeriod
                 0 // claimValidityDate
             ),
             ctx
@@ -318,100 +322,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         assert(_executeCliffAndFlow(agg));
     }
 
-    /// @dev IVestingScheduler.createClaimableVestingScheduleFromAmountAndDuration implementation.
-    function createClaimableVestingScheduleFromAmountAndDuration(
-        ISuperToken superToken,
-        address receiver,
-        uint256 totalAmount,
-        uint32 totalDuration,
-        uint32 claimPeriod,
-        uint32 cliffPeriod,
-        uint32 startDate,
-        bytes memory ctx
-    ) external returns (bytes memory newCtx) {
-        newCtx = _validateAndCreateVestingSchedule(
-            getCreateVestingScheduleParamsFromAmountAndDuration(
-                superToken,
-                receiver,
-                totalAmount,
-                totalDuration,
-                cliffPeriod,
-                startDate,
-                claimPeriod
-            ),
-            ctx
-        );
-    }
-
-    /// @dev IVestingScheduler.createClaimableVestingScheduleFromAmountAndDuration implementation.
-    function createClaimableVestingScheduleFromAmountAndDuration(
-        ISuperToken superToken,
-        address receiver,
-        uint256 totalAmount,
-        uint32 totalDuration,
-        uint32 claimPeriod,
-        uint32 cliffPeriod,
-        uint32 startDate
-    ) external {
-        _validateAndCreateVestingSchedule(
-            getCreateVestingScheduleParamsFromAmountAndDuration(
-                superToken,
-                receiver,
-                totalAmount,
-                totalDuration,
-                cliffPeriod,
-                startDate,
-                claimPeriod
-            ),
-            bytes("")
-        );
-    }
-
-    /// @dev IVestingScheduler.createVestingScheduleFromAmountAndDuration implementation.
-    function createClaimableVestingScheduleFromAmountAndDuration(
-        ISuperToken superToken,
-        address receiver,
-        uint256 totalAmount,
-        uint32 totalDuration,
-        uint32 claimPeriod,
-        uint32 cliffPeriod
-    ) external {
-        _validateAndCreateVestingSchedule(
-            getCreateVestingScheduleParamsFromAmountAndDuration(
-                superToken,
-                receiver,
-                totalAmount,
-                totalDuration,
-                cliffPeriod,
-                0, // startDate
-                claimPeriod
-            ),
-            bytes("")
-        );
-    }
-
-    /// @dev IVestingScheduler.createVestingScheduleFromAmountAndDuration implementation.
-    function createClaimableVestingScheduleFromAmountAndDuration(
-        ISuperToken superToken,
-        address receiver,
-        uint256 totalAmount,
-        uint32 totalDuration,
-        uint32 claimPeriod
-    ) external {
-        _validateAndCreateVestingSchedule(
-            getCreateVestingScheduleParamsFromAmountAndDuration(
-                superToken,
-                receiver,
-                totalAmount,
-                totalDuration,
-                0, // cliffPeriod
-                0, // startDate
-                claimPeriod
-            ),
-            bytes("")
-        );
-    }
-
+    /// @dev IVestingScheduler.updateVestingSchedule implementation.
     function updateVestingSchedule(
         ISuperToken superToken,
         address receiver,
@@ -668,8 +579,8 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         address receiver,
         uint256 totalAmount,
         uint32 totalDuration,
-        uint32 cliffPeriod,
         uint32 startDate,
+        uint32 cliffPeriod,
         uint32 claimPeriod
     ) public view override returns (ScheduleCreationParams memory result) {
         // Default to current block timestamp if no start date is provided.

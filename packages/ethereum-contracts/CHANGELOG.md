@@ -5,6 +5,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [unreleased]
 
+### Breaking
+
+- ISuperfuidPool self-transfer is not allowed
+
 ### Changed
 
 - fix a few types and build warnings

@@ -173,8 +173,8 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         address receiver,
         uint256 totalAmount,
         uint32 totalDuration,
-        uint32 cliffPeriod,
         uint32 startDate,
+        uint32 cliffPeriod,
         bytes memory ctx
     ) external returns (bytes memory newCtx) {
         newCtx = _validateAndCreateVestingSchedule(
@@ -197,8 +197,8 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         address receiver,
         uint256 totalAmount,
         uint32 totalDuration,
-        uint32 cliffPeriod,
-        uint32 startDate
+        uint32 startDate,
+        uint32 cliffPeriod
     ) external {
         _validateAndCreateVestingSchedule(
             getCreateVestingScheduleParamsFromAmountAndDuration(

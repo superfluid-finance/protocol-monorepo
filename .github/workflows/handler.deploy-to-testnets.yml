@@ -36,7 +36,7 @@ jobs:
           network: [eth-sepolia, optimism-sepolia, avalanche-fuji, scroll-sepolia]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       # if only_network is set, skip all steps until the value matches one of the entries in matrix.network
       - name: Check only_network

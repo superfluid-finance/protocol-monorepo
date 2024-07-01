@@ -642,9 +642,11 @@ interface ISuperfluid {
      * @param operations Array of batch operations
      *
      * NOTE: This can be called only by contracts recognized as _trusted forwarder_
-     * by the host contract (see `Superfluid.isTrustedForwarder`)
+     * by the host contract (see `Superfluid.isTrustedForwarder`).
+     * If native tokens are passed along, the same rules as for `batchCall` apply,
+     * with an optional refund going to the encoded msgSender.
      */
-    function forwardBatchCall(Operation[] calldata operations) external;
+    function forwardBatchCall(Operation[] calldata operations) external payable;
 
     /**************************************************************************
      * Function modifiers for access control and parameter validations

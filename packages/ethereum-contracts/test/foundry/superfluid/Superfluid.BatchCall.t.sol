@@ -5,9 +5,8 @@ import { stdError } from "forge-std/Test.sol";
 
 import { BatchOperation, ISuperfluid, Superfluid } from "../../../contracts/superfluid/Superfluid.sol";
 import { SuperToken } from "../../../contracts/superfluid/SuperToken.sol";
-import { IConstantFlowAgreementV1 } from "../../../contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
 import { IGeneralDistributionAgreementV1, ISuperfluidPool, PoolConfig } from "../../../contracts/interfaces/agreements/gdav1/IGeneralDistributionAgreementV1.sol";
-import { ISuperfluidToken } from "../../../contracts/interfaces/superfluid/ISuperfluidToken.sol";
+import { IConstantFlowAgreementV1, ISuperToken, ISuperfluidToken } from "../../../contracts/interfaces/superfluid/ISuperfluid.sol";
 import { FoundrySuperfluidTester } from "../FoundrySuperfluidTester.sol";
 import { SuperTokenV1Library } from "../../../contracts/apps/SuperTokenV1Library.sol";
 import { SuperAppMock } from "../../../contracts/mocks/SuperAppMocks.sol";
@@ -88,7 +87,16 @@ contract TestContract2771Checked is TestContract2771 {
 contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
     using SuperTokenV1Library for SuperToken;
 
+    address someTrustedForwarder = address(0x1a1c);
+
     constructor() FoundrySuperfluidTester(3) { }
+
+    function setUp() public override {
+        super.setUp();
+        vm.startPrank(address(sf.governance.owner()));
+        sf.governance.enableTrustedForwarder(sf.host, ISuperToken(address(0)), someTrustedForwarder);
+        vm.stopPrank();
+    }
 
     function testRevertIfOperationIncreaseAllowanceIsNotCalledByHost(address notHost) public {
         vm.assume(notHost != address(sf.host));
@@ -582,13 +590,28 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
         assertEq(address(sf.host).balance, 0, "batchCall host: native tokens left");
     }
 
+    function testRefundFromForwardBatchCall() public {
+        uint256 amount = 42;
+
+        vm.deal(someTrustedForwarder, 1 ether);
+        vm.startPrank(someTrustedForwarder);
+        bytes memory data = abi.encodeCall(sf.host.forwardBatchCall, (new ISuperfluid.Operation[](0)));
+        // bob is 2771-encoded as msgSender
+        (bool success, ) = address(sf.host).call{value: amount}(abi.encodePacked(data, bob));
+        vm.stopPrank();
+        // no operation "consumed" the native tokens: we expect full refund to bob
+        assertTrue(success, "forwardBatchCall: call failed");
+        assertEq(bob.balance, amount, "batchCall msgSender: unexpected balance");
+        assertEq(address(sf.host).balance, 0, "batchCall host: native tokens left");
+    }
+
     function testWithdrawLostNativeTokensFromDMZForwarder() public {
         uint256 amount = 42;
 
         DMZForwarder forwarder = new DMZForwarder();
 
         // failing call which causes `amount` to get stuck in the forwarder contract
-        (bool success, bytes memory returnValue) = forwarder.forwardCall{value: amount}(
+        (bool success, ) = forwarder.forwardCall{value: amount}(
             address(sf.host), new bytes(0x1));
 
         assertFalse(success, "DMZForwarder: call should have failed");

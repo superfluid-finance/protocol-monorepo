@@ -919,7 +919,7 @@ contract Superfluid is
 
     /// @dev ISuperfluid.forwardBatchCall implementation
     function forwardBatchCall(Operation[] calldata operations)
-        external override
+        external override payable
     {
         _batchCall(_getTransactionSigner(), operations);
     }

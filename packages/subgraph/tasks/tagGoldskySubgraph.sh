@@ -3,9 +3,12 @@
 # Default subgraph type
 subgraph_type="protocol-v1"
 
+# Default tag
+tag="prod"
+
 # Function to display usage instructions
 usage() {
-    echo "Usage: $0 --token <API_KEY> --version <version> [--network <network>|all]"
+    echo "Usage: $0 --token <API_KEY> --version <version> [--network <network>|all] [--subgraph-type <subgraph-type>] [--tag <tag>]"
     exit 1
 }
 
@@ -15,6 +18,8 @@ while [[ "$#" -gt 0 ]]; do
         --token) API_KEY="$2"; shift ;;
         --version) version="$2"; shift ;;
         --network) network="$2"; shift ;;
+        --subgraph-type) subgraph_type="$2"; shift ;;
+        --tag) tag="$2"; shift ;;
         *) echo "Unknown parameter passed: $1"; usage ;;
     esac
     shift
@@ -33,7 +38,7 @@ generate_goldsky_commands() {
     local commands=""
     for net in "${networks[@]}"; do
         commands+="
-        if ! goldsky subgraph tag create $subgraph_type-$net/$version --tag prod; then
+        if ! goldsky subgraph tag create $subgraph_type-$net/$version --tag $tag; then
             echo 'Error: Failed to create subgraph tag for network: $net' >&2
             exit 1
         fi"
@@ -62,11 +67,10 @@ if [ "$network" == "all" ]; then
     goldsky_commands=$(generate_goldsky_commands)
     run_goldsky_commands_in_docker "$goldsky_commands"
 elif [ -n "$network" ]; then
-    run_goldsky_commands_in_docker "if ! goldsky subgraph tag create $subgraph_type-$network/$version --tag prod; then
+    run_goldsky_commands_in_docker "if ! goldsky subgraph tag create $subgraph_type-$network/$version --tag $tag; then
             echo 'Error: Failed to create subgraph tag for network: $network' >&2
             exit 1
         fi"
 else
     usage
 fi
-

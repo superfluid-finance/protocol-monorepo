@@ -16,7 +16,7 @@ interface ISuperfluidPool is IERC20 {
     error SUPERFLUID_POOL_NOT_POOL_ADMIN_OR_GDA();      // 0x1c5fbdcb
     error SUPERFLUID_POOL_NOT_GDA();                    // 0xfcbe3f9e
     error SUPERFLUID_POOL_TRANSFER_UNITS_NOT_ALLOWED(); // 0x2285efba
-    error SUPERFLUID_POOL_SELF_TRANDFER_NOT_ALLOWED();  // 0x6e68ac94
+    error SUPERFLUID_POOL_SELF_TRANSFER_NOT_ALLOWED();  // 0xceddc0be
 
     // Events
     event MemberUnitsUpdated(

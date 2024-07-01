@@ -802,7 +802,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
 
         if (from == to) {
             vm.startPrank(from);
-            vm.expectRevert(ISuperfluidPool.SUPERFLUID_POOL_SELF_TRANDFER_NOT_ALLOWED.selector);
+            vm.expectRevert(ISuperfluidPool.SUPERFLUID_POOL_SELF_TRANSFER_NOT_ALLOWED.selector);
             freePool.transfer(to, transferAmount);
             vm.stopPrank();
         } else if (to == address(0)) {

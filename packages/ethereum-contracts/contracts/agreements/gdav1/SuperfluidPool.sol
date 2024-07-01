@@ -185,7 +185,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
     }
 
     function _transfer(address from, address to, uint256 amount) internal {
-        if (from == to) revert SUPERFLUID_POOL_SELF_TRANDFER_NOT_ALLOWED();
+        if (from == to) revert SUPERFLUID_POOL_SELF_TRANSFER_NOT_ALLOWED();
         if (!transferabilityForUnitsOwner) revert SUPERFLUID_POOL_TRANSFER_UNITS_NOT_ALLOWED();
 
         uint128 fromUnitsBefore = _getUnits(from);

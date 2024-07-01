@@ -559,9 +559,9 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         for (uint256 i = 0; i < members.length; ++i) {
             if (sf.gda.isPool(superToken, members[i]) || members[i] == address(0)) continue;
 
-            uint128 memberUnits = pool.getUnits(members[i]);
+            uint128 memberIUnits = pool.getUnits(members[i]);
 
-            assertEq(perUnitDistributionAmount * memberUnits, pool.getTotalAmountReceivedByMember(members[i]));
+            assertEq(perUnitDistributionAmount * memberIUnits, pool.getTotalAmountReceivedByMember(members[i]));
         }
     }
 
@@ -594,9 +594,9 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         for (uint256 i = 0; i < members.length; ++i) {
             if (sf.gda.isPool(superToken, members[i]) || members[i] == address(0)) continue;
 
-            uint128 memberUnits = pool.getUnits(members[i]);
+            uint128 memberIUnits = pool.getUnits(members[i]);
 
-            assertEq(perUnitDistributionAmount * memberUnits, pool.getTotalAmountReceivedByMember(members[i]));
+            assertEq(perUnitDistributionAmount * memberIUnits, pool.getTotalAmountReceivedByMember(members[i]));
         }
     }
 

@@ -142,9 +142,7 @@ contract SuperfluidMock is Superfluid {
         return (n, ctx);
     }
 
-    // disabled code because contract size limit hit
     // same ABI to afterAgreementCreated
-    /*
     function ctxFunc2(
         address superToken,
         address agreementClass,
@@ -157,7 +155,6 @@ contract SuperfluidMock is Superfluid {
     {
         return (superToken, agreementClass, agreementId, agreementData, cbdata, ctx);
     }
-    */
 
     function testCtxFuncX(bytes calldata dataWithPlaceHolderCtx, bytes calldata ctx)
         external view

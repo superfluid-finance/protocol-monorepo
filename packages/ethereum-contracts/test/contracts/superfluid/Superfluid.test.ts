@@ -699,7 +699,6 @@ describe("Superfluid Host Contract", function () {
 
                 // disabled code because contract size limit hit
                 // more complicated ABI
-                /*
                 await testCtxFunc(
                     "ctxFunc2",
                     [
@@ -722,7 +721,6 @@ describe("Superfluid Host Contract", function () {
                     ],
                     "0x" + "faec".repeat(20)
                 );
-                */
 
                 // error case
                 await expectCustomError(

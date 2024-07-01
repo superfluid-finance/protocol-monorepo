@@ -12,7 +12,14 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   - `OPERATION_TYPE_SUPERTOKEN_DOWNGRADE_TO`
   - `OPERATION_TYPE_SIMPLE_FORWARD_CALL`
   - `OPERATION_TYPE_ERC2771_FORWARD_CALL`
+
   The latter 2 allow to add arbitrary contract calls to batch call.
+
+### Changed
+
+- fix a few types and build warnings
+- rename '.prop.sol' to '.prop.t.sol'
+- upgrade flake lock input: foundry
 
 ## [v1.9.1] - 2024-03-19
 

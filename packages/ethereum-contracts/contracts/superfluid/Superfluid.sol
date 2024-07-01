@@ -798,7 +798,7 @@ contract Superfluid is
     **************************************************************************/
 
     function _batchCall(
-        address msgSender,
+        address payable msgSender,
         Operation[] calldata operations
     )
        internal
@@ -904,7 +904,7 @@ contract Superfluid is
         }
         if (address(this).balance != 0) {
             // return any native tokens left to the sender.
-            payable(msg.sender).transfer(address(this).balance);
+            msgSender.transfer(address(this).balance);
         }
     }
 
@@ -914,7 +914,7 @@ contract Superfluid is
     )
        external override payable
     {
-        _batchCall(msg.sender, operations);
+        _batchCall(payable(msg.sender), operations);
     }
 
     /// @dev ISuperfluid.forwardBatchCall implementation

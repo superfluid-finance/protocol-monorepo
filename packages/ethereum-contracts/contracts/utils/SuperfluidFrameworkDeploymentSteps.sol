@@ -350,6 +350,7 @@ library SuperfluidGovDeployerLibrary {
 }
 
 library SuperfluidDMZForwarderDeployerLibrary {
+    // After deploying, you may want to transfer ownership to the host
     function deploy() external returns (DMZForwarder) {
         return new DMZForwarder();
     }

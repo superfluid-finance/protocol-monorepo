@@ -376,7 +376,7 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
         assertTrue(sf.gda.isMemberConnected(pool, alice), "Alice: Pool is not connected");
     }
 
-    function testDMZForwarder() public {
+    function testSimpleForwardCall() public {
         DMZForwarder forwarder = new DMZForwarder();
         TestContract testContract = new TestContract();
 
@@ -390,7 +390,7 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
         assertEq(retVal, true, "DMZForwarder: unexpected return value");
     }
 
-    function testDMZForwarderBatchCall() public {
+    function testSimpleForwardCallBatchCall() public {
         TestContract testContract = new TestContract();
 
         ISuperfluid.Operation[] memory ops = new ISuperfluid.Operation[](1);
@@ -403,7 +403,7 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
         assertEq(testContract.stateChanged(), true, "TestContract: unexpected state");
     }
 
-    function testDMZForwarderRevertInBatchCall() public {
+    function testSimpleForwardCallBatchCallRevert() public {
         TestContract testContract = new TestContract();
 
         ISuperfluid.Operation[] memory ops = new ISuperfluid.Operation[](1);
@@ -417,7 +417,7 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
         sf.host.batchCall(ops);
     }
 
-    function testDMZForwarder2771() public {
+    function test2771ForwardCall() public {
         DMZForwarder forwarder = new DMZForwarder();
 
         TestContract2771 testContract = new TestContract2771();
@@ -455,7 +455,7 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
         vm.stopPrank();
     }
 
-    function testDMZForwarder2771BatchCall() public {
+    function test2771ForwardCallBatchCall() public {
         TestContract2771Checked testContract = new TestContract2771Checked(sf.host);
         testContract.transferOwnership(alice);
 
@@ -479,7 +479,7 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
         vm.stopPrank();
     }
 
-    function testDMZForwarderBatchCallWithValue() public {
+    function testSimpleForwardCallBatchCallWithValue() public {
         TestContract testContract = new TestContract();
 
         uint256 amount = 42;
@@ -501,7 +501,7 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
         assertEq(address(testContract).balance, amount, "TestContract: unexpected balance");
     }
 
-    function testDMZForwarderBatchCallWithValueUsingReceiveFn() public {
+    function testSimpleForwardCallBatchCallWithValueUsingReceiveFn() public {
         TestContract testContract = new TestContract();
 
         uint256 amount = 42;
@@ -522,7 +522,7 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
         assertEq(address(testContract).balance, amount, "TestContract: unexpected balance");
     }
 
-    function testDMZForwarderBatchCallWithValueUnsupportedOrder() public {
+    function testSimpleForwardCallBatchCallWithValueUnsupportedOpsOrder() public {
         TestContract testContract = new TestContract();
 
         uint256 amount = 42;
@@ -544,7 +544,7 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
         sf.host.batchCall{value: amount}(ops);
     }
 
-    function testDMZForwarder2771BatchCallWithValue() public {
+    function test2771ForwardCallBatchCallWithValue() public {
         TestContract2771Checked testContract = new TestContract2771Checked(sf.host);
         testContract.transferOwnership(alice);
 
@@ -566,5 +566,43 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
         sf.host.batchCall{value: amount}(ops);
         assertEq(address(testContract).balance, amount, "TestContract: unexpected test contract balance");
         vm.stopPrank();
+    }
+
+    function testRefundFromBatchCall() public {
+        uint256 amount = 42;
+        address sender = alice;
+
+        vm.deal(sender, 1 ether);
+        uint256 senderBalanceBefore = sender.balance;
+        vm.startPrank(sender);
+        sf.host.batchCall{value: amount}(new ISuperfluid.Operation[](0));
+        vm.stopPrank();
+        // no operation "consumed" the native tokens: we expect full refund
+        assertEq(sender.balance, senderBalanceBefore, "batchCall sender: unexpected balance");
+        assertEq(address(sf.host).balance, 0, "batchCall host: native tokens left");
+    }
+
+    function testWithdrawLostNativeTokensFromDMZForwarder() public {
+        uint256 amount = 42;
+
+        DMZForwarder forwarder = new DMZForwarder();
+
+        // failing call which causes `amount` to get stuck in the forwarder contract
+        (bool success, bytes memory returnValue) = forwarder.forwardCall{value: amount}(
+            address(sf.host), new bytes(0x1));
+
+        assertFalse(success, "DMZForwarder: call should have failed");
+        assertEq(address(forwarder).balance, amount, "DMZForwarder: unexpected balance");
+
+        // eve isn't allowed to withdraw
+        vm.startPrank(eve);
+        vm.expectRevert("Ownable: caller is not the owner");
+        forwarder.withdrawLostNativeTokens(payable(bob));
+        vm.stopPrank();
+
+        // but we can withdraw
+        forwarder.withdrawLostNativeTokens(payable(bob));
+        assertEq(address(forwarder).balance, 0, "DMZForwarder: balance still not 0");
+        assertEq(bob.balance, amount, "DMZForwarder: where did the money go?");
     }
 }

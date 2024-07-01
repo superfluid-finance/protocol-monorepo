@@ -39,4 +39,12 @@ contract DMZForwarder is Ownable {
         // solhint-disable-next-line avoid-low-level-calls
         (success, returnData) = target.call{value: msg.value}(abi.encodePacked(data, msgSender));
     }
+
+    /**
+     * @dev Allows to withdraw native tokens (ETH) which got stuck in this contract.
+     * This could happen if a call fails, but the caller doesn't revert the tx.
+     */
+    function withdrawLostNativeTokens(address payable receiver) external onlyOwner {
+        receiver.transfer(address(this).balance);
+    }
 }

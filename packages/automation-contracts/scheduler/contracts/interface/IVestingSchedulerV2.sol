@@ -138,8 +138,8 @@ interface IVestingSchedulerV2 {
      * @param receiver Vesting receiver
      * @param totalAmount The total amount to be vested 
      * @param totalDuration The total duration of the vestingß
-     * @param cliffPeriod The cliff period of the vesting
      * @param startDate Timestamp when the vesting should start
+     * @param cliffPeriod The cliff period of the vesting
      * @param ctx Superfluid context used when batching operations. (or bytes(0) if not SF batching)
      */
     function createVestingScheduleFromAmountAndDuration(
@@ -147,10 +147,46 @@ interface IVestingSchedulerV2 {
         address receiver,
         uint256 totalAmount,
         uint32 totalDuration,
-        uint32 cliffPeriod,
         uint32 startDate,
+        uint32 cliffPeriod,
         bytes memory ctx
     ) external returns (bytes memory newCtx);
+
+    /**
+     * @dev See IVestingScheduler.createVestingScheduleFromAmountAndDuration overload for more details.
+     */
+    function createVestingScheduleFromAmountAndDuration(
+        ISuperToken superToken,
+        address receiver,
+        uint256 totalAmount,
+        uint32 totalDuration,
+        uint32 startDate,
+        uint32 cliffPeriod
+    ) external;
+
+    /**
+     * @dev See IVestingScheduler.createVestingScheduleFromAmountAndDuration overload for more details.
+     * The startDate is set to current block timestamp.
+     */
+    function createVestingScheduleFromAmountAndDuration(
+        ISuperToken superToken,
+        address receiver,
+        uint256 totalAmount,
+        uint32 totalDuration,
+        uint32 cliffPeriod
+    ) external;
+
+    /**
+     * @dev See IVestingScheduler.createVestingScheduleFromAmountAndDuration overload for more details.
+     * The startDate is set to current block timestamp.
+     * Cliff period is not applied.
+     */
+    function createVestingScheduleFromAmountAndDuration(
+        ISuperToken superToken,
+        address receiver,
+        uint256 totalAmount,
+        uint32 totalDuration
+    ) external;
 
     /**
      * @dev Returns all relevant information related to a new vesting schedule creation 
@@ -161,6 +197,7 @@ interface IVestingSchedulerV2 {
      * @param totalDuration The total duration of the vestingß
      * @param cliffPeriod The cliff period of the vesting
      * @param startDate Timestamp when the vesting should start
+     * @param claimPeriod The claim availability period
      */
     function getCreateVestingScheduleParamsFromAmountAndDuration(
         ISuperToken superToken,
@@ -190,42 +227,6 @@ interface IVestingSchedulerV2 {
     function getMaximumNeededTokenAllowance(
         address superToken, address sender, address receiver
     ) external returns (uint256);
-
-    /**
-     * @dev See IVestingScheduler.createVestingScheduleFromAmountAndDuration overload for more details.
-     */
-    function createVestingScheduleFromAmountAndDuration(
-        ISuperToken superToken,
-        address receiver,
-        uint256 totalAmount,
-        uint32 totalDuration,
-        uint32 cliffPeriod,
-        uint32 startDate
-    ) external;
-
-    /**
-     * @dev See IVestingScheduler.createVestingScheduleFromAmountAndDuration overload for more details.
-     * The startDate is set to current block timestamp.
-     */
-    function createVestingScheduleFromAmountAndDuration(
-        ISuperToken superToken,
-        address receiver,
-        uint256 totalAmount,
-        uint32 totalDuration,
-        uint32 cliffPeriod
-    ) external;
-
-    /**
-     * @dev See IVestingScheduler.createVestingScheduleFromAmountAndDuration overload for more details.
-     * The startDate is set to current block timestamp.
-     * Cliff period is not applied.
-     */
-    function createVestingScheduleFromAmountAndDuration(
-        ISuperToken superToken,
-        address receiver,
-        uint256 totalAmount,
-        uint32 totalDuration
-    ) external;
 
     /**
      * @dev Creates a new vesting schedule

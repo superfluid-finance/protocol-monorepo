@@ -846,10 +846,10 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         vestingScheduler.createVestingScheduleFromAmountAndDuration(
             superToken,
             bob,
-            0,
-            1209600,
-            604800,
-            uint32(block.timestamp),
+            0, // amount
+            1209600, // duration
+            uint32(block.timestamp), // startDate
+            604800, // cliffPeriod
             EMPTY_CTX
         );
 
@@ -858,10 +858,10 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         vestingScheduler.createVestingScheduleFromAmountAndDuration(
             superToken,
             bob,
-            1 ether,
-            1209600,
-            0,
-            uint32(block.timestamp - 1),
+            1 ether, // amount
+            1209600, // duration
+            uint32(block.timestamp - 1), // startDate
+            0, // cliffPeriod
             EMPTY_CTX
         );
 
@@ -870,10 +870,10 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         vestingScheduler.createVestingScheduleFromAmountAndDuration(
             superToken,
             bob,
-            type(uint256).max,
-            1209600,
-            0,
-            uint32(block.timestamp),
+            type(uint256).max, // amount
+            1209600, // duration
+            uint32(block.timestamp), // startDate
+            0, // cliffPeriod
             EMPTY_CTX
         );
 
@@ -882,10 +882,10 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         vestingScheduler.createVestingScheduleFromAmountAndDuration(
             superToken,
             bob,
-            1 ether,
-            type(uint32).max,
-            0,
-            uint32(block.timestamp),
+            1 ether, // amount
+            type(uint32).max, // duration
+            uint32(block.timestamp), // startDate
+            0, // cliffPeriod
             EMPTY_CTX
         );
 
@@ -894,10 +894,10 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         vestingScheduler.createVestingScheduleFromAmountAndDuration(
             superToken,
             bob,
-            1 ether,
-            1209600,
-            604800,
-            uint32(block.timestamp - 1),
+            1 ether, // amount
+            1209600, // duration
+            uint32(block.timestamp - 1), // startDate
+            604800, // cliffPeriod
             EMPTY_CTX
         );
     }
@@ -926,8 +926,8 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
                 bob,
                 totalVestedAmount,
                 vestingDuration,
-                0,
-                startDate,
+                startDate, 
+                0, // cliffPeriod
                 EMPTY_CTX
             );
         } else {
@@ -936,8 +936,8 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
                 bob,
                 totalVestedAmount,
                 vestingDuration,
-                0,
-                startDate
+                startDate,
+                0 // cliffPeriod
             );
         }
         vm.stopPrank();
@@ -971,8 +971,8 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
                 bob,
                 totalVestedAmount,
                 vestingDuration,
-                cliffPeriod,
                 startDate,
+                cliffPeriod,
                 EMPTY_CTX
             );
         } else {
@@ -981,8 +981,8 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
                 bob,
                 totalVestedAmount,
                 vestingDuration,
-                cliffPeriod,
-                startDate
+                startDate,
+                cliffPeriod
             );
         }
         vm.stopPrank();
@@ -1103,8 +1103,8 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
                     bob,
                     totalAmount,
                     totalDuration,
-                    cliffPeriod,
-                    startDate
+                    startDate,
+                    cliffPeriod
                 );
             } else {
                 console.log("Using the overload with superfluid context.");
@@ -1113,8 +1113,8 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
                     bob,
                     totalAmount,
                     totalDuration,
-                    cliffPeriod,
                     startDate,
+                    cliffPeriod,
                     EMPTY_CTX
                 );
             }
@@ -1984,8 +1984,8 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
             bob,
             totalAmount,
             totalDuration,
-            cliffPeriod,
             startDate,
+            cliffPeriod,
             EMPTY_CTX
         );
         vm.stopPrank();

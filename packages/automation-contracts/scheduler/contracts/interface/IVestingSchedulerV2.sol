@@ -168,32 +168,6 @@ interface IVestingSchedulerV2 {
     ) external;
 
     /**
-     * @dev See IVestingScheduler.createVestingScheduleFromAmountAndDuration overload for more details.
-     * The startDate is set to current block timestamp.
-     */
-    function createVestingScheduleFromAmountAndDuration(
-        ISuperToken superToken,
-        address receiver,
-        uint256 totalAmount,
-        uint32 totalDuration,
-        uint32 cliffPeriod,
-        uint32 claimPeriod
-    ) external;
-
-    /**
-     * @dev See IVestingScheduler.createVestingScheduleFromAmountAndDuration overload for more details.
-     * The startDate is set to current block timestamp.
-     * Cliff period is not applied.
-     */
-    function createVestingScheduleFromAmountAndDuration(
-        ISuperToken superToken,
-        address receiver,
-        uint256 totalAmount,
-        uint32 totalDuration,
-        uint32 claimPeriod
-    ) external;
-
-    /**
      * @dev Returns all relevant information related to a new vesting schedule creation 
      * @dev based on the amounts and durations.
      * @param superToken SuperToken to be vested

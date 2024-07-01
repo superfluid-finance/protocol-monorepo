@@ -1095,41 +1095,29 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
 
         // Act
         vm.startPrank(alice);
-        if (startDate == 0 && randomizer % 2 == 0) {
-            console.log("Using the overload without start date.");
+        if (randomizer % 3 == 0) {
+            console.log("Using the overload without superfluid context.");
             vestingScheduler.createVestingScheduleFromAmountAndDuration(
                 superToken,
                 bob,
                 totalAmount,
                 totalDuration,
+                startDate,
                 cliffPeriod,
                 0
             );
         } else {
-            if (randomizer % 3 == 0) {
-                console.log("Using the overload without superfluid context.");
-                vestingScheduler.createVestingScheduleFromAmountAndDuration(
-                    superToken,
-                    bob,
-                    totalAmount,
-                    totalDuration,
-                    startDate,
-                    cliffPeriod,
-                    0
-                );
-            } else {
-                console.log("Using the overload with superfluid context.");
-                vestingScheduler.createVestingScheduleFromAmountAndDuration(
-                    superToken,
-                    bob,
-                    totalAmount,
-                    totalDuration,
-                    startDate,
-                    cliffPeriod,
-                    0,
-                    EMPTY_CTX
-                );
-            }
+            console.log("Using the overload with superfluid context.");
+            vestingScheduler.createVestingScheduleFromAmountAndDuration(
+                superToken,
+                bob,
+                totalAmount,
+                totalDuration,
+                startDate,
+                cliffPeriod,
+                0,
+                EMPTY_CTX
+            );
         }
         vm.stopPrank();
 
@@ -1599,6 +1587,8 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
             bob,
             totalVestedAmount,
             vestingDuration,
+            0,
+            0,
             claimPeriod
         );
         vm.stopPrank();
@@ -1676,6 +1666,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
             bob,
             totalVestedAmount,
             vestingDuration,
+            0,
             cliffPeriod,
             claimPeriod
         );

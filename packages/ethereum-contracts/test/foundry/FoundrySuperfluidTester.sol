@@ -1606,7 +1606,6 @@ contract FoundrySuperfluidTester is Test {
 
         PoolUnitData memory poolUnitDataBefore = _helperGetPoolUnitsData(pool_);
 
-        (int256 claimableBalance,) = pool_.getClaimableNow(member_);
         (int256 balanceBefore,,,) = poolSuperToken.realtimeBalanceOfNow(member_);
         {
             _updateMemberUnits(pool_, poolSuperToken, caller_, member_, newUnits_, useBools_);

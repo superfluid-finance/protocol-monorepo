@@ -11,7 +11,7 @@ import { SafeMath } from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
-    string public constant VERSION = "2.0.0-beta";
+    string public constant VERSION = "2.0.0-beta.0";
 
     using CFAv1Library for CFAv1Library.InitData;
     CFAv1Library.InitData public cfaV1;

@@ -578,6 +578,28 @@ interface ISuperToken is ISuperfluidToken, IERC20Metadata, IERC777 {
     */
     function operationDowngrade(address account, uint256 amount) external;
 
+    /**
+    * @dev Upgrade ERC20 to SuperToken by host contract and transfer immediately.
+    * @param account The account to be changed.
+    * @param to The account to receive upgraded tokens
+    * @param amount Number of tokens to be upgraded (in 18 decimals)
+    *
+    * @custom:modifiers
+    *  - onlyHost
+    */
+    function operationUpgradeTo(address account, address to, uint256 amount) external;
+
+    /**
+    * @dev Downgrade ERC20 to SuperToken by host contract and transfer immediately.
+    * @param account The account to be changed.
+    * @param to The account to receive downgraded tokens
+    * @param amount Number of tokens to be downgraded (in 18 decimals)
+    *
+    * @custom:modifiers
+    *  - onlyHost
+    */
+    function operationDowngradeTo(address account, address to, uint256 amount) external;
+
     // Flow NFT events
     /**
      * @dev Constant Outflow NFT proxy created event

@@ -5,7 +5,7 @@ on:
     inputs:
       vendor:
         required: true
-        description: "Where to deploy subgraph to; superfluid, goldsky, graphstudio or airstack"
+        description: "Where to deploy subgraph to; superfluid, goldsky, graph or airstack"
         type: string
       deployment_env:
         required: true

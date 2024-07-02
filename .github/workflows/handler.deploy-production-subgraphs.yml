@@ -12,13 +12,13 @@ on:
     inputs:
       vendor:
         required: true
-        description: "Where to deploy subgraph to; one of `superfluid`, `goldsky`, `graphstudio` or `airstack`"
+        description: "Where to deploy subgraph to; one of `superfluid`, `goldsky`, `graph` or `airstack`"
         default: "superfluid" 
         type: choice
         options:
           - superfluid
           - goldsky
-          - graphstudio
+          - graph
           - airstack
       deployment_env:
         required: true

@@ -24,7 +24,7 @@ GOLDSKY_NETWORKS=( "polygon-mainnet" "xdai-mainnet" "eth-mainnet" "base-mainnet"
 AIRSTACK_NETWORKS=( "degenchain")
 
 declare -A VENDOR_NETWORKS=(
-    ["graphstudio"]="${GRAPH_NETWORKS[@]}"
+    ["graph"]="${GRAPH_NETWORKS[@]}"
     ["satsuma"]="${SATSUMA_NETWORKS[@]}"
     ["superfluid"]="${SUPERFLUID_NETWORKS[@]}"
     ["goldsky"]="${GOLDSKY_NETWORKS[@]}"

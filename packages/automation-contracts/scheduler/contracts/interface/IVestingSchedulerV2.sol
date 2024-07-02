@@ -54,6 +54,7 @@ interface IVestingSchedulerV2 {
      */
     struct ScheduleCreationParams {
         ISuperToken superToken;
+        address sender;
         address receiver;
         uint32 startDate;
         uint32 claimValidityDate;
@@ -180,6 +181,7 @@ interface IVestingSchedulerV2 {
      */
     function getCreateVestingScheduleParamsFromAmountAndDuration(
         ISuperToken superToken,
+        address sender,
         address receiver,
         uint256 totalAmount,
         uint32 totalDuration,

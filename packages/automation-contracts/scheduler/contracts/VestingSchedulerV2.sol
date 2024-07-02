@@ -63,9 +63,13 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         uint32 claimValidityDate,
         bytes memory ctx
     ) external returns (bytes memory newCtx) {
-        newCtx = _validateAndCreateVestingSchedule(
+        newCtx = ctx;
+        address sender = _getSender(ctx);
+
+        _validateAndCreateVestingSchedule(
             ScheduleCreationParams({
                 superToken: superToken,
+                sender: sender,
                 receiver: receiver,
                 startDate: _normalizeStartDate(startDate),
                 claimValidityDate: claimValidityDate,
@@ -74,8 +78,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
                 cliffAmount: cliffAmount,
                 endDate: endDate,
                 remainderAmount: 0
-            }),
-            ctx
+            })
         );
     }
 
@@ -93,6 +96,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         _validateAndCreateVestingSchedule(
             ScheduleCreationParams({
                 superToken: superToken,
+                sender: _getSender(bytes("")),
                 receiver: receiver,
                 startDate: _normalizeStartDate(startDate),
                 claimValidityDate: claimValidityDate,
@@ -101,24 +105,19 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
                 cliffAmount: cliffAmount,
                 endDate: endDate,
                 remainderAmount: 0
-            }),
-            bytes("")
+            })
         );
     }
 
     function _validateAndCreateVestingSchedule(
-        ScheduleCreationParams memory params,
-        bytes memory ctx
-    ) private returns (bytes memory newCtx) {
-        newCtx = ctx;
-        address sender = _getSender(ctx);
-
+        ScheduleCreationParams memory params
+    ) private {
         // Note: Vesting Scheduler V2 doesn't allow start date to be in the past.
         // V1 did but didn't allow cliff and flow to be in the past though.
         if (params.startDate < block.timestamp) revert TimeWindowInvalid();
         if (params.endDate <= END_DATE_VALID_BEFORE) revert TimeWindowInvalid();
 
-        if (params.receiver == address(0) || params.receiver == sender) revert AccountInvalid();
+        if (params.receiver == address(0) || params.receiver == params.sender) revert AccountInvalid();
         if (address(params.superToken) == address(0)) revert ZeroAddress();
         if (params.flowRate <= 0) revert FlowRateInvalid();
         if (params.cliffDate != 0 && params.startDate > params.cliffDate) revert TimeWindowInvalid();
@@ -136,7 +135,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         if (params.claimValidityDate != 0 && params.claimValidityDate < cliffAndFlowDate) 
             revert TimeWindowInvalid();
 
-        bytes32 id = _getId(address(params.superToken), sender, params.receiver);
+        bytes32 id = _getId(address(params.superToken), params.sender, params.receiver);
         if (vestingSchedules[id].endDate != 0) revert ScheduleAlreadyExists();
 
         vestingSchedules[id] = VestingSchedule({
@@ -150,7 +149,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
 
         emit VestingScheduleCreated(
             params.superToken,
-            sender,
+            params.sender,
             params.receiver,
             params.startDate,
             params.cliffDate,
@@ -173,17 +172,20 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         uint32 claimPeriod,
         bytes memory ctx
     ) external returns (bytes memory newCtx) {
-        newCtx = _validateAndCreateVestingSchedule(
+        newCtx = ctx;
+        address sender = _getSender(ctx);
+        
+        _validateAndCreateVestingSchedule(
             getCreateVestingScheduleParamsFromAmountAndDuration(
                 superToken,
+                sender,
                 receiver,
                 totalAmount,
                 totalDuration,
                 _normalizeStartDate(startDate),
                 cliffPeriod,
                 claimPeriod
-            ),
-            ctx
+            )
         );
     }
 
@@ -197,17 +199,19 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         uint32 cliffPeriod,
         uint32 claimPeriod
     ) external {
+        address sender = _getSender(bytes(""));
+
         _validateAndCreateVestingSchedule(
             getCreateVestingScheduleParamsFromAmountAndDuration(
                 superToken,
+                sender,
                 receiver,
                 totalAmount,
                 totalDuration,
                 _normalizeStartDate(startDate),
                 cliffPeriod,
                 claimPeriod
-            ),
-            bytes("")
+            )
         );
     }
 
@@ -257,20 +261,22 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         uint32 cliffPeriod,
         bytes memory ctx
     ) private returns (bytes memory newCtx) {
-        newCtx = _validateAndCreateVestingSchedule(
+        newCtx = ctx;
+        address sender = _getSender(ctx);
+
+        _validateAndCreateVestingSchedule(
             getCreateVestingScheduleParamsFromAmountAndDuration(
                 superToken,
+                sender,
                 receiver,
                 totalAmount,
                 totalDuration,
                 _normalizeStartDate(0),
                 cliffPeriod,
                 0 // claimValidityDate
-            ),
-            ctx
+            )
         );
 
-        address sender = _getSender(newCtx);
         ScheduleAggregate memory agg = _getVestingScheduleAggregate(superToken, sender, receiver);
 
         _validateBeforeCliffAndFlow(agg.schedule, /* disableClaimCheck: */ false);
@@ -556,6 +562,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
     /// @dev IVestingScheduler.getCreateVestingScheduleParamsFromAmountAndDuration implementation.
     function getCreateVestingScheduleParamsFromAmountAndDuration(
         ISuperToken superToken,
+        address sender,
         address receiver,
         uint256 totalAmount,
         uint32 totalDuration,
@@ -578,6 +585,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         if (cliffPeriod == 0) {
             params = ScheduleCreationParams({
                 superToken: superToken,
+                sender: sender,
                 receiver: receiver,
                 startDate: startDate,
                 claimValidityDate: claimValidityDate,
@@ -588,17 +596,17 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
                 remainderAmount: remainderAmount
             });
         } else {
-            uint32 cliffDate = startDate + cliffPeriod;
             uint256 cliffAmount = SafeMath.mul(
                 cliffPeriod,
                 SafeCast.toUint256(flowRate)
             );
             params = ScheduleCreationParams({
                 superToken: superToken,
+                sender: sender,
                 receiver: receiver,
                 startDate: startDate,
                 claimValidityDate: claimValidityDate,
-                cliffDate: cliffDate,
+                cliffDate: startDate + cliffPeriod,
                 flowRate: flowRate,
                 cliffAmount: cliffAmount,
                 endDate: endDate,

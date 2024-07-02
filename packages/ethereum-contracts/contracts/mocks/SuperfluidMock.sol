@@ -11,6 +11,7 @@ import { CallUtils } from "../libs/CallUtils.sol";
 
 contract SuperfluidUpgradabilityTester is Superfluid {
 
+    // 3_000_000 is the min callback gas limit used in a prod deployment
     constructor() Superfluid(false, false, 3_000_000, address(0))
     // solhint-disable-next-line no-empty-blocks
     {

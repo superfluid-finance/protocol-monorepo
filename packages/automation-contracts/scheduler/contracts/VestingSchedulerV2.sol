@@ -446,7 +446,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
             schedule.cliffAndFlowDate,
             0, // flow rate
             schedule.cliffAmount,
-            0 // flow delay compensation
+            totalVestedAmount - schedule.cliffAmount // flow delay compensation
         );
 
         emit VestingEndExecuted(
@@ -455,7 +455,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
             agg.receiver,
             schedule.endDate,
             0, // Early end compensation
-            false
+            false // Did end fail
         );
 
         return true;

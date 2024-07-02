@@ -17,6 +17,7 @@ interface ContractAddresses {
     readonly superfluidLoader: string;
     readonly toga?: string;
     readonly vestingScheduler?: string;
+    readonly vestingSchedulerV2?: string;
     readonly flowScheduler?: string;
     readonly batchLiquidator?: string;
     readonly superSpreader?: string;

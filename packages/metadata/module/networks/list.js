@@ -110,7 +110,7 @@ export default
             "constantInflowNFT": "0x87E00Dced5670e01BEe33a9a724B1dac790937eF",
             "flowScheduler": "0x73B1Ce21d03ad389C2A291B1d1dc4DAFE7B5Dc68",
             "vestingScheduler": "0x27444c0235a4D921F3106475faeba0B5e7ABDD7a",
-            "vestingSchedulerV2": "0xBeB02560Fd1608716ca27704E5191D6937EC244B",
+            "vestingSchedulerV2": "0x55DbCe3f4968616E8a3c0a04D76b5Fdf420AF5F5",
             "autowrap": {
                 "manager": "0xe567b32C10B0dB72d9490eB1B9A409C5ADed192C",
                 "wrapStrategy": "0xf232f1fd34CE12e24F4391865c2D6E374D2C34d9"
@@ -361,6 +361,7 @@ export default
             "batchLiquidator": "0x36Df169DBf5CE3c6f58D46f0addeF58F01381232",
             "flowScheduler": "0x55c8fc400833eEa791087cF343Ff2409A39DeBcC",
             "vestingScheduler": "0x65377d4dfE9c01639A41952B5083D58964782892",
+            "vestingSchedulerV2": "0xe567b32C10B0dB72d9490eB1B9A409C5ADed192C",
             "autowrap": {
                 "manager": "0x1fA76f2Cd0C3fe6c399A80111408d9C42C0CAC23",
                 "wrapStrategy": "0x0Cf060a501c0040e9CCC708eFE94079F501c6Bb4"

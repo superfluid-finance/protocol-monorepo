@@ -1600,13 +1600,11 @@ contract FoundrySuperfluidTester is Test {
         // there is a hard restriction in which total units must never exceed type(int96).max
         vm.assume(newUnits_ < type(uint72).max);
         ISuperToken poolSuperToken = ISuperToken(address(pool_.superToken()));
-        if (caller_ == address(0) || member_ == address(0) || sf.gda.isPool(poolSuperToken, member_)) return;
 
         (bool isConnected, int256 oldUnits,) = _helperGetMemberPoolState(pool_, member_);
 
         PoolUnitData memory poolUnitDataBefore = _helperGetPoolUnitsData(pool_);
 
-        (int256 claimableBalance,) = pool_.getClaimableNow(member_);
         (int256 balanceBefore,,,) = poolSuperToken.realtimeBalanceOfNow(member_);
         {
             _updateMemberUnits(pool_, poolSuperToken, caller_, member_, newUnits_, useBools_);

@@ -8,7 +8,7 @@ contract SuperfluidDestructorMock {
 
     fallback() external {
         // this == impl in this call
-        selfdestruct(payable(0));
+        assembly { selfdestruct(0) }
     }
 
 }

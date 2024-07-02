@@ -3,6 +3,18 @@ All notable changes to the ethereum-contracts will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [unreleased]
+
+### Breaking
+
+- ISuperfuidPool self-transfer is not allowed
+
+### Changed
+
+- fix a few types and build warnings
+- rename '.prop.sol' to '.prop.t.sol'
+- upgrade flake lock input: foundry
+
 ## [v1.9.1] - 2024-03-19
 
 ### Breaking

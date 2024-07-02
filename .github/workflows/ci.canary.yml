@@ -276,6 +276,8 @@ jobs:
   upgrade-contracts:
     name: Upgrade ethereum-contracts on canary testnet (protocol release version "canary")
 
+    if: false # disable this for now
+
     needs: [all-packages-tested]
 
     runs-on: ubuntu-latest

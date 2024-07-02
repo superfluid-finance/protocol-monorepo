@@ -25,6 +25,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - fix a few types and build warnings
 - rename '.prop.sol' to '.prop.t.sol'
 - upgrade flake lock input: foundry
+- relax pragram solidity with "^0.8.23"
 
 ## [v1.9.1] - 2024-03-19
 

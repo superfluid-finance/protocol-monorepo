@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Show contexts
         env:
@@ -33,7 +33,7 @@ jobs:
         run: |
           yarn install --frozen-lockfile
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           repository: superfluid-finance/build-scripts
           path: build-scripts

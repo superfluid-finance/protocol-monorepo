@@ -17,7 +17,7 @@ jobs:
       build_spec_haskell: ${{ env.BUILD_SPEC_HASKELL }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Check changeset
         run: tasks/check-changeset.sh ${{ github.sha }} dev

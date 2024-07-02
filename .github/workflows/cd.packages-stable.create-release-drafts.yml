@@ -22,7 +22,7 @@ jobs:
     permissions: write-all
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Use Node.js 18.x
         uses: actions/setup-node@v3
@@ -52,7 +52,7 @@ jobs:
     permissions: write-all
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Use Node.js 18.x
         uses: actions/setup-node@v3
@@ -92,7 +92,7 @@ jobs:
     permissions: write-all
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Use Node.js 18.x
         uses: actions/setup-node@v3
@@ -132,7 +132,7 @@ jobs:
       publish_sdk_core: ${{ env.SHOULD_PUBLISH_SDK_CORE }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Check package versions
         run: ./tasks/check-package-version.sh sdk-core SHOULD_PUBLISH_SDK_CORE SDK_CORE_NEW_VERSION >> "$GITHUB_ENV"
@@ -168,7 +168,7 @@ jobs:
     permissions: write-all
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Use Node.js 18.x
         uses: actions/setup-node@v3
@@ -195,7 +195,7 @@ jobs:
     permissions: write-all
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Use Node.js 18.x
         uses: actions/setup-node@v3

@@ -24,13 +24,12 @@ contract CrossStreamSuperAppTest is FoundrySuperfluidTester {
     }
 
     function testNoTokensMintedOrBurnedInCrossStreamSuperApp(int96 flowRate, uint64 blockTimestamp) public {
-        vm.assume(flowRate < 1e14);
         // @note due to clipping, there is precision loss, therefore if the flow rate is too low
         // tokens will be unrecoverable
-        vm.assume(flowRate > 2 ** 32 - 1);
+        flowRate = int96(bound(flowRate, 2 ** 31 - 1, 1e14));
         int96 initialFlowRate = flowRate;
 
-        // @note transfer tokens from alice to carol so that 
+        // @note transfer tokens from alice to carol so that
         // alice has type(uint64).max balance to start
         uint256 diff = type(uint88).max - type(uint64).max;
         vm.startPrank(alice);

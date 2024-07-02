@@ -104,14 +104,14 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
                                     Passing Tests
     //////////////////////////////////////////////////////////////////////////*/
 
-    function testProxiableUUIDIsExpectedValue() public {
+    function testProxiableUUIDIsExpectedValue() public view {
         assertEq(
             constantOutflowNFT.proxiableUUID(),
             keccak256("org.superfluid-finance.contracts.ConstantOutflowNFT.implementation")
         );
     }
 
-    function testConstantOutflowNFTIsProperlyInitialized() public {
+    function testConstantOutflowNFTIsProperlyInitialized() public view {
         assertEq(constantOutflowNFT.name(), OUTFLOW_NFT_NAME_TEMPLATE);
         assertEq(constantOutflowNFT.symbol(), OUTFLOW_NFT_SYMBOL_TEMPLATE);
     }

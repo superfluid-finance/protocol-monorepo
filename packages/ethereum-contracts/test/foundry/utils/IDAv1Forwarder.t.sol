@@ -177,7 +177,7 @@ contract IDAv1ForwarderIntegrationTest is FoundrySuperfluidTester {
         assertEq(pendingDistribution, 0, "testIDAv1ForwarderGetSubscriptionByID: pending distribution mismatch");
     }
 
-    function testIDAv1ForwarderEmptyListSubscriptions(address subscriber) external {
+    function testIDAv1ForwarderEmptyListSubscriptions(address subscriber) external view {
         vm.assume(subscriber != address(0));
         (address[] memory publishers, uint32[] memory indexIds, uint128[] memory unitsList) =
             sf.idaV1Forwarder.listSubscriptions(superToken, subscriber);

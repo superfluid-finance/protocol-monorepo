@@ -93,7 +93,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         );
     }
 
-    function testPositiveBalanceIsPatricianPeriodNow(address account) public {
+    function testPositiveBalanceIsPatricianPeriodNow(address account) public view {
         (bool isPatricianPeriod,) = sf.gda.isPatricianPeriodNow(superToken, account);
         assertEq(isPatricianPeriod, true);
     }

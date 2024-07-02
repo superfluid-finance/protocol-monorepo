@@ -42,13 +42,13 @@ contract PoolAdminNFTIntegrationTest is PoolNFTBaseIntegrationTest {
                                     Passing Tests
     //////////////////////////////////////////////////////////////////////////*/
 
-    function testProxiableUUIDIsExpectedValue() public {
+    function testProxiableUUIDIsExpectedValue() public view {
         assertEq(
             poolAdminNFT.proxiableUUID(), keccak256("org.superfluid-finance.contracts.PoolAdminNFT.implementation")
         );
     }
 
-    function testTokenURIForPoolAdminNFT(uint256 tokenId) public {
+    function testTokenURIForPoolAdminNFT(uint256 tokenId) public view {
         assertEq(poolAdminNFT.tokenURI(tokenId), string(abi.encodePacked(poolAdminNFT.baseURI())));
     }
 }

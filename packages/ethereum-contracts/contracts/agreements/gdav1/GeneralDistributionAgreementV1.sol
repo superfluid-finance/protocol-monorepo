@@ -28,7 +28,6 @@ import { IPoolAdminNFT } from "../../interfaces/agreements/gdav1/IPoolAdminNFT.s
 import { ISuperfluidPool } from "../../interfaces/agreements/gdav1/ISuperfluidPool.sol";
 import { SlotsBitmapLibrary } from "../../libs/SlotsBitmapLibrary.sol";
 import { SolvencyHelperLibrary } from "../../libs/SolvencyHelperLibrary.sol";
-import { SafeGasLibrary } from "../../libs/SafeGasLibrary.sol";
 import { AgreementBase } from "../AgreementBase.sol";
 import { AgreementLibrary } from "../AgreementLibrary.sol";
 
@@ -288,12 +287,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         IPoolAdminNFT poolAdminNFT = IPoolAdminNFT(_getPoolAdminNFTAddress(token));
 
         if (address(poolAdminNFT) != address(0)) {
-            uint256 gasLeftBefore = gasleft();
-            // solhint-disable-next-line no-empty-blocks
-            try poolAdminNFT.mint(address(pool)) { }
-            catch {
-                SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
-            }
+            poolAdminNFT.mint(address(pool));
         }
 
         emit PoolCreated(token, admin, pool);

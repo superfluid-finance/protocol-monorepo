@@ -4,7 +4,6 @@ pragma solidity 0.8.23;
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
-import { SafeGasLibrary } from "../libs/SafeGasLibrary.sol";
 
 import {
     ISuperfluid,
@@ -22,6 +21,7 @@ import {
 import { GeneralDistributionAgreementV1 } from "../agreements/gdav1/GeneralDistributionAgreementV1.sol";
 import { SuperfluidUpgradeableBeacon } from "../upgradability/SuperfluidUpgradeableBeacon.sol";
 import { CallUtils } from "../libs/CallUtils.sol";
+import { CallbackUtils } from "../libs/CallbackUtils.sol";
 import { BaseRelayRecipient } from "../libs/BaseRelayRecipient.sol";
 
 /**
@@ -312,7 +312,7 @@ contract Superfluid is
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Superfluid Upgradeable Beacon
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
+
     /// @inheritdoc ISuperfluid
     function updatePoolBeaconLogic(address newLogic) external override onlyGovernance {
         GeneralDistributionAgreementV1 gda = GeneralDistributionAgreementV1(
@@ -1037,26 +1037,14 @@ contract Superfluid is
 
         callData = _replacePlaceholderCtx(callData, ctx);
 
-        uint256 gasLimit = CALLBACK_GAS_LIMIT;
-        uint256 gasLeftBefore = gasleft();
-        if (isStaticall) {
-            /* solhint-disable-next-line avoid-low-level-calls*/
-            (success, returnedData) = address(app).staticcall{ gas: gasLimit }(callData);
-        } else {
-            /* solhint-disable-next-line avoid-low-level-calls*/
-            (success, returnedData) = address(app).call{ gas: gasLimit }(callData);
-        }
+        uint256 callbackGasLimit = CALLBACK_GAS_LIMIT;
+        bool insufficientCallbackGasProvided;
+        (success, insufficientCallbackGasProvided, returnedData) = isStaticall ?
+            CallbackUtils.staticCall(address(app), callData, callbackGasLimit) :
+            CallbackUtils.externalCall(address(app), callData, callbackGasLimit);
 
         if (!success) {
-            // - "/ 63" is a magic to avoid out of gas attack.
-            //   See: https://medium.com/@wighawag/ethereum-the-concept-of-gas-and-its-dangers-28d0eb809bb2.
-            // - Without it, an app callback may use this to block the APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK jail
-            //   rule.
-            // - Also note that, the CALLBACK_GAS_LIMIT given to the app includes the overhead an app developer may not
-            //   have direct control of, such as abi decoding code block. It is recommend for the app developer to stay
-            //   at least 30000 less gas usage from that value to not trigger
-            //   APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK.
-            if (!SafeGasLibrary._isOutOfGas(gasLeftBefore)) {
+            if (!insufficientCallbackGasProvided) {
                 if (!isTermination) {
                     CallUtils.revertFromReturnedData(returnedData);
                 } else {

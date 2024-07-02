@@ -205,15 +205,6 @@ interface IVestingSchedulerV2 {
     ) external returns (ScheduleCreationParams memory params);
 
     /**
-     * @dev Estimates the maximum possible ERC-20 token allowance needed for the vesting schedule 
-     * @dev to work properly under all circumstances.
-     * @param vestingSchedule A vesting schedule (doesn't have to exist)
-     */
-    function getMaximumNeededTokenAllowance(
-        VestingSchedule memory vestingSchedule
-    ) external returns (uint256);
-
-    /**
      * @dev Creates a new vesting schedule
      * @dev The function calculates the endDate, cliffDate, cliffAmount, flowRate, etc, based on the input arguments.
      * @dev The function creates the vesting schedule with start date set to current timestamp,
@@ -384,4 +375,13 @@ interface IVestingSchedulerV2 {
         external
         view
         returns (VestingSchedule memory);
+
+    /**
+     * @dev Estimates the maximum possible ERC-20 token allowance needed for the vesting schedule 
+     * @dev to work properly under all circumstances.
+     * @param vestingSchedule A vesting schedule (doesn't have to exist)
+     */
+    function getMaximumNeededTokenAllowance(
+        VestingSchedule memory vestingSchedule
+    ) external returns (uint256);
 }

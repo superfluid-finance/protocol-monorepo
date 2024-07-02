@@ -57,7 +57,7 @@ contract AqueductTest is Test {
         }
     }
 
-    function assertEq(Value a, Value b, string memory e) internal {
+    function assertEq(Value a, Value b, string memory e) internal pure {
         assertEq(Value.unwrap(a), Value.unwrap(b), e);
     }
 

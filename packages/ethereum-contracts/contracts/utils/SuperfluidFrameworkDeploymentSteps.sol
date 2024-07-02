@@ -34,6 +34,7 @@ import { TOGA } from "./TOGA.sol";
 import { CFAv1Library } from "../apps/CFAv1Library.sol";
 import { IDAv1Library } from "../apps/IDAv1Library.sol";
 import { IResolver } from "../interfaces/utils/IResolver.sol";
+import { DMZForwarder } from "../utils/DMZForwarder.sol";
 
 /// @title Superfluid Framework Deployment Steps
 /// @author Superfluid
@@ -151,11 +152,12 @@ contract SuperfluidFrameworkDeploymentSteps {
         if (step == 0) { // CORE CONTRACT: TestGovernance
             // Deploy TestGovernance, a Superfluid Governance for testing purpose. It needs initialization later.
             testGovernance = SuperfluidGovDeployerLibrary.deployTestGovernance();
-
             SuperfluidGovDeployerLibrary.transferOwnership(testGovernance, address(this));
         } else if (step == 1) { // CORE CONTRACT: Superfluid (Host)
+            DMZForwarder dmzForwarder = SuperfluidDMZForwarderDeployerLibrary.deploy();
             // Deploy Host and initialize the test governance.
-            host = SuperfluidHostDeployerLibrary.deploy(true, false);
+            host = SuperfluidHostDeployerLibrary.deploy(true, false, address(dmzForwarder));
+            dmzForwarder.transferOwnership(address(host));
 
             host.initialize(testGovernance);
 
@@ -347,9 +349,18 @@ library SuperfluidGovDeployerLibrary {
     }
 }
 
+library SuperfluidDMZForwarderDeployerLibrary {
+    // After deploying, you may want to transfer ownership to the host
+    function deploy() external returns (DMZForwarder) {
+        return new DMZForwarder();
+    }
+}
+
 library SuperfluidHostDeployerLibrary {
-    function deploy(bool _nonUpgradable, bool _appWhiteListingEnabled) external returns (Superfluid) {
-        return new Superfluid(_nonUpgradable, _appWhiteListingEnabled);
+    function deploy(bool _nonUpgradable, bool _appWhiteListingEnabled, address dmzForwarderAddress)
+        external returns (Superfluid)
+    {
+        return new Superfluid(_nonUpgradable, _appWhiteListingEnabled, dmzForwarderAddress);
     }
 }
 

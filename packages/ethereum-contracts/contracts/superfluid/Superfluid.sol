@@ -23,6 +23,7 @@ import { SuperfluidUpgradeableBeacon } from "../upgradability/SuperfluidUpgradea
 import { CallUtils } from "../libs/CallUtils.sol";
 import { CallbackUtils } from "../libs/CallbackUtils.sol";
 import { BaseRelayRecipient } from "../libs/BaseRelayRecipient.sol";
+import { DMZForwarder } from "../utils/DMZForwarder.sol";
 
 /**
  * @dev The Superfluid host implementation.
@@ -50,6 +51,8 @@ contract Superfluid is
 
     // solhint-disable-next-line var-name-mixedcase
     bool immutable public APP_WHITE_LISTING_ENABLED;
+
+    DMZForwarder immutable public DMZ_FORWARDER;
 
     /**
      * @dev Maximum number of level of apps can be composed together
@@ -95,9 +98,10 @@ contract Superfluid is
     /// function in its respective mock contract to ensure that it doesn't break anything or lead to unexpected
     /// behaviors/layout when upgrading
 
-    constructor(bool nonUpgradable, bool appWhiteListingEnabled) {
+    constructor(bool nonUpgradable, bool appWhiteListingEnabled, address dmzForwarderAddress) {
         NON_UPGRADABLE_DEPLOYMENT = nonUpgradable;
         APP_WHITE_LISTING_ENABLED = appWhiteListingEnabled;
+        DMZ_FORWARDER = DMZForwarder(dmzForwarderAddress);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -794,12 +798,11 @@ contract Superfluid is
     **************************************************************************/
 
     function _batchCall(
-        address msgSender,
+        address payable msgSender,
         Operation[] calldata operations
     )
        internal
     {
-        bool valueForwarded = false;
         for (uint256 i = 0; i < operations.length; ++i) {
             uint32 operationType = operations[i].operationType;
             if (operationType == BatchOperation.OPERATION_TYPE_ERC20_APPROVE) {
@@ -847,6 +850,18 @@ contract Superfluid is
                 ISuperToken(operations[i].target).operationDowngrade(
                     msgSender,
                     abi.decode(operations[i].data, (uint256))); // amount
+            } else if (operationType == BatchOperation.OPERATION_TYPE_SUPERTOKEN_UPGRADE_TO) {
+                (address to, uint256 amount) = abi.decode(operations[i].data, (address, uint256));
+                ISuperToken(operations[i].target).operationUpgradeTo(
+                    msgSender,
+                    to,
+                    amount);
+            } else if (operationType == BatchOperation.OPERATION_TYPE_SUPERTOKEN_DOWNGRADE_TO) {
+                (address to, uint256 amount) = abi.decode(operations[i].data, (address, uint256));
+                ISuperToken(operations[i].target).operationDowngradeTo(
+                    msgSender,
+                    to,
+                    amount);
             } else if (operationType == BatchOperation.OPERATION_TYPE_SUPERFLUID_CALL_AGREEMENT) {
                 (bytes memory callData, bytes memory userData) = abi.decode(operations[i].data, (bytes, bytes));
                 _callAgreement(
@@ -854,20 +869,42 @@ contract Superfluid is
                     ISuperAgreement(operations[i].target),
                     callData,
                     userData);
-            } else if (operationType == BatchOperation.OPERATION_TYPE_SUPERFLUID_CALL_APP_ACTION) {
+            }
+            // The following operations for call proxies allow forwarding of native tokens.
+            // we use `address(this).balance` instead of `msg.value`, because the latter ist not
+            // updated after forwarding to the first operation, while `balance` is.
+            // The initial balance is equal to `msg.value` because there's no other path
+            // for the contract to receive native tokens.
+            else if (operationType == BatchOperation.OPERATION_TYPE_SUPERFLUID_CALL_APP_ACTION) {
                 _callAppAction(
                     msgSender,
                     ISuperApp(operations[i].target),
-                    valueForwarded ? 0 : msg.value,
+                    address(this).balance,
                     operations[i].data);
-                valueForwarded = true;
+            } else if (operationType == BatchOperation.OPERATION_TYPE_SIMPLE_FORWARD_CALL) {
+                (bool success, bytes memory returnData) =
+                    DMZ_FORWARDER.forwardCall{value: address(this).balance}(
+                        operations[i].target,
+                        operations[i].data);
+                if (!success) {
+                    CallUtils.revertFromReturnedData(returnData);
+                }
+            } else if (operationType == BatchOperation.OPERATION_TYPE_ERC2771_FORWARD_CALL) {
+                (bool success, bytes memory returnData) =
+                    DMZ_FORWARDER.forward2771Call{value: address(this).balance}(
+                        operations[i].target,
+                        msgSender,
+                        operations[i].data);
+                if (!success) {
+                    CallUtils.revertFromReturnedData(returnData);
+                }
             } else {
                revert HOST_UNKNOWN_BATCH_CALL_OPERATION_TYPE();
             }
         }
-        if (msg.value != 0 && !valueForwarded) {
-            // return ETH provided if not forwarded
-            payable(msg.sender).transfer(msg.value);
+        if (address(this).balance != 0) {
+            // return any native tokens left to the sender.
+            msgSender.transfer(address(this).balance);
         }
     }
 
@@ -877,12 +914,12 @@ contract Superfluid is
     )
        external override payable
     {
-        _batchCall(msg.sender, operations);
+        _batchCall(payable(msg.sender), operations);
     }
 
     /// @dev ISuperfluid.forwardBatchCall implementation
     function forwardBatchCall(Operation[] calldata operations)
-        external override
+        external override payable
     {
         _batchCall(_getTransactionSigner(), operations);
     }
@@ -899,7 +936,7 @@ contract Superfluid is
         ) != 0;
     }
 
-    /// @dev IRelayRecipient.isTrustedForwarder implementation
+    /// @dev IRelayRecipient.versionRecipient implementation
     function versionRecipient()
         external override pure
         returns (string memory)

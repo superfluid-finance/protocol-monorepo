@@ -70,13 +70,13 @@ contract PoolMemberNFTIntegrationTest is PoolNFTBaseIntegrationTest {
                                     Passing Tests
     //////////////////////////////////////////////////////////////////////////*/
 
-    function testProxiableUUIDIsExpectedValue() public {
+    function testProxiableUUIDIsExpectedValue() public view {
         assertEq(
             poolMemberNFT.proxiableUUID(), keccak256("org.superfluid-finance.contracts.PoolMemberNFT.implementation")
         );
     }
 
-    function testTokenURIForPoolMemberNFT(uint256 tokenId) public {
+    function testTokenURIForPoolMemberNFT(uint256 tokenId) public view {
         assertEq(poolMemberNFT.tokenURI(tokenId), string(abi.encodePacked(poolMemberNFT.baseURI())));
     }
 }

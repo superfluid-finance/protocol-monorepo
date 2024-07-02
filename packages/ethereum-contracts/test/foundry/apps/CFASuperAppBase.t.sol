@@ -90,7 +90,7 @@ contract CFASuperAppBaseTest is FoundrySuperfluidTester {
         assertTrue(isSuperApp, "SuperAppBase: is superApp incorrect");
     }
 
-    function testAllowAllSuperTokensByDefault() public {
+    function testAllowAllSuperTokensByDefault() public view {
         assertTrue(
             superApp.isAcceptedSuperToken(superToken), "SuperAppBase: unrestricted | primary SuperToken accepted"
         );

@@ -56,7 +56,7 @@ contract ConstantFlowAgreementV1PropertyTest is Test {
         cfa = new ConstantFlowAgreementV1Mock();
     }
 
-    function testMaximumFlowRateAllowedForDeposit(uint32 liquidationPeriod, uint96 depositAllowed) public {
+    function testMaximumFlowRateAllowedForDeposit(uint32 liquidationPeriod, uint96 depositAllowed) public view {
         depositAllowed = uint96(bound(uint256(depositAllowed), cfa.DEFAULT_MINIMUM_DEPOSIT(), cfa.MAXIMUM_DEPOSIT()));
         vm.assume(liquidationPeriod > 0);
 
@@ -68,7 +68,7 @@ contract ConstantFlowAgreementV1PropertyTest is Test {
         assertTrue(uint256(depositAllowed) >= deposit, "CFAv1.prop: depositAllowed < deposit");
     }
 
-    function testMinimumDeposit(uint64 minimumDeposit, uint32 liquidationPeriod, int96 flowRate) public {
+    function testMinimumDeposit(uint64 minimumDeposit, uint32 liquidationPeriod, int96 flowRate) public view {
         minimumDeposit = uint32(bound(uint256(minimumDeposit), cfa.DEFAULT_MINIMUM_DEPOSIT(), type(uint64).max));
         vm.assume(liquidationPeriod > 0);
         vm.assume(flowRate > 0);
@@ -87,7 +87,7 @@ contract ConstantFlowAgreementV1PropertyTest is Test {
      * This test was added because we deleted the extra clipping in the _changeFlowToApp function
      * export FOUNDRY_FUZZ_RUNS=10000 && forge test --match testMinimumDepositClippingSumInvariant
      */
-    function testMinimumDepositClippingSumInvariant(uint256 depositA, uint256 depositB) public {
+    function testMinimumDepositClippingSumInvariant(uint256 depositA, uint256 depositB) public view {
         vm.assume(type(uint256).max - depositA < depositB);
         vm.assume(type(uint256).max - depositB < depositA);
         uint256 clippedDepositA = cfa.clipDepositNumberRoundingUp(depositA);
@@ -104,14 +104,14 @@ contract ConstantFlowAgreementV1PropertyTest is Test {
      * @dev This test was added to provide additional assurances that applying the minimum deposit clipping
      * multiple times on a value doesn't change it.
      */
-    function testReapplyMinimumDepositClippingInvariant(uint256 deposit) public {
+    function testReapplyMinimumDepositClippingInvariant(uint256 deposit) public view {
         uint256 initialClipped = cfa.clipDepositNumberRoundingUp(deposit);
         uint256 reclipped = cfa.clipDepositNumberRoundingUp(initialClipped);
         assertTrue(initialClipped == reclipped, "CFAv1.prop: clipped sum != sum");
     }
 
     function testFlowDataEncoding(uint32 timestamp, int96 flowRate, uint64 depositClipped, uint64 owedDepositClipped)
-        public
+        public view
     {
         ConstantFlowAgreementV1.FlowData memory a = ConstantFlowAgreementV1.FlowData({
             timestamp: uint256(timestamp),
@@ -129,7 +129,7 @@ contract ConstantFlowAgreementV1PropertyTest is Test {
         assertEq(a.owedDeposit, b.owedDeposit, "CFAv1Prop: owedDeposit !=");
     }
 
-    function testFlowOperatorDataEncoding(uint8 permissions, int96 flowRateAllowance) public {
+    function testFlowOperatorDataEncoding(uint8 permissions, int96 flowRateAllowance) public view {
         vm.assume(flowRateAllowance >= 0);
         ConstantFlowAgreementV1.FlowOperatorData memory a =
             ConstantFlowAgreementV1.FlowOperatorData({ permissions: permissions, flowRateAllowance: flowRateAllowance });

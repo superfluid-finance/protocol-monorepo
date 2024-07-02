@@ -297,7 +297,7 @@ contract ConstantFlowAgreementV1ACLTest is FoundrySuperfluidTester {
         );
     }
 
-    function _assertFlowOperatorData(AssertFlowOperator memory data) internal {
+    function _assertFlowOperatorData(AssertFlowOperator memory data) internal view {
         (uint8 newPermissions, int96 newFlowRateAllowance) =
             sf.cfa.getFlowOperatorDataByID(data.superToken, data.flowOperatorId);
 

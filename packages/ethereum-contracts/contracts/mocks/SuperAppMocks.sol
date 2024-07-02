@@ -448,11 +448,11 @@ contract SuperAppMock is ISuperApp {
 
     function _burnGas(uint256 gasToBurn) private view {
         uint256 gasStart = gasleft();
+        // _stubBurnGas burns gas more efficiently
         try this._stubBurnGas{ gas: gasToBurn }() { assert(false); } catch {
-            uint256 gasNow = gasleft();
-            while ((gasStart - gasNow) < gasToBurn - 1000 /* some margin for other things*/) {
-                gasNow = gasleft();
-            }
+            // use gasleft() to burn the remaining gas budget
+            // solhint-disable-next-line no-empty-blocks
+            while ((gasStart - gasleft()) < gasToBurn - 1000 /* some margin for other things*/) { }
         }
     }
     function _stubBurnGas() external pure {

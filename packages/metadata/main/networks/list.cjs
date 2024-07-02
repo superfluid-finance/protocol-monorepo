@@ -110,7 +110,7 @@ module.exports =
             "constantInflowNFT": "0x87E00Dced5670e01BEe33a9a724B1dac790937eF",
             "flowScheduler": "0x73B1Ce21d03ad389C2A291B1d1dc4DAFE7B5Dc68",
             "vestingScheduler": "0x27444c0235a4D921F3106475faeba0B5e7ABDD7a",
-            "vestingSchedulerV2": "0x55DbCe3f4968616E8a3c0a04D76b5Fdf420AF5F5",
+            "vestingSchedulerV2": "0x3aa62b96f44D0f8892BeBBC819DE8e02E9DE69A8",
             "autowrap": {
                 "manager": "0xe567b32C10B0dB72d9490eB1B9A409C5ADed192C",
                 "wrapStrategy": "0xf232f1fd34CE12e24F4391865c2D6E374D2C34d9"

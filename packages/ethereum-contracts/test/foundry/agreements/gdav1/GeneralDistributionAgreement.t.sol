@@ -559,9 +559,9 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         for (uint256 i = 0; i < members.length; ++i) {
             if (sf.gda.isPool(superToken, members[i]) || members[i] == address(0)) continue;
 
-            uint128 memberUnits = pool.getUnits(members[i]);
+            uint128 memberIUnits = pool.getUnits(members[i]);
 
-            assertEq(perUnitDistributionAmount * memberUnits, pool.getTotalAmountReceivedByMember(members[i]));
+            assertEq(perUnitDistributionAmount * memberIUnits, pool.getTotalAmountReceivedByMember(members[i]));
         }
     }
 
@@ -594,9 +594,9 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         for (uint256 i = 0; i < members.length; ++i) {
             if (sf.gda.isPool(superToken, members[i]) || members[i] == address(0)) continue;
 
-            uint128 memberUnits = pool.getUnits(members[i]);
+            uint128 memberIUnits = pool.getUnits(members[i]);
 
-            assertEq(perUnitDistributionAmount * memberUnits, pool.getTotalAmountReceivedByMember(members[i]));
+            assertEq(perUnitDistributionAmount * memberIUnits, pool.getTotalAmountReceivedByMember(members[i]));
         }
     }
 
@@ -742,15 +742,13 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         _helperSuperfluidPoolDecreaseAllowance(pool, owner, spender, subtractedValue);
     }
 
-    function testRevertIfUnitsTransferReceiverIsPool(address from, address to, int96 unitsAmount, int128 transferAmount)
+    function testRevertIfUnitsTransferReceiverIsPool(address from, int96 unitsAmount, int128 transferAmount)
         public
     {
         // @note we use int96 because overflow will happen otherwise
         vm.assume(unitsAmount >= 0);
         vm.assume(transferAmount > 0);
         vm.assume(from != address(0));
-        vm.assume(to != address(0));
-        vm.assume(from != to);
         vm.assume(transferAmount <= unitsAmount);
         _helperUpdateMemberUnits(freePool, alice, from, uint128(int128(unitsAmount)));
 
@@ -789,22 +787,32 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
     }
 
     function testBasicTransfer(
-        address from,
-        address to,
-        int96 unitsAmount,
-        int128 transferAmount,
-        FoundrySuperfluidTester._StackVars_UseBools memory useBools_
+        FoundrySuperfluidTester._StackVars_UseBools memory useBools_,
+        uint8 a, uint8 b, // One must use small sized data type to find equality cases
+        uint128 unitsAmount,
+        uint128 transferAmount
     ) public {
-        // @note we use int96 because overflow will happen otherwise
-        vm.assume(unitsAmount >= 0);
-        vm.assume(transferAmount > 0);
-        vm.assume(from != address(0));
-        vm.assume(to != address(0));
-        vm.assume(from != to);
-        vm.assume(transferAmount <= unitsAmount);
-        _helperUpdateMemberUnits(freePool, alice, from, uint128(int128(unitsAmount)), useBools_);
+        address from = address(uint160(a));
+        address to = address(uint160(b));
 
-        _helperSuperfluidPoolUnitsTransfer(freePool, from, to, uint256(uint128(transferAmount)));
+        transferAmount = uint96(bound(transferAmount, 0, unitsAmount));
+
+        vm.assume(from != address(0));
+        _helperUpdateMemberUnits(freePool, alice, from, unitsAmount, useBools_);
+
+        if (from == to) {
+            vm.startPrank(from);
+            vm.expectRevert(ISuperfluidPool.SUPERFLUID_POOL_SELF_TRANSFER_NOT_ALLOWED.selector);
+            freePool.transfer(to, transferAmount);
+            vm.stopPrank();
+        } else if (to == address(0)) {
+            vm.startPrank(from);
+            vm.expectRevert(ISuperfluidPool.SUPERFLUID_POOL_NO_ZERO_ADDRESS.selector);
+            freePool.transfer(to, transferAmount);
+            vm.stopPrank();
+        } else {
+            _helperSuperfluidPoolUnitsTransfer(freePool, from, to, uint256(uint128(transferAmount)));
+        }
     }
 
     function testApproveAndTransferFrom(

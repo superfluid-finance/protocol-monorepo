@@ -110,6 +110,8 @@
     # mkShell wrapper, to expose additional environment variables
     mkShell = o : pkgs.mkShell ({
       SOLC = pkgs.lib.getExe pkgs.${solcVer};
+      FOUNDRY_OFFLINE = "true";
+      FOUNDRY_SOLC_VERSION = pkgs.lib.getExe pkgs.${solcVer};
     } // o);
 
     # ci-spec-with-ghc

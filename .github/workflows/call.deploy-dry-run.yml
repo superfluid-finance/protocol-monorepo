@@ -21,7 +21,7 @@ jobs:
       ethereum-contracts-working-directory: ./packages/ethereum-contracts
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Install and Build
         run: |

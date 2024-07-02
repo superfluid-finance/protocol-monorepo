@@ -201,8 +201,8 @@ contract ERC721IntegrationTest is FoundrySuperfluidTester {
         IERC721Metadata _nftContract,
         uint256 _tokenId,
         address _expectedOwner,
-        string memory _message
-    ) public {
+        string memory _message) public view
+    {
         // we use mockOwnerOf to overcome the CFA_NFT_INVALID_TOKEN_ID error
         address owner = PoolAdminNFTMock(address(_nftContract)).mockOwnerOf(_tokenId);
 
@@ -210,7 +210,7 @@ contract ERC721IntegrationTest is FoundrySuperfluidTester {
     }
 
     function _assertApprovalIsExpected(IERC721Metadata _nftContract, uint256 _tokenId, address _expectedApproved)
-        public
+        public view
     {
         address approved = _nftContract.getApproved(_tokenId);
 
@@ -222,7 +222,7 @@ contract ERC721IntegrationTest is FoundrySuperfluidTester {
         address _expectedOwner,
         address _expectedOperator,
         bool _expectedOperatorApproval
-    ) public {
+    ) public view {
         bool operatorApproval = _nftContract.isApprovedForAll(_expectedOwner, _expectedOperator);
 
         assertEq(operatorApproval, _expectedOperatorApproval);

@@ -128,6 +128,20 @@ interface IVestingSchedulerV2 {
         int96 flowRate,
         uint256 cliffAmount,
         uint32 endDate,
+        bytes memory ctx
+    ) external returns (bytes memory newCtx);
+
+    /**
+     * @dev See IVestingScheduler.createVestingSchedule overload for more details.
+     */
+    function createVestingSchedule(
+        ISuperToken superToken,
+        address receiver,
+        uint32 startDate,
+        uint32 cliffDate,
+        int96 flowRate,
+        uint256 cliffAmount,
+        uint32 endDate,
         uint32 claimValidityDate
     ) external;
 

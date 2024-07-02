@@ -89,6 +89,36 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         int96 flowRate,
         uint256 cliffAmount,
         uint32 endDate,
+        bytes memory ctx
+    ) external returns (bytes memory newCtx) {
+        newCtx = ctx;
+        address sender = _getSender(ctx);
+
+        _validateAndCreateVestingSchedule(
+            ScheduleCreationParams({
+                superToken: superToken,
+                sender: sender,
+                receiver: receiver,
+                startDate: _normalizeStartDate(startDate),
+                claimValidityDate: 0,
+                cliffDate: cliffDate,
+                flowRate: flowRate,
+                cliffAmount: cliffAmount,
+                endDate: endDate,
+                remainderAmount: 0
+            })
+        );
+    }
+
+    /// @dev IVestingScheduler.createVestingSchedule implementation.
+    function createVestingSchedule(
+        ISuperToken superToken,
+        address receiver,
+        uint32 startDate,
+        uint32 cliffDate,
+        int96 flowRate,
+        uint256 cliffAmount,
+        uint32 endDate,
         uint32 claimValidityDate
     ) external {
         _validateAndCreateVestingSchedule(

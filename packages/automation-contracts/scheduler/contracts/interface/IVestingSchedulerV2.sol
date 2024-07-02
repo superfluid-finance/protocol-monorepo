@@ -128,6 +128,20 @@ interface IVestingSchedulerV2 {
         int96 flowRate,
         uint256 cliffAmount,
         uint32 endDate,
+        bytes memory ctx
+    ) external returns (bytes memory newCtx);
+
+    /**
+     * @dev See IVestingScheduler.createVestingSchedule overload for more details.
+     */
+    function createVestingSchedule(
+        ISuperToken superToken,
+        address receiver,
+        uint32 startDate,
+        uint32 cliffDate,
+        int96 flowRate,
+        uint256 cliffAmount,
+        uint32 endDate,
         uint32 claimValidityDate
     ) external;
 
@@ -208,7 +222,6 @@ interface IVestingSchedulerV2 {
      * @param receiver Vesting receiver
      * @param totalAmount The total amount to be vested 
      * @param totalDuration The total duration of the vesting
-     * @param cliffPeriod The duration of the cliff period from the start date
      * @param ctx Superfluid context used when batching operations. (or bytes(0) if not SF batching)
      */
     function createAndExecuteVestingScheduleFromAmountAndDuration(
@@ -216,7 +229,6 @@ interface IVestingSchedulerV2 {
         address receiver,
         uint256 totalAmount,
         uint32 totalDuration,
-        uint32 cliffPeriod,
         bytes memory ctx
     ) external returns (bytes memory newCtx);
 
@@ -227,10 +239,9 @@ interface IVestingSchedulerV2 {
         ISuperToken superToken,
         address receiver,
         uint256 totalAmount,
-        uint32 totalDuration,
-        uint32 cliffPeriod
+        uint32 totalDuration
     ) external;
-
+    
     /**
      * @dev Event emitted on update of a vesting schedule
      * @param superToken The superToken to be vested

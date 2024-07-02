@@ -83,7 +83,8 @@ deploy_to_graph() {
 
     $GRAPH_CLI deploy \
         --studio $subgraphName \
-        --deploy-key "$THE_GRAPH_ACCESS_TOKEN"
+        --deploy-key "$THE_GRAPH_ACCESS_TOKEN" \
+        --version-label "$VERSION_LABEL"
 }
 
 deploy_to_satsuma() {

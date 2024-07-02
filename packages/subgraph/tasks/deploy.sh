@@ -13,7 +13,7 @@ SUPPORTED_VENDORS=( "graph" "satsuma" "superfluid" "goldsky" "airstack" )
 # list of supported networks by vendor
 
 # shellcheck disable=SC2034,SC2207
-GRAPH_NETWORKS=( "polygon-mainnet", "eth-mainnet" )
+GRAPH_NETWORKS=( "polygon-mainnet" "eth-mainnet" )
 # shellcheck disable=SC2034
 SATSUMA_NETWORKS=( "polygon-mainnet" "xdai-mainnet" "eth-mainnet" "eth-sepolia" "optimism-mainnet" "base-mainnet")
 # shellcheck disable=SC2034

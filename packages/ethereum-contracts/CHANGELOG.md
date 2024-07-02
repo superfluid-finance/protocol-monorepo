@@ -21,6 +21,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Changed
 
+- increased SuperApp callback gas limit on some chains, to be queried with `host.CALLBACK_GAS_LIMIT()`
 - fix a few types and build warnings
 - rename '.prop.sol' to '.prop.t.sol'
 - upgrade flake lock input: foundry

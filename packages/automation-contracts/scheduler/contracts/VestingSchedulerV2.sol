@@ -176,7 +176,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         address sender = _getSender(ctx);
         
         _validateAndCreateVestingSchedule(
-            getCreateVestingScheduleParamsFromAmountAndDuration(
+            mapCreateVestingScheduleParams(
                 superToken,
                 sender,
                 receiver,
@@ -202,7 +202,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         address sender = _getSender(bytes(""));
 
         _validateAndCreateVestingSchedule(
-            getCreateVestingScheduleParamsFromAmountAndDuration(
+            mapCreateVestingScheduleParams(
                 superToken,
                 sender,
                 receiver,
@@ -265,7 +265,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         address sender = _getSender(ctx);
 
         _validateAndCreateVestingSchedule(
-            getCreateVestingScheduleParamsFromAmountAndDuration(
+            mapCreateVestingScheduleParams(
                 superToken,
                 sender,
                 receiver,
@@ -559,8 +559,8 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         return startDate;
     }
 
-    /// @dev IVestingScheduler.getCreateVestingScheduleParamsFromAmountAndDuration implementation.
-    function getCreateVestingScheduleParamsFromAmountAndDuration(
+    /// @dev IVestingScheduler.mapCreateVestingScheduleParams implementation.
+    function mapCreateVestingScheduleParams(
         ISuperToken superToken,
         address sender,
         address receiver,

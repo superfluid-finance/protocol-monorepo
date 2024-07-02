@@ -179,7 +179,7 @@ interface IVestingSchedulerV2 {
      * @param cliffPeriod The cliff period of the vesting
      * @param claimPeriod The claim availability period
      */
-    function getCreateVestingScheduleParamsFromAmountAndDuration(
+    function mapCreateVestingScheduleParams(
         ISuperToken superToken,
         address sender,
         address receiver,

@@ -8,6 +8,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Breaking
 
 - ISuperfuidPool self-transfer is not allowed
+- FoundrySuperfluidTester is test with forge-std@v1.8.2, which may break with older forge-std lib
 
 ### Added
 

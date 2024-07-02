@@ -122,6 +122,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         useMocks,
         nonUpgradable,
         appWhiteListing,
+        appCallbackGasLimit,
         protocolReleaseVersion,
         outputFile,
         newSuperfluidLoader,
@@ -149,6 +150,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     console.log("chain ID: ", chainId);
     console.log("deployer: ", deployerAddr);
     const config = getConfig(chainId);
+
     if (config.isTestnet) {
         output += "IS_TESTNET=1\n";
     }
@@ -177,6 +179,10 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         appWhiteListing ||
         config.gov_enableAppWhiteListing ||
         !!process.env.ENABLE_APP_WHITELISTING;
+    appCallbackGasLimit =
+        appCallbackGasLimit ||
+        config.appCallbackGasLimit ||
+        !!process.env.APP_CALLBACK_GAS_LIMIT;
     newSuperfluidLoader = newSuperfluidLoader || !!process.env.NEW_SUPERFLUID_LOADER;
 
     console.log("app whitelisting enabled:", appWhiteListing);
@@ -357,7 +363,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             const superfluidLogic = await web3tx(
                 SuperfluidLogic.new,
                 "SuperfluidLogic.new"
-            )(nonUpgradable, appWhiteListing, dmzForwarder.address);
+            )(nonUpgradable, appWhiteListing, appCallbackGasLimit, dmzForwarder.address);
             console.log(
                 `Superfluid new code address ${superfluidLogic.address}`
             );
@@ -829,6 +835,14 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             }
         );
 
+        // get previous callback gas limit, make sure we don't decrease it
+        const prevCallbackGasLimit = await superfluid.CALLBACK_GAS_LIMIT();
+        if (prevCallbackGasLimit.toNumber() > appCallbackGasLimit) {
+            throw new Error("Cannot decrease app callback gas limit");
+        } else if (prevCallbackGasLimit.toNumber() !== appCallbackGasLimit) {
+            console.log(` !!! CHANGING APP CALLBACK GAS LIMIT FROM ${prevCallbackGasLimit} to ${appCallbackGasLimit} !!!`);
+        }
+
         // deploy new superfluid host logic
         superfluidNewLogicAddress = await deployContractIfCodeChanged(
             web3,
@@ -841,7 +855,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 const superfluidLogic = await web3tx(
                     SuperfluidLogic.new,
                     "SuperfluidLogic.new"
-                )(nonUpgradable, appWhiteListing, dmzForwarderAddress);
+                )(nonUpgradable, appWhiteListing, appCallbackGasLimit, dmzForwarderAddress);
                 output += `SUPERFLUID_HOST_LOGIC=${superfluidLogic.address}\n`;
                 return superfluidLogic.address;
             }

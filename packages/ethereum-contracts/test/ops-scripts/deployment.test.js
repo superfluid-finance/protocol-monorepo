@@ -125,6 +125,7 @@ contract("Embedded deployment scripts", (accounts) => {
             const a1 = await web3tx(Superfluid.new, "Superfluid.new 1")(
                 true, // nonUpgradable
                 false, // appWhiteListingEnabled
+                3000000, // callbackGasLimit
                 ZERO_ADDRESS // dmzForwader
             );
             assert.isFalse(await codeChanged(web3, Superfluid, a1.address));

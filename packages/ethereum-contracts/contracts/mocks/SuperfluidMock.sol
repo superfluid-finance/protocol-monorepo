@@ -11,7 +11,7 @@ import { CallUtils } from "../libs/CallUtils.sol";
 
 contract SuperfluidUpgradabilityTester is Superfluid {
 
-    constructor() Superfluid(false, false, address(0))
+    constructor() Superfluid(false, false, 3_000_000, address(0))
     // solhint-disable-next-line no-empty-blocks
     {
     }
@@ -129,8 +129,13 @@ contract SuperfluidUpgradabilityTester is Superfluid {
 
 contract SuperfluidMock is Superfluid {
 
-    constructor(bool nonUpgradable, bool appWhiteListingEnabled, address dmzForwarder)
-        Superfluid(nonUpgradable, appWhiteListingEnabled, dmzForwarder)
+    constructor(
+        bool nonUpgradable,
+        bool appWhiteListingEnabled,
+        uint64 callbackGasLimit,
+        address dmzForwarder
+    )
+        Superfluid(nonUpgradable, appWhiteListingEnabled, callbackGasLimit, dmzForwarder)
     // solhint-disable-next-line no-empty-blocks
     {
     }

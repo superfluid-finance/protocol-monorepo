@@ -156,7 +156,7 @@ contract SuperfluidFrameworkDeploymentSteps {
         } else if (step == 1) { // CORE CONTRACT: Superfluid (Host)
             DMZForwarder dmzForwarder = SuperfluidDMZForwarderDeployerLibrary.deploy();
             // Deploy Host and initialize the test governance.
-            host = SuperfluidHostDeployerLibrary.deploy(true, false, address(dmzForwarder));
+            host = SuperfluidHostDeployerLibrary.deploy(true, false, 3_000_000, address(dmzForwarder));
             dmzForwarder.transferOwnership(address(host));
 
             host.initialize(testGovernance);
@@ -357,10 +357,15 @@ library SuperfluidDMZForwarderDeployerLibrary {
 }
 
 library SuperfluidHostDeployerLibrary {
-    function deploy(bool _nonUpgradable, bool _appWhiteListingEnabled, address dmzForwarderAddress)
+    function deploy(
+        bool _nonUpgradable,
+        bool _appWhiteListingEnabled,
+        uint64 callbackGasLimit,
+        address dmzForwarderAddress
+    )
         external returns (Superfluid)
     {
-        return new Superfluid(_nonUpgradable, _appWhiteListingEnabled, dmzForwarderAddress);
+        return new Superfluid(_nonUpgradable, _appWhiteListingEnabled, callbackGasLimit, dmzForwarderAddress);
     }
 }
 

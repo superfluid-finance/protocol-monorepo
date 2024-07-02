@@ -113,11 +113,13 @@ describe("Superfluid Host Contract", function () {
                 const mock1 = await sfMockFactory.deploy(
                     false /* nonUpgradable */,
                     false /* appWhiteListingEnabled */,
+                    3000000 /* callbackGasLimit */,
                     ZERO_ADDRESS /* dmzForwader */
                 );
                 const mock2 = await sfMockFactory.deploy(
                     true /* nonUpgradable */,
                     false /* appWhiteListingEnabled */,
+                    3000000 /* callbackGasLimit */,
                     ZERO_ADDRESS /* dmzForwader */
                 );
                 await governance.updateContracts(
@@ -2702,6 +2704,7 @@ describe("Superfluid Host Contract", function () {
                 const mock1 = await mock1Factory.deploy(
                     false /* nonUpgradable */,
                     false /* appWhiteListingEnabled */,
+                    3000000 /* callbackGasLimit */,
                     ZERO_ADDRESS /* dmzForwader */
                 );
                 await expectCustomError(

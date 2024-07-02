@@ -280,6 +280,32 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         vm.expectEmit(true, true, true, true);
         emit VestingScheduleCreated(
             superToken, alice, bob, START_DATE, CLIFF_DATE, FLOW_RATE, END_DATE, CLIFF_TRANSFER_AMOUNT, 0, 0);
+
+        vm.startPrank(alice);
+        vestingScheduler.createVestingSchedule(
+            superToken,
+            bob,
+            START_DATE,
+            CLIFF_DATE,
+            FLOW_RATE,
+            CLIFF_TRANSFER_AMOUNT,
+            END_DATE,
+            EMPTY_CTX
+        );
+        vm.stopPrank();
+
+        //assert storage data
+        VestingSchedulerV2.VestingSchedule memory schedule = vestingScheduler.getVestingSchedule(address(superToken), alice, bob);
+        assertTrue(schedule.cliffAndFlowDate == CLIFF_DATE , "schedule.cliffAndFlowDate");
+        assertTrue(schedule.endDate == END_DATE , "schedule.endDate");
+        assertTrue(schedule.flowRate == FLOW_RATE , "schedule.flowRate");
+        assertTrue(schedule.cliffAmount == CLIFF_TRANSFER_AMOUNT , "schedule.cliffAmount");
+    }
+
+    function test_createVestingSchedule_v1_overload() public {
+        vm.expectEmit(true, true, true, true);
+        emit VestingScheduleCreated(
+            superToken, alice, bob, START_DATE, CLIFF_DATE, FLOW_RATE, END_DATE, CLIFF_TRANSFER_AMOUNT, 0, 0);
         _createVestingScheduleWithDefaultData(alice, bob);
         vm.startPrank(alice);
         //assert storage data
@@ -1369,6 +1395,66 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         vm.warp(type(uint32).max);
         assertEq($.afterSenderBalance, superToken.balanceOf(alice), "After the schedule has ended, the sender's balance should never change.");
     }
+
+    function test_createAndExecuteVestingScheduleFromAmountAndDuration(uint256 _totalAmount,  uint32 _totalDuration) public {
+
+        _totalDuration = SafeCast.toUint32(bound(_totalDuration, uint32(7 days), uint32(365 days)));
+        _totalAmount = bound(_totalAmount, 1 ether, 100 ether);
+
+        int96 flowRate = SafeCast.toInt96(
+            SafeCast.toInt256(_totalAmount / _totalDuration)
+        );
+
+        uint96 remainderAmount = SafeCast.toUint96(
+            _totalAmount - (SafeCast.toUint256(flowRate) * _totalDuration)
+        );
+
+        _setACL_AUTHORIZE_FULL_CONTROL(alice, flowRate);
+
+        vm.startPrank(alice);
+        superToken.increaseAllowance(address(vestingScheduler), type(uint256).max);
+
+        vm.expectEmit(true, true, true, true);
+        emit VestingScheduleCreated(
+            superToken, alice, bob, uint32(block.timestamp), 0, flowRate, uint32(block.timestamp) + _totalDuration, 0, 0, remainderAmount);
+
+        vm.expectEmit(true, true, true, true);
+        emit VestingCliffAndFlowExecuted(superToken, alice, bob, uint32(block.timestamp), flowRate, 0, 0);
+
+        vestingScheduler.createAndExecuteVestingScheduleFromAmountAndDuration(superToken, bob, _totalAmount, _totalDuration, EMPTY_CTX);
+
+        vm.stopPrank();
+    }
+
+    function test_createAndExecuteVestingScheduleFromAmountAndDuration_noCtx(uint256 _totalAmount,  uint32 _totalDuration) public {
+        _totalDuration = SafeCast.toUint32(bound(_totalDuration, uint32(7 days), uint32(365 days)));
+        _totalAmount = bound(_totalAmount, 1 ether, 100 ether);
+
+        int96 flowRate = SafeCast.toInt96(
+            SafeCast.toInt256(_totalAmount / _totalDuration)
+        );
+
+        uint96 remainderAmount = SafeCast.toUint96(
+            _totalAmount - (SafeCast.toUint256(flowRate) * _totalDuration)
+        );
+
+        _setACL_AUTHORIZE_FULL_CONTROL(alice, flowRate);
+
+        vm.startPrank(alice);
+        superToken.increaseAllowance(address(vestingScheduler), type(uint256).max);
+
+        vm.expectEmit(true, true, true, true);
+        emit VestingScheduleCreated(
+            superToken, alice, bob, uint32(block.timestamp), 0, flowRate, uint32(block.timestamp) + _totalDuration, 0, 0, remainderAmount);
+
+        vm.expectEmit(true, true, true, true);
+        emit VestingCliffAndFlowExecuted(superToken, alice, bob, uint32(block.timestamp), flowRate, 0, 0);
+
+        vestingScheduler.createAndExecuteVestingScheduleFromAmountAndDuration(superToken, bob, _totalAmount, _totalDuration);
+
+        vm.stopPrank();
+    }
+
  
     function test_createClaimableVestingSchedule() public {
 
@@ -1909,6 +1995,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         );
     }
 
+
     function test_executeCliffAndFlow_claimableScheduleWithCliffAmount_receiverClaim() public {
         uint256 aliceInitialBalance = superToken.balanceOf(alice);
         uint256 bobInitialBalance = superToken.balanceOf(bob);
@@ -2180,6 +2267,12 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         assertEq(flowRateAllowance, 0, "No flow rate allowance should be left");
 
         testAssertScheduleDoesNotExist(address(superToken), alice, bob);
+    }
+
+    function test_executeEndVesting_scheduleNotClaimed() public {
+        _createClaimableVestingScheduleWithDefaultData(alice, bob);
+        vm.expectRevert(IVestingSchedulerV2.ScheduleNotClaimed.selector);
+        vestingScheduler.executeEndVesting(superToken, alice, bob);
     }
 
     function test_getMaximumNeededTokenAllowance_with_claim_should_end_with_zero_if_extreme_ranges_are_used(

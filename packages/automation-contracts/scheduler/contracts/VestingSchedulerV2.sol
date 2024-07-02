@@ -296,7 +296,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
 
         if (endDate <= block.timestamp) revert TimeWindowInvalid();
 
-        // Note : Claimable schedules that has not been claimed cannot be updated
+        // Note: Claimable schedules that have not been claimed cannot be updated
 
         // Only allow an update if 1. vesting exists 2. executeCliffAndFlow() has been called
         if (schedule.cliffAndFlowDate != 0 || schedule.endDate == 0) revert ScheduleNotFlowing();
@@ -346,7 +346,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         if (schedule.claimValidityDate != 0) {
             _validateAndClaim(agg);
             _validateBeforeCliffAndFlow(schedule, /* disableClaimCheck: */ true);
-            if (block.timestamp >= _minDateToExecuteEndInclusive(schedule)) {
+            if (block.timestamp >= _gteDateToExecuteEndVesting(schedule)) {
                 _validateBeforeEndVesting(schedule, /* disableClaimCheck: */ true);
                 success = _executeVestingAsSingleTransfer(agg);
             } else {
@@ -356,6 +356,22 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
             _validateBeforeCliffAndFlow(schedule, /* disableClaimCheck: */ false);
             success = _executeCliffAndFlow(agg);
         }
+    }
+
+    function _validateBeforeCliffAndFlow(
+        VestingSchedule memory schedule,
+        bool disableClaimCheck
+    ) private view {
+        if (schedule.cliffAndFlowDate == 0) 
+            revert AlreadyExecuted();
+
+        if (!disableClaimCheck && schedule.claimValidityDate != 0) 
+            revert ScheduleNotClaimed();
+
+        // Ensure that that the claming date is after the cliff/flow date and before the claim validity date
+        if (schedule.cliffAndFlowDate > block.timestamp || 
+            _lteDateToExecuteCliffAndFlow(schedule) < block.timestamp)
+                revert TimeWindowInvalid();
     }
 
     function _validateAndClaim(
@@ -372,22 +388,6 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         
         delete vestingSchedules[agg.id].claimValidityDate;
         emit VestingClaimed(agg.superToken, agg.sender, agg.receiver, msg.sender);
-    }
-
-    function _validateBeforeCliffAndFlow(
-        VestingSchedule memory schedule,
-        bool disableClaimCheck
-    ) private view {
-        if (schedule.cliffAndFlowDate == 0) 
-            revert AlreadyExecuted();
-
-        if (!disableClaimCheck && schedule.claimValidityDate != 0) 
-            revert ScheduleNotClaimed();
-
-        // Ensure that that the claming date is after the cliff/flow date and before the claim validity date
-        if (schedule.cliffAndFlowDate > block.timestamp || 
-            _maxDateToExecuteStartInclusive(schedule) < block.timestamp)
-                revert TimeWindowInvalid();
     }
 
     /// @dev IVestingScheduler.executeCliffAndFlow implementation.
@@ -470,7 +470,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         if (!disableClaimCheck && schedule.claimValidityDate != 0) 
             revert ScheduleNotClaimed();
 
-        if (_minDateToExecuteEndInclusive(schedule) > block.timestamp)
+        if (_gteDateToExecuteEndVesting(schedule) > block.timestamp)
             revert TimeWindowInvalid();
     }
 
@@ -529,7 +529,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         address superToken,
         address sender,
         address receiver
-    ) public view returns (VestingSchedule memory) {
+    ) external view returns (VestingSchedule memory) {
         return vestingSchedules[keccak256(abi.encodePacked(superToken, sender, receiver))];
     }
 
@@ -594,22 +594,8 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
 
     /// @dev IVestingScheduler.getMaximumNeededTokenAllowance implementation.
     function getMaximumNeededTokenAllowance(
-        address superToken,
-        address sender,
-        address receiver
-    ) public view override returns (uint256) {
-        VestingSchedule memory schedule = getVestingSchedule(
-            superToken,
-            sender,
-            receiver
-        );
-        return getMaximumNeededTokenAllowance(schedule);
-    }
-
-    /// @dev IVestingScheduler.getMaximumNeededTokenAllowance implementation.
-    function getMaximumNeededTokenAllowance(
         VestingSchedule memory schedule
-    ) public pure override returns (uint256) {
+    ) external pure override returns (uint256) {
         uint256 maxFlowDelayCompensationAmount = 
             schedule.cliffAndFlowDate == 0 
                 ? 0 
@@ -625,7 +611,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
                 schedule.remainderAmount +
                 maxFlowDelayCompensationAmount +
                 maxEarlyEndCompensationAmount;
-        } else if (schedule.claimValidityDate >= _minDateToExecuteEndInclusive(schedule)) {
+        } else if (schedule.claimValidityDate >= _gteDateToExecuteEndVesting(schedule)) {
             return _getTotalVestedAmount(schedule);
         } else {
             return schedule.cliffAmount +
@@ -639,7 +625,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         ISuperToken superToken,
         address sender,
         address receiver
-    ) public view returns (ScheduleAggregate memory) {
+    ) private view returns (ScheduleAggregate memory) {
         bytes32 id = keccak256(abi.encodePacked(superToken, sender, receiver));
         return ScheduleAggregate({
             superToken: superToken,
@@ -648,24 +634,6 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
             id: id,
             schedule: vestingSchedules[id]
         });
-    }
-
-    /// @dev get sender of transaction from Superfluid Context or transaction itself.
-    function _getSender(bytes memory ctx) internal view returns (address sender) {
-        if (ctx.length != 0) {
-            if (msg.sender != address(cfaV1.host)) revert HostInvalid();
-            sender = cfaV1.host.decodeCtx(ctx).msgSender;
-        } else {
-            sender = msg.sender;
-        }
-        // This is an invariant and should never happen.
-        assert(sender != address(0));
-    }
-
-    /// @dev get flowRate of stream
-    function _isFlowOngoing(ISuperToken superToken, address sender, address receiver) internal view returns (bool) {
-        (,int96 flowRate,,) = cfaV1.cfa.getFlow(superToken, sender, receiver);
-        return flowRate != 0;
     }
 
     function _getTotalVestedAmount(
@@ -677,7 +645,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
             (schedule.endDate - schedule.cliffAndFlowDate) * SafeCast.toUint256(schedule.flowRate);
     }
 
-    function _maxDateToExecuteStartInclusive(
+    function _lteDateToExecuteCliffAndFlow(
         VestingSchedule memory schedule
     ) private pure returns (uint32) {
         if (schedule.cliffAndFlowDate == 0) 
@@ -690,12 +658,30 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         }
     }
 
-    function _minDateToExecuteEndInclusive(
+    function _gteDateToExecuteEndVesting(
         VestingSchedule memory schedule
     ) private pure returns (uint32) {
         if (schedule.endDate == 0)
             revert AlreadyExecuted();
 
         return schedule.endDate - END_DATE_VALID_BEFORE;
+    }
+
+    /// @dev get sender of transaction from Superfluid Context or transaction itself.
+    function _getSender(bytes memory ctx) private view returns (address sender) {
+        if (ctx.length != 0) {
+            if (msg.sender != address(cfaV1.host)) revert HostInvalid();
+            sender = cfaV1.host.decodeCtx(ctx).msgSender;
+        } else {
+            sender = msg.sender;
+        }
+        // This is an invariant and should never happen.
+        assert(sender != address(0));
+    }
+
+    /// @dev get flowRate of stream
+    function _isFlowOngoing(ISuperToken superToken, address sender, address receiver) private view returns (bool) {
+        (,int96 flowRate,,) = cfaV1.cfa.getFlow(superToken, sender, receiver);
+        return flowRate != 0;
     }
 }

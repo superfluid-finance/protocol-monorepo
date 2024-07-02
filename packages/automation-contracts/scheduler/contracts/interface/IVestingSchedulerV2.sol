@@ -198,16 +198,6 @@ interface IVestingSchedulerV2 {
     ) external returns (uint256);
 
     /**
-     * @dev Estimates maximum ERC-20 token allowance needed for an existing vesting schedule.
-     * @param superToken SuperToken to be vested
-     * @param sender Vesting sender
-     * @param receiver Vesting receiver
-     */
-    function getMaximumNeededTokenAllowance(
-        address superToken, address sender, address receiver
-    ) external returns (uint256);
-
-    /**
      * @dev Creates a new vesting schedule
      * @dev The function calculates the endDate, cliffDate, cliffAmount, flowRate, etc, based on the input arguments.
      * @dev The function creates the vesting schedule with start date set to current timestamp,

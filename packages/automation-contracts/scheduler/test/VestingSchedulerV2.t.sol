@@ -1824,7 +1824,6 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
 
         IVestingSchedulerV2.VestingSchedule memory schedule = vestingScheduler.getVestingSchedule(address(superToken), alice, bob);
         assertEq(vestingScheduler.getMaximumNeededTokenAllowance(schedule), totalExpectedAmount);
-        assertEq(vestingScheduler.getMaximumNeededTokenAllowance(address(superToken), alice, bob), totalExpectedAmount);
 
         vm.prank(claimer);
         assertTrue(vestingScheduler.executeCliffAndFlow(superToken, alice, bob));
@@ -1994,9 +1993,6 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         );
         vm.stopPrank();
 
-        // Assert
-        assertEq(vestingScheduler.getMaximumNeededTokenAllowance(expectedSchedule), vestingScheduler.getMaximumNeededTokenAllowance(address(superToken), alice, bob), "The overloads don't return same values");
-
         // Act
         vm.warp(expectedSchedule.cliffAndFlowDate + (vestingScheduler.START_DATE_VALID_AFTER()));
         assertTrue(vestingScheduler.executeCliffAndFlow(superToken, alice, bob));
@@ -2004,7 +2000,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         if (randomizer % 2 == 0) {
             // Let's set the allowance again half-way through.
             vm.startPrank(alice);
-            superToken.approve(address(vestingScheduler), vestingScheduler.getMaximumNeededTokenAllowance(address(superToken), alice, bob));
+            superToken.approve(address(vestingScheduler), vestingScheduler.getMaximumNeededTokenAllowance(vestingScheduler.getVestingSchedule(address(superToken), alice, bob)));
             vm.stopPrank();
         }
 
@@ -2092,9 +2088,6 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         );
         vm.stopPrank();
 
-        // Assert
-        assertEq(vestingScheduler.getMaximumNeededTokenAllowance(expectedSchedule), vestingScheduler.getMaximumNeededTokenAllowance(address(superToken), alice, bob), "The overloads don't return same values");
-
         // Act
         vm.warp(expectedSchedule.claimValidityDate);
         vm.startPrank(randomizer % 3 == 0 ? alice : bob); // Both sender and receiver can execute
@@ -2104,7 +2097,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         if (randomizer % 2 == 0) {
             // Let's set the allowance again half-way through.
             vm.startPrank(alice);
-            superToken.approve(address(vestingScheduler), vestingScheduler.getMaximumNeededTokenAllowance(address(superToken), alice, bob));
+            superToken.approve(address(vestingScheduler), vestingScheduler.getMaximumNeededTokenAllowance(vestingScheduler.getVestingSchedule(address(superToken), alice, bob)));
             vm.stopPrank();
         }
 

@@ -1088,7 +1088,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
                 expectedSchedule.endDate,
                 expectedSchedule.remainderAmount
             ), 
-            vestingScheduler.getCreateVestingScheduleParamsFromAmountAndDuration(superToken, bob, totalAmount, totalDuration, startDate, cliffPeriod, 0));
+            vestingScheduler.getCreateVestingScheduleParamsFromAmountAndDuration(superToken, bob, totalAmount, totalDuration, $.expectedStartDate, cliffPeriod, 0));
 
         vm.expectEmit();
         emit VestingScheduleCreated(superToken, alice, bob, $.expectedStartDate, $.expectedCliffDate, expectedSchedule.flowRate, expectedSchedule.endDate, expectedSchedule.cliffAmount, 0, expectedSchedule.remainderAmount);

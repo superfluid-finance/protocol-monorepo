@@ -371,19 +371,19 @@ contract FoundrySuperfluidTester is Test {
         _assertInvariantAumGtEqSuperTokenTotalSupply();
     }
 
-    function _assertInvariantLiquiditySum() internal {
+    function _assertInvariantLiquiditySum() internal view {
         assertTrue(_definitionLiquiditySumInvariant(), "Invariant: Liquidity Sum Invariant");
     }
 
-    function _assertInvariantNetFlowRateSum() internal {
+    function _assertInvariantNetFlowRateSum() internal view {
         assertTrue(_definitionNetFlowRateSumInvariant(), "Invariant: Net Flow Rate Sum Invariant");
     }
 
-    function _assertInvariantAumGtEqRtbSum() internal {
+    function _assertInvariantAumGtEqRtbSum() internal view {
         assertTrue(_definitionAumGtEqRtbSumInvariant(), "Invariant: AUM > RTB Sum");
     }
 
-    function _assertInvariantAumGtEqSuperTokenTotalSupply() internal {
+    function _assertInvariantAumGtEqSuperTokenTotalSupply() internal view {
         assertTrue(_defintionAumGtEqSuperTokenTotalSupplyInvariant(), "Invariant: AUM > SuperToken Total Supply");
     }
 
@@ -1069,7 +1069,7 @@ contract FoundrySuperfluidTester is Test {
         _assertGlobalInvariants();
     }
 
-    function _helperAssertCreateIndex(ISuperToken superToken_, address publisher, uint32 indexId) internal {
+    function _helperAssertCreateIndex(ISuperToken superToken_, address publisher, uint32 indexId) internal view {
         _assertIndexData(superToken_, publisher, indexId, true, 0, 0, 0);
     }
 
@@ -2120,7 +2120,7 @@ contract FoundrySuperfluidTester is Test {
         int96 expectedFlowRate,
         uint256 expectedLastUpdated,
         uint256 expectedOwedDeposit
-    ) internal {
+    ) internal view {
         (uint256 lastUpdated, int96 flowRate, uint256 deposit, uint256 owedDeposit) =
             superToken_.getFlowInfo(sender, receiver);
 
@@ -2133,7 +2133,7 @@ contract FoundrySuperfluidTester is Test {
     }
 
     /// @dev Asserts that a single flow has been removed on deletion
-    function _assertFlowDataIsEmpty(ISuperToken superToken_, address sender, address receiver) internal {
+    function _assertFlowDataIsEmpty(ISuperToken superToken_, address sender, address receiver) internal view {
         _assertFlowData(superToken_, sender, receiver, 0, 0, 0);
     }
 
@@ -2143,7 +2143,7 @@ contract FoundrySuperfluidTester is Test {
         address flowOperator,
         int96 expectedFlowRateAllowance,
         uint8 expectedPermissionsBitmask
-    ) internal {
+    ) internal view {
         (bool canCreate, bool canUpdate, bool canDelete, int96 allowance) =
             superToken_.getFlowPermissions(sender, flowOperator);
 
@@ -2157,7 +2157,9 @@ contract FoundrySuperfluidTester is Test {
         assertEq(allowance, expectedFlowRateAllowance, "FlowOperatorData: flow rate allowance");
     }
 
-    function _assertFlowOperatorDataIsEmpty(ISuperToken superToken_, address sender, address flowOperator) internal {
+    function _assertFlowOperatorDataIsEmpty(ISuperToken superToken_, address sender, address flowOperator)
+        internal view
+    {
         _assertFlowOperatorData(superToken_, sender, flowOperator, 0, 0);
     }
 
@@ -2171,7 +2173,7 @@ contract FoundrySuperfluidTester is Test {
         int96 flowRateDelta,
         ConstantFlowAgreementV1.FlowData memory flowInfoBefore,
         bool isSender
-    ) internal {
+    ) internal view {
         (uint256 lastUpdated, int96 netFlowRate, uint256 deposit, uint256 owedDeposit) =
             sf.cfa.getAccountFlowInfo(superToken, account);
         int96 expectedNetFlowRate = flowInfoBefore.flowRate + (isSender ? -flowRateDelta : flowRateDelta);
@@ -2206,7 +2208,7 @@ contract FoundrySuperfluidTester is Test {
         uint128 expectedIndexValue,
         uint128 expectedTotalUnitsApproved,
         uint128 expectedTotalUnitsPending
-    ) internal {
+    ) internal view {
         (bool exist, uint128 indexValue, uint128 totalUnitsApproved, uint128 totalUnitsPending) =
             superToken_.getIndex(publisher, indexId);
 
@@ -2228,7 +2230,7 @@ contract FoundrySuperfluidTester is Test {
         bool expectedApproved,
         uint128 expectedUnits,
         uint256 expectedPending
-    ) internal {
+    ) internal view {
         (,, bool approved, uint128 units, uint256 pending) = superToken_.getSubscriptionByID(subscriptionId);
         assertEq(approved, expectedApproved, "SubscriptionData: approved");
         assertEq(units, expectedUnits, "SubscriptionData: units");
@@ -2266,7 +2268,7 @@ contract FoundrySuperfluidTester is Test {
     // GeneralDistributionAgreement Assertions
 
     function _assertPoolAllowance(ISuperfluidPool _pool, address owner, address spender, uint256 expectedAllowance)
-        internal
+        internal view
     {
         assertEq(_pool.allowance(owner, spender), expectedAllowance, "_assertPoolAllowance: allowance mismatch");
     }

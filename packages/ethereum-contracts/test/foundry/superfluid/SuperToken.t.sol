@@ -20,7 +20,7 @@ contract SuperTokenIntegrationTest is FoundrySuperfluidTester {
         super.setUp();
     }
 
-    function testUnderlyingTokenDecimals() public {
+    function testUnderlyingTokenDecimals() public view {
         assertEq(token.decimals(), superToken.getUnderlyingDecimals());
     }
 

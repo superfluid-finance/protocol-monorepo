@@ -124,7 +124,7 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         _validateAndCreateVestingSchedule(
             ScheduleCreationParams({
                 superToken: superToken,
-                sender: _getSender(bytes("")),
+                sender: msg.sender,
                 receiver: receiver,
                 startDate: _normalizeStartDate(startDate),
                 claimValidityDate: claimValidityDate,
@@ -227,12 +227,10 @@ contract VestingSchedulerV2 is IVestingSchedulerV2, SuperAppBase {
         uint32 cliffPeriod,
         uint32 claimPeriod
     ) external {
-        address sender = _getSender(bytes(""));
-
         _validateAndCreateVestingSchedule(
             mapCreateVestingScheduleParams(
                 superToken,
-                sender,
+                msg.sender,
                 receiver,
                 totalAmount,
                 totalDuration,

@@ -1475,7 +1475,7 @@ describe("Superfluid Host Contract", function () {
                  *
                  * This may take awhile, hence it is skipped in coverage test suite.
                  */
-                it("#6.24 beforeCreated try to burn just enough gas", async function () {
+                it("#6.24 beforeCreated try to burn just enough gas [ @skip-on-coverage ]", async function () {
                     const setNextAction = async () => {
                         await app.setNextCallbackAction(
                             5 /* BurnGas */,

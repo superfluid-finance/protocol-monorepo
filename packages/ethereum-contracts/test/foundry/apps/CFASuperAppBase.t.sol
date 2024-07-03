@@ -2,9 +2,9 @@
 pragma solidity ^0.8.23;
 
 import "forge-std/console.sol";
+
 import "../FoundrySuperfluidTester.sol";
-import { CFASuperAppBase } from "../../../contracts/apps/CFASuperAppBase.sol";
-import { CFASuperAppBaseTester } from "../../../contracts/mocks/CFASuperAppBaseTester.t.sol";
+
 import {
     ISuperToken,
     ISuperApp,
@@ -12,6 +12,9 @@ import {
 } from "../../../contracts/interfaces/superfluid/ISuperfluid.sol";
 import { IConstantFlowAgreementV1 } from "../../../contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
 import { SuperTokenV1Library } from "../../../contracts/apps/SuperTokenV1Library.sol";
+import { CFASuperAppBase } from "../../../contracts/apps/CFASuperAppBase.sol";
+
+import { CFASuperAppBaseTester } from "./CFASuperAppBaseTester.t.sol";
 
 contract CFASuperAppBaseTest is FoundrySuperfluidTester {
     using SuperTokenV1Library for SuperToken;

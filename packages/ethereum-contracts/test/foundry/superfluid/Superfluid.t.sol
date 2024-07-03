@@ -7,7 +7,7 @@ import { SuperToken } from "../../../contracts/superfluid/SuperToken.sol";
 import { SuperTokenV1Library } from "../../../contracts/apps/SuperTokenV1Library.sol";
 import { ISuperAgreement } from "../../../contracts/interfaces/superfluid/ISuperAgreement.sol";
 import { ISuperfluid } from "../../../contracts/interfaces/superfluid/ISuperfluid.sol";
-import { AgreementMock } from "../../../contracts/mocks/AgreementMock.t.sol";
+import { AgreementMock } from "./AgreementMock.t.sol";
 
 contract SuperfluidIntegrationTest is FoundrySuperfluidTester {
     using SuperTokenV1Library for SuperToken;

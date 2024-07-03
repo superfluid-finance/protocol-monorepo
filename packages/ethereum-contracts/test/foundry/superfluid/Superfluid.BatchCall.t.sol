@@ -9,7 +9,7 @@ import { IGeneralDistributionAgreementV1, ISuperfluidPool, PoolConfig } from "..
 import { IConstantFlowAgreementV1, ISuperToken, ISuperfluidToken } from "../../../contracts/interfaces/superfluid/ISuperfluid.sol";
 import { FoundrySuperfluidTester } from "../FoundrySuperfluidTester.sol";
 import { SuperTokenV1Library } from "../../../contracts/apps/SuperTokenV1Library.sol";
-import { SuperAppMock } from "../../../contracts/mocks/SuperAppMocks.t.sol";
+import { SuperAppMock } from "./SuperAppMocks.t.sol";
 import { DMZForwarder } from "../../../contracts/utils/DMZForwarder.sol";
 import { Ownable } from '@openzeppelin/contracts/access/Ownable.sol';
 import { BaseRelayRecipient } from "../../../contracts/libs/BaseRelayRecipient.sol";

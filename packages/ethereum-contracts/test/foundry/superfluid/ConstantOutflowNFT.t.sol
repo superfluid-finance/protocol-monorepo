@@ -12,9 +12,9 @@ import { ConstantInflowNFT } from "../../../contracts/superfluid/ConstantInflowN
 import { FoundrySuperfluidTester, SuperTokenV1Library } from "../FoundrySuperfluidTester.sol";
 import { IFlowNFTBase } from "../../../contracts/interfaces/superfluid/IFlowNFTBase.sol";
 import { FlowNFTBaseTest } from "./FlowNFTBase.t.sol";
-import { SuperToken, SuperTokenMock } from "../../../contracts/mocks/SuperTokenMock.t.sol";
-import { ConstantOutflowNFTMock } from "../../../contracts/mocks/CFAv1NFTMock.t.sol";
-import { NoNFTSuperTokenMock } from "../../../contracts/mocks/SuperTokenMock.t.sol";
+import { SuperToken, SuperTokenMock } from "./SuperTokenMock.t.sol";
+import { ConstantOutflowNFTMock } from "./CFAv1NFTMock.t.sol";
+import { NoNFTSuperTokenMock } from "./SuperTokenMock.t.sol";
 import { TestToken } from "../../../contracts/utils/TestToken.sol";
 import { SuperTokenV1Library } from "../../../contracts/apps/SuperTokenV1Library.sol";
 import { ISuperToken } from "../../../contracts/superfluid/SuperToken.sol";

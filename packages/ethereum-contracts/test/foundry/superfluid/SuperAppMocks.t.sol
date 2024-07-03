@@ -7,7 +7,7 @@ import {
     ISuperApp,
     ISuperAgreement,
     SuperAppDefinitions
-} from "../superfluid/Superfluid.sol";
+} from "../../../contracts/superfluid/Superfluid.sol";
 import { AgreementMock } from "./AgreementMock.t.sol";
 
 contract SuperAppMockAux {

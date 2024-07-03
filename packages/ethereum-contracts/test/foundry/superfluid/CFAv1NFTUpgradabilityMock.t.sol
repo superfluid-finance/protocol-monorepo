@@ -1,19 +1,36 @@
 // SPDX-License-Identifier: AGPLv3
-// solhint-disable reason-string
 pragma solidity ^0.8.23;
 
-import { PoolNFTBase } from "../agreements/gdav1/PoolNFTBase.sol";
-import { IGeneralDistributionAgreementV1, ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
-import { PoolMemberNFT } from "../agreements/gdav1/PoolMemberNFT.sol";
-import { PoolAdminNFT } from "../agreements/gdav1/PoolAdminNFT.sol";
-import { IStorageLayoutBase } from "./IStorageLayoutBase.sol";
+import { IConstantFlowAgreementV1, IGeneralDistributionAgreementV1, ISuperfluid }
+    from "../../../contracts/interfaces/superfluid/ISuperfluid.sol";
+import { ConstantInflowNFT, IConstantInflowNFT } from "../../../contracts/superfluid/ConstantInflowNFT.sol";
+import { ConstantOutflowNFT, IConstantOutflowNFT } from "../../../contracts/superfluid/ConstantOutflowNFT.sol";
+import { FlowNFTBase } from "../../../contracts/superfluid/FlowNFTBase.sol";
+import { StorageLayoutTestBase } from "../StorageLayoutTestBase.t.sol";
 
-contract PoolNFTBaseStorageLayoutMock is PoolNFTBase, IStorageLayoutBase {
-    constructor(ISuperfluid host, IGeneralDistributionAgreementV1 gdaV1) PoolNFTBase(host, gdaV1) { }
+/*//////////////////////////////////////////////////////////////////////////
+                                FlowNFTBase Mocks
+//////////////////////////////////////////////////////////////////////////*/
 
+/// @title FlowNFTBaseStorageLayoutMock
+/// @author Superfluid
+/// @notice A mock FlowNFTBase contract for testing storage layout.
+/// @dev This contract *MUST* have the same storage layout as FlowNFTBase.sol
+contract FlowNFTBaseStorageLayoutMock is FlowNFTBase, StorageLayoutTestBase {
+
+    constructor(ISuperfluid host, IConstantFlowAgreementV1 cfaV1, IGeneralDistributionAgreementV1 gdaV1)
+        FlowNFTBase(host, cfaV1, gdaV1)
+    { }
+
+    /// @notice Validates storage layout
+    /// @dev This function is used by all the FlowNFTBase mock contracts to validate the layout
     function validateStorageLayout() public virtual {
         uint256 slot;
-        uint256 offset;
+        uint256 offset; // in bytes
+
+        // slot 0 taken is occupied by these variables:
+        // Initializable._initialized (uint8) 1byte
+        // Initializable._initializing (bool) 1byte
 
         assembly { slot := _name.slot offset := _name.offset }
         if (slot != 1 || offset != 0) revert STORAGE_LOCATION_CHANGED("_name");
@@ -35,24 +52,24 @@ contract PoolNFTBaseStorageLayoutMock is PoolNFTBase, IStorageLayoutBase {
     }
 
     // Dummy implementations for abstract functions
+    function flowDataByTokenId(
+        uint256 //tokenId
+    ) public pure override returns (FlowNFTData memory flowData) {
+        return flowData;
+    }
+    // Dummy implementations for abstract functions
     function _ownerOf(
         uint256 //tokenId
-    ) internal pure override returns (address) {
+        ) internal pure override returns (address) {
         return address(0);
     }
-
-    function getTokenId(address /*pool*/, address /*account*/) external pure override returns (uint256 tokenId) {
-        return 0;
-    }
-
     function _transfer(
         address, //from,
         address, //to,
-        uint256 //tokenId
+        uint256  //tokenId
     ) internal pure override {
         return;
     }
-
     function _safeTransfer(
         address from,
         address to,
@@ -61,22 +78,38 @@ contract PoolNFTBaseStorageLayoutMock is PoolNFTBase, IStorageLayoutBase {
     ) internal pure override {
         _transfer(from, to, tokenId);
     }
-
     function proxiableUUID() public pure override returns (bytes32) {
         return keccak256("");
     }
 
-    function tokenURI(uint256 /*tokenId*/) external pure override returns (string memory) {
+    function tokenURI(uint256 /* tokenId */) external pure override returns (string memory) {
         return "";
     }
 }
 
-contract PoolAdminNFTStorageLayoutMock is PoolAdminNFT, IStorageLayoutBase {
-    constructor(ISuperfluid host, IGeneralDistributionAgreementV1 gdaV1) PoolAdminNFT(host, gdaV1) { }
 
+/// @title ConstantInflowNFTStorageLayoutMock
+/// @author Superfluid
+/// @notice A mock ConstantOutflowNFT contract for testing storage layout.
+/// @dev This contract *MUST* have the same storage layout as ConstantOutflowNFT.sol
+contract ConstantInflowNFTStorageLayoutMock is ConstantInflowNFT, StorageLayoutTestBase {
+
+    constructor(
+        ISuperfluid host,
+        IConstantFlowAgreementV1 cfaV1,
+        IGeneralDistributionAgreementV1 gdaV1,
+        IConstantOutflowNFT constantOutflowNFT
+    ) ConstantInflowNFT(host, cfaV1, gdaV1, constantOutflowNFT) { }
+
+    /// @notice Validates storage layout
+    /// @dev This function is used to validate storage layout of ConstantInflowNFT
     function validateStorageLayout() public virtual {
         uint256 slot;
-        uint256 offset;
+        uint256 offset; // in bytes
+
+        // slot 0 taken is occupied by these variables:
+        // Initializable._initialized (uint8) 1byte
+        // Initializable._initializing (bool) 1byte
 
         assembly { slot := _name.slot offset := _name.offset }
         if (slot != 1 || offset != 0) revert STORAGE_LOCATION_CHANGED("_name");
@@ -95,9 +128,6 @@ contract PoolAdminNFTStorageLayoutMock is PoolAdminNFT, IStorageLayoutBase {
 
         assembly { slot := _reserve21.slot offset := _reserve21.offset }
         if (slot != 21 || offset != 0) revert STORAGE_LOCATION_CHANGED("_reserve21");
-
-        assembly { slot := _poolAdminDataByTokenId.slot offset := _poolAdminDataByTokenId.offset }
-        if (slot != 22 || offset != 0) revert STORAGE_LOCATION_CHANGED("_poolAdminDataByTokenId");
     }
 
     // Dummy implementations for abstract functions
@@ -106,17 +136,33 @@ contract PoolAdminNFTStorageLayoutMock is PoolAdminNFT, IStorageLayoutBase {
         address to,
         uint256 tokenId,
         bytes memory // data
-    ) internal pure override {
+    ) internal override pure {
         _transfer(from, to, tokenId);
     }
 }
 
-contract PoolMemberNFTStorageLayoutMock is PoolMemberNFT, IStorageLayoutBase {
-    constructor(ISuperfluid host, IGeneralDistributionAgreementV1 gdaV1) PoolMemberNFT(host, gdaV1) { }
+/// @title ConstantOutflowNFTStorageLayoutMock
+/// @author Superfluid
+/// @notice A mock ConstantOutflowNFT contract for testing storage layout.
+/// @dev This contract *MUST* have the same storage layout as ConstantOutflowNFT.sol
+contract ConstantOutflowNFTStorageLayoutMock is ConstantOutflowNFT, StorageLayoutTestBase {
 
+    constructor(
+        ISuperfluid host,
+        IConstantFlowAgreementV1 cfaV1,
+        IGeneralDistributionAgreementV1 gdaV1,
+        IConstantInflowNFT constantInflowNFT
+    ) ConstantOutflowNFT(host, cfaV1, gdaV1, constantInflowNFT) { }
+
+    /// @notice Validates storage layout
+    /// @dev This function is used to validate storage layout of ConstantOutflowNFT
     function validateStorageLayout() public virtual {
         uint256 slot;
-        uint256 offset;
+        uint256 offset; // in bytes
+
+        // slot 0 taken is occupied by these variables:
+        // Initializable._initialized (uint8) 1byte
+        // Initializable._initializing (bool) 1byte
 
         assembly { slot := _name.slot offset := _name.offset }
         if (slot != 1 || offset != 0) revert STORAGE_LOCATION_CHANGED("_name");
@@ -136,8 +182,8 @@ contract PoolMemberNFTStorageLayoutMock is PoolMemberNFT, IStorageLayoutBase {
         assembly { slot := _reserve21.slot offset := _reserve21.offset }
         if (slot != 21 || offset != 0) revert STORAGE_LOCATION_CHANGED("_reserve21");
 
-        assembly { slot := _poolMemberDataByTokenId.slot offset := _poolMemberDataByTokenId.offset }
-        if (slot != 22 || offset != 0) revert STORAGE_LOCATION_CHANGED("_poolMemberDataByTokenId");
+        assembly { slot := _flowDataByTokenId.slot offset := _flowDataByTokenId.offset }
+        if (slot != 22 || offset != 0) revert STORAGE_LOCATION_CHANGED("_flowDataByTokenId");
     }
 
     // Dummy implementations for abstract functions

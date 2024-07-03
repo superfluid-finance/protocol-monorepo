@@ -17,7 +17,6 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   - `OPERATION_TYPE_SUPERTOKEN_DOWNGRADE_TO`
   - `OPERATION_TYPE_SIMPLE_FORWARD_CALL`
   - `OPERATION_TYPE_ERC2771_FORWARD_CALL`
-
   The latter 2 allow to add arbitrary contract calls to batch call.
 - Solidity library CallbackUtils for dealing with EIP-150 1/64-rule for callbacks
 

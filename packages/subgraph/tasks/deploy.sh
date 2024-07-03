@@ -82,7 +82,7 @@ deploy_to_graph() {
     echo "********* Deploying $network subgraph $subgraphName to The Graph (hosted service). **********"
 
     $GRAPH_CLI deploy \
-        --studio $subgraphName \
+        --studio "$subgraphName" \
         --deploy-key "$THE_GRAPH_ACCESS_TOKEN" \
         --version-label "$VERSION_LABEL"
 }

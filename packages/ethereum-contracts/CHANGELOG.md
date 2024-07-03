@@ -19,18 +19,22 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   - `OPERATION_TYPE_ERC2771_FORWARD_CALL`
 
   The latter 2 allow to add arbitrary contract calls to batch call.
+- Solidity library CallbackUtils for dealing with EIP-150 1/64-rule for callbacks
 
 ### Changed
 
+- upgrade flake locked foundry: 0.2.0 (20b3da1 2024-07-02T00:18:52.435480726Z)
 - relax pragram solidity with "^0.8.23"
 - bump solc to 0.8.26
-- fix a few types and build warnings
-- rename '.prop.sol' to '.prop.t.sol'
-- mark mock-contract files with 't.sol' to be skipped by foundry build automatically
-- upgrade flake lock input: foundry
+- Faster SuperAppMockAux._burnGas implementation
+- foundry test reorg:
+  - rename '.prop.sol' to '.prop.t.sol'
+  - mark mock-contract files with 't.sol' to be skipped by foundry build automatically
+  - move some mock contracts to test/foundry if they are only used for foundry tests
 
 ## Fixes
 
+- fix a few types and build warnings
 - make testTokenURIIsExpected work with non via-ir pipeline
 
 ## [v1.9.1] - 2024-03-19

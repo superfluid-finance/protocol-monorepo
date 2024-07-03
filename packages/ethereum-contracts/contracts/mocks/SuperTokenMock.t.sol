@@ -5,11 +5,11 @@ import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.s
 
 import {
     ISuperfluid, IERC20, IConstantInflowNFT, IConstantOutflowNFT, IPoolAdminNFT, IPoolMemberNFT
-} from "../../../contracts/interfaces/superfluid/ISuperfluid.sol";
-import { UUPSProxiable } from "../../../contracts/upgradability/UUPSProxiable.sol";
-import { ERC777Helper } from "../../../contracts/libs/ERC777Helper.sol";
-import { SuperToken } from "../../../contracts/superfluid/SuperToken.sol";
-import { SuperfluidToken } from "../../../contracts/superfluid/SuperfluidToken.sol";
+} from "../interfaces/superfluid/ISuperfluid.sol";
+import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
+import { ERC777Helper } from "../libs/ERC777Helper.sol";
+import { SuperToken } from "../superfluid/SuperToken.sol";
+import { SuperfluidToken } from "../superfluid/SuperfluidToken.sol";
 
 contract SuperTokenStorageLayoutTester is SuperToken {
     constructor(

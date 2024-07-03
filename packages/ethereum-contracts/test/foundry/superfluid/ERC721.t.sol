@@ -12,7 +12,7 @@ import { PoolAdminNFT, IPoolAdminNFT } from "../../../contracts/agreements/gdav1
 import { PoolMemberNFT, IPoolMemberNFT } from "../../../contracts/agreements/gdav1/PoolMemberNFT.sol";
 import { UUPSProxy } from "../../../contracts/upgradability/UUPSProxy.sol";
 import { UUPSProxiable } from "../../../contracts/upgradability/UUPSProxiable.sol";
-import { SuperToken, SuperTokenMock } from "./SuperTokenMock.t.sol";
+import { SuperToken, SuperTokenMock } from "../../../contracts/mocks/SuperTokenMock.t.sol";
 
 contract ERC721IntegrationTest is FoundrySuperfluidTester {
     string internal constant POOL_MEMBER_NFT_NAME_TEMPLATE = "Pool Member NFT";

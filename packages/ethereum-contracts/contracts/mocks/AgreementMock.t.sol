@@ -9,9 +9,9 @@ import {
     ISuperfluidToken,
     ISuperApp,
     SuperAppDefinitions
-} from "../../../contracts/interfaces/superfluid/ISuperfluid.sol";
-import { AgreementBase } from "../../../contracts/agreements/AgreementBase.sol";
-import { AgreementLibrary } from "../../../contracts/agreements/AgreementLibrary.sol";
+} from "../interfaces/superfluid/ISuperfluid.sol";
+import { AgreementBase } from "../agreements/AgreementBase.sol";
+import { AgreementLibrary } from "../agreements/AgreementLibrary.sol";
 
 
 contract AgreementMock is AgreementBase {

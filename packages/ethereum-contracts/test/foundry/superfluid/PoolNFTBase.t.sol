@@ -211,30 +211,30 @@ abstract contract PoolNFTBaseIntegrationTest is ERC721IntegrationTest {
                                     Passing Tests
     //////////////////////////////////////////////////////////////////////////*/
 
-    function testContractSupportsExpectedInterfaces() public {
+    function testContractSupportsExpectedInterfaces() public view {
         assertEq(poolNFTBaseMock.supportsInterface(type(IERC165).interfaceId), true);
         assertEq(poolNFTBaseMock.supportsInterface(type(IERC721).interfaceId), true);
         assertEq(poolNFTBaseMock.supportsInterface(type(IERC721Metadata).interfaceId), true);
     }
 
-    function testBalanceOfIsAlwaysOne(address owner) public {
+    function testBalanceOfIsAlwaysOne(address owner) public view {
         assertEq(poolNFTBaseMock.balanceOf(owner), 1, "PoolNFTBase: balanceOf is not always one");
     }
 
-    function testHostIsProperlySetInConstructor() public {
+    function testHostIsProperlySetInConstructor() public view {
         assertEq(address(poolNFTBaseMock.HOST()), address(sf.host));
     }
 
-    function testGDAv1IsProperlySetInConstructor() public {
+    function testGDAv1IsProperlySetInConstructor() public view {
         assertEq(address(poolNFTBaseMock.GENERAL_DISTRIBUTION_AGREEMENT_V1()), address(sf.gda));
     }
 
-    function testNFTMetadataIsProperlyInitialized() public {
+    function testNFTMetadataIsProperlyInitialized() public view {
         assertEq(poolNFTBaseMock.name(), NAME);
         assertEq(poolNFTBaseMock.symbol(), SYMBOL);
     }
 
-    function testTokenURI(uint256 tokenId) public {
+    function testTokenURI(uint256 tokenId) public view {
         assertEq(poolNFTBaseMock.tokenURI(tokenId), string(abi.encodePacked("tokenId=", tokenId.toString())));
     }
 
@@ -296,7 +296,7 @@ abstract contract PoolNFTBaseIntegrationTest is ERC721IntegrationTest {
                                     Assertion Helpers
     //////////////////////////////////////////////////////////////////////////*/
     function _assertPoolAdminNftStateIsExpected(uint256 _tokenId, address _expectedPool, address _expectedAdmin)
-        public
+        public view
     {
         PoolAdminNFT.PoolAdminNFTData memory poolAdminNFTData = poolAdminNFT.poolAdminDataByTokenId(_tokenId);
 
@@ -316,7 +316,7 @@ abstract contract PoolNFTBaseIntegrationTest is ERC721IntegrationTest {
         address _expectedPool,
         address _expectedMember,
         uint128 _expectedUnits
-    ) public {
+    ) public view {
         PoolMemberNFT.PoolMemberNFTData memory poolMemberNFTData = poolMemberNFT.poolMemberDataByTokenId(_tokenId);
 
         assertEq(poolMemberNFTData.pool, _expectedPool, "PoolMemberNFT: pool address not as expected");

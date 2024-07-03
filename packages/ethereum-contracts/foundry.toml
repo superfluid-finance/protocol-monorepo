@@ -32,6 +32,7 @@ wrap_comments = true
 
 [profile.ci]
 offline = true
+verbosity = 2
 
 [profile.ci.fuzz]
 runs = 1000

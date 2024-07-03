@@ -64,13 +64,12 @@ jobs:
         run: |
           yarn install --frozen-lockfile
           yarn lint
-          echo "FOUNDRY_PROFILE=ci" >> $GITHUB_ENV
-          echo "FOUNDRY_SOLC_VERSION=$SOLC" >> $GITHUB_ENV
           yarn build
           yarn test
         env:
           POLYGON_MAINNET_PROVIDER_URL: ${{ secrets.POLYGON_MAINNET_PROVIDER_URL }}
           SUBGRAPH_RELEASE_TAG: dev
+          FOUNDRY_PROFILE: ci
 
   test-hot-fuzz:
     uses: ./.github/workflows/call.test-hot-fuzz.yml

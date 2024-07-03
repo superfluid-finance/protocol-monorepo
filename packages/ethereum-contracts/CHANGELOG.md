@@ -8,7 +8,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Breaking
 
 - ISuperfuidPool self-transfer is not allowed
-- FoundrySuperfluidTester is test with forge-std@v1.8.2, which may break with older forge-std lib
+- FoundrySuperfluidTester is test with forge-std@v1.9.1, which may break with 1.7.x and prio forge-std lib
 
 ### Added
 
@@ -22,9 +22,16 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Changed
 
+- relax pragram solidity with "^0.8.23"
+- bump solc to 0.8.26
 - fix a few types and build warnings
 - rename '.prop.sol' to '.prop.t.sol'
+- mark mock-contract files with 't.sol' to be skipped by foundry build automatically
 - upgrade flake lock input: foundry
+
+## Fixes
+
+- make testTokenURIIsExpected work with non via-ir pipeline
 
 ## [v1.9.1] - 2024-03-19
 

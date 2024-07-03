@@ -1,14 +1,16 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.23;
+pragma solidity ^0.8.23;
 
-import { GeneralDistributionAgreementV1 } from "../agreements/gdav1/GeneralDistributionAgreementV1.sol";
-import { SuperfluidPool } from "../agreements/gdav1/SuperfluidPool.sol";
-import { IStorageLayoutBase } from "./IStorageLayoutBase.sol";
+import {
+    GeneralDistributionAgreementV1
+} from "../../../../contracts/agreements/gdav1/GeneralDistributionAgreementV1.sol";
+import { SuperfluidPool } from "../../../../contracts/agreements/gdav1/SuperfluidPool.sol";
+import { StorageLayoutTestBase } from "../../StorageLayoutTestBase.t.sol";
 
 /// @title SuperfluidPoolStorageLayoutMock
 /// @notice A mock SuperfluidPool contract for testing storage layout.
 /// @dev This contract *MUST* have the same storage layout as SuperfluidPool.
-contract SuperfluidPoolStorageLayoutMock is SuperfluidPool, IStorageLayoutBase {
+contract SuperfluidPoolStorageLayoutMock is SuperfluidPool, StorageLayoutTestBase {
     constructor(GeneralDistributionAgreementV1 gda_) SuperfluidPool(gda_) { }
 
     function validateStorageLayout() public pure {

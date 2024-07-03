@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.23;
+pragma solidity ^0.8.23;
 
 import { IERC721Metadata } from "@openzeppelin/contracts/interfaces/IERC721Metadata.sol";
 import { FoundrySuperfluidTester } from "../FoundrySuperfluidTester.sol";
-import { ConstantOutflowNFTMock, ConstantInflowNFTMock } from "../../../contracts/mocks/CFAv1NFTMock.sol";
-import { PoolAdminNFTMock, PoolMemberNFTMock } from "../../../contracts/mocks/PoolNFTMock.sol";
+import { ConstantOutflowNFTMock, ConstantInflowNFTMock } from "./CFAv1NFTMock.t.sol";
+import { PoolAdminNFTMock, PoolMemberNFTMock } from "./PoolNFTMock.t.sol";
 import { ConstantOutflowNFT, IConstantOutflowNFT } from "../../../contracts/superfluid/ConstantOutflowNFT.sol";
 import { ConstantInflowNFT, IConstantInflowNFT } from "../../../contracts/superfluid/ConstantInflowNFT.sol";
 import { TestToken } from "../../../contracts/utils/TestToken.sol";
@@ -12,7 +12,7 @@ import { PoolAdminNFT, IPoolAdminNFT } from "../../../contracts/agreements/gdav1
 import { PoolMemberNFT, IPoolMemberNFT } from "../../../contracts/agreements/gdav1/PoolMemberNFT.sol";
 import { UUPSProxy } from "../../../contracts/upgradability/UUPSProxy.sol";
 import { UUPSProxiable } from "../../../contracts/upgradability/UUPSProxiable.sol";
-import { SuperToken, SuperTokenMock } from "../../../contracts/mocks/SuperTokenMock.sol";
+import { SuperToken, SuperTokenMock } from "../../../contracts/mocks/SuperTokenMock.t.sol";
 
 contract ERC721IntegrationTest is FoundrySuperfluidTester {
     string internal constant POOL_MEMBER_NFT_NAME_TEMPLATE = "Pool Member NFT";

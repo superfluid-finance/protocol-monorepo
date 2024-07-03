@@ -1,12 +1,15 @@
 // SPDX-License-Identifier: AGPLv3
 // solhint-disable reason-string
-pragma solidity 0.8.23;
+pragma solidity ^0.8.23;
 
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
-import { IGeneralDistributionAgreementV1, ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
-import { PoolAdminNFT } from "../agreements/gdav1/PoolAdminNFT.sol";
-import { PoolMemberNFT } from "../agreements/gdav1/PoolMemberNFT.sol";
-import { PoolNFTBase } from "../agreements/gdav1/PoolNFTBase.sol";
+
+import {
+    IGeneralDistributionAgreementV1, ISuperfluid
+} from "../../../contracts/interfaces/superfluid/ISuperfluid.sol";
+import { PoolAdminNFT } from "../../../contracts/agreements/gdav1/PoolAdminNFT.sol";
+import { PoolMemberNFT } from "../../../contracts/agreements/gdav1/PoolMemberNFT.sol";
+import { PoolNFTBase } from "../../../contracts/agreements/gdav1/PoolNFTBase.sol";
 
 contract PoolNFTBaseMock is PoolNFTBase {
     using Strings for uint256;

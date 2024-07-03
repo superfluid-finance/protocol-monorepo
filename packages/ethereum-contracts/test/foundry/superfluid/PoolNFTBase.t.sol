@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.23;
+pragma solidity ^0.8.23;
 
 import { IERC165, IERC721, IERC721Metadata } from "@openzeppelin/contracts/interfaces/IERC721Metadata.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
@@ -8,15 +8,15 @@ import {
     PoolNFTBaseStorageLayoutMock,
     PoolAdminNFTStorageLayoutMock,
     PoolMemberNFTStorageLayoutMock
-} from "../../../contracts/mocks/PoolNFTUpgradabilityMock.sol";
+} from "./PoolNFTUpgradabilityMock.t.sol";
 import { IPoolNFTBase, PoolNFTBase } from "../../../contracts/agreements/gdav1/PoolNFTBase.sol";
 import { ConstantOutflowNFT, IConstantOutflowNFT } from "../../../contracts/superfluid/ConstantOutflowNFT.sol";
 import { ConstantInflowNFT, IConstantInflowNFT } from "../../../contracts/superfluid/ConstantInflowNFT.sol";
 import { TestToken } from "../../../contracts/utils/TestToken.sol";
 import { PoolAdminNFT, IPoolAdminNFT } from "../../../contracts/agreements/gdav1/PoolAdminNFT.sol";
 import { PoolMemberNFT, IPoolMemberNFT } from "../../../contracts/agreements/gdav1/PoolMemberNFT.sol";
-import { ConstantOutflowNFTMock, ConstantInflowNFTMock } from "../../../contracts/mocks/CFAv1NFTMock.sol";
-import { PoolNFTBaseMock } from "../../../contracts/mocks/PoolNFTMock.sol";
+import { ConstantOutflowNFTMock, ConstantInflowNFTMock } from "./CFAv1NFTMock.t.sol";
+import { PoolNFTBaseMock } from "./PoolNFTMock.t.sol";
 import { ISuperfluidPool } from "../../../contracts/agreements/gdav1/SuperfluidPool.sol";
 import { ERC721IntegrationTest } from "./ERC721.t.sol";
 

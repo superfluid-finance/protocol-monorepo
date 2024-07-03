@@ -40,14 +40,14 @@ contract ConstantInflowNFTTest is FlowNFTBaseTest {
                                     Passing Tests
     //////////////////////////////////////////////////////////////////////////*/
 
-    function testProxiableUUIDIsExpectedValue() public {
+    function testProxiableUUIDIsExpectedValue() public view {
         assertEq(
             constantInflowNFT.proxiableUUID(),
             keccak256("org.superfluid-finance.contracts.ConstantInflowNFT.implementation")
         );
     }
 
-    function testConstantInflowNFTIsProperlyInitialized() public {
+    function testConstantInflowNFTIsProperlyInitialized() public view {
         assertEq(constantInflowNFT.name(), INFLOW_NFT_NAME_TEMPLATE);
         assertEq(constantInflowNFT.symbol(), INFLOW_NFT_SYMBOL_TEMPLATE);
     }

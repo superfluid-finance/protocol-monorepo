@@ -1499,7 +1499,7 @@ describe("Superfluid Host Contract", function () {
                     let receipt = await tx.wait();
                     console.debug("Gas used", receipt.gasUsed.toString());
                     let gasLowerBound = Number(receipt.gasUsed.toString());
-                    let gasUpperBound = gasLowerBound + 300000;
+                    let gasUpperBound = Math.floor(gasLowerBound * 1.3);
                     console.debug(
                         "Current bound",
                         gasLowerBound,

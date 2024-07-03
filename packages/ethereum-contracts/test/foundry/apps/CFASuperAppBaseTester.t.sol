@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.23;
+pragma solidity ^0.8.23;
 
-import { ISuperfluid, ISuperToken } from "../interfaces/superfluid/ISuperfluid.sol";
-import { CFASuperAppBase } from "../apps/CFASuperAppBase.sol";
-import { SuperTokenV1Library } from "../apps/SuperTokenV1Library.sol";
+import { ISuperfluid, ISuperToken } from "../../../contracts/interfaces/superfluid/ISuperfluid.sol";
+import { CFASuperAppBase } from "../../../contracts/apps/CFASuperAppBase.sol";
+import { SuperTokenV1Library } from "../../../contracts/apps/SuperTokenV1Library.sol";
 
 contract CFASuperAppBaseTester is CFASuperAppBase {
     using SuperTokenV1Library for ISuperToken;

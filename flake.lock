@@ -28,11 +28,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1717405880,
-        "narHash": "sha256-qcXXOnRSl0sGKm7JknntBU4su8/342YKZvjklHsIl+Q=",
+        "lastModified": 1719997877,
+        "narHash": "sha256-/Edw+w0PiGgxwnCeJycM0VgH4HtlCi91v1d8xbi+REE=",
         "owner": "shazow",
         "repo": "foundry.nix",
-        "rev": "708c0df1e36b5185a727a3c517a5100e46392792",
+        "rev": "02febba4f1cf0606d790acdb24adcf7a64afb4e1",
         "type": "github"
       },
       "original": {
@@ -73,20 +73,33 @@
         ],
         "nixpkgs": [
           "nixpkgs"
-        ]
+        ],
+        "solc-macos-amd64-list-json": "solc-macos-amd64-list-json"
       },
       "locked": {
-        "lastModified": 1706563406,
-        "narHash": "sha256-XoMphCwfqx00wx/2nALvMPEAmD32A8lwSmwI5MNopyA=",
+        "lastModified": 1717442267,
+        "narHash": "sha256-6TnQvA6Q/xC3r1M+wGC5gnDc/5XfOPjC8X6LlGDWDNc=",
         "owner": "hellwolf",
         "repo": "solc.nix",
-        "rev": "c863de2fa3721fc4201484c084a49e996ce21e19",
+        "rev": "2ac2862f224aa0d67cbc6b3246392489f8a50596",
         "type": "github"
       },
       "original": {
         "owner": "hellwolf",
         "repo": "solc.nix",
         "type": "github"
+      }
+    },
+    "solc-macos-amd64-list-json": {
+      "flake": false,
+      "locked": {
+        "narHash": "sha256-Prwz95BgMHcWd72VwVbcH17LsV9f24K2QMcUiWUQZzI=",
+        "type": "file",
+        "url": "https://github.com/ethereum/solc-bin/raw/f743ca7/macosx-amd64/list.json"
+      },
+      "original": {
+        "type": "file",
+        "url": "https://github.com/ethereum/solc-bin/raw/f743ca7/macosx-amd64/list.json"
       }
     },
     "systems": {

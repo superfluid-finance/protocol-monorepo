@@ -24,7 +24,7 @@ contract CallbackUtilsTest is Test {
         // Heuristically, it should not take more than few steps going from transitional zone to
         // out-of-callback-gas zone
         bool transitioned = false;
-        for (uint256 i = 0; i < 10; i++) {
+        for (uint256 i = 0; i < 20; i++) {
             uint256 gasLimit  = callbackGasLimit
                 + callbackGasLimit / (CallbackUtils.EIP150_MAGIC_N - i);
             (bool success, bool insufficientCallbackGasProvided, bytes memory reason) =

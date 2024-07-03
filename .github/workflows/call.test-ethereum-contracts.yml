@@ -77,7 +77,6 @@ jobs:
         if: inputs.run-coverage-tests == false
         run: |
           echo "FOUNDRY_PROFILE=ci" >> $GITHUB_ENV
-          echo "FOUNDRY_SOLC_VERSION=$SOLC" >> $GITHUB_ENV
           yarn test
           cat testing-benchmark.json
         working-directory: ./packages/ethereum-contracts
@@ -92,7 +91,6 @@ jobs:
         if: inputs.run-coverage-tests == true
         run: |
           echo "FOUNDRY_PROFILE=ci" >> $GITHUB_ENV
-          echo "FOUNDRY_SOLC_VERSION=$SOLC" >> $GITHUB_ENV
           yarn test-coverage
         working-directory: ./packages/ethereum-contracts
         # NOTE: currently coverage report is not working properly in parallel mode.

@@ -9,7 +9,7 @@ import {
     SuperAppDefinitions
 } from "../superfluid/Superfluid.sol";
 import { CallbackUtils } from "../libs/CallbackUtils.sol";
-import { AgreementMock } from "./AgreementMock.sol";
+import { AgreementMock } from "./AgreementMock.t.sol";
 
 
 contract SuperAppMockAux {

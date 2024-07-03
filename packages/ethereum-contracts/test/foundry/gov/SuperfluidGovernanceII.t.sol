@@ -7,7 +7,7 @@ import { ISuperToken, SuperToken } from "../../../contracts/superfluid/SuperToke
 import { SuperTokenV1Library } from "../../../contracts/apps/SuperTokenV1Library.sol";
 import { ISuperAgreement } from "../../../contracts/interfaces/superfluid/ISuperAgreement.sol";
 import { ISuperfluid } from "../../../contracts/interfaces/superfluid/ISuperfluid.sol";
-import { AgreementMock } from "../../../contracts/mocks/AgreementMock.sol";
+import { AgreementMock } from "../../../contracts/mocks/AgreementMock.t.sol";
 import { SuperfluidPool } from "../../../contracts/agreements/gdav1/SuperfluidPool.sol";
 
 contract SuperfluidGovernanceIntegrationTest is FoundrySuperfluidTester {

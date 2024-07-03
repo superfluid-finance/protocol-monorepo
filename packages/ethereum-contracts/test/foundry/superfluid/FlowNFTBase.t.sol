@@ -16,15 +16,15 @@ import { IPoolAdminNFT } from "../../../contracts/agreements/gdav1/PoolAdminNFT.
 import { IPoolMemberNFT } from "../../../contracts/agreements/gdav1/PoolMemberNFT.sol";
 import { SuperTokenV1Library } from "../../../contracts/apps/SuperTokenV1Library.sol";
 import { FoundrySuperfluidTester } from "../FoundrySuperfluidTester.sol";
-import { ConstantOutflowNFTMock, ConstantInflowNFTMock } from "../../../contracts/mocks/CFAv1NFTMock.sol";
-import { SuperToken, SuperTokenMock } from "../../../contracts/mocks/SuperTokenMock.sol";
-import { FlowNFTBaseMock } from "../../../contracts/mocks/CFAv1NFTMock.sol";
+import { ConstantOutflowNFTMock, ConstantInflowNFTMock } from "../../../contracts/mocks/CFAv1NFTMock.t.sol";
+import { SuperToken, SuperTokenMock } from "../../../contracts/mocks/SuperTokenMock.t.sol";
+import { FlowNFTBaseMock } from "../../../contracts/mocks/CFAv1NFTMock.t.sol";
 import { TestToken } from "../../../contracts/utils/TestToken.sol";
 import {
     FlowNFTBaseStorageLayoutMock,
     ConstantInflowNFTStorageLayoutMock,
     ConstantOutflowNFTStorageLayoutMock
-} from "../../../contracts/mocks/CFAv1NFTUpgradabilityMock.sol";
+} from "../../../contracts/mocks/CFAv1NFTUpgradabilityMock.t.sol";
 import { ERC721IntegrationTest } from "./ERC721.t.sol";
 
 abstract contract FlowNFTBaseTest is ERC721IntegrationTest {

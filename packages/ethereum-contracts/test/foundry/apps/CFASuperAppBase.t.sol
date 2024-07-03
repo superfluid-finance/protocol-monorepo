@@ -4,7 +4,7 @@ pragma solidity ^0.8.23;
 import "forge-std/console.sol";
 import "../FoundrySuperfluidTester.sol";
 import { CFASuperAppBase } from "../../../contracts/apps/CFASuperAppBase.sol";
-import { CFASuperAppBaseTester } from "../../../contracts/mocks/CFASuperAppBaseTester.sol";
+import { CFASuperAppBaseTester } from "../../../contracts/mocks/CFASuperAppBaseTester.t.sol";
 import {
     ISuperToken,
     ISuperApp,

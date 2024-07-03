@@ -22,10 +22,12 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Changed
 
+- relax pragram solidity with "^0.8.23"
+- bump solc to 0.8.26
 - fix a few types and build warnings
 - rename '.prop.sol' to '.prop.t.sol'
+- mark mock-contract files with 't.sol' to be skipped by foundry build automatically
 - upgrade flake lock input: foundry
-- relax pragram solidity with "^0.8.23"
 
 ## [v1.9.1] - 2024-03-19
 

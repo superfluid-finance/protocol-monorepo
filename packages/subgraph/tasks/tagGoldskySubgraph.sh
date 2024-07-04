@@ -49,14 +49,13 @@ generate_goldsky_commands() {
 # Function to run the goldsky commands in Docker
 run_goldsky_commands_in_docker() {
     local commands=$1
-    docker run --platform linux/x86_64 -it goldsky/indexed.xyz:latest /bin/bash -c "
+    if docker run --platform linux/x86_64 -it goldsky/indexed.xyz:latest /bin/bash -c "
         if ! goldsky login --token $API_KEY; then
             echo 'Error: Failed to login to Goldsky' >&2
             exit 1
         fi
         $commands
-    "
-    if [ $? -ne 0 ]; then
+    "; then
         echo "Error: Command execution failed"
         exit 1
     fi

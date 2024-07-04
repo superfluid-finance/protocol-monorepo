@@ -8,7 +8,9 @@ import {
     ISuperAgreement,
     SuperAppDefinitions
 } from "../superfluid/Superfluid.sol";
+import { CallbackUtils } from "../libs/CallbackUtils.sol";
 import { AgreementMock } from "./AgreementMock.t.sol";
+
 
 contract SuperAppMockAux {
 
@@ -446,10 +448,15 @@ contract SuperAppMock is ISuperApp {
 
     function _burnGas(uint256 gasToBurn) private view {
         uint256 gasStart = gasleft();
-        uint256 gasNow = gasleft();
-        while ((gasStart - gasNow) < gasToBurn - 1000 /* some margin for other things*/) {
-            gasNow = gasleft();
+        // _stubBurnGas burns gas more efficiently
+        try this._stubBurnGas{ gas: gasToBurn }() { assert(false); } catch {
+            // use gasleft() to burn the remaining gas budget
+            // solhint-disable-next-line no-empty-blocks
+            while ((gasStart - gasleft()) < gasToBurn - 1000 /* some margin for other things*/) { }
         }
+    }
+    function _stubBurnGas() external pure {
+        CallbackUtils.consumeAllGas();
     }
 
     modifier requireValidCtx(bytes calldata ctx) {

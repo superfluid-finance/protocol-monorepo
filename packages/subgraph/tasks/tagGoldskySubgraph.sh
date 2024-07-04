@@ -56,6 +56,7 @@ run_goldsky_commands_in_docker() {
         fi
         $commands
     "
+    # shellcheck disable=SC2181
     if [ $? -ne 0 ]; then
         echo "Error: Command execution failed"
         exit 1

@@ -1,19 +1,20 @@
 // SPDX-License-Identifier: AGPLv3
 // solhint-disable reason-string
 // solhint-disable not-rely-on-time
-pragma solidity 0.8.23;
+pragma solidity ^0.8.23;
 
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+
 import {
     IConstantFlowAgreementV1,
     IGeneralDistributionAgreementV1,
     ISuperfluid,
     IConstantInflowNFT,
     IConstantOutflowNFT
-} from "../interfaces/superfluid/ISuperfluid.sol";
-import { ConstantOutflowNFT } from "../superfluid/ConstantOutflowNFT.sol";
-import { ConstantInflowNFT } from "../superfluid/ConstantInflowNFT.sol";
-import { FlowNFTBase } from "../superfluid/FlowNFTBase.sol";
+} from "../../../contracts/interfaces/superfluid/ISuperfluid.sol";
+import { ConstantOutflowNFT } from "../../../contracts/superfluid/ConstantOutflowNFT.sol";
+import { ConstantInflowNFT } from "../../../contracts/superfluid/ConstantInflowNFT.sol";
+import { FlowNFTBase } from "../../../contracts/superfluid/FlowNFTBase.sol";
 
 /// @title FlowNFTBaseMock
 /// @author Superfluid

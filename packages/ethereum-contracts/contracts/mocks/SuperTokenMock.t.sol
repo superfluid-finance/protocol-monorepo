@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.23;
+pragma solidity ^0.8.23;
+
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import {
     ISuperfluid, IERC20, IConstantInflowNFT, IConstantOutflowNFT, IPoolAdminNFT, IPoolMemberNFT
 } from "../interfaces/superfluid/ISuperfluid.sol";
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { ERC777Helper } from "../libs/ERC777Helper.sol";
 import { SuperToken } from "../superfluid/SuperToken.sol";
 import { SuperfluidToken } from "../superfluid/SuperfluidToken.sol";
@@ -17,7 +18,7 @@ contract SuperTokenStorageLayoutTester is SuperToken {
         IConstantInflowNFT constantInflowNFTProxy,
         IPoolAdminNFT poolAdminNFTProxy,
         IPoolMemberNFT poolMemberNFTProxy
-    ) SuperToken(host, constantOutflowNFTProxy, constantInflowNFTProxy, poolAdminNFTProxy, poolMemberNFTProxy) 
+    ) SuperToken(host, constantOutflowNFTProxy, constantInflowNFTProxy, poolAdminNFTProxy, poolMemberNFTProxy)
     // solhint-disable-next-line no-empty-blocks
     { }
 

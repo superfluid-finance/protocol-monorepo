@@ -67,6 +67,10 @@ if [ -n "$RESOLVER" ]; then
     try_verify Resolver@"${RESOLVER}"
 fi
 
+if [ -n "$DMZ_FORWARDER" ]; then
+    try_verify DMZForwarder@"${DMZ_FORWARDER}"
+fi
+
 if [ -n "$SUPERFLUID_HOST_LOGIC" ]; then
     # verify the logic contract. May or may not be already set as a proxy implementation
     try_verify Superfluid@"${SUPERFLUID_HOST_LOGIC}"

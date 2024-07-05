@@ -23,6 +23,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Changed
 
+- increase SuperApp callback gas limit on some chains, to be queried with `host.CALLBACK_GAS_LIMIT()`
 - Remove try/catch in PoolNFT callbacks.
 - upgrade flake locked foundry: 0.2.0 (20b3da1 2024-07-02T00:18:52.435480726Z).
 - relax pragram solidity with "^0.8.23".

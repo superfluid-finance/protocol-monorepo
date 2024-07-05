@@ -52,6 +52,8 @@ contract Superfluid is
     // solhint-disable-next-line var-name-mixedcase
     bool immutable public APP_WHITE_LISTING_ENABLED;
 
+    uint64 immutable public CALLBACK_GAS_LIMIT;
+
     DMZForwarder immutable public DMZ_FORWARDER;
 
     /**
@@ -63,9 +65,6 @@ contract Superfluid is
      */
     // solhint-disable-next-line var-name-mixedcase
     uint constant public MAX_APP_CALLBACK_LEVEL = 1;
-
-    // solhint-disable-next-line var-name-mixedcase
-    uint64 constant public CALLBACK_GAS_LIMIT = 3000000;
 
     uint32 constant public MAX_NUM_AGREEMENTS = 256;
 
@@ -98,9 +97,15 @@ contract Superfluid is
     /// function in its respective mock contract to ensure that it doesn't break anything or lead to unexpected
     /// behaviors/layout when upgrading
 
-    constructor(bool nonUpgradable, bool appWhiteListingEnabled, address dmzForwarderAddress) {
+    constructor(
+        bool nonUpgradable,
+        bool appWhiteListingEnabled,
+        uint64 callbackGasLimit,
+        address dmzForwarderAddress
+    ) {
         NON_UPGRADABLE_DEPLOYMENT = nonUpgradable;
         APP_WHITE_LISTING_ENABLED = appWhiteListingEnabled;
+        CALLBACK_GAS_LIMIT = callbackGasLimit;
         DMZ_FORWARDER = DMZForwarder(dmzForwarderAddress);
     }
 

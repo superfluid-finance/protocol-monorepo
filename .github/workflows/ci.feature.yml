@@ -45,6 +45,13 @@ jobs:
       - name: Check changeset
         run: tasks/check-changeset.sh ${{ github.sha }} dev
 
+  lint-always:
+    name: Lint shell scripts and github actions
+    needs: [check]
+    run: |
+      npm run lint:shellcheck
+      npm run lint:actionlint
+
   test-ethereum-contracts:
     name: Test ethereum-contracts (Feature Branch)
     uses: ./.github/workflows/call.test-ethereum-contracts.yml
@@ -133,7 +140,8 @@ jobs:
 
     if: always()
 
-    needs: [ test-spec-haskell
+    needs: [ lint-always
+           , test-spec-haskell
            , test-solidity-semantic-money
            , test-ethereum-contracts, coverage-ethereum-contracts
            , test-hot-fuzz

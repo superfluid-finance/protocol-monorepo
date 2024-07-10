@@ -46,6 +46,16 @@ jobs:
 
       - uses: actions/checkout@v4
 
+      - uses: cachix/install-nix-action@v19
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Initialize devShell
+        run: |
+          node --version
+          shellcheck --version
+          actionlint --version
+
       - name: Run pre-commit check
         run: npm run pre-commit
 

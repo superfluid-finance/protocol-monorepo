@@ -25,16 +25,7 @@ function testSchemaAndQueries() {
 
 # for sdk-core releases: test deployed subgraphs
 for i in "${NETWORKS[@]}";do
-    # name mapping for subgraphs created before introducing canonical names
-    declare -A LEGACY_NETWORK_NAMES=(
-        ["xdai-mainnet"]="xdai"
-        ["polygon-mainnet"]="matic"
-    )
-
-    GRAPH_NETWORK="${LEGACY_NETWORK_NAMES[$i]:-$i}"
-
     SUBGRAPH_ENDPOINT="https://subgraph-endpoints.superfluid.dev/$i/protocol-v1"
 
     testSchemaAndQueries
-
 done

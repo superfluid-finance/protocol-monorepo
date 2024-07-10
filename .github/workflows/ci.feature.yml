@@ -32,18 +32,6 @@ jobs:
       build_automation_contracts: ${{ env.BUILD_AUTOMATION_CONTRACTS }}
 
     steps:
-      - name: Show contexts
-        env:
-          HEAD_REF: ${{ github.head_ref }}
-          GITHUB_REF: ${{ github.ref }}
-        run: |
-          echo github.event_name: ${{ github.event_name }}
-          echo github.sha: ${{ github.sha }}
-          echo github.repository: ${{ github.repository }}
-          echo github.ref: "$GITHUB_REF"
-          echo github.head_ref: "$HEAD_REF"
-          echo github.base_ref: ${{ github.base_ref }}
-
       - uses: actions/checkout@v4
 
       - uses: cachix/install-nix-action@v19
@@ -55,6 +43,18 @@ jobs:
           node --version
           shellcheck --version
           actionlint --version
+
+      - name: Show contexts
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          GITHUB_REF: ${{ github.ref }}
+        run: |
+          echo github.event_name: ${{ github.event_name }}
+          echo github.sha: ${{ github.sha }}
+          echo github.repository: ${{ github.repository }}
+          echo github.ref: "$GITHUB_REF"
+          echo github.head_ref: "$HEAD_REF"
+          echo github.base_ref: ${{ github.base_ref }}
 
       - name: Run pre-commit check
         run: npm run pre-commit

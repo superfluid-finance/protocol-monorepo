@@ -13,7 +13,7 @@ SUPPORTED_VENDORS=( "graph" "satsuma" "superfluid" "goldsky" "airstack" )
 # list of supported networks by vendor
 
 # shellcheck disable=SC2034,SC2207
-GRAPH_NETWORKS=( $($JQ -r .[] ./hosted-service-networks.json) ) || exit 1
+GRAPH_NETWORKS=( "polygon-mainnet" "eth-mainnet" )
 # shellcheck disable=SC2034
 SATSUMA_NETWORKS=( "polygon-mainnet" "xdai-mainnet" "eth-mainnet" "eth-sepolia" "optimism-mainnet" "base-mainnet")
 # shellcheck disable=SC2034
@@ -77,15 +77,14 @@ deploy_to_graph() {
     )
 
     local graphNetwork="${legacyNetworkNames[$network]:-$network}"
-    local subgraphName="superfluid-finance/protocol-$DEPLOYMENT_ENV-$graphNetwork"
+    local subgraphName="protocol-$DEPLOYMENT_ENV-$graphNetwork"
 
     echo "********* Deploying $network subgraph $subgraphName to The Graph (hosted service). **********"
+
     $GRAPH_CLI deploy \
-        --product hosted-service \
-        "$subgraphName" \
-        --node https://api.thegraph.com/deploy/ \
-        --ipfs https://api.thegraph.com/ipfs \
-        --deploy-key "$THE_GRAPH_ACCESS_TOKEN"
+        --studio "$subgraphName" \
+        --deploy-key "$THE_GRAPH_ACCESS_TOKEN" \
+        --version-label "$VERSION_LABEL"
 }
 
 deploy_to_satsuma() {

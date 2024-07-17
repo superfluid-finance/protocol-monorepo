@@ -92,8 +92,27 @@ module.exports = eval(`(${S.toString()})()`)(async function (
 
     console.log("SuperToken logic to update to:", newSuperTokenLogic);
 
+    const pastSuperTokenLogics = (await sf.subgraphQuery(`{
+        superTokenLogicCreatedEvents {
+            name
+            tokenLogic
+        }
+    }`)).superTokenLogicCreatedEvents.map((i) => i.tokenLogic);
+
+    const extraPastSuperTokenLogics = (process.env.EXTRA_PAST_SUPER_TOKEN_LOGICS || "").split(",")
+        .map((i) => i.trim())
+        .filter((i) => i !== "");
+
+    // workaround for the subgraph query not returning all past canonical super token logics
+    if (canonicalSuperTokenLogic !== newSuperTokenLogic) {
+        pastSuperTokenLogics.push(canonicalSuperTokenLogic);
+    }
+
+    console.log(`Extra past SuperToken logic contracts: ${JSON.stringify(extraPastSuperTokenLogics, null, 2)}`);
+    pastSuperTokenLogics.push(...extraPastSuperTokenLogics);
+
     let tokensToBeUpgraded = (args.length === 1 && args[0] === "ALL") ?
-        await getTokensToBeUpgraded(sf, newSuperTokenLogic, skipTokens) :
+        await getTokensToBeUpgraded(sf, newSuperTokenLogic, skipTokens, pastSuperTokenLogics) :
         Array.from(args);
 
     console.log(`${tokensToBeUpgraded.length} tokens to be upgraded`);
@@ -161,24 +180,9 @@ async function getCanonicalSuperTokenLogic(sf) {
 // - not being a proxy or not having a logic address
 // - already pointing to the latest logic
 // - in the skip list (e.g. because not managed by SF gov)
-async function getTokensToBeUpgraded(sf, newSuperTokenLogic, skipList) {
+async function getTokensToBeUpgraded(sf, newSuperTokenLogic, skipList, pastSuperTokenLogics) {
     const maxItems = parseInt(process.env.MAX_ITEMS) || 1000;
     const skipItems = parseInt(process.env.SKIP_ITEMS) || 0;
-
-    const pastSuperTokenLogics = (await sf.subgraphQuery(`{
-        superTokenLogicCreatedEvents {
-            name
-            tokenLogic
-        }
-    }`)).superTokenLogicCreatedEvents.map((i) => i.tokenLogic);
-
-    const extraPastSuperTokenLogics = (process.env.EXTRA_PAST_SUPER_TOKEN_LOGICS || "").split(",")
-        .map((i) => i.trim())
-        .filter((i) => i !== "");
-
-    console.log(`Extra past SuperToken logic contracts: ${JSON.stringify(extraPastSuperTokenLogics, null, 2)}`);
-    pastSuperTokenLogics.push(...extraPastSuperTokenLogics);
-
 
     console.log(`Past SuperToken logic contracts we take into account: ${JSON.stringify(pastSuperTokenLogics, null, 2)}`);
 

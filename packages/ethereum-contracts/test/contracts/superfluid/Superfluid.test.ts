@@ -407,10 +407,6 @@ describe("Superfluid Host Contract", function () {
             it("#3.2 update super token factory", async () => {
                 const factory = await superfluid.getSuperTokenFactory();
                 const {
-                    constantOutflowNFTProxy,
-                    constantInflowNFTProxy,
-                    cofNFTLogicAddress,
-                    cifNFTLogicAddress,
                     poolAdminNFTProxy,
                     poolMemberNFTProxy,
                     paNFTLogicAddress,
@@ -419,8 +415,8 @@ describe("Superfluid Host Contract", function () {
                 const superTokenLogic = await t.deployContract<SuperToken>(
                     "SuperToken",
                     superfluid.address,
-                    constantOutflowNFTProxy.address,
-                    constantInflowNFTProxy.address,
+                    t.constants.ZERO_ADDRESS,
+                    t.constants.ZERO_ADDRESS,
                     poolAdminNFTProxy.address,
                     poolMemberNFTProxy.address
                 );
@@ -429,8 +425,8 @@ describe("Superfluid Host Contract", function () {
                 const factory2Logic = await factory2LogicFactory.deploy(
                     superfluid.address,
                     superTokenLogic.address,
-                    cofNFTLogicAddress,
-                    cifNFTLogicAddress,
+                    t.constants.ZERO_ADDRESS,
+                    t.constants.ZERO_ADDRESS,
                     paNFTLogicAddress,
                     pmNFTLogicAddress
                 );
@@ -456,10 +452,6 @@ describe("Superfluid Host Contract", function () {
             it("#3.3 update super token factory double check if new code is called", async () => {
                 const factory = await superfluid.getSuperTokenFactory();
                 const {
-                    constantOutflowNFTProxy,
-                    constantInflowNFTProxy,
-                    cofNFTLogicAddress,
-                    cifNFTLogicAddress,
                     poolAdminNFTProxy,
                     poolMemberNFTProxy,
                     paNFTLogicAddress,
@@ -468,8 +460,8 @@ describe("Superfluid Host Contract", function () {
                 const superTokenLogic = await t.deployContract<SuperToken>(
                     "SuperToken",
                     superfluid.address,
-                    constantOutflowNFTProxy.address,
-                    constantInflowNFTProxy.address,
+                    t.constants.ZERO_ADDRESS,
+                    t.constants.ZERO_ADDRESS,
                     poolAdminNFTProxy.address,
                     poolMemberNFTProxy.address
                 );
@@ -479,8 +471,8 @@ describe("Superfluid Host Contract", function () {
                 const factory2Logic = await factory2LogicFactory.deploy(
                     superfluid.address,
                     superTokenLogic.address,
-                    cofNFTLogicAddress,
-                    cifNFTLogicAddress,
+                    t.constants.ZERO_ADDRESS,
+                    t.constants.ZERO_ADDRESS,
                     paNFTLogicAddress,
                     pmNFTLogicAddress
                 );
@@ -2659,10 +2651,6 @@ describe("Superfluid Host Contract", function () {
                     await superfluid.getSuperTokenFactoryLogic()
                 );
                 const {
-                    constantOutflowNFTProxy,
-                    constantInflowNFTProxy,
-                    cofNFTLogicAddress,
-                    cifNFTLogicAddress,
                     poolAdminNFTProxy,
                     poolMemberNFTProxy,
                     paNFTLogicAddress,
@@ -2671,8 +2659,8 @@ describe("Superfluid Host Contract", function () {
                 const superTokenLogic = await t.deployContract<SuperToken>(
                     "SuperToken",
                     superfluid.address,
-                    constantOutflowNFTProxy.address,
-                    constantInflowNFTProxy.address,
+                    t.constants.ZERO_ADDRESS,
+                    t.constants.ZERO_ADDRESS,
                     poolAdminNFTProxy.address,
                     poolMemberNFTProxy.address
                 );
@@ -2680,8 +2668,8 @@ describe("Superfluid Host Contract", function () {
                     "SuperTokenFactory",
                     superfluid.address,
                     superTokenLogic.address,
-                    cofNFTLogicAddress,
-                    cifNFTLogicAddress,
+                    t.constants.ZERO_ADDRESS,
+                    t.constants.ZERO_ADDRESS,
                     paNFTLogicAddress,
                     pmNFTLogicAddress
                 );

@@ -6,6 +6,7 @@ import {
     ISuperfluidGovernance,
     ISuperApp,
     ISuperfluidToken,
+    IConstantFlowAgreementV1,
     FlowOperatorDefinitions,
     SuperAppDefinitions,
     ContextDefinitions,

@@ -5,14 +5,11 @@ import {
     ISuperfluid,
     ISuperfluidGovernance,
     ISuperApp,
-    ISuperToken,
     ISuperfluidToken,
-    IConstantFlowAgreementV1,
     FlowOperatorDefinitions,
     SuperAppDefinitions,
     ContextDefinitions,
-    SuperfluidGovernanceConfigs,
-    IConstantOutflowNFT
+    SuperfluidGovernanceConfigs
 } from "../interfaces/superfluid/ISuperfluid.sol";
 import { AgreementBase } from "./AgreementBase.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";

@@ -1091,10 +1091,10 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                     await superTokenLogic.CONSTANT_OUTFLOW_NFT.call();
                 cifNFTProxyAddress =
                     await superTokenLogic.CONSTANT_INFLOW_NFT.call();
-                cofNFTLogicAddress = await (
+                cofNFTLogicAddress = cofNFTProxyAddress === ZERO_ADDRESS ? ZERO_ADDRESS : await (
                     await UUPSProxiable.at(cofNFTProxyAddress)
                 ).getCodeAddress();
-                cifNFTLogicAddress = await (
+                cifNFTLogicAddress = cofNFTProxyAddress === ZERO_ADDRESS ? ZERO_ADDRESS : await (
                     await UUPSProxiable.at(cifNFTProxyAddress)
                 ).getCodeAddress();
 

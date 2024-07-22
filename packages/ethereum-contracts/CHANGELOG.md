@@ -3,6 +3,12 @@ All notable changes to the ethereum-contracts will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Breaking
+
+- FlowNFT are being deprecated. The hooks aren't invoked anymore by CFA and GDA.
+
 ## [v1.10.0]
 
 ### Breaking

@@ -167,7 +167,7 @@ Thanks goes to these wonderful people ([🐸](https://allcontributors.org/docs/e
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
-<!-- markdownlint-disable -->
+<!-- markdownlint-disable --> 
 <table>
   <tbody>
     <tr>

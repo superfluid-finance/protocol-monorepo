@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.23;
+pragma solidity ^0.8.23;
 
 import "forge-std/Test.sol";
 import { IBeacon } from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
@@ -277,7 +277,7 @@ contract GeneralDistributionAgreementV1Properties is GeneralDistributionAgreemen
         int256 settledValue,
         uint96 totalBuffer,
         bool isPool_
-    ) public {
+    ) public pure {
         BasicParticle memory particle = BasicParticle({
             _flow_rate: FlowRate.wrap(flowRate),
             _settled_at: Time.wrap(settledAt),
@@ -299,7 +299,7 @@ contract GeneralDistributionAgreementV1Properties is GeneralDistributionAgreemen
         int256 settledValue,
         uint96 totalBuffer,
         bool isPool_
-    ) public {
+    ) public pure {
         UniversalIndexData memory data = UniversalIndexData({
             flowRate: flowRate,
             settledAt: settledAt,
@@ -318,14 +318,14 @@ contract GeneralDistributionAgreementV1Properties is GeneralDistributionAgreemen
         assertEq(isPool_, decoded.isPool, "isPool not equal");
     }
 
-    function testGetBasicParticleFromUIndex(UniversalIndexData memory data) public {
+    function testGetBasicParticleFromUIndex(UniversalIndexData memory data) public pure {
         BasicParticle memory particle = _getBasicParticleFromUIndex(data);
         assertEq(data.flowRate, int96(FlowRate.unwrap(particle._flow_rate)), "flowRate not equal");
         assertEq(data.settledAt, Time.unwrap(particle._settled_at), "settledAt not equal");
         assertEq(data.settledValue, Value.unwrap(particle._settled_value), "settledValue not equal");
     }
 
-    function testEncodeDecodeFlowDistributionData(int96 flowRate, uint96 buffer) public {
+    function testEncodeDecodeFlowDistributionData(int96 flowRate, uint96 buffer) public view {
         vm.assume(flowRate >= 0);
         vm.assume(buffer >= 0);
         FlowDistributionData memory original =
@@ -338,7 +338,7 @@ contract GeneralDistributionAgreementV1Properties is GeneralDistributionAgreemen
         assertEq(original.lastUpdated, decoded.lastUpdated, "lastUpdated not equal");
     }
 
-    function testEncodeDecodePoolMemberData(address pool, uint32 poolID) public {
+    function testEncodeDecodePoolMemberData(address pool, uint32 poolID) public pure {
         vm.assume(pool != address(0));
         PoolMemberData memory original = PoolMemberData({ pool: pool, poolID: poolID });
         bytes32[] memory encoded = _encodePoolMemberData(original);

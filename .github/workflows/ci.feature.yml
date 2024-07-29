@@ -18,6 +18,10 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        shell: nix develop . -c bash -xe {0}
+
     outputs:
       build_solidity_semantic_money: ${{ env.BUILD_SOLIDITY_SEMANTIC_MONEY }}
       build_ethereum_contracts: ${{ env.BUILD_ETHEREUM_CONTRACTS }}
@@ -28,6 +32,18 @@ jobs:
       build_automation_contracts: ${{ env.BUILD_AUTOMATION_CONTRACTS }}
 
     steps:
+      - uses: actions/checkout@v4
+
+      - uses: cachix/install-nix-action@v19
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Initialize devShell
+        run: |
+          node --version
+          shellcheck --version
+          actionlint --version
+
       - name: Show contexts
         env:
           HEAD_REF: ${{ github.head_ref }}
@@ -40,7 +56,8 @@ jobs:
           echo github.head_ref: "$HEAD_REF"
           echo github.base_ref: ${{ github.base_ref }}
 
-      - uses: actions/checkout@v4
+      - name: Run pre-commit check
+        run: npm run pre-commit
 
       - name: Check changeset
         run: tasks/check-changeset.sh ${{ github.sha }} dev

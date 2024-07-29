@@ -21,9 +21,6 @@ type _Block_ {
 
   """Integer representation of the timestamp stored in blocks for the chain"""
   timestamp: Int
-
-  """The hash of the parent block"""
-  parentHash: Bytes
 }
 
 """The type for the top-level _meta field"""
@@ -176,6 +173,8 @@ type AccountTokenSnapshot {
   
   """
   id: ID!
+  createdAtTimestamp: BigInt!
+  createdAtBlockNumber: BigInt!
   updatedAtTimestamp: BigInt!
   updatedAtBlockNumber: BigInt!
 
@@ -419,6 +418,22 @@ input AccountTokenSnapshot_filter {
   id_lte: ID
   id_in: [ID!]
   id_not_in: [ID!]
+  createdAtTimestamp: BigInt
+  createdAtTimestamp_not: BigInt
+  createdAtTimestamp_gt: BigInt
+  createdAtTimestamp_lt: BigInt
+  createdAtTimestamp_gte: BigInt
+  createdAtTimestamp_lte: BigInt
+  createdAtTimestamp_in: [BigInt!]
+  createdAtTimestamp_not_in: [BigInt!]
+  createdAtBlockNumber: BigInt
+  createdAtBlockNumber_not: BigInt
+  createdAtBlockNumber_gt: BigInt
+  createdAtBlockNumber_lt: BigInt
+  createdAtBlockNumber_gte: BigInt
+  createdAtBlockNumber_lte: BigInt
+  createdAtBlockNumber_in: [BigInt!]
+  createdAtBlockNumber_not_in: [BigInt!]
   updatedAtTimestamp: BigInt
   updatedAtTimestamp_not: BigInt
   updatedAtTimestamp_gt: BigInt
@@ -772,6 +787,8 @@ input AccountTokenSnapshot_filter {
 
 enum AccountTokenSnapshot_orderBy {
   id
+  createdAtTimestamp
+  createdAtBlockNumber
   updatedAtTimestamp
   updatedAtBlockNumber
   isLiquidationEstimateOptimistic
@@ -1546,6 +1563,8 @@ enum AccountTokenSnapshotLog_orderBy {
   token__underlyingAddress
   accountTokenSnapshot
   accountTokenSnapshot__id
+  accountTokenSnapshot__createdAtTimestamp
+  accountTokenSnapshot__createdAtBlockNumber
   accountTokenSnapshot__updatedAtTimestamp
   accountTokenSnapshot__updatedAtBlockNumber
   accountTokenSnapshot__isLiquidationEstimateOptimistic
@@ -1584,11 +1603,6 @@ enum AccountTokenSnapshotLog_orderBy {
   accountTokenSnapshot__totalAmountStreamedUntilUpdatedAt
   accountTokenSnapshot__totalCFAAmountStreamedUntilUpdatedAt
   accountTokenSnapshot__totalAmountTransferredUntilUpdatedAt
-}
-
-enum Aggregation_interval {
-  hour
-  day
 }
 
 type AgreementClassRegisteredEvent implements Event {
@@ -5371,6 +5385,8 @@ enum FlowOperator_orderBy {
   token__underlyingAddress
   accountTokenSnapshot
   accountTokenSnapshot__id
+  accountTokenSnapshot__createdAtTimestamp
+  accountTokenSnapshot__createdAtBlockNumber
   accountTokenSnapshot__updatedAtTimestamp
   accountTokenSnapshot__updatedAtBlockNumber
   accountTokenSnapshot__isLiquidationEstimateOptimistic
@@ -20346,6 +20362,11 @@ type Token {
   
   """
   underlyingToken: Token
+
+  """
+  If `governanceConfig.id` is the zero address, the token uses the default governance config.
+  
+  """
   governanceConfig: TokenGovernanceConfig
 }
 

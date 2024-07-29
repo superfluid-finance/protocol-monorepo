@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.23;
+pragma solidity ^0.8.23;
 
 // solhint-disable max-states-count
 // Notes: SuperToken is rich with states, disable this default rule here.
@@ -880,6 +880,20 @@ contract SuperToken is
         onlyHost
     {
         _downgrade(msg.sender, account, account, amount, "", "");
+    }
+
+    function operationUpgradeTo(address account, address to, uint256 amount)
+        external virtual override
+        onlyHost
+    {
+        _upgrade(msg.sender, account, to, amount, "", "");
+    }
+
+    function operationDowngradeTo(address account, address to, uint256 amount)
+        external virtual override
+        onlyHost
+    {
+        _downgrade(msg.sender, account, to, amount, "", "");
     }
 
     /**************************************************************************

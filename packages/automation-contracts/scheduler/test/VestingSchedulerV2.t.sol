@@ -1995,7 +1995,6 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         );
     }
 
-
     function test_executeCliffAndFlow_claimableScheduleWithCliffAmount_receiverClaim() public {
         uint256 aliceInitialBalance = superToken.balanceOf(alice);
         uint256 bobInitialBalance = superToken.balanceOf(bob);

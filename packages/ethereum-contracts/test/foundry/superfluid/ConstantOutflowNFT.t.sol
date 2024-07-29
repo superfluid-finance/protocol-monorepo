@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.23;
+pragma solidity ^0.8.23;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { IERC165, IERC721, IERC721Metadata } from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
@@ -11,13 +11,20 @@ import {
 import { ConstantInflowNFT } from "../../../contracts/superfluid/ConstantInflowNFT.sol";
 import { FoundrySuperfluidTester, SuperTokenV1Library } from "../FoundrySuperfluidTester.sol";
 import { IFlowNFTBase } from "../../../contracts/interfaces/superfluid/IFlowNFTBase.sol";
-import { FlowNFTBaseTest } from "./FlowNFTBase.t.sol";
-import { SuperToken, SuperTokenMock } from "../../../contracts/mocks/SuperTokenMock.sol";
-import { ConstantOutflowNFTMock } from "../../../contracts/mocks/CFAv1NFTMock.sol";
-import { NoNFTSuperTokenMock } from "../../../contracts/mocks/SuperTokenMock.sol";
 import { TestToken } from "../../../contracts/utils/TestToken.sol";
 import { SuperTokenV1Library } from "../../../contracts/apps/SuperTokenV1Library.sol";
 import { ISuperToken } from "../../../contracts/superfluid/SuperToken.sol";
+import { SuperToken, SuperTokenMock, NoNFTSuperTokenMock } from "../../../contracts/mocks/SuperTokenMock.t.sol";
+import { FlowNFTBaseTest } from "./FlowNFTBase.t.sol";
+import { ConstantOutflowNFTMock } from "./CFAv1NFTMock.t.sol";
+
+
+library StringExtra {
+    function concat(string memory a, string memory b) internal pure returns (string memory) {
+        return string(abi.encodePacked(a, b));
+    }
+}
+using StringExtra for string;
 
 contract ConstantOutflowNFTTest is FlowNFTBaseTest {
     using Strings for uint256;
@@ -104,14 +111,14 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
                                     Passing Tests
     //////////////////////////////////////////////////////////////////////////*/
 
-    function testProxiableUUIDIsExpectedValue() public {
+    function testProxiableUUIDIsExpectedValue() public view {
         assertEq(
             constantOutflowNFT.proxiableUUID(),
             keccak256("org.superfluid-finance.contracts.ConstantOutflowNFT.implementation")
         );
     }
 
-    function testConstantOutflowNFTIsProperlyInitialized() public {
+    function testConstantOutflowNFTIsProperlyInitialized() public view {
         assertEq(constantOutflowNFT.name(), OUTFLOW_NFT_NAME_TEMPLATE);
         assertEq(constantOutflowNFT.symbol(), OUTFLOW_NFT_SYMBOL_TEMPLATE);
     }
@@ -227,37 +234,42 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
         _assertNFTFlowDataStateIsEmpty(nftId);
     }
 
-    function testTokenURIIsExpected() public {
-        int96 flowRate = 42069;
+    function testTokenURIIsExpected(uint32 startDate, uint32 flowRate) public {
+        vm.assume(flowRate > 0);
         address flowSender = alice;
         address flowReceiver = bob;
-        _helperCreateFlowAndAssertNFTInvariants(flowSender, flowReceiver, flowRate);
 
-        uint256 nftId = _helperGetNFTID(address(superTokenMock), flowSender, flowReceiver);
+        vm.warp(startDate);
+        _helperCreateFlowAndAssertNFTInvariants(flowSender, flowReceiver, int96(int256(uint256(flowRate))));
 
-        assertEq(
-            constantOutflowNFT.tokenURI(nftId),
-            string(
-                abi.encodePacked(
-                    "https://nft.superfluid.finance/cfa/v2/getmeta?flowRate=",
-                    uint256(uint96(flowRate)).toString(),
-                    "&outgoing=true",
-                    "&token_address=",
-                    Strings.toHexString(uint256(uint160(address(superTokenMock))), 20),
-                    "&chain_id=",
-                    block.chainid.toString(),
-                    "&token_symbol=",
-                    superTokenMock.symbol(),
-                    "&sender=",
-                    Strings.toHexString(uint256(uint160(flowSender)), 20),
-                    "&receiver=",
-                    Strings.toHexString(uint256(uint160(flowReceiver)), 20),
-                    "&token_decimals=",
-                    uint256(superTokenMock.decimals()).toString(),
-                    "&start_date=1" // timestamp shifts 1
-                )
-            )
-        );
+        string memory tokenURI;
+        {
+            uint256 nftId = _helperGetNFTID(address(superTokenMock), flowSender, flowReceiver);
+            tokenURI = constantOutflowNFT.tokenURI(nftId);
+        }
+
+        string memory expectedTokenURI;
+        {
+            expectedTokenURI = string("https://nft.superfluid.finance/cfa/v2/getmeta?flowRate=")
+                    .concat(uint256(flowRate).toString());
+            expectedTokenURI = expectedTokenURI.concat("&outgoing=true");
+            expectedTokenURI = expectedTokenURI.concat("&token_address=")
+                     .concat(Strings.toHexString(uint256(uint160(address(superTokenMock))), 20));
+            expectedTokenURI = expectedTokenURI.concat("&chain_id=")
+                     .concat(block.chainid.toString());
+            expectedTokenURI = expectedTokenURI.concat("&token_symbol=")
+                    .concat(superTokenMock.symbol());
+            expectedTokenURI = expectedTokenURI.concat("&sender=")
+                     .concat(Strings.toHexString(uint256(uint160(flowSender)), 20));
+            expectedTokenURI = expectedTokenURI.concat("&receiver=")
+                     .concat(Strings.toHexString(uint256(uint160(flowReceiver)), 20));
+            expectedTokenURI = expectedTokenURI.concat("&token_decimals=")
+                     .concat(uint256(superTokenMock.decimals()).toString());
+            expectedTokenURI = expectedTokenURI.concat("&start_date=")
+                     .concat(uint256(startDate).toString());
+        }
+
+        assertEq(tokenURI, expectedTokenURI);
     }
 
     function testCreateUpdateDeleteFlowNoNFTToken() public {

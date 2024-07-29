@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.23;
+pragma solidity ^0.8.23;
 
 import "forge-std/Test.sol";
 import "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
@@ -18,7 +18,9 @@ import {
 contract SuperfluidPoolProperties is SuperfluidPool, Test {
     constructor() SuperfluidPool(GeneralDistributionAgreementV1(address(0))) { }
 
-    function _helperAssertWrappedParticle(PoolIndexData memory poolIndexData, BasicParticle memory particle) internal {
+    function _helperAssertWrappedParticle(PoolIndexData memory poolIndexData, BasicParticle memory particle)
+        internal pure
+    {
         assertEq(
             FlowRate.unwrap(particle.flow_rate()),
             int128(poolIndexData.wrappedFlowRate),
@@ -36,7 +38,7 @@ contract SuperfluidPoolProperties is SuperfluidPool, Test {
         );
     }
 
-    function _helperAssertWrappedParticle(MemberData memory memberData, BasicParticle memory particle) internal {
+    function _helperAssertWrappedParticle(MemberData memory memberData, BasicParticle memory particle) internal pure {
         assertEq(
             FlowRate.unwrap(particle.flow_rate()),
             int128(memberData.syncedFlowRate),
@@ -54,12 +56,12 @@ contract SuperfluidPoolProperties is SuperfluidPool, Test {
         );
     }
 
-    function testPoolIndexDataToWrappedParticle(PoolIndexData memory data) public {
+    function testPoolIndexDataToWrappedParticle(PoolIndexData memory data) public pure {
         BasicParticle memory wrappedParticle = poolIndexDataToWrappedParticle(data);
         _helperAssertWrappedParticle(data, wrappedParticle);
     }
 
-    function testPoolIndexDataToPDPoolIndex(PoolIndexData memory data) public {
+    function testPoolIndexDataToPDPoolIndex(PoolIndexData memory data) public pure {
         vm.assume(data.totalUnits < uint128(type(int128).max));
 
         PDPoolIndex memory pdPoolIndex = poolIndexDataToPDPoolIndex(data);
@@ -74,7 +76,7 @@ contract SuperfluidPoolProperties is SuperfluidPool, Test {
         uint32 wrappedSettledAt,
         int96 wrappedFlowRate,
         int256 wrappedSettledValue
-    ) public {
+    ) public pure {
         vm.assume(totalUnits > 0);
         PDPoolIndex memory pdPoolIndex = PDPoolIndex(
             Unit.wrap(totalUnits),
@@ -89,7 +91,7 @@ contract SuperfluidPoolProperties is SuperfluidPool, Test {
         _helperAssertWrappedParticle(poolIndexData, pdPoolIndex._wrapped_particle);
     }
 
-    function testMemberDataToPDPoolMember(MemberData memory data) public {
+    function testMemberDataToPDPoolMember(MemberData memory data) public pure {
         vm.assume(data.ownedUnits < uint128(type(int128).max));
 
         PDPoolMember memory pdPoolMember = _memberDataToPDPoolMember(data);

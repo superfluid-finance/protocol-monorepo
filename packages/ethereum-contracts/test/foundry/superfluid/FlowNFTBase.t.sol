@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.23;
+pragma solidity ^0.8.23;
 
 import { IERC165, IERC721, IERC721Metadata } from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
@@ -15,16 +15,16 @@ import { ConstantInflowNFT, IConstantInflowNFT } from "../../../contracts/superf
 import { IPoolAdminNFT } from "../../../contracts/agreements/gdav1/PoolAdminNFT.sol";
 import { IPoolMemberNFT } from "../../../contracts/agreements/gdav1/PoolMemberNFT.sol";
 import { SuperTokenV1Library } from "../../../contracts/apps/SuperTokenV1Library.sol";
-import { FoundrySuperfluidTester } from "../FoundrySuperfluidTester.sol";
-import { ConstantOutflowNFTMock, ConstantInflowNFTMock } from "../../../contracts/mocks/CFAv1NFTMock.sol";
-import { SuperToken, SuperTokenMock } from "../../../contracts/mocks/SuperTokenMock.sol";
-import { FlowNFTBaseMock } from "../../../contracts/mocks/CFAv1NFTMock.sol";
+import { ConstantOutflowNFTMock, ConstantInflowNFTMock } from "./CFAv1NFTMock.t.sol";
+import { SuperToken, SuperTokenMock } from "../../../contracts/mocks/SuperTokenMock.t.sol";
 import { TestToken } from "../../../contracts/utils/TestToken.sol";
+import { FlowNFTBaseMock } from "./CFAv1NFTMock.t.sol";
+import { FoundrySuperfluidTester } from "../FoundrySuperfluidTester.sol";
 import {
     FlowNFTBaseStorageLayoutMock,
     ConstantInflowNFTStorageLayoutMock,
     ConstantOutflowNFTStorageLayoutMock
-} from "../../../contracts/mocks/CFAv1NFTUpgradabilityMock.sol";
+} from "./CFAv1NFTUpgradabilityMock.t.sol";
 import { ERC721IntegrationTest } from "./ERC721.t.sol";
 
 abstract contract FlowNFTBaseTest is ERC721IntegrationTest {
@@ -196,29 +196,29 @@ abstract contract FlowNFTBaseTest is ERC721IntegrationTest {
     /*//////////////////////////////////////////////////////////////////////////
                                     Passing Tests
     //////////////////////////////////////////////////////////////////////////*/
-    function testContractSupportsExpectedInterfaces() public {
+    function testContractSupportsExpectedInterfaces() public view {
         assertEq(flowNFTBaseMock.supportsInterface(type(IERC165).interfaceId), true);
         assertEq(flowNFTBaseMock.supportsInterface(type(IERC721).interfaceId), true);
         assertEq(flowNFTBaseMock.supportsInterface(type(IERC721Metadata).interfaceId), true);
     }
 
-    function testNFTBalanceOfIsAlwaysOne(address _owner) public {
+    function testNFTBalanceOfIsAlwaysOne(address _owner) public view {
         assertEq(flowNFTBaseMock.balanceOf(_owner), 1);
     }
 
-    function testHostIsProperlySetInConstructor() public {
+    function testHostIsProperlySetInConstructor() public view {
         assertEq(address(flowNFTBaseMock.HOST()), address(sf.host));
     }
 
-    function testCFAv1IsProperlySetInConstructor() public {
+    function testCFAv1IsProperlySetInConstructor() public view {
         assertEq(address(flowNFTBaseMock.CONSTANT_FLOW_AGREEMENT_V1()), address(sf.cfa));
     }
 
-    function testGDAv1IsProperlySetInConstructor() public {
+    function testGDAv1IsProperlySetInConstructor() public view {
         assertEq(address(flowNFTBaseMock.GENERAL_DISTRIBUTION_AGREEMENT_V1()), address(sf.gda));
     }
 
-    function testNFTMetadataIsProperlyInitialized() public {
+    function testNFTMetadataIsProperlyInitialized() public view {
         assertEq(flowNFTBaseMock.name(), NAME);
         assertEq(flowNFTBaseMock.symbol(), SYMBOL);
     }
@@ -228,7 +228,7 @@ abstract contract FlowNFTBaseTest is ERC721IntegrationTest {
         flowNFTBaseMock.triggerMetadataUpdate(tokenId);
     }
 
-    function testTokenURI(uint256 tokenId) public {
+    function testTokenURI(uint256 tokenId) public view {
         assertEq(flowNFTBaseMock.tokenURI(tokenId), string(abi.encodePacked("tokenId=", tokenId.toString())));
     }
 
@@ -261,7 +261,7 @@ abstract contract FlowNFTBaseTest is ERC721IntegrationTest {
         address _expectedFlowSender,
         uint32 _expectedFlowStartDate,
         address _expectedFlowReceiver
-    ) public {
+    ) public view {
         FlowNFTBase.FlowNFTData memory flowData = constantOutflowNFT.flowDataByTokenId(_tokenId);
 
         assertEq(flowData.superToken, _expectedSuperToken);
@@ -286,7 +286,7 @@ abstract contract FlowNFTBaseTest is ERC721IntegrationTest {
         );
     }
 
-    function _assertNFTFlowDataStateIsEmpty(uint256 _tokenId) public {
+    function _assertNFTFlowDataStateIsEmpty(uint256 _tokenId) public view {
         _assertNFTFlowDataStateIsExpected(_tokenId, address(0), address(0), 0, address(0));
     }
 

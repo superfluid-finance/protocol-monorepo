@@ -48,17 +48,16 @@
         "generate:graphql-types": "graphql-codegen --config subgraph-codegen.yml",
         "generate-graphql-schema": "yarn generate-graphql-schema:v1",
         "generate-graphql-schema:local": "get-graphql-schema http://localhost:8000/subgraphs/name/superfluid-test > src/subgraph/schema.graphql",
-        "generate-graphql-schema:v1": "get-graphql-schema https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-optimism-sepolia > src/subgraph/schema.graphql",
-        "generate-graphql-schema:dev": "get-graphql-schema https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-optimism-sepolia > src/subgraph/schema.graphql",
-        "generate-graphql-schema:feature": "get-graphql-schema https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-feature-matic > src/subgraph/schema.graphql",
+        "generate-graphql-schema:v1": "get-graphql-schema https://subgraph-endpoints.superfluid.dev/optimism-mainnet/protocol-v1 > src/subgraph/schema.graphql",
+        "generate-graphql-schema:dev": "get-graphql-schema https://subgraph-endpoints.superfluid.dev/optimism-sepolia/protocol-v1 > src/subgraph/schema.graphql",
         "cloc": "sh tasks/cloc.sh"
     },
     "bugs": {
         "url": "https://github.com/superfluid-finance/protocol-monorepo/issues"
     },
     "dependencies": {
-        "@superfluid-finance/ethereum-contracts": "^1.9.1",
-        "@superfluid-finance/metadata": "^1.2.6",
+        "@superfluid-finance/ethereum-contracts": "^1.10.0",
+        "@superfluid-finance/metadata": "^1.3.1",
         "browserify": "^17.0.0",
         "graphql-request": "^6.1.0",
         "lodash": "^4.17.21",

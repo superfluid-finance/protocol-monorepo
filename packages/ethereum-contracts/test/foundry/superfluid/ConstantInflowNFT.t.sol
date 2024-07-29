@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.23;
+pragma solidity ^0.8.23;
 
 import { IERC165, IERC721, IERC721Metadata } from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import { ConstantOutflowNFT } from "../../../contracts/superfluid/ConstantOutflowNFT.sol";
@@ -40,14 +40,14 @@ contract ConstantInflowNFTTest is FlowNFTBaseTest {
                                     Passing Tests
     //////////////////////////////////////////////////////////////////////////*/
 
-    function testProxiableUUIDIsExpectedValue() public {
+    function testProxiableUUIDIsExpectedValue() public view {
         assertEq(
             constantInflowNFT.proxiableUUID(),
             keccak256("org.superfluid-finance.contracts.ConstantInflowNFT.implementation")
         );
     }
 
-    function testConstantInflowNFTIsProperlyInitialized() public {
+    function testConstantInflowNFTIsProperlyInitialized() public view {
         assertEq(constantInflowNFT.name(), INFLOW_NFT_NAME_TEMPLATE);
         assertEq(constantInflowNFT.symbol(), INFLOW_NFT_SYMBOL_TEMPLATE);
     }

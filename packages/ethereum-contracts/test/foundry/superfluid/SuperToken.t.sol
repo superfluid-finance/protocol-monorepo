@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.23;
+pragma solidity ^0.8.23;
 
 import { Test } from "forge-std/Test.sol";
 import { UUPSProxy } from "../../../contracts/upgradability/UUPSProxy.sol";
@@ -20,7 +20,7 @@ contract SuperTokenIntegrationTest is FoundrySuperfluidTester {
         super.setUp();
     }
 
-    function testUnderlyingTokenDecimals() public {
+    function testUnderlyingTokenDecimals() public view {
         assertEq(token.decimals(), superToken.getUnderlyingDecimals());
     }
 

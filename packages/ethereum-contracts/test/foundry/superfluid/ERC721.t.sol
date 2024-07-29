@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.23;
+pragma solidity ^0.8.23;
 
 import { IERC721Metadata } from "@openzeppelin/contracts/interfaces/IERC721Metadata.sol";
 import { FoundrySuperfluidTester } from "../FoundrySuperfluidTester.sol";
-import { ConstantOutflowNFTMock, ConstantInflowNFTMock } from "../../../contracts/mocks/CFAv1NFTMock.sol";
-import { PoolAdminNFTMock, PoolMemberNFTMock } from "../../../contracts/mocks/PoolNFTMock.sol";
+import { ConstantOutflowNFTMock, ConstantInflowNFTMock } from "./CFAv1NFTMock.t.sol";
+import { PoolAdminNFTMock, PoolMemberNFTMock } from "./PoolNFTMock.t.sol";
 import { ConstantOutflowNFT, IConstantOutflowNFT } from "../../../contracts/superfluid/ConstantOutflowNFT.sol";
 import { ConstantInflowNFT, IConstantInflowNFT } from "../../../contracts/superfluid/ConstantInflowNFT.sol";
 import { TestToken } from "../../../contracts/utils/TestToken.sol";
@@ -12,7 +12,7 @@ import { PoolAdminNFT, IPoolAdminNFT } from "../../../contracts/agreements/gdav1
 import { PoolMemberNFT, IPoolMemberNFT } from "../../../contracts/agreements/gdav1/PoolMemberNFT.sol";
 import { UUPSProxy } from "../../../contracts/upgradability/UUPSProxy.sol";
 import { UUPSProxiable } from "../../../contracts/upgradability/UUPSProxiable.sol";
-import { SuperToken, SuperTokenMock } from "../../../contracts/mocks/SuperTokenMock.sol";
+import { SuperToken, SuperTokenMock } from "../../../contracts/mocks/SuperTokenMock.t.sol";
 
 contract ERC721IntegrationTest is FoundrySuperfluidTester {
     string internal constant POOL_MEMBER_NFT_NAME_TEMPLATE = "Pool Member NFT";
@@ -201,8 +201,8 @@ contract ERC721IntegrationTest is FoundrySuperfluidTester {
         IERC721Metadata _nftContract,
         uint256 _tokenId,
         address _expectedOwner,
-        string memory _message
-    ) public {
+        string memory _message) public view
+    {
         // we use mockOwnerOf to overcome the CFA_NFT_INVALID_TOKEN_ID error
         address owner = PoolAdminNFTMock(address(_nftContract)).mockOwnerOf(_tokenId);
 
@@ -210,7 +210,7 @@ contract ERC721IntegrationTest is FoundrySuperfluidTester {
     }
 
     function _assertApprovalIsExpected(IERC721Metadata _nftContract, uint256 _tokenId, address _expectedApproved)
-        public
+        public view
     {
         address approved = _nftContract.getApproved(_tokenId);
 
@@ -222,7 +222,7 @@ contract ERC721IntegrationTest is FoundrySuperfluidTester {
         address _expectedOwner,
         address _expectedOperator,
         bool _expectedOperatorApproval
-    ) public {
+    ) public view {
         bool operatorApproval = _nftContract.isApprovedForAll(_expectedOwner, _expectedOperator);
 
         assertEq(operatorApproval, _expectedOperatorApproval);

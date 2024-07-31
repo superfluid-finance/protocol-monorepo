@@ -4,11 +4,11 @@ pragma solidity ^0.8.23;
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import {
-    ISuperfluid, IERC20, IConstantInflowNFT, IConstantOutflowNFT, IPoolAdminNFT, IPoolMemberNFT
+    ISuperfluid, IERC20, IPoolAdminNFT, IPoolMemberNFT
 } from "../interfaces/superfluid/ISuperfluid.sol";
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 import { ERC777Helper } from "../libs/ERC777Helper.sol";
-import { SuperToken } from "../superfluid/SuperToken.sol";
+import { SuperToken, IConstantOutflowNFT, IConstantInflowNFT } from "../superfluid/SuperToken.sol";
 import { SuperfluidToken } from "../superfluid/SuperfluidToken.sol";
 
 contract SuperTokenStorageLayoutTester is SuperToken {

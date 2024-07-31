@@ -876,8 +876,6 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         if (cfaNewLogicAddress !== ZERO_ADDRESS) {
             agreementsToUpdate.push(cfaNewLogicAddress);
         }
-        /*
-        // !!! IDA being deprecated, block upgrading due to compiler update
         // deploy new IDA logic
         const idaNewLogicAddress = await deployContractIfCodeChanged(
             web3,
@@ -893,7 +891,6 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         if (idaNewLogicAddress !== ZERO_ADDRESS) {
             agreementsToUpdate.push(idaNewLogicAddress);
         }
-        */
         // deploy new GDA logic
         const gdaProxyAddr = await superfluid.getAgreementClass.call(GDAv1_TYPE);
         const gdaLogicAddr = await (await UUPSProxiable.at(gdaProxyAddr)).getCodeAddress();

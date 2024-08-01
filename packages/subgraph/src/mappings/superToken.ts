@@ -457,7 +457,6 @@ export function handleApproval(event: Approval): void {
     initializeEventEntity(ev, event, [event.address, event.params.owner, event.params.spender]);
     ev.owner = event.params.owner.toHex();
     ev.to = event.params.spender.toHex();
-    ev.tokenId = BIG_INT_ZERO;
     ev.amount = event.params.value;
 
     ev.save();

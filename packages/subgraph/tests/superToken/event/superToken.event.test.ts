@@ -359,7 +359,6 @@ describe("SuperToken Mapper Unit Tests", () => {
             assert.fieldEquals("ApprovalEvent", id, "owner", owner);
             assert.fieldEquals("ApprovalEvent", id, "to", spender);
             assert.fieldEquals("ApprovalEvent", id, "amount", value.toString());
-            assert.fieldEquals("ApprovalEvent", id, "tokenId", "0");
         });
 
         test("handleTransfer() - Should create a new TransferEvent entity", () => {

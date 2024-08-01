@@ -68,7 +68,6 @@ export type OtherEvents =
     | DistributionClaimedEvent
     | MemberUnitsUpdatedEvent
     | ApprovalEvent
-    | ApprovalForAllEvent
     | MetadataUpdateEvent
     | UnknownEvent;
 
@@ -468,9 +467,6 @@ export interface MemberUnitsUpdatedEvent extends EventBase {
 }
 export interface ApprovalEvent extends EventBase {
     name: "ApprovalEvent";
-}
-export interface ApprovalForAllEvent extends EventBase {
-    name: "ApprovalForAllEvent";
 }
 export interface MetadataUpdateEvent extends EventBase {
     name: "MetadataUpdateEvent";

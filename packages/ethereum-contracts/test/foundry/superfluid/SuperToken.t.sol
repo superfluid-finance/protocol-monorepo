@@ -68,34 +68,6 @@ contract SuperTokenIntegrationTest is FoundrySuperfluidTester {
         );
     }
 
-    function testRevertSuperTokenUpdateCodeWrongNFTProxies() public {
-        UUPSProxy paProxy = new UUPSProxy();
-        UUPSProxy pmProxy = new UUPSProxy();
-
-        PoolAdminNFT paNFTLogic = new PoolAdminNFT(sf.host, sf.gda);
-        PoolMemberNFT pmNFTLogic = new PoolMemberNFT(sf.host, sf.gda);
-        paNFTLogic.castrate();
-        pmNFTLogic.castrate();
-
-        paProxy.initializeProxy(address(paNFTLogic));
-        pmProxy.initializeProxy(address(pmNFTLogic));
-
-        PoolAdminNFT(address(paProxy)).initialize("Pool Admin NFT", "PA");
-        PoolMemberNFT(address(pmProxy)).initialize("Pool Member NFT", "PM");
-
-        // all nft proxies incorrect
-        SuperToken superTokenLogic = new SuperToken(
-            sf.host,
-            IConstantOutflowNFT(address(0)),
-            IConstantInflowNFT(address(0)),
-            PoolAdminNFT(address(paProxy)),
-            PoolMemberNFT(address(pmProxy))
-        );
-        vm.prank(address(sf.host));
-        vm.expectRevert(ISuperToken.SUPER_TOKEN_NFT_PROXY_ADDRESS_CHANGED.selector);
-        UUPSProxiable(address(superToken)).updateCode(address(superTokenLogic));
-    }
-
     function testInitializeSuperTokenWithAndWithoutAdmin(address _admin) public {
         (, ISuperToken localSuperToken) =
             sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max, _admin);

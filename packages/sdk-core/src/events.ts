@@ -183,7 +183,6 @@ export interface TransferEvent extends EventBase {
     to: string;
     value: string;
     token: string;
-    isNFTTransfer: boolean;
 }
 
 export interface AgreementClassRegisteredEvent extends EventBase {
@@ -469,7 +468,6 @@ export interface MemberUnitsUpdatedEvent extends EventBase {
 }
 export interface ApprovalEvent extends EventBase {
     name: "ApprovalEvent";
-    isNFTApproval: boolean;
 }
 export interface ApprovalForAllEvent extends EventBase {
     name: "ApprovalForAllEvent";

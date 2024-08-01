@@ -917,8 +917,6 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
 
     const factoryAddress = await superfluid.getSuperTokenFactory.call();
 
-    let constantOutflowNFTLogicChanged = false;
-    let constantInflowNFTLogicChanged = false;
     let poolAdminNFTLogicChanged = false;
     let poolMemberNFTLogicChanged = false;
 
@@ -947,7 +945,6 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             const superTokenLogicAddress = await factory.getSuperTokenLogic.call();
             const superTokenLogic = await SuperTokenLogic.at(superTokenLogicAddress);
 
-            const cfaPAddr = await superfluid.getAgreementClass.call(CFAv1_TYPE);
             const gdaPAddr = await superfluid.getAgreementClass.call(GDAv1_TYPE);
 
             const cofNFTPAddr = await superTokenLogic.CONSTANT_OUTFLOW_NFT();
@@ -959,25 +956,11 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             if (cofNFTPAddr !== ZERO_ADDRESS) {
                 const cofNFTContract = await ConstantOutflowNFT.at(cofNFTPAddr);
                 cofNFTLAddr = await cofNFTContract.getCodeAddress();
-                constantOutflowNFTLogicChanged = await codeChanged(
-                    web3,
-                    ConstantOutflowNFT,
-                    cofNFTLAddr,
-                    [superfluidConstructorParam, ap(cifNFTPAddr), ap(cfaPAddr), ap(gdaPAddr)]
-                );
-                console.log("   constantOutflowNFTLogicChanged:", constantOutflowNFTLogicChanged);
             }
 
             if (cifNFTPAddr !== ZERO_ADDRESS) {
                 const cifNFTContract = await ConstantInflowNFT.at(cifNFTPAddr);
                 cifNFTLAddr = await cifNFTContract.getCodeAddress();
-                constantInflowNFTLogicChanged = await codeChanged(
-                    web3,
-                    ConstantInflowNFT,
-                    cifNFTLAddr,
-                    [superfluidConstructorParam, ap(cofNFTPAddr), ap(cfaPAddr), ap(gdaPAddr)]
-                );
-                console.log("   constantInflowNFTLogicChanged:", constantInflowNFTLogicChanged);
             }
 
             // TODO: remove from try block once all networks have a PoolNFT aware supertoken logic deployed
@@ -1033,12 +1016,9 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 return (
                     // check if super token factory logic has changed
                     // or super token logic has changed
-                    // or constant outflow nft logic has changed
-                    // or constant inflow nft logic has changed
+                    // or pool nft logic has changed
                     superTokenFactoryCodeChanged ||
                     superTokenLogicCodeChanged ||
-                    constantOutflowNFTLogicChanged ||
-                    constantInflowNFTLogicChanged ||
                     poolAdminNFTLogicChanged ||
                     poolMemberNFTLogicChanged
                 );

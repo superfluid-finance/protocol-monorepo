@@ -359,7 +359,6 @@ describe("SuperToken Mapper Unit Tests", () => {
             assert.fieldEquals("ApprovalEvent", id, "owner", owner);
             assert.fieldEquals("ApprovalEvent", id, "to", spender);
             assert.fieldEquals("ApprovalEvent", id, "amount", value.toString());
-            assert.fieldEquals("ApprovalEvent", id, "isNFTApproval", FALSE);
             assert.fieldEquals("ApprovalEvent", id, "tokenId", "0");
         });
 
@@ -506,21 +505,21 @@ describe("SuperToken Mapper Unit Tests", () => {
                 "operatorData",
                 operatorData.toHexString()
             );
-        }); 
+        });
 
         test("TokenStatistic::totalNumberOfHolders should decrease its count when a user transfers tokens and the balance reaches 0.", () => {
             const from = alice;
             const to = bob;
             const value = BigInt.fromI32(100);
-    
+
             const transferEvent = createTransferEvent(
                 from,
                 to,
                 value
             );
-    
+
             handleTransfer(transferEvent);
-    
+
             const id = assertEventBaseProperties(
                 transferEvent,
                 "Transfer"
@@ -528,7 +527,7 @@ describe("SuperToken Mapper Unit Tests", () => {
             assert.fieldEquals("TransferEvent", id, "from", from);
             assert.fieldEquals("TransferEvent", id, "to", to);
             assert.fieldEquals("TransferEvent", id, "value", value.toString());
-    
+
             assertTokenStatisticProperties(
                 null,
                 null,
@@ -558,7 +557,7 @@ describe("SuperToken Mapper Unit Tests", () => {
                 BIG_INT_ZERO, // totalSupply = 0
                 2, // totalNumberOfAccounts,
                 2 // totalNumberOfHolders
-            ); 
+            );
 
 
             const secondTransferEvent = createTransferEvent(

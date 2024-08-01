@@ -397,13 +397,6 @@ query getAllEvents(
         ... on MemberUnitsUpdatedEvent {
             ...eventFields
         }
-        ... on ApprovalEvent {
-            isNFTApproval
-            ...eventFields
-        }
-        ... on ApprovalForAllEvent {
-            ...eventFields
-        }
         ... on MetadataUpdateEvent {
             ...eventFields
         }

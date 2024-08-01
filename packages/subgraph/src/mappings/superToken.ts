@@ -444,7 +444,6 @@ function _createTransferEventEntity(event: Transfer): void {
         event.params.from,
         event.params.to,
     ]);
-    ev.isNFTTransfer = false;
     ev.from = event.params.from.toHex();
     ev.to = event.params.to.toHex();
     ev.value = event.params.value;
@@ -460,7 +459,6 @@ export function handleApproval(event: Approval): void {
     ev.to = event.params.spender.toHex();
     ev.tokenId = BIG_INT_ZERO;
     ev.amount = event.params.value;
-    ev.isNFTApproval = false;
 
     ev.save();
 

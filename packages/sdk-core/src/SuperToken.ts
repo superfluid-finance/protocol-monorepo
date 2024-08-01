@@ -181,13 +181,10 @@ export default abstract class SuperToken extends ERC20Token {
             }
 
             if (underlyingTokenAddress !== ethers.constants.AddressZero) {
-                return new WrapperSuperToken(
-                    options,
-                    {
-                        ...settings,
-                        underlyingTokenAddress,
-                    }
-                );
+                return new WrapperSuperToken(options, {
+                    ...settings,
+                    underlyingTokenAddress,
+                });
             }
             return new PureSuperToken(options, settings);
         } catch (err) {
@@ -1090,10 +1087,7 @@ export class WrapperSuperToken extends SuperToken {
  * PureSuperToken doesn't have any underlying ERC20 token.
  */
 export class PureSuperToken extends SuperToken {
-    constructor(
-        options: ITokenOptions,
-        settings: ITokenSettings
-    ) {
+    constructor(options: ITokenOptions, settings: ITokenSettings) {
         super(options, settings);
     }
 }

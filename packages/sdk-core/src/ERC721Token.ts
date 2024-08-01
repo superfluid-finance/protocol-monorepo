@@ -14,10 +14,7 @@ import {
     ERC721TransferFromParams,
     ProviderOrSigner,
 } from "./interfaces";
-import {
-    IERC721Metadata,
-    IERC721Metadata__factory,
-} from "./typechain-types";
+import { IERC721Metadata, IERC721Metadata__factory } from "./typechain-types";
 import { normalizeAddress } from "./utils";
 
 export default class ERC721MetadataToken {

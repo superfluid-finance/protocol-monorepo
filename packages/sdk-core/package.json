@@ -46,10 +46,10 @@
         "generate": "run-s generate:*",
         "generate:ajv-validations": "ts-node scripts/ajv.ts",
         "generate:graphql-types": "graphql-codegen --config subgraph-codegen.yml",
-        "generate-graphql-schema": "yarn generate-graphql-schema:v1",
-        "generate-graphql-schema:local": "get-graphql-schema http://localhost:8000/subgraphs/name/superfluid-test > src/subgraph/schema.graphql",
-        "generate-graphql-schema:v1": "get-graphql-schema https://subgraph-endpoints.superfluid.dev/optimism-mainnet/protocol-v1 > src/subgraph/schema.graphql",
-        "generate-graphql-schema:dev": "get-graphql-schema https://subgraph-endpoints.superfluid.dev/optimism-sepolia/protocol-v1 > src/subgraph/schema.graphql",
+        "get-graphql-schema": "yarn get-graphql-schema:v1",
+        "get-graphql-schema:local": "get-graphql-schema http://localhost:8000/subgraphs/name/superfluid-test > src/subgraph/schema.graphql",
+        "get-graphql-schema:v1": "get-graphql-schema https://subgraph-endpoints.superfluid.dev/optimism-mainnet/protocol-v1 > src/subgraph/schema.graphql",
+        "get-graphql-schema:dev": "get-graphql-schema https://subgraph-endpoints.superfluid.dev/optimism-sepolia/protocol-v1 > src/subgraph/schema.graphql",
         "cloc": "sh tasks/cloc.sh"
     },
     "bugs": {

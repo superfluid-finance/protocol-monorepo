@@ -162,7 +162,6 @@ query getAllEvents(
             from {
                 id
             }
-            isNFTTransfer
         }
         ... on TokenUpgradedEvent {
             ...eventFields
@@ -395,6 +394,9 @@ query getAllEvents(
             ...eventFields
         }
         ... on MemberUnitsUpdatedEvent {
+            ...eventFields
+        }
+        ... on ApprovalEvent {
             ...eventFields
         }
         ... on MetadataUpdateEvent {

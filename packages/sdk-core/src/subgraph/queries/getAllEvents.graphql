@@ -399,9 +399,6 @@ query getAllEvents(
         ... on ApprovalEvent {
             ...eventFields
         }
-        ... on MetadataUpdateEvent {
-            ...eventFields
-        }
     }
 }
 

@@ -761,17 +761,6 @@ export const mapGetAllEventsQueryEvents = (
                     timestamp: Number(x.timestamp),
                     logIndex: Number(x.logIndex),
                 });
-            case "MetadataUpdateEvent":
-                return typeGuard<events.MetadataUpdateEvent>({
-                    name: "MetadataUpdateEvent",
-                    id: x.id,
-                    blockNumber: Number(x.blockNumber),
-                    transactionHash: x.transactionHash,
-                    gasPrice: x.gasPrice,
-                    order: Number(x.order),
-                    timestamp: Number(x.timestamp),
-                    logIndex: Number(x.logIndex),
-                });
             default:
                 // eslint-disable-next-line no-case-declarations
                 const eventBase = x as events.EventBase;

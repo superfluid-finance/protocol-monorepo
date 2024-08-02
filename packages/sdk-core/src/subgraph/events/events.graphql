@@ -1033,9 +1033,6 @@ query events(
         ... on ApprovalEvent {
             ...approvalEvent
         }
-        ... on MetadataUpdateEvent {
-            ...metadataUpdateEvent
-        }
     }
 }
 
@@ -1474,8 +1471,5 @@ fragment memberUnitsUpdatedEvent on MemberUnitsUpdatedEvent {
     ...eventFields
 }
 fragment approvalEvent on ApprovalEvent {
-    ...eventFields
-}
-fragment metadataUpdateEvent on MetadataUpdateEvent {
     ...eventFields
 }

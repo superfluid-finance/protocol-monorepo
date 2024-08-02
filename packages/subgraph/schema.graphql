@@ -1521,23 +1521,6 @@ type ApprovalEvent implements Event @entity(immutable: true) {
     amount: BigInt!
 }
 
-type MetadataUpdateEvent implements Event @entity(immutable: true) {
-    id: ID!
-    transactionHash: Bytes!
-    gasPrice: BigInt!
-    gasUsed: BigInt!
-    timestamp: BigInt!
-    name: String!
-
-    """
-    Empty addresses array.
-    """
-    addresses: [Bytes!]!
-    blockNumber: BigInt!
-    logIndex: BigInt!
-    order: BigInt!
-}
-
 #     SuperTokenFactory    #
 
 type CustomSuperTokenCreatedEvent implements Event @entity(immutable: true) {

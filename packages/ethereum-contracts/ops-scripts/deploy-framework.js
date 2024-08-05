@@ -954,12 +954,12 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             let cifNFTLAddr = ZERO_ADDRESS;
 
             if (cofNFTPAddr !== ZERO_ADDRESS) {
-                const cofNFTContract = await ConstantOutflowNFT.at(cofNFTPAddr);
+                const cofNFTContract = await UUPSProxiable.at(cofNFTPAddr);
                 cofNFTLAddr = await cofNFTContract.getCodeAddress();
             }
 
             if (cifNFTPAddr !== ZERO_ADDRESS) {
-                const cifNFTContract = await ConstantInflowNFT.at(cifNFTPAddr);
+                const cifNFTContract = await UUPSProxiable.at(cifNFTPAddr);
                 cifNFTLAddr = await cifNFTContract.getCodeAddress();
             }
 

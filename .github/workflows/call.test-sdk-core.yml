@@ -73,7 +73,7 @@ jobs:
       - name: "Docker compose"
         run: |
           docker rm subgraph_graph-node_1 || true
-          docker-compose up &
+          docker compose up &
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: "Build and deploy local subgraph"
@@ -86,7 +86,7 @@ jobs:
       - name: "Run test suite"
         if: inputs.run-coverage-tests == false
         run: |
-          yarn generate-graphql-schema:${{ inputs.subgraph-release }}
+          yarn get-graphql-schema:${{ inputs.subgraph-release }}
           ./tasks/setupTestEnvironment.sh
           npx hardhat test --network localhost
         working-directory: ${{ env.sdk-core-working-directory }}

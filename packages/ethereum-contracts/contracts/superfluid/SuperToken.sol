@@ -9,8 +9,6 @@ import {
     ISuperfluid,
     ISuperToken,
     IERC20,
-    IConstantOutflowNFT,
-    IConstantInflowNFT,
     IPoolAdminNFT,
     IPoolMemberNFT
 } from "../interfaces/superfluid/ISuperfluid.sol";
@@ -22,6 +20,12 @@ import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { IERC777Recipient } from "@openzeppelin/contracts/token/ERC777/IERC777Recipient.sol";
 import { IERC777Sender } from "@openzeppelin/contracts/token/ERC777/IERC777Sender.sol";
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
+
+// placeholder types needed as an intermediate step before complete removal of FlowNFTs
+// solhint-disable-next-line no-empty-blocks
+interface IConstantOutflowNFT {}
+// solhint-disable-next-line no-empty-blocks
+interface IConstantInflowNFT {}
 
 /**
  * @title Superfluid's super token implementation
@@ -117,11 +121,9 @@ contract SuperToken is
         // set the immutable canonical NFT proxy addresses
         CONSTANT_OUTFLOW_NFT = constantOutflowNFT;
         CONSTANT_INFLOW_NFT = constantInflowNFT;
+
         POOL_ADMIN_NFT = poolAdminNFT;
         POOL_MEMBER_NFT = poolMemberNFT;
-
-        emit ConstantOutflowNFTCreated(constantOutflowNFT);
-        emit ConstantInflowNFTCreated(constantInflowNFT);
 
         emit PoolAdminNFTCreated(poolAdminNFT);
         emit PoolMemberNFTCreated(poolMemberNFT);
@@ -177,18 +179,6 @@ contract SuperToken is
      */
     function updateCode(address newAddress) external virtual override onlyAdmin {
         UUPSProxiable._updateCodeAddress(newAddress);
-
-        // @note This is another check to ensure that when updating to a new SuperToken logic contract
-        // that we have passed the correct NFT proxy contracts in the construction of the new SuperToken
-        // logic contract
-        if (
-            CONSTANT_OUTFLOW_NFT !=
-            SuperToken(newAddress).CONSTANT_OUTFLOW_NFT() ||
-            CONSTANT_INFLOW_NFT !=
-            SuperToken(newAddress).CONSTANT_INFLOW_NFT()
-        ) {
-            revert SUPER_TOKEN_NFT_PROXY_ADDRESS_CHANGED();
-        }
     }
 
     function changeAdmin(address newAdmin) external override onlyAdmin {

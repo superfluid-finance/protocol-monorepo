@@ -102,7 +102,7 @@ jobs:
       - name: "Docker compose"
         run: |
           docker rm subgraph_graph-node_1 || true
-          docker-compose up &
+          docker compose up &
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: "Run subgraph integration test suite"

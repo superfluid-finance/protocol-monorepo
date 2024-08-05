@@ -10,7 +10,6 @@ const SuperfluidGDAv1DeployerLibraryArtifact = require("@superfluid-finance/ethe
 const SuperTokenDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/SuperTokenDeployerLibrary.json");
 const SuperfluidPeripheryDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/SuperfluidPeripheryDeployerLibrary.json");
 const SuperfluidPoolLogicDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/SuperfluidPoolLogicDeployerLibrary.json");
-const SuperfluidFlowNFTLogicDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/SuperfluidFlowNFTLogicDeployerLibrary.json");
 const SuperfluidPoolNFTLogicDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/SuperfluidPoolNFTLogicDeployerLibrary.json");
 const ProxyDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/ProxyDeployerLibrary.json");
 const CFAv1ForwarderDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/CFAv1ForwarderDeployerLibrary.json");
@@ -193,12 +192,6 @@ const _deployTestFramework = async (provider, signer) => {
             SuperfluidPoolLogicDeployerLibraryArtifact,
             signer
         );
-    const SuperfluidFlowNFTLogicDeployerLibrary =
-        await _getFactoryAndReturnDeployedContract(
-            "SuperfluidFlowNFTLogicDeployerLibrary",
-            SuperfluidFlowNFTLogicDeployerLibraryArtifact,
-            signer
-        );
     const SuperfluidPoolNFTLogicDeployerLibrary =
         await _getFactoryAndReturnDeployedContract(
             "SuperfluidPoolNFTLogicDeployerLibrary",
@@ -276,9 +269,6 @@ const _deployTestFramework = async (provider, signer) => {
                 SuperfluidPoolLogicDeployerLibrary: getContractAddress(
                     SuperfluidPoolLogicDeployerLibrary
                 ),
-                SuperfluidFlowNFTLogicDeployerLibrary: getContractAddress(
-                    SuperfluidFlowNFTLogicDeployerLibrary
-                ),
                 SuperfluidPoolNFTLogicDeployerLibrary: getContractAddress(
                     SuperfluidPoolNFTLogicDeployerLibrary
                 ),
@@ -316,8 +306,6 @@ const printProtocolFrameworkAddresses = (framework) => {
         IDAv1: framework.ida,
         SuperTokenFactory: framework.superTokenFactory,
         SuperTokenLogic: framework.superTokenLogic,
-        ConstantOutflowNFT: framework.constantOutflowNFT,
-        ConstantInflowNFT: framework.constantInflowNFT,
         Resolver: framework.resolver,
         SuperfluidLoader: framework.superfluidLoader,
         CFAv1Forwarder: framework.cfaV1Forwarder,

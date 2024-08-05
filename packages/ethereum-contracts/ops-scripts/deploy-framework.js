@@ -808,18 +808,19 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         }
 
         async function getPrevDMZForwarderAddr() {
-            console.log("Getting DMZForwarder address...");
             try {
                 return await superfluid.DMZ_FORWARDER();
             } catch (err) {
+                console.error("### Error getting DMZForwarder address", err);
                 return ZERO_ADDRESS; // fallback
             }
         }
+        const prevDMZForwarderAddr = await getPrevDMZForwarderAddr();
 
-        const dmzForwarderAddress = await deployContractIfCodeChanged(
+        const dmzForwarderNewAddress = await deployContractIfCodeChanged(
             web3,
             DMZForwarder,
-            await getPrevDMZForwarderAddr(),
+            prevDMZForwarderAddr,
             async () => {
                 const dmzForwarder = await web3tx(DMZForwarder.new, "DMZForwarder.new")();
                 await web3tx(
@@ -830,6 +831,9 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 return dmzForwarder.address;
             }
         );
+        const dmzForwarderAddress = dmzForwarderNewAddress !== ZERO_ADDRESS
+            ? dmzForwarderNewAddress
+            : prevDMZForwarderAddr;
 
         // get previous callback gas limit, make sure we don't decrease it
         const prevCallbackGasLimit = await superfluid.CALLBACK_GAS_LIMIT();

@@ -142,24 +142,6 @@ module.exports = eval(`(${S.toString()})()`)(async function (
                     (gov) => gov.batchUpdateSuperTokenLogic(sf.host.address, batch)
 
                 await sendGovernanceAction(sf, govAction);
-
-                // When first updating to the version adding native flow NFTs, this needs to be run twice
-                console.log("checking if 2nd run needed...");
-                try {
-                    const beaconST = await sf.contracts.ISuperToken.at(batch[0]);
-                    const cofAddr = await beaconST.CONSTANT_OUTFLOW_NFT();
-                    if (cofAddr === ZERO_ADDRESS) {
-                        console.log("...running upgrade again for NFT initialization...");
-                        // the first time it is to get the code to initialize the NFT proxies there
-                        // the second time is to actually execute that code in updateCode
-                        await sendGovernanceAction(sf, govAction);
-                    } else {
-                        console.log("...not needed");
-                    }
-                } catch (e) {
-                    console.log(`failed to read constantOutflowNFT addr: ${e.toString()}`);
-                    console.log("this is expected if running against a pre-1.6.0 deployment");
-                }
             }
         }
     }

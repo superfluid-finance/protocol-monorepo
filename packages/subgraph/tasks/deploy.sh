@@ -79,10 +79,10 @@ deploy_to_graph() {
 
     echo "********* Deploying $network subgraph $subgraphName to The Graph (hosted service). **********"
 
-    $GRAPH_CLI deploy \
-        --studio "$subgraphName" \
-        --deploy-key "$THE_GRAPH_ACCESS_TOKEN" \
-        --version-label "$VERSION_LABEL"
+    if ! $GRAPH_CLI deploy --studio "$subgraphName" --deploy-key "$THE_GRAPH_ACCESS_TOKEN" --version-label "$VERSION_LABEL"; then
+        echo "Error: Deployment to The Graph (hosted service) failed for $network"
+        exit 1
+    fi
 }
 
 deploy_to_satsuma() {
@@ -112,11 +112,14 @@ deploy_to_superfluid() {
     local subgraphName="protocol-$DEPLOYMENT_ENV"
     echo "node url: $nodeUrl, subgraph name: $subgraphName"
 
-    $GRAPH_CLI create "$subgraphName" --node "$nodeUrl"
-    $GRAPH_CLI deploy "$subgraphName" \
-        --version-label "$VERSION_LABEL" \
-        --node "$nodeUrl" \
-        --ipfs "$SUPERFLUID_IPFS_API"
+    if ! $GRAPH_CLI create "$subgraphName" --node "$nodeUrl"; then
+        echo "Error: Creation of subgraph $subgraphName on Superfluid (self hosted) failed for $network"
+        exit 1
+    fi
+    if ! $GRAPH_CLI deploy "$subgraphName" --version-label "$VERSION_LABEL" --node "$nodeUrl" --ipfs "$SUPERFLUID_IPFS_API"; then
+        echo "Error: Deployment to Superfluid (self hosted) failed for $network"
+        exit 1
+    fi
 }
 
 deploy_to_goldsky() {
@@ -129,14 +132,17 @@ deploy_to_goldsky() {
 
     local subgraphName="protocol-$DEPLOYMENT_ENV-$network/$SUBGRAPH_VERSION"
 
-    # Note: when using Graph CLI to deploy, it implicitly triggers build too, but Goldsky CLI doesn't, so we do it explicitly.
-    $GRAPH_CLI build
+     # Note: when using Graph CLI to deploy, it implicitly triggers build too, but Goldsky CLI doesn't, so we do it explicitly.
+    if ! $GRAPH_CLI build; then
+        echo "Error: Build for Goldsky failed"
+        exit 1
+    fi
 
     echo "********* Deploying $network subgraph $subgraphName to Goldsky. **********"
-    $GOLDSKY_CLI subgraph deploy \
-        "$subgraphName" \
-        --path . \
-        --token "$GOLDSKY_API_KEY"
+    if ! $GOLDSKY_CLI subgraph deploy "$subgraphName" --path . --token "$GOLDSKY_API_KEY"; then
+        echo "Error: Deployment to Goldsky failed for $network"
+        exit 1
+    fi
 }
 
 deploy_to_airstack() {
@@ -145,14 +151,14 @@ deploy_to_airstack() {
     local subgraphName="protocol-$DEPLOYMENT_ENV-$network"
 
     echo "********* Deploying $network subgraph $subgraphName to Airstack. **********"
-    $GRAPH_CLI create "$subgraphName" --node "$nodeUrl" --access-token "$AIRSTACK_API_KEY"
-    $GRAPH_CLI deploy \
-        --version-label "$VERSION_LABEL" \
-        --node "$nodeUrl" \
-        --deploy-key "$AIRSTACK_API_KEY" \
-        --ipfs https://ipfs.airstack.xyz/ipfs/api/v0 \
-        --headers '{"Authorization": "'"$AIRSTACK_API_KEY"'"}' \
-        "$subgraphName"
+    if ! $GRAPH_CLI create "$subgraphName" --node "$nodeUrl" --access-token "$AIRSTACK_API_KEY"; then
+        echo "Error: Creation of subgraph $subgraphName on Airstack failed for $network"
+        exit 1
+    fi
+    if ! $GRAPH_CLI deploy --version-label "$VERSION_LABEL" --node "$nodeUrl" --deploy-key "$AIRSTACK_API_KEY" --ipfs https://ipfs.airstack.xyz/ipfs/api/v0 --headers '{"Authorization": "'"$AIRSTACK_API_KEY"'"}' "$subgraphName"; then
+        echo "Error: Deployment to Airstack failed for $network"
+        exit 1
+    fi
 }
 
 # Vendor specific function dispatcher

@@ -8,26 +8,6 @@ GRAPH_CLI="npx --package=@graphprotocol/graph-cli --yes -- graph"
 GOLDSKY_CLI="npx --package=@goldskycom/cli --yes -- goldsky"
 SUPPORTED_VENDORS=( "graph" "satsuma" "superfluid" "goldsky" "airstack" )
 
-# list of supported networks by vendor
-
-# shellcheck disable=SC2034,SC2207
-GRAPH_NETWORKS=( "polygon-mainnet" "eth-mainnet" )
-# shellcheck disable=SC2034
-SATSUMA_NETWORKS=( "polygon-mainnet" "xdai-mainnet" "eth-mainnet" "eth-sepolia" "optimism-mainnet" "base-mainnet")
-# shellcheck disable=SC2034
-SUPERFLUID_NETWORKS=( "polygon-mainnet" "xdai-mainnet" "base-mainnet" "optimism-mainnet" "arbitrum-one" "celo-mainnet" "bsc-mainnet" "avalanche-c" "optimism-sepolia" "scroll-sepolia" "scroll-mainnet" "degenchain" "base-sepolia")
-# shellcheck disable=SC2034
-GOLDSKY_NETWORKS=( "polygon-mainnet" "xdai-mainnet" "eth-mainnet" "base-mainnet" "optimism-mainnet" "arbitrum-one" "bsc-mainnet" "avalanche-c" "optimism-sepolia" "scroll-sepolia" "scroll-mainnet" "eth-sepolia" "avalanche-fuji" "base-sepolia")
-# shellcheck disable=SC2034
-AIRSTACK_NETWORKS=( "degenchain")
-
-declare -A VENDOR_NETWORKS=(
-    ["graph"]="${GRAPH_NETWORKS[@]}"
-    ["satsuma"]="${SATSUMA_NETWORKS[@]}"
-    ["superfluid"]="${SUPERFLUID_NETWORKS[@]}"
-    ["goldsky"]="${GOLDSKY_NETWORKS[@]}"
-    ["airstack"]="${AIRSTACK_NETWORKS[@]}"
-)
 
 VENDOR=""
 NETWORK=""
@@ -126,7 +106,7 @@ deploy_to_goldsky() {
     local network="$1"
     # TODO: use tagging?
 
-    #Get subgraph version from package.json
+    # Get subgraph version from package.json
     PACKAGE_JSON_PATH="package.json"
     SUBGRAPH_VERSION=$(jq -r '.version' $PACKAGE_JSON_PATH)
 
@@ -169,15 +149,6 @@ deploy_to() {
     local vendor="$1"
     local network="$2"
 
-    # check if network is supported by vendor
-    local -n networksRef="${vendor^^}_NETWORKS"
-    # We can safely ignore this warning, becasue the value in network won't contain whitespaces
-    # shellcheck disable=SC2199,SC2076
-    if [[ ! " ${networksRef[@]} " =~ " $network " ]]; then
-        echo "The network, $network, is currently not on the list of networks supported by $vendor."
-        exit 1
-    fi
-
     npx ts-node ./scripts/buildNetworkConfig.ts "$network" "$vendor"
 
     # prepare the manifest prior to deployment
@@ -218,11 +189,5 @@ if [[ ! " ${SUPPORTED_VENDORS[@]} " =~ " $VENDOR " ]]; then
     print_usage_and_exit
 fi
 
-# Handle all vs specific network
-if [ "$NETWORK" == "all" ]; then
-    for network in ${VENDOR_NETWORKS[$VENDOR]}; do
-        deploy_to "$VENDOR" "$network"
-    done
-else
-    deploy_to "$VENDOR" "$NETWORK"
-fi
+# Deploy the specified network
+deploy_to "$VENDOR" "$NETWORK"

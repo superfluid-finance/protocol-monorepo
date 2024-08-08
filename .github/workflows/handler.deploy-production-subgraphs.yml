@@ -46,12 +46,33 @@ jobs:
       subgraph-release: ''
       subgraph-endpoint: http://localhost:8000/subgraphs/name/superfluid-test
 
-  deploy-subgraph:
+  deploy-single-subgraph:
+    if: ${{ github.event.inputs.network != 'all' }}
     uses: ./.github/workflows/call.deploy-subgraph.yml
     needs: [
             build-and-test-local-subgraph
            , build-and-test-local-subgraph-against-previous-sdk-core-releases
            ]
+    name: Deploy graph to ${{ github.event.inputs.vendor }} vendor
+    with:
+      deployment_env: ${{ github.event.inputs.deployment_env }}
+      network: ${{ github.event.inputs.network }}
+      vendor: ${{ github.event.inputs.vendor }}
+    secrets:
+      THE_GRAPH_ACCESS_TOKEN: ${{ secrets.THE_GRAPH_ACCESS_TOKEN }}
+      SATSUMA_DEPLOY_KEY: ${{ secrets.SATSUMA_DEPLOY_KEY }}
+      SUBGRAPH_URL_TEMPLATE: ${{ secrets.SUBGRAPH_URL_TEMPLATE }}
+      SUPERFLUID_IPFS_API: ${{ secrets.SUPERFLUID_IPFS_API }}
+      GOLDSKY_API_KEY: ${{ secrets.GOLDSKY_API_KEY }}
+      AIRSTACK_API_KEY: ${{ secrets.AIRSTACK_API_KEY }}
+
+  deploy-all-subgraphs:
+    if: ${{ github.event.inputs.network == 'all' }}
+    uses: ./.github/workflows/call.deploy-all-subgraphs.yml
+    needs: [
+            build-and-test-local-subgraph
+            , build-and-test-local-subgraph-against-previous-sdk-core-releases
+            ]
     name: Deploy graph to ${{ github.event.inputs.vendor }} vendor
     with:
       deployment_env: ${{ github.event.inputs.deployment_env }}

@@ -30,8 +30,8 @@ jobs:
 
     defaults:
       run:
-        shell: nix develop -c bash -xe {0}
-  
+        shell: nix develop .#ci-default -c bash -xe {0}
+
     env:
       RELEASE_VERSION: ${{ github.event.inputs.release_version }}
       RESOLVER_ADMIN_TYPE: ${{ github.event.inputs.admin_type }}

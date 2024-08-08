@@ -12,6 +12,10 @@ on:
   merge_group:
   pull_request:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   check:
     name: Checking what packages need to be built
@@ -59,8 +63,8 @@ jobs:
       - name: Run pre-commit check
         run: npm run pre-commit
 
-      - name: Check changeset
-        run: tasks/check-changeset.sh ${{ github.sha }} dev
+      - name: Create build set
+        run: tasks/create-build-set.sh ${{ github.sha }} dev origin
 
   test-ethereum-contracts:
     name: Test ethereum-contracts (Feature Branch)
@@ -71,7 +75,7 @@ jobs:
       run-coverage-tests: false
 
   coverage-ethereum-contracts:
-    name: Coverage test ethereum-contracts (Feature Branch)
+    name: Coverage Test ethereum-contracts (Feature Branch)
     uses: ./.github/workflows/call.test-ethereum-contracts.yml
     needs: [check]
     if: needs.check.outputs.build_ethereum_contracts
@@ -106,7 +110,7 @@ jobs:
 
   # sdk-core integration test + local subgraph w/ local sdk-core
   test-sdk-core:
-    name: Test SDK-Core (Feature Branch)
+    name: Test sdk-core (Feature Branch)
     uses: ./.github/workflows/call.test-sdk-core.yml
     needs: [check]
     if: needs.check.outputs.build_sdk_core
@@ -116,7 +120,7 @@ jobs:
       run-coverage-tests: false
 
   coverage-sdk-core:
-    name: Test SDK-Core (Feature Branch)
+    name: Coverage Test sdk-core (Feature Branch)
     uses: ./.github/workflows/call.test-sdk-core.yml
     needs: [check]
     if: needs.check.outputs.build_sdk_core

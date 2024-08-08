@@ -12,6 +12,10 @@ on:
   merge_group:
   pull_request:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   check:
     name: Checking what packages need to be built

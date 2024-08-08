@@ -70,7 +70,7 @@ jobs:
                 networks='["polygon-mainnet", "xdai-mainnet", "base-mainnet", "optimism-mainnet", "arbitrum-one", "celo-mainnet", "bsc-mainnet", "avalanche-c", "optimism-sepolia", "scroll-sepolia", "scroll-mainnet", "degenchain", "base-sepolia"]'
                 ;;
             "goldsky")
-                networks='[polygon-mainnet", "xdai-mainnet", "eth-mainnet", "base-mainnet", "optimism-mainnet", "arbitrum-one", "bsc-mainnet", "avalanche-c", "optimism-sepolia", "scroll-sepolia", "scroll-mainnet", "eth-sepolia", "avalanche-fuji", "base-sepolia"]'
+                networks='["polygon-mainnet", "xdai-mainnet", "eth-mainnet", "base-mainnet", "optimism-mainnet", "arbitrum-one", "bsc-mainnet", "avalanche-c", "optimism-sepolia", "scroll-sepolia", "scroll-mainnet", "eth-sepolia", "avalanche-fuji", "base-sepolia"]'
                 ;;
             "graph")
                 networks='["polygon-mainnet", "eth-mainnet"]'
@@ -83,12 +83,16 @@ jobs:
                 exit 1
                 ;;
             esac
-            echo "networks=$networks" >> $GITHUB_OUTPUT
+            echo "networks=$networks" >> "$GITHUB_OUTPUT"
 
   deploy-subgraph:
     name: Build and Deploy Subgraph
 
     runs-on: ubuntu-latest
+    needs: determine-networks
+    strategy:
+      matrix:
+        network: ${{ fromJson(needs.determine-networks.outputs.networks) }}
     env:
       subgraph-working-directory: ./packages/subgraph
 
@@ -155,7 +159,7 @@ jobs:
         run: |
           shortRev=$(git rev-parse --short ${{ github.sha }})
           versionLabel="${GIT_TAG_NAME:-$shortRev}"
-          ./tasks/deploy.sh -o ${{ inputs.vendor }} -n ${{ inputs.network }} -r ${{ inputs.deployment_env }} -v $versionLabel
+          ./tasks/deploy.sh -o ${{ inputs.vendor }} -n ${{ matrix.network }} -r ${{ inputs.deployment_env }} -v $versionLabel
         working-directory: ${{ env.subgraph-working-directory }}
         env:
           SUBGRAPH_URL_TEMPLATE: ${{ secrets.SUBGRAPH_URL_TEMPLATE }}

@@ -207,20 +207,21 @@ async function getTokensToBeUpgraded(sf, newSuperTokenLogic, skipList, pastSuper
                             `!!! [SKIP] SuperToken@${superToken.address} (${symbol}) alien previous logic ${superTokenLogic} - please manually check!`
                         );
                     } else {
+                        let adminAddr = ZERO_ADDRESS;
                         try {
-                            const adminAddr = await superToken.getAdmin();
-                            if (adminAddr !== ZERO_ADDRESS) {
-                                console.warn(
-                                    `!!! [SKIP] SuperToken@${superToken.address} admin override set to ${adminAddr}`
-                                );
-                            } else {
-                                console.log(
-                                    `SuperToken@${superToken.address} (${symbol}) logic needs upgrade from ${superTokenLogic}`
-                                );
-                                return superTokenAddress;
-                            }
+                            adminAddr = await superToken.getAdmin();
                         } catch(err) {
                             console.log("### failed to get admin addr:", err.message);
+                        }
+                        if (adminAddr !== ZERO_ADDRESS) {
+                            console.warn(
+                                `!!! [SKIP] SuperToken@${superToken.address} admin override set to ${adminAddr}`
+                            );
+                        } else {
+                            console.log(
+                                `SuperToken@${superToken.address} (${symbol}) logic needs upgrade from ${superTokenLogic}`
+                            );
+                            return superTokenAddress;
                         }
                     }
                 } else {

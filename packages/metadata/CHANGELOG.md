@@ -3,6 +3,16 @@ All notable changes to the metadata will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+
+## [v1.4.0]
+### Changed
+- Removed FlowNFTs
+
+## [v1.3.0]
+### Added
+- VestingScheduler v2
+
 ## [v1.2.6]
 ### Changed
 - Added native token wrapper address for base-sepolia

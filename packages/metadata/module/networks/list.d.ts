@@ -12,8 +12,6 @@ interface ContractAddresses {
     readonly gdaV1?: string;
     readonly gdaV1Forwarder?: string;
     readonly superTokenFactory: string;
-    readonly constantOutflowNFT?: string;
-    readonly constantInflowNFT?: string;
     readonly superfluidLoader: string;
     readonly toga?: string;
     readonly vestingScheduler?: string;

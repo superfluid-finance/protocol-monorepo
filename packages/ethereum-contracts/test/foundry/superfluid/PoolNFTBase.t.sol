@@ -10,12 +10,9 @@ import {
     PoolMemberNFTStorageLayoutMock
 } from "./PoolNFTUpgradabilityMock.t.sol";
 import { IPoolNFTBase, PoolNFTBase } from "../../../contracts/agreements/gdav1/PoolNFTBase.sol";
-import { ConstantOutflowNFT, IConstantOutflowNFT } from "../../../contracts/superfluid/ConstantOutflowNFT.sol";
-import { ConstantInflowNFT, IConstantInflowNFT } from "../../../contracts/superfluid/ConstantInflowNFT.sol";
 import { TestToken } from "../../../contracts/utils/TestToken.sol";
 import { PoolAdminNFT, IPoolAdminNFT } from "../../../contracts/agreements/gdav1/PoolAdminNFT.sol";
 import { PoolMemberNFT, IPoolMemberNFT } from "../../../contracts/agreements/gdav1/PoolMemberNFT.sol";
-import { ConstantOutflowNFTMock, ConstantInflowNFTMock } from "./CFAv1NFTMock.t.sol";
 import { PoolNFTBaseMock } from "./PoolNFTMock.t.sol";
 import { ISuperfluidPool } from "../../../contracts/agreements/gdav1/SuperfluidPool.sol";
 import { ERC721IntegrationTest } from "./ERC721.t.sol";

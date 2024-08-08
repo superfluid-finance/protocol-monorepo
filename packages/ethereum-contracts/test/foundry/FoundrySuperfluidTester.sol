@@ -9,7 +9,6 @@ import { ERC1820RegistryCompiled } from "../../contracts/libs/ERC1820RegistryCom
 import { SuperfluidFrameworkDeployer } from "../../contracts/utils/SuperfluidFrameworkDeployer.sol";
 import { Superfluid } from "../../contracts/superfluid/Superfluid.sol";
 import { ISuperfluidPool, SuperfluidPool } from "../../contracts/agreements/gdav1/SuperfluidPool.sol";
-import { IFlowNFTBase } from "../../contracts/interfaces/superfluid/IFlowNFTBase.sol";
 import {
     IGeneralDistributionAgreementV1,
     PoolConfig
@@ -17,14 +16,13 @@ import {
 import { IPoolNFTBase } from "../../contracts/interfaces/agreements/gdav1/IPoolNFTBase.sol";
 import { IPoolAdminNFT } from "../../contracts/interfaces/agreements/gdav1/IPoolAdminNFT.sol";
 import { IPoolMemberNFT } from "../../contracts/interfaces/agreements/gdav1/IPoolMemberNFT.sol";
-import { IConstantOutflowNFT } from "../../contracts/interfaces/superfluid/IConstantOutflowNFT.sol";
-import { IConstantInflowNFT } from "../../contracts/interfaces/superfluid/IConstantInflowNFT.sol";
 import { ISuperfluidToken } from "../../contracts/interfaces/superfluid/ISuperfluidToken.sol";
 import { ISETH } from "../../contracts/interfaces/tokens/ISETH.sol";
 import { UUPSProxy } from "../../contracts/upgradability/UUPSProxy.sol";
 import { ConstantFlowAgreementV1 } from "../../contracts/agreements/ConstantFlowAgreementV1.sol";
 import { SuperTokenV1Library } from "../../contracts/apps/SuperTokenV1Library.sol";
-import { IERC20, ISuperToken, SuperToken } from "../../contracts/superfluid/SuperToken.sol";
+import { IERC20, ISuperToken, SuperToken, IConstantOutflowNFT, IConstantInflowNFT }
+    from "../../contracts/superfluid/SuperToken.sol";
 import { SuperfluidLoader } from "../../contracts/utils/SuperfluidLoader.sol";
 import { TestResolver } from "../../contracts/utils/TestResolver.sol";
 import { TestToken } from "../../contracts/utils/TestToken.sol";
@@ -180,8 +178,6 @@ contract FoundrySuperfluidTester is Test {
         // - Host
         // - CFA
         // - IDA
-        // - ConstantOutflowNFT logic
-        // - ConstantInflowNFT logic
         // - SuperToken logic
         // - SuperTokenFactory
         // - Resolver
@@ -692,8 +688,8 @@ contract FoundrySuperfluidTester is Test {
     ) internal returns (SuperToken localSuperToken) {
         localSuperToken = new SuperToken(
             sf.host,
-            previousSuperToken.CONSTANT_OUTFLOW_NFT(),
-            previousSuperToken.CONSTANT_INFLOW_NFT(),
+            IConstantOutflowNFT(address(0)),
+            IConstantInflowNFT(address(0)),
             previousSuperToken.POOL_ADMIN_NFT(),
             previousSuperToken.POOL_MEMBER_NFT()
         );
@@ -741,8 +737,6 @@ contract FoundrySuperfluidTester is Test {
             _assertAccountFlowInfo(sender, flowRateDelta, senderFlowInfoBefore, true);
             _assertAccountFlowInfo(receiver, flowRateDelta, receiverFlowInfoBefore, false);
         }
-
-        _assertFlowNftState(superToken_, sender, receiver, flowRate);
 
         // Assert RTB for all users
         _assertRealTimeBalances(superToken_);
@@ -1946,10 +1940,6 @@ contract FoundrySuperfluidTester is Test {
             );
         }
 
-        // Assert Outflow NFT is minted to distributor
-        // Assert Inflow NFT is minted to pool
-        _assertFlowNftState(superToken_, from, address(pool_), requestedFlowRate);
-
         {
             if (members.length == 0) return;
             uint128 poolTotalUnitsAfter = pool_.getTotalUnits();
@@ -2293,37 +2283,6 @@ contract FoundrySuperfluidTester is Test {
         } else {
             vm.expectRevert(IPoolNFTBase.POOL_NFT_INVALID_TOKEN_ID.selector);
             poolMemberNFT.ownerOf(tokenId);
-        }
-    }
-
-    function _assertFlowNftState(
-        ISuperfluidToken _superToken,
-        address _senderOrDistributor,
-        address _receiverOrPool,
-        int96 _newFlowRate
-    ) internal {
-        IConstantOutflowNFT constantOutflowNFT = SuperToken(address(_superToken)).CONSTANT_OUTFLOW_NFT();
-        IConstantInflowNFT constantInflowNFT = SuperToken(address(_superToken)).CONSTANT_INFLOW_NFT();
-        uint256 tokenId = constantOutflowNFT.getTokenId(address(_superToken), address(_senderOrDistributor), address(_receiverOrPool));
-        if (_newFlowRate > 0) {
-            // positive flowrate: NFT exists and is owned by sender/distributor and receiver/pool
-            assertEq(
-                constantOutflowNFT.ownerOf(tokenId),
-                _senderOrDistributor,
-                "_assertFlowNftState: sender/distributor doesn't own outflow NFT"
-            );
-            assertEq(
-                constantInflowNFT.ownerOf(tokenId),
-                address(_receiverOrPool),
-                "_assertFlowNftState: receiver/pool doesn't own inflow NFT"
-            );
-        } else {
-            // zero flowrate: NFT doesn't exist (never minted or already burned)
-            vm.expectRevert(IFlowNFTBase.CFA_NFT_INVALID_TOKEN_ID.selector);
-            constantOutflowNFT.ownerOf(tokenId);
-
-            vm.expectRevert(IFlowNFTBase.CFA_NFT_INVALID_TOKEN_ID.selector);
-            constantInflowNFT.ownerOf(tokenId);
         }
     }
 }

@@ -12,8 +12,6 @@ interface SubgraphConfig {
     readonly superTokenFactoryAddress: string;
     readonly resolverV1Address: string;
     readonly nativeAssetSuperTokenAddress: string;
-    readonly constantOutflowNFTAddress: string;
-    readonly constantInflowNFTAddress: string;
     readonly indexerHints_prune: string;
 }
 
@@ -35,7 +33,7 @@ function main() {
     const networkName = process.argv[2];
     const vendorName = process.argv[3];
 
-    const networkMetadata = metadata.getNetworkByName(networkName); 
+    const networkMetadata = metadata.getNetworkByName(networkName);
 
     if (!networkMetadata) {
         throw new Error("No metadata found");
@@ -51,8 +49,6 @@ function main() {
         superTokenFactoryAddress: networkMetadata.contractsV1.superTokenFactory,
         resolverV1Address: networkMetadata.contractsV1.resolver,
         nativeAssetSuperTokenAddress: networkMetadata.nativeTokenWrapper,
-        constantOutflowNFTAddress: networkMetadata.contractsV1.constantOutflowNFT || ADDRESS_ZERO,
-        constantInflowNFTAddress: networkMetadata.contractsV1.constantInflowNFT || ADDRESS_ZERO,
         indexerHints_prune: vendorHistoryPruning[vendorName] || "never",
     };
 

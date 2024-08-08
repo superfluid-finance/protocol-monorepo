@@ -8,8 +8,7 @@ If you have an intended end date and/or start date for a stream, instead of havi
 
 ## Vesting Scheduler
 
-The Vesting Scheduler allows you to schedule the vesting of tokens to a receiver account. The Vesting Scheduler does not hold the tokens, rather it simply uses permissions to move them for you
-
+The Vesting Scheduler allows you to schedule the vesting of tokens to a receiver account. The Vesting Scheduler does not hold the tokens, rather it simply uses permissions to move them for you.
 
 ## Getting Started
 

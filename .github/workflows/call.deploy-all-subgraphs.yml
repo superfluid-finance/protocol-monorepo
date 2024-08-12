@@ -93,6 +93,7 @@ jobs:
     strategy:
       matrix:
         network: ${{ fromJson(needs.determine-networks.outputs.networks) }}
+      fail-fast: false
     env:
       subgraph-working-directory: ./packages/subgraph
 

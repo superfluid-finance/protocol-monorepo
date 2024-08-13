@@ -80,9 +80,9 @@ describe("Query Tests", () => {
     });
 
     describe("Query Class Tests", () => {
-        // it("Should be able to execute all of the query class", async () => {
-        //     await testQueryClassFunctions(query);
-        // });
+        it("Should be able to execute all of the query class", async () => {
+            await testQueryClassFunctions(query);
+        });
 
         it("Should be able to make the getAllEvents query", async () => {
             await testGetAllEventsQuery(query);

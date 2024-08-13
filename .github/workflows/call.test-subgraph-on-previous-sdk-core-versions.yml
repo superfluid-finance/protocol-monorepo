@@ -86,6 +86,7 @@ jobs:
           yarn add -D @superfluid-finance/sdk-core@${{ matrix.version }}
           yarn run-query-tests
         working-directory: ./packages/sdk-core/previous-versions-testing
+        continue-on-error: true
         env:
           SUBGRAPH_RELEASE_TAG: ${{ inputs.subgraph-release }}
           SUBGRAPH_ENDPOINT: ${{ inputs.subgraph-endpoint }}

@@ -92,5 +92,4 @@ jobs:
 
       - name: "Stop Hardhat node"
         run: ./tasks/startHardhatNode.sh stop
-        if: success() || failure()
         working-directory: ${{ env.sdk-core-working-directory }}

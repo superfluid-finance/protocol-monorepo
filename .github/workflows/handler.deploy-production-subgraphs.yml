@@ -42,13 +42,12 @@ jobs:
   build-and-test-local-subgraph-against-previous-sdk-core-releases:
     uses: ./.github/workflows/call.test-subgraph-on-previous-sdk-core-versions.yml
     name: Test Local Subgraph against SDK-Core previous and current releases
-    if: success() || failure()
     with:
       subgraph-release: ''
       subgraph-endpoint: http://localhost:8000/subgraphs/name/superfluid-test
 
   deploy-single-subgraph:
-    if: ${{ github.event.inputs.network != 'all' }}
+    if: ${{ (github.event.inputs.network != 'all') && (success() || failure()) }}
     uses: ./.github/workflows/call.deploy-subgraph.yml
     needs: [
             build-and-test-local-subgraph
@@ -68,7 +67,7 @@ jobs:
       AIRSTACK_API_KEY: ${{ secrets.AIRSTACK_API_KEY }}
 
   deploy-all-subgraphs:
-    if: ${{ github.event.inputs.network == 'all' }}
+    if: ${{ (github.event.inputs.network == 'all') && (success() || failure()) }}
     uses: ./.github/workflows/call.deploy-all-subgraphs.yml
     needs: [
             build-and-test-local-subgraph

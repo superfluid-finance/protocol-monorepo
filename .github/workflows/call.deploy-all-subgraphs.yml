@@ -73,7 +73,7 @@ jobs:
                 networks='["polygon-mainnet", "xdai-mainnet", "eth-mainnet", "base-mainnet", "optimism-mainnet", "arbitrum-one", "bsc-mainnet", "avalanche-c", "optimism-sepolia", "scroll-sepolia", "scroll-mainnet", "eth-sepolia", "avalanche-fuji", "base-sepolia"]'
                 ;;
             "graph")
-                networks='["polygon-mainnet", "eth-mainnet"]'
+                networks='["polygon-mainnet", "eth-mainnet", "celo-mainnet"]'
                 ;;
             "airstack")
                 networks='["degenchain"]'

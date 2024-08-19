@@ -140,11 +140,10 @@ function createNetworkDefaultConfiguration(
     providerConfig.mnemonic = getEnvValue(networkName, "MNEMONIC");
     if (!providerConfig.mnemonic) {
         const pkey = getEnvValue(networkName, "PRIVATE_KEY");
-        if (!pkey) throw new Error("Neither mnemonic nor private key is provided");
         providerConfig.privateKeys = [pkey];
     }
     return {
-        provider: new HDWalletProvider(providerConfig),
+        provider: () => new HDWalletProvider(providerConfig),
         gasPrice: getEnvValue(networkName, "GAS_PRICE"),
         maxFeePerGas: getEnvValue(networkName, "MAX_FEE_PER_GAS"),
         maxPriorityFeePerGas: getEnvValue(networkName, "MAX_PRIORITY_FEE_PER_GAS"),

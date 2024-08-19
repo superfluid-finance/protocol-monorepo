@@ -2,7 +2,7 @@
 
 set -eux
 
-JQ="jq"
+JQ="npx --package=node-jq --no -- jq"
 
 # shellcheck disable=SC2207
 GRAPH_CLI="npx --package=@graphprotocol/graph-cli --yes -- graph"

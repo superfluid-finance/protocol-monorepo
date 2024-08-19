@@ -5,7 +5,7 @@ set -e
 
 cd "$(dirname "$0")/.." || exit 1
 
-JQ="npx --package=node-jq -- jq"
+JQ="npx --no --package=node-jq -- jq"
 
 CONTRACTS=( $($JQ -r .[] tasks/bundled-abi-contracts-list.json) ) || exit 2
 

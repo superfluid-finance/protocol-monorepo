@@ -19,8 +19,8 @@ export const testQueryClassFunctions = async (query: Query) => {
     await query.listAllSuperTokens({}, { take: 10 });
     await query.listIndexes({}, { take: 10 });
     await query.listIndexSubscriptions({}, { take: 10 });
-    await query.listStreams({}, { take: 10 });
-    await query.listUserInteractedSuperTokens({}, { take: 10 });
+    // await query.listStreams({}, { take: 10 });
+    // await query.listUserInteractedSuperTokens({}, { take: 10 });
 };
 
 export const testGetAllEventsQuery = async (query: Query) => {

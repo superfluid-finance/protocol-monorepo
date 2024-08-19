@@ -421,7 +421,8 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
 
         newCtx = ctx;
 
-        if (_isPool(token, address(pool)) == false) {
+        if (pool.superToken() != token ||
+            _isPool(token, address(pool)) == false) {
             revert GDA_ONLY_SUPER_TOKEN_POOL();
         }
 
@@ -485,7 +486,8 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         int96 requestedFlowRate,
         bytes calldata ctx
     ) external override returns (bytes memory newCtx) {
-        if (_isPool(token, address(pool)) == false) {
+        if (pool.superToken() != token ||
+            _isPool(token, address(pool)) == false) {
             revert GDA_ONLY_SUPER_TOKEN_POOL();
         }
         if (requestedFlowRate < 0) {

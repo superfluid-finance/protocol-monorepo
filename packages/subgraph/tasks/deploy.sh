@@ -2,8 +2,6 @@
 
 set -eux
 
-JQ="npx --package=node-jq --no -- jq"
-
 # shellcheck disable=SC2207
 GRAPH_CLI="npx --package=@graphprotocol/graph-cli --yes -- graph"
 # shellcheck disable=SC2207
@@ -127,7 +125,7 @@ deploy_to_goldsky() {
 
     #Get subgraph version from package.json
     PACKAGE_JSON_PATH="package.json"
-    SUBGRAPH_VERSION=$($JQ -r '.version' $PACKAGE_JSON_PATH)
+    SUBGRAPH_VERSION=$(jq -r '.version' $PACKAGE_JSON_PATH)
 
     local subgraphName="protocol-$DEPLOYMENT_ENV-$network/$SUBGRAPH_VERSION"
 

@@ -9,6 +9,7 @@ remappings = [
     '@openzeppelin/=node_modules/@openzeppelin/',
     'ds-test/=lib/forge-std/lib/ds-test/src/',
     'forge-std/=lib/forge-std/src/']
+out = 'packages/automation-contracts/autowrap/out/default'
 
 [profile.ci]
 offline = true

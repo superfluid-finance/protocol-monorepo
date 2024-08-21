@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-JQ="npx --package=node-jq -- jq"
-
 # make sure that if any step fails, the script fails
 set -xe
 
@@ -11,7 +9,7 @@ fi
 
 if [ "$SUBGRAPH_RELEASE_TAG" == "dev" ] || [ "$SUBGRAPH_RELEASE_TAG" == "v1" ];then
     # shellcheck disable=SC2207
-    NETWORKS=( $($JQ -r .[] ../subgraph/hosted-service-networks.json) )
+    NETWORKS=( $(jq -r .[] ../subgraph/hosted-service-networks.json) )
 fi
 
 function testSchemaAndQueries() {

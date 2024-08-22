@@ -80,33 +80,6 @@ jobs:
         run: yarn build
         working-directory: ./packages/ethereum-contracts
 
-      - name: "Get ABI"
-        run: node scripts/getAbi.js
-        working-directory: ${{ env.subgraph-working-directory }}
-
-      - name: "Prepare subgraph manifest"
-        # This step is required for generating a preliminary subgraph.yaml
-        # and addresses.ts file for the yarn codegen step below
-        # using a mock.json networks file.
-        run: ./tasks/prepare-manifest.sh mock
-        working-directory: ${{ env.subgraph-working-directory }}
-
-      - name: "Generate meta.ignore.ts file"
-        # Collects metadata like the git branch and commit hash
-        run: "yarn generate-sf-meta"
-        working-directory: ${{ env.subgraph-working-directory }}
-        env:
-          COMMIT_HASH: ${{ github.sha }}
-          CONFIGURATION: ${{ inputs.deployment_env }}
-
-      - name: "Generate AssemblyScript types"
-        run: "yarn codegen"
-        working-directory: ${{ env.subgraph-working-directory }}
-
-      - name: Get Hosted Service Networks from metadata
-        run: npx ts-node ./scripts/getHostedServiceNetworks.ts
-        working-directory: ${{ env.subgraph-working-directory }}
-
       # - name: Ensure deployment_env property is passed
       #   run: |
       #     if [ "${{ inputs.deployment_env }}" == "" ];then

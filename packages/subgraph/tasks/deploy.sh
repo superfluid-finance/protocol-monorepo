@@ -45,6 +45,33 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+prepare_deployment() {
+  # Read environment variables directly, with a fallback Git command for commit_hash
+  local subgraph_directory="${SUBGRAPH_WORKING_DIRECTORY:-./subgraph-directory}"
+  local commit_hash="${GITHUB_SHA:-$(git rev-parse HEAD)}"
+  local configuration="${DEPLOYMENT_ENV:-default_env}"
+
+  # Get ABI
+  echo "Getting ABI..."
+  node "$subgraph_directory/scripts/getAbi.js"
+
+  # Prepare subgraph manifest
+  echo "Preparing subgraph manifest..."
+  ./tasks/prepare-manifest.sh mock
+
+  # Generate meta.ignore.ts file
+  echo "Generating meta.ignore.ts file..."
+  COMMIT_HASH="$commit_hash" CONFIGURATION="$configuration" yarn generate-sf-meta
+
+  # Generate AssemblyScript types
+  echo "Generating AssemblyScript types..."
+  yarn codegen
+
+  # Get Hosted Service Networks from metadata
+  echo "Getting Hosted Service Networks from metadata..."
+  npx ts-node "$subgraph_directory/scripts/getHostedServiceNetworks.ts"
+}
+
 deploy_to_graph() {
     local network="$1"
 
@@ -187,6 +214,13 @@ fi
 # shellcheck disable=SC2199,SC2076
 if [[ ! " ${SUPPORTED_VENDORS[@]} " =~ " $VENDOR " ]]; then
     print_usage_and_exit
+fi
+
+#Prepare deployment
+# Prepare deployment
+if ! prepare_deployment; then
+    echo "Error: Failed to prepare deployment"
+    exit 1
 fi
 
 # Deploy the specified network

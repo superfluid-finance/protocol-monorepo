@@ -107,3 +107,5 @@ jobs:
           SATSUMA_DEPLOY_KEY: ${{ secrets.SATSUMA_DEPLOY_KEY }}
           GOLDSKY_API_KEY: ${{ secrets.GOLDSKY_API_KEY }}
           AIRSTACK_API_KEY: ${{ secrets.AIRSTACK_API_KEY }}
+          COMMIT_HASH: ${{ github.sha }}
+          CONFIGURATION: ${{ inputs.deployment_env }}

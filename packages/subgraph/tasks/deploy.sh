@@ -48,7 +48,7 @@ done
 prepare_deployment() {
   # Read environment variables directly, with a fallback Git command for commit_hash
   local commit_hash="${GITHUB_SHA:-$(git rev-parse HEAD)}"
-  local configuration="${DEPLOYMENT_ENV:-dev}"
+  local configuration="${CONFIGURATION:-v1}"
 
   # Get ABI
   echo "Getting ABI..."

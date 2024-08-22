@@ -47,9 +47,9 @@ done
 
 prepare_deployment() {
   # Read environment variables directly, with a fallback Git command for commit_hash
-  local subgraph_directory="${SUBGRAPH_WORKING_DIRECTORY:-./subgraph-directory}"
+  local subgraph_directory="${SUBGRAPH_WORKING_DIRECTORY:-./packages/subgraph}"
   local commit_hash="${GITHUB_SHA:-$(git rev-parse HEAD)}"
-  local configuration="${DEPLOYMENT_ENV:-default_env}"
+  local configuration="${DEPLOYMENT_ENV:-dev}"
 
   # Get ABI
   echo "Getting ABI..."

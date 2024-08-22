@@ -47,13 +47,12 @@ done
 
 prepare_deployment() {
   # Read environment variables directly, with a fallback Git command for commit_hash
-  local subgraph_directory="${SUBGRAPH_WORKING_DIRECTORY:-./packages/subgraph}"
   local commit_hash="${GITHUB_SHA:-$(git rev-parse HEAD)}"
   local configuration="${DEPLOYMENT_ENV:-dev}"
 
   # Get ABI
   echo "Getting ABI..."
-  node "$subgraph_directory/scripts/getAbi.js"
+  node "./scripts/getAbi.js"
 
   # Prepare subgraph manifest
   echo "Preparing subgraph manifest..."
@@ -69,7 +68,7 @@ prepare_deployment() {
 
   # Get Hosted Service Networks from metadata
   echo "Getting Hosted Service Networks from metadata..."
-  npx ts-node "$subgraph_directory/scripts/getHostedServiceNetworks.ts"
+  npx ts-node "./scripts/getHostedServiceNetworks.ts"
 }
 
 deploy_to_graph() {

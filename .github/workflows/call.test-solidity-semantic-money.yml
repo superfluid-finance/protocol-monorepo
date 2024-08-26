@@ -15,22 +15,28 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
-      - uses: cachix/install-nix-action@v19
         with:
-          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+          submodules: recursive
 
-      - name: Initialize Nix DevShell
+      - name: Setup workflow base
+        id: base
+        uses: ./.github/actions/setup-workflow-base
+        with:
+          package-name: solidity-semantic-money
+          cache-key-prefix: solidity-semantic-money-
+          dev-shell-name: ci-default
+
+      - name: Install dependencies
+        if: steps.base.outputs.cache-hit != 'true'
         run: |
+          yarn install --frozen-lockfile
+          solc --version
           forge --version
 
-      - name: Initialize Node Modules
+      - name: Build and test
+        if: steps.base.outputs.cache-hit != 'true'
         run: |
-          yarn install
-
-      - name: Build & Test
-        run: |
-          cd packages/solidity-semantic-money
           make build-src test-all
+        working-directory: packages/solidity-semantic-money
         env:
           FOUNDRY_FUZZ_RUNS: 4200 # yea, baby

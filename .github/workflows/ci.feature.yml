@@ -24,7 +24,7 @@ jobs:
 
     defaults:
       run:
-        shell: nix develop . -c bash -xe {0}
+        shell: nix develop .#ci-minimum -c bash -xe {0}
 
     outputs:
       build_solidity_semantic_money: ${{ env.BUILD_SOLIDITY_SEMANTIC_MONEY }}

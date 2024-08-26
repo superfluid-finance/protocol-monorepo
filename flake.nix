@@ -14,9 +14,14 @@
       inputs.flake-utils.follows = "flake-utils";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    mk-cache-key = {
+      url = "github:hellwolf/mk-cache-key.nix/master";
+      inputs.flake-utils.follows = "flake-utils";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, flake-utils, foundry, solc } :
+  outputs = { self, nixpkgs, flake-utils, foundry, solc, mk-cache-key } :
   flake-utils.lib.eachDefaultSystem (system:
   let
     minDevSolcVer = "solc_0_8_11"; # minimum solidity version used for external development
@@ -32,12 +37,15 @@
       ];
     };
 
+    mk-cache-key-pkg = mk-cache-key.packages.${system}.default;
+
     # ghc ecosystem
     ghc = pkgs.haskell.compiler.${ghcVer94};
     ghcPkgs = pkgs.haskell.packages.${ghcVer94};
 
     # common dev inputs
     commonDevInputs = with pkgs; [
+      mk-cache-key-pkg
       gnumake
       # for shell script linting
       shellcheck
@@ -140,6 +148,9 @@
     };
 
     # CI shells
+    devShells.mk-cache-key = mkShell {
+        buildInputs = [ mk-cache-key-pkg ];
+    };
     devShells.ci-default = mkShell {
       buildInputs = ciInputs ++ minimumDevInputs;
     };

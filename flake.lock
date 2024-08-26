@@ -42,6 +42,30 @@
         "type": "github"
       }
     },
+    "mk-cache-key": {
+      "inputs": {
+        "flake-utils": [
+          "flake-utils"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1718047354,
+        "narHash": "sha256-WGlodS+Ju1rH5CNuDeNDuRMEXAk4A3IZIimIGNMdoxk=",
+        "owner": "hellwolf",
+        "repo": "mk-cache-key.nix",
+        "rev": "82f25a577f25fcb9eed94b3a04330ccf4a102cba",
+        "type": "github"
+      },
+      "original": {
+        "owner": "hellwolf",
+        "ref": "master",
+        "repo": "mk-cache-key.nix",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1723019560,
@@ -62,6 +86,7 @@
       "inputs": {
         "flake-utils": "flake-utils",
         "foundry": "foundry",
+        "mk-cache-key": "mk-cache-key",
         "nixpkgs": "nixpkgs",
         "solc": "solc"
       }

@@ -42,8 +42,6 @@
         "watch": "graph deploy superfluid-test --node http://localhost:8020/ --ipfs http://localhost:5001 --watch",
         "lint": "run-s lint:*",
         "lint:js-eslint": "eslint . --max-warnings=0 --report-unused-disable-directives && echo '✔  Your .js files look good.'",
-        "pre-commit": "if [ ! -z \"$(git status -s .)\" ];then run-s pre-commit:*;else true;fi",
-        "pre-commit:lint": "yarn lint",
         "generate-sf-meta": "./tasks/getSFMeta.sh",
         "generate-sf-meta-local": "COMMIT_HASH=local CONFIGURATION=local BRANCH=local TAG=local ./tasks/getSFMeta.sh",
         "check-updates": "ncu --target minor --dep prod,dev",

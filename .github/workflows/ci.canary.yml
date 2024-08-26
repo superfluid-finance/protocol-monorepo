@@ -18,6 +18,10 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        shell: nix develop .#ci-minimum -c bash -xe {0}
+
     outputs:
       build_subgraph: ${{ env.BUILD_SUBGRAPH }}
 

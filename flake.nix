@@ -149,7 +149,10 @@
 
     # CI shells
     devShells.mk-cache-key = mkShell {
-        buildInputs = [ mk-cache-key-pkg ];
+      buildInputs = [ mk-cache-key-pkg ];
+    };
+    devShells.ci-minimum = mkShell {
+      buildInputs = ciInputs ++ commonDevInputs;
     };
     devShells.ci-default = mkShell {
       buildInputs = ciInputs ++ minimumDevInputs;

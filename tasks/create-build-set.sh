@@ -56,66 +56,70 @@ if grep -E "^.github/workflows/call\..*\.yml$" "$CHANGED_FILES" > /dev/null; the
     console.debug "Call workflows changed."
     setBuildAll
 fi
+
 # if root package.json changed, rebuild everything
 if grep -E "^(flake\.nix|flake\.lock|package\.json|yarn\.lock)$" "$CHANGED_FILES" > /dev/null; then
     console.debug "Root package.json changed."
     setBuildAll
 fi
+
+# if specified haskell folders and files changed
+if grep -E "^packages/spec-haskell/" "$CHANGED_FILES" > /dev/null; then
+    BUILD_SPEC_HASKELL=1
+    console.debug SPEC-HASKELL will be tested.
+fi
+
 # if specified solidity-semantic-money folders and files changed
-if grep -E "^packages/solidity-semantic-money/(src/|test/|foundry\.toml|Makefile|package\.json)" "$CHANGED_FILES" > /dev/null; then
+if grep -E "^packages/solidity-semantic-money/" "$CHANGED_FILES" > /dev/null; then
     BUILD_SOLIDITY_SEMANTIC_MONEY=1
     BUILD_ETHEREUM_CONTRACTS=1
     console.debug Solidity semantic money will be tested.
 fi
+
 # if specified ethereum-contracts folders and files changed
-if grep -E "^packages/ethereum-contracts/(contracts/|scripts/|test/|truffle-config\.js|package\.json)" "$CHANGED_FILES" > /dev/null; then
+if grep -E "^packages/ethereum-contracts/" "$CHANGED_FILES" > /dev/null; then
     BUILD_ETHEREUM_CONTRACTS=1
     BUILD_SUBGRAPH=1
     BUILD_HOT_FUZZ=1
     BUILD_AUTOMATION_CONTRACTS=1
     console.debug Ethereum contracts, HotFuzz and Subgraph will be tested.
 fi
-# if specified hot-fuzz folders and files changed
-if grep -E "^packages/hot-fuzz/(contracts/|scripts/|.+\.js|.+\.yaml|hot-fuzz|package\.json)" "$CHANGED_FILES" > /dev/null; then
-    BUILD_HOT_FUZZ=1
-    console.debug HotFuzz will be tested.
-fi
+
 # if specified sdk-core folders and files changed
-if grep -E "^packages/sdk-core/(src/|test/|package\.json|tsconfig\.*)" "$CHANGED_FILES" > /dev/null; then
+if grep -E "^packages/sdk-core/" "$CHANGED_FILES" > /dev/null; then
     BUILD_SDK_CORE=1
     BUILD_SDK_REDUX=1
     BUILD_SUBGRAPH=1
     console.debug SDK-CORE, SDK-REDUX and SUBGRAPH will be tested.
 fi
+
 # if specified sdk-redux folders and files changed
-if grep -E "^packages/sdk-redux/(src/|test/|package\.json)" "$CHANGED_FILES" > /dev/null; then
+if grep -E "^packages/sdk-redux/" "$CHANGED_FILES" > /dev/null; then
     BUILD_SDK_REDUX=1
     console.debug SDK-REDUX will be tested.
 fi
+
+# if specified hot-fuzz folders and files changed
+if grep -E "^packages/hot-fuzz/" "$CHANGED_FILES" > /dev/null; then
+    BUILD_HOT_FUZZ=1
+    console.debug HotFuzz will be tested.
+fi
+
 # if specified subgraph folders and files changed
-if grep -E "^packages/subgraph/(subgraph\.template\.yaml|schema\.graphql|config|scripts|src|tasks|test|hardhat\.config\.ts|package\.json|docker-compose\.yml)" "$CHANGED_FILES" > /dev/null; then
+if grep -E "^packages/subgraph/" "$CHANGED_FILES" > /dev/null; then
     BUILD_SUBGRAPH=1
     console.debug Subgraph will be tested.
 fi
-# if specified haskell folders and files changed
-if grep -E "^packages/spec-haskell/(packages/|cabal\.project)" "$CHANGED_FILES" > /dev/null; then
-    BUILD_SPEC_HASKELL=1
-    console.debug SPEC-HASKELL will be tested.
-fi
+
 # if specified automation-contracts/scheduler folders and files changed
-if grep -E "^packages/automation-contracts/scheduler/(contracts/|scripts/|test/|truffle-config\.js|package\.json)" "$CHANGED_FILES" > /dev/null; then
-    BUILD_AUTOMATION_CONTRACTS=1
-    console.debug Automation Contracts will be tested.
-fi
-# if specified automation-contracts/autowrap folders and files changed
-if grep -E "^packages/automation-contracts/autowrap/(contracts/|scripts/|test/|truffle-config\.js|package\.json)" "$CHANGED_FILES" > /dev/null; then
+if grep -E "^packages/automation-contracts/" "$CHANGED_FILES" > /dev/null; then
     BUILD_AUTOMATION_CONTRACTS=1
     console.debug Automation Contracts will be tested.
 fi
 
 if [ "$BUILD_ETHEREUM_CONTRACTS" == 1 ] || [ "$BUILD_SDK_CORE" == 1 ] || [ "$BUILD_SDK_REDUX" == 1 ]; then
-    console.debug "PR packages will be published."
     PUBLISH_PR_ARTIFACT=1
+    console.debug "PR packages will be published."
 fi
 
 console.debug "=== END CREATE BUILD SET"

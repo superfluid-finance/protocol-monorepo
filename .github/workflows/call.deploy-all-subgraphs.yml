@@ -59,31 +59,24 @@ jobs:
     name: Determine Networks
     runs-on: ubuntu-latest
     outputs:
-        networks: ${{ steps.determine.outputs.networks }}
+      networks: ${{ steps.determine.outputs.networks }}
     steps:
-      - name: Determine vendors for the network
+      - uses: actions/checkout@v4
+
+      - name: "Determine vendors for the network"
         id: determine
         run: |
-            networks="[]"
-            case "${{ inputs.vendor }}" in
-            "superfluid")
-                networks='["polygon-mainnet", "xdai-mainnet", "base-mainnet", "optimism-mainnet", "arbitrum-one", "celo-mainnet", "bsc-mainnet", "avalanche-c", "optimism-sepolia", "scroll-sepolia", "scroll-mainnet", "degenchain", "base-sepolia"]'
-                ;;
-            "goldsky")
-                networks='["polygon-mainnet", "xdai-mainnet", "eth-mainnet", "base-mainnet", "optimism-mainnet", "arbitrum-one", "bsc-mainnet", "avalanche-c", "optimism-sepolia", "scroll-sepolia", "scroll-mainnet", "eth-sepolia", "avalanche-fuji", "base-sepolia"]'
-                ;;
-            "graph")
-                networks='["polygon-mainnet", "eth-mainnet", "celo-mainnet"]'
-                ;;
-            "airstack")
-                networks='["degenchain"]'
-                ;;
-            *)
-                echo "Unsupported vendor: ${{ inputs.vendor }}"
-                exit 1
-                ;;
-            esac
-            echo "networks=$networks" >> "$GITHUB_OUTPUT"
+          networks=$(jq -r --arg vendor "${{ inputs.vendor }}" --arg network "${{ inputs.network }}" '
+            if $network == "all" then
+              .[$vendor] | @json
+            else
+              [$network] | @json
+            end' packages/subgraph/tasks/vendorNetworkMap.json)
+          if [ -z "$networks" ] || [ "$networks" == "null" ]; then
+            echo "Unsupported vendor or network: ${{ inputs.vendor }} / ${{ inputs.network }}"
+            exit 1
+          fi
+          echo "networks=$networks" >> "$GITHUB_OUTPUT"
 
   deploy-subgraph:
     name: Build and Deploy Subgraph
@@ -94,8 +87,6 @@ jobs:
       matrix:
         network: ${{ fromJson(needs.determine-networks.outputs.networks) }}
       fail-fast: false
-    env:
-      subgraph-working-directory: ./packages/subgraph
 
     defaults:
       run:
@@ -115,26 +106,14 @@ jobs:
         run: yarn build
         working-directory: ./packages/ethereum-contracts
 
-      # - name: Ensure deployment_env property is passed
-      #   run: |
-      #     if [ "${{ inputs.deployment_env }}" == "" ];then
-      #       echo "You must pass in the deployment_env at a minimum."
-      #       exit 1
-      #     fi
-
-      # If tagged, get subgraph tag name that starts with subgraph@. Outputs $GIT_TAG_NAME
-      - uses: olegtarasov/get-tag@v2.1.2
-        id: "getSubgraphTag"
-        with:
-          tagRegex: "subgraph@(.*)"
-
-      # Version is the git tag or revision
+      # Version is from subgraph@<version> git tag if exists, else short git commit revision
       - name: "Deploy to a node"
         run: |
           shortRev=$(git rev-parse --short ${{ github.sha }})
-          versionLabel="${GIT_TAG_NAME:-$shortRev}"
+          versionTag=$(git tag --contains ${{ github.sha }} | grep "^subgraph@" | sed 's/^subgraph@//')
+          versionLabel="${versionTag:-$shortRev}"
           ./tasks/deploy.sh -o ${{ inputs.vendor }} -n ${{ matrix.network }} -r ${{ inputs.deployment_env }} -v $versionLabel
-        working-directory: ${{ env.subgraph-working-directory }}
+        working-directory: ./packages/subgraph
         env:
           SUBGRAPH_URL_TEMPLATE: ${{ secrets.SUBGRAPH_URL_TEMPLATE }}
           SUPERFLUID_IPFS_API: ${{ secrets.SUPERFLUID_IPFS_API }}

@@ -40,7 +40,6 @@
         "lint:eslint": "eslint src --ext .ts",
         "fix": "run-s fix:*",
         "fix:eslint": "yarn lint:eslint --fix",
-        "pre-commit": "if [ ! -z \"$(git status -s .)\" ];then run-s lint:*;else true;fi",
         "set-default-subgraph-release-tag": "node scripts/setDefaultSubgraphReleaseTag.js",
         "start-node": "hardhat node",
         "generate": "run-s generate:*",

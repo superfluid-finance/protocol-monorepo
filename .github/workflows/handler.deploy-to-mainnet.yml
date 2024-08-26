@@ -38,9 +38,7 @@ jobs:
           repository: superfluid-finance/build-scripts
           path: build-scripts
 
-      - uses: cachix/install-nix-action@v19
-        with:
-          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: DeterminateSystems/nix-installer-action@v13
 
       - name: Build
         run: |

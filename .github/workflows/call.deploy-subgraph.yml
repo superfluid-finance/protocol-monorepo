@@ -5,7 +5,7 @@ on:
     inputs:
       vendor:
         required: true
-        description: "Where to deploy subgraph to; superfluid, goldsky, graph or airstack"
+        description: "Where to deploy subgraph to; superfluid, goldsky, or graph"
         type: string
       deployment_env:
         required: true
@@ -55,12 +55,38 @@ jobs:
           echo github.head_ref: "$HEAD_REF"
           echo github.base_ref: ${{ github.base_ref }}
 
+  determine-networks:
+    name: Determine Networks
+    runs-on: ubuntu-latest
+    outputs:
+      networks: ${{ steps.determine.outputs.networks }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: "Determine vendors for the network"
+        id: determine
+        run: |
+          networks=$(jq -r --arg vendor "${{ inputs.vendor }}" --arg network "${{ inputs.network }}" '
+            if $network == "all" then
+              .[$vendor] | @json
+            else
+              [$network] | @json
+            end' packages/subgraph/tasks/vendorNetworkMap.json)
+          if [ -z "$networks" ] || [ "$networks" == "null" ]; then
+            echo "Unsupported vendor or network: ${{ inputs.vendor }} / ${{ inputs.network }}"
+            exit 1
+          fi
+          echo "networks=$networks" >> "$GITHUB_OUTPUT"
+
   deploy-subgraph:
     name: Build and Deploy Subgraph
 
     runs-on: ubuntu-latest
-    env:
-      subgraph-working-directory: ./packages/subgraph
+    needs: determine-networks
+    strategy:
+      matrix:
+        network: ${{ fromJson(needs.determine-networks.outputs.networks) }}
+      fail-fast: false
 
     defaults:
       run:
@@ -69,7 +95,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: DeterminateSystems/nix-installer-action@v13
+      - uses: cachix/install-nix-action@v19
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Install dependencies"
         run: yarn install --frozen-lockfile
@@ -78,26 +106,14 @@ jobs:
         run: yarn build
         working-directory: ./packages/ethereum-contracts
 
-      # - name: Ensure deployment_env property is passed
-      #   run: |
-      #     if [ "${{ inputs.deployment_env }}" == "" ];then
-      #       echo "You must pass in the deployment_env at a minimum."
-      #       exit 1
-      #     fi
-
-      # If tagged, get subgraph tag name that starts with subgraph@. Outputs $GIT_TAG_NAME
-      - uses: olegtarasov/get-tag@v2.1.2
-        id: "getSubgraphTag"
-        with:
-          tagRegex: "subgraph@(.*)"
-
-      # Version is the git tag or revision
+      # Version is from subgraph@<version> git tag if exists, else short git commit revision
       - name: "Deploy to a node"
         run: |
           shortRev=$(git rev-parse --short ${{ github.sha }})
-          versionLabel="${GIT_TAG_NAME:-$shortRev}"
-          ./tasks/deploy.sh -o ${{ inputs.vendor }} -n ${{ inputs.network }} -r ${{ inputs.deployment_env }} -v $versionLabel
-        working-directory: ${{ env.subgraph-working-directory }}
+          versionTag=$(git tag --contains ${{ github.sha }} | grep "^subgraph@" | sed 's/^subgraph@//')
+          versionLabel="${versionTag:-$shortRev}"
+          ./tasks/deploy.sh -o ${{ inputs.vendor }} -n ${{ matrix.network }} -r ${{ inputs.deployment_env }} -v $versionLabel
+        working-directory: ./packages/subgraph
         env:
           SUBGRAPH_URL_TEMPLATE: ${{ secrets.SUBGRAPH_URL_TEMPLATE }}
           SUPERFLUID_IPFS_API: ${{ secrets.SUPERFLUID_IPFS_API }}

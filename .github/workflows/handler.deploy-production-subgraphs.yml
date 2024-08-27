@@ -47,7 +47,7 @@ jobs:
 
   deploy-subgraphs:
     if: ${{ success() || failure() }}
-    uses: ./.github/workflows/call.deploy-subgraphs.yml
+    uses: ./.github/workflows/call.deploy-subgraph.yml
     needs: [
             build-and-test-local-subgraph
             , build-and-test-local-subgraph-against-previous-sdk-core-releases

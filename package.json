@@ -25,7 +25,7 @@
         "eslint-plugin-prettier": "^5.2.1",
         "hardhat": "^2.22.9",
         "hardhat-deploy": "^0.12.4",
-        "husky": "^8.0.3",
+        "husky": "9.1.5",
         "lerna": "^7.4.2",
         "node-jq": "^4.4.0",
         "nodemon": "^3.1.4",
@@ -50,7 +50,7 @@
         "mocha": "^10.2.0"
     },
     "scripts": {
-        "postinstall": "npm run git-submodule:init && husky install",
+        "prepare": "husky && npm run git-submodule:init",
         "lint": "run-s -l lint:*",
         "lint:syncpack": "syncpack lint",
         "lint:shellcheck": "tasks/shellcheck-all-tasks.sh",

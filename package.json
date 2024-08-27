@@ -10,7 +10,7 @@
         "@openzeppelin/test-helpers": "^0.5.16",
         "@truffle/hdwallet-provider": "^2.1.15",
         "@typechain/ethers-v5": "^11.1.2",
-        "@typechain/hardhat": "^8.0.3",
+        "@typechain/hardhat": "9.1.0",
         "@types/lodash": "^4.17.7",
         "@types/mocha": "^10.0.7",
         "@typescript-eslint/eslint-plugin": "8.3.0",

@@ -3,7 +3,7 @@
     "description": "Superfluid Protocol monorepo",
     "version": "0.0.0",
     "devDependencies": {
-        "@nomicfoundation/hardhat-chai-matchers": "2.0.7",
+        "@nomicfoundation/hardhat-chai-matchers": "1.0.6",
         "@nomicfoundation/hardhat-ethers": "3.0.7",
         "@nomiclabs/hardhat-etherscan": "^3.1.7",
         "@nomiclabs/hardhat-web3": "^2.0.0",

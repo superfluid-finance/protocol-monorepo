@@ -2,6 +2,7 @@
 . "$(dirname "$0")/_/husky.sh"
 
 # always lint these
+npm run lint:syncpack
 npm run lint:shellcheck
 npm run lint:actionlint
 

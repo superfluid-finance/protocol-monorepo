@@ -1,3 +1,14 @@
 {
-    "indent": "    "
+    "indent": "    ",
+    "dependencyTypes": ["!peer", "!resolutions"],
+    "sortAz": ["!scripts"],
+    "semverGroups": [
+        {
+            "range": "^",
+            "dependencies": [
+                "@superfluid-finance/metadata",
+                "@superfluid-finance/ethereum-contracts",
+            ]
+        }
+    ]
 }

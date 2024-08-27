@@ -5,7 +5,7 @@ on:
 
 env:
   # FIXME: subgraph test fails with node20
-  DEV_SHELL_NAME: ci-node18
+  DEV_SHELL_NAME: ci-node20
 
 jobs:
   subgraph-unit-tests:

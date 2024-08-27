@@ -1,14 +1,28 @@
 {
     "name": "@superfluid-finance/subgraph",
-    "version": "2.1.0",
     "description": "Subgraph for the Superfluid Ethereum contracts.",
+    "version": "2.1.0",
+    "dependencies": {
+        "@graphprotocol/graph-cli": "0.80.1",
+        "@graphprotocol/graph-ts": "0.35.1",
+        "@superfluid-finance/sdk-core": "0.8.0",
+        "mustache": "^4.2.0"
+    },
+    "devDependencies": {
+        "@superfluid-finance/metadata": "^1.4.1",
+        "coingecko-api": "^1.0.10",
+        "graphql": "^16.9.0",
+        "graphql-request": "^6.1.0",
+        "lodash": "^4.17.21",
+        "matchstick-as": "^0.6.0"
+    },
     "homepage": "https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/subgraph",
+    "license": "MIT",
     "repository": {
         "type": "git",
         "url": "https://github.com/superfluid-finance/protocol-monorepo.git",
         "directory": "packages/subgraph"
     },
-    "license": "MIT",
     "scripts": {
         "getAbi": "node scripts/getAbi",
         "codegen": "graph codegen",
@@ -46,19 +60,5 @@
         "generate-sf-meta-local": "COMMIT_HASH=local CONFIGURATION=local BRANCH=local TAG=local ./tasks/getSFMeta.sh",
         "check-updates": "ncu --target minor --dep prod,dev",
         "cloc": "cloc src"
-    },
-    "dependencies": {
-        "@graphprotocol/graph-cli": "0.80.1",
-        "@graphprotocol/graph-ts": "0.35.1",
-        "@superfluid-finance/sdk-core": "^0.8.0",
-        "mustache": "^4.2.0"
-    },
-    "devDependencies": {
-        "@superfluid-finance/metadata": "^1.4.1",
-        "coingecko-api": "^1.0.10",
-        "graphql": "^16.9.0",
-        "graphql-request": "^6.1.0",
-        "lodash": "^4.17.21",
-        "matchstick-as": "^0.6.0"
     }
 }

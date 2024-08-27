@@ -74,7 +74,7 @@
         "prettier": "^3.3.3",
         "prettier-eslint": "^15.0.1",
         "solhint": "3.6.2",
-        "syncpack": "^10.9.3",
+        "syncpack": "^13.0.0",
         "truffle": "^5.11.5",
         "ts-node": "^10.9.2",
         "typechain": "^8.3.2",

@@ -121,7 +121,6 @@ jobs:
       - name: Run setup-graph-node
         if: steps.base.outputs.cache-hit != 'true'
         run: |
-          chmod +x ./tasks/setup-graph-node.sh
           ./tasks/setup-graph-node.sh
         working-directory: ${{ env.subgraph-working-directory }}
 

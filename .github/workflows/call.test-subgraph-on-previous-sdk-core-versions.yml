@@ -64,7 +64,6 @@ jobs:
 
       - name: "Run setup-graph-node"
         run: |
-          chmod +x ./tasks/setup-graph-node.sh
           ./tasks/setup-graph-node.sh
         working-directory: ./packages/subgraph
 

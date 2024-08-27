@@ -26,7 +26,7 @@
         "hardhat": "^2.22.9",
         "hardhat-deploy": "^0.12.4",
         "husky": "9.1.5",
-        "lerna": "^7.4.2",
+        "lerna": "8.1.8",
         "node-jq": "6.0.1",
         "nodemon": "^3.1.4",
         "npm-run-all": "^4.1.5",

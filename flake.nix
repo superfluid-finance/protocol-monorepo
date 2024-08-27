@@ -73,6 +73,7 @@
     ];
     node18DevInputs = nodeDevInputsWith pkgs.nodejs_18;
     node20DevInputs = nodeDevInputsWith pkgs.nodejs_20;
+    node22DevInputs = nodeDevInputsWith pkgs.nodejs_22;
 
     # CI inputs
     ciInputs = with pkgs; [

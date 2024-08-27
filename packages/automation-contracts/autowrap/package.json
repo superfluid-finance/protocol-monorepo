@@ -1,7 +1,7 @@
 {
     "name": "autowrap",
     "description": "Open contracts that allow upgrading underlying token to supertokens based on running stream",
-    "version": "0.0.1",
+    "version": "0.3.0",
     "devDependencies": {
         "@openzeppelin/contracts": "4.9.6",
         "@superfluid-finance/ethereum-contracts": "^1.11.0",

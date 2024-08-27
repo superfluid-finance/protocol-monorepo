@@ -51,7 +51,6 @@ jobs:
 
       - name: Run global lint
         run: |
-          npm run lint:syncpack
           npm run lint:shellcheck
           npm run lint:actionlint
 

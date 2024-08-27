@@ -1,8 +1,60 @@
 {
     "name": "@superfluid-finance/sdk-core",
-    "description": "SDK Core for building with Superfluid Protocol",
     "version": "0.8.0",
-    "bugs": "https://github.com/superfluid-finance/protocol-monorepo/issues",
+    "description": "SDK Core for building with Superfluid Protocol",
+    "homepage": "https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/sdk-core#readme",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/superfluid-finance/protocol-monorepo.git",
+        "directory": "packages/sdk-core"
+    },
+    "license": "MIT",
+    "main": "dist/main/index.js",
+    "module": "dist/module/index.js",
+    "types": "dist/module/index.d.ts",
+    "files": [
+        "dist/main",
+        "dist/module",
+        "dist/index.umd.js",
+        "CHANGELOG.md",
+        "LICENSE",
+        "README.md"
+    ],
+    "scripts": {
+        "build": "yarn generate && rm -rf dist && run-s build:*",
+        "build:typechain-types": "./tasks/build-types.sh",
+        "build:main": "tsc -p tsconfig.json",
+        "build:module": "tsc -p tsconfig.module.json",
+        "build:umd": "mkdir -p dist && browserify src/index.ts -s sdkCore -p [ tsify --noImplicitAny --skipLibCheck ] > dist/index.umd.js",
+        "testenv:start": "tasks/testenv-ctl.sh start",
+        "testenv:stop": "tasks/testenv-ctl.sh stop",
+        "pretest": "yarn testenv:start",
+        "test": "hardhat test --tsconfig \"tsconfig.test.json\"",
+        "dev": "nodemon -e ts -x yarn test",
+        "clean": "rm -rf node_modules; rm -rf dist; rm -rf src/typechain-types; rm -rf src/typechain; rm -rf src/abi; find . -type f -name '*.generated.ts' -exec rm {} +",
+        "test-coverage": "nyc --reporter=html --reporter=lcov --reporter=json yarn test",
+        "posttest": "yarn testenv:stop",
+        "check-updates": "ncu --target minor --dep prod,dev",
+        "doc:html": "typedoc --entryPointStrategy expand ./src --options ./typedoc.js && copyfiles -f ./sf-logo.png ./dist/docs/",
+        "lint": "run-s lint:*",
+        "lint:eslint": "eslint src --ext .ts",
+        "fix": "run-s fix:*",
+        "fix:eslint": "yarn lint:eslint --fix",
+        "set-default-subgraph-release-tag": "node scripts/setDefaultSubgraphReleaseTag.js",
+        "start-node": "hardhat node",
+        "generate": "run-s generate:*",
+        "generate:ajv-validations": "ts-node scripts/ajv.ts",
+        "generate:graphql-types": "graphql-codegen --config subgraph-codegen.yml",
+        "get-graphql-schema": "yarn get-graphql-schema:v1",
+        "get-graphql-schema:local": "get-graphql-schema http://localhost:8000/subgraphs/name/superfluid-test > src/subgraph/schema.graphql",
+        "get-graphql-schema:v1": "get-graphql-schema https://subgraph-endpoints.superfluid.dev/optimism-mainnet/protocol-v1 > src/subgraph/schema.graphql",
+        "get-graphql-schema:dev": "get-graphql-schema https://subgraph-endpoints.superfluid.dev/optimism-sepolia/protocol-v1 > src/subgraph/schema.graphql",
+        "get-graphql-schema:custom-url": "get-graphql-schema $1 > src/subgraph/schema.graphql",
+        "cloc": "sh tasks/cloc.sh"
+    },
+    "bugs": {
+        "url": "https://github.com/superfluid-finance/protocol-monorepo/issues"
+    },
     "dependencies": {
         "@superfluid-finance/ethereum-contracts": "^1.11.0",
         "@superfluid-finance/metadata": "^1.4.1",
@@ -24,64 +76,14 @@
         "get-graphql-schema": "^2.1.2",
         "mocha": "^10.7.3"
     },
-    "engines": {
-        "node": ">=12"
-    },
-    "files": [
-        "dist/main",
-        "dist/module",
-        "dist/index.umd.js",
-        "CHANGELOG.md",
-        "LICENSE",
-        "README.md"
-    ],
-    "homepage": "https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/sdk-core#readme",
-    "license": "MIT",
-    "main": "dist/main/index.js",
-    "module": "dist/module/index.js",
     "peerDependencies": {
         "ethers": "^5.7.2",
         "graphql": "^16.0.0"
     },
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/superfluid-finance/protocol-monorepo.git",
-        "directory": "packages/sdk-core"
-    },
     "resolutions": {
         "graphql": "^16.0.0"
     },
-    "scripts": {
-        "build": "yarn generate && rm -rf dist && run-s build:*",
-        "build:main": "tsc -p tsconfig.json",
-        "build:module": "tsc -p tsconfig.module.json",
-        "build:typechain-types": "./tasks/build-types.sh",
-        "build:umd": "mkdir -p dist && browserify src/index.ts -s sdkCore -p [ tsify --noImplicitAny --skipLibCheck ] > dist/index.umd.js",
-        "check-updates": "ncu --target minor --dep prod,dev",
-        "clean": "rm -rf node_modules; rm -rf dist; rm -rf src/typechain-types; rm -rf src/typechain; rm -rf src/abi; find . -type f -name '*.generated.ts' -exec rm {} +",
-        "cloc": "sh tasks/cloc.sh",
-        "dev": "nodemon -e ts -x yarn test",
-        "doc:html": "typedoc --entryPointStrategy expand ./src --options ./typedoc.js && copyfiles -f ./sf-logo.png ./dist/docs/",
-        "fix": "run-s fix:*",
-        "fix:eslint": "yarn lint:eslint --fix",
-        "generate": "run-s generate:*",
-        "generate:ajv-validations": "ts-node scripts/ajv.ts",
-        "generate:graphql-types": "graphql-codegen --config subgraph-codegen.yml",
-        "get-graphql-schema": "yarn get-graphql-schema:v1",
-        "get-graphql-schema:custom-url": "get-graphql-schema $1 > src/subgraph/schema.graphql",
-        "get-graphql-schema:dev": "get-graphql-schema https://subgraph-endpoints.superfluid.dev/optimism-sepolia/protocol-v1 > src/subgraph/schema.graphql",
-        "get-graphql-schema:local": "get-graphql-schema http://localhost:8000/subgraphs/name/superfluid-test > src/subgraph/schema.graphql",
-        "get-graphql-schema:v1": "get-graphql-schema https://subgraph-endpoints.superfluid.dev/optimism-mainnet/protocol-v1 > src/subgraph/schema.graphql",
-        "lint": "run-s lint:*",
-        "lint:eslint": "eslint src --ext .ts",
-        "posttest": "yarn testenv:stop",
-        "pretest": "yarn testenv:start",
-        "set-default-subgraph-release-tag": "node scripts/setDefaultSubgraphReleaseTag.js",
-        "start-node": "hardhat node",
-        "test": "hardhat test --tsconfig \"tsconfig.test.json\"",
-        "test-coverage": "nyc --reporter=html --reporter=lcov --reporter=json yarn test",
-        "testenv:start": "tasks/testenv-ctl.sh start",
-        "testenv:stop": "tasks/testenv-ctl.sh stop"
-    },
-    "types": "dist/module/index.d.ts"
+    "engines": {
+        "node": ">=12"
+    }
 }

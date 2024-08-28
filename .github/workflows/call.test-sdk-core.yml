@@ -31,7 +31,7 @@ jobs:
           if [ "${{ inputs.run-coverage-tests }}" == "true" ];then
             echo "matrix={\"node-version\": [20]}" >> "$GITHUB_OUTPUT"
           else
-            echo "matrix={\"node-version\": [18, 20]}" >> "$GITHUB_OUTPUT"
+            echo "matrix={\"node-version\": [uu18, 20]}" >> "$GITHUB_OUTPUT"
           fi
 
   test-sdk-core:
@@ -62,11 +62,10 @@ jobs:
       - name: Set cache key prefix
         id: set-cache-key-prefix
         run: |
-          node_version=${{ matrix.node-version }}
           if [ "${{ inputs.run-coverage-tests }}" == false ]; then
-            v=sdk-core-test-${node_version}-
+            v=sdk-core-${{ env.DEV_SHELL_NAME }}-test-
           else
-            v=sdk-core-coverage-${node_version}-
+            v=sdk-core-${{ env.DEV_SHELL_NAME }}-coverage-
           fi
           echo "cache_key_prefix=$v" >> "$GITHUB_OUTPUT"
         shell: bash
@@ -120,8 +119,9 @@ jobs:
       - name: Docker compose
         if: steps.base.outputs.cache-hit != 'true'
         run: |
-          source ./tasks/setup-graph-node.sh
-          docker compose up &
+          ./tasks/setup-graph-node.sh &
+          # wait 5 seconds for it to warm up
+          sleep 5
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: Build and deploy local subgraph

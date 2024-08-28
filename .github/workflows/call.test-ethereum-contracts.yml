@@ -56,11 +56,10 @@ jobs:
       - name: Set cache key prefix
         id: set-cache-key-prefix
         run: |
-          node_version=${{ matrix.node-version }}
           if [ "${{ inputs.run-coverage-tests }}" == false ]; then
-            v=ethereum-contracts-test-${node_version}-
+            v=ethereum-contracts-${{ env.DEV_SHELL_NAME }}-test-
           else
-            v=ethereum-contracts-coverage-${node_version}-
+            v=ethereum-contracts-${{ env.DEV_SHELL_NAME }}-coverage-
           fi
           echo "cache_key_prefix=$v" >> "$GITHUB_OUTPUT"
         shell: bash

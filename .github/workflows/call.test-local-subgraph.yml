@@ -4,7 +4,6 @@ on:
   workflow_call:
 
 env:
-  # FIXME: subgraph test fails with node20
   DEV_SHELL_NAME: ci-node20
 
 jobs:
@@ -27,7 +26,7 @@ jobs:
         uses: ./.github/actions/setup-workflow-base
         with:
           package-name: subgraph
-          cache-key-prefix: subgraph-unit-tests-${{ env.DEV_SHELL_NAME }}-
+          cache-key-prefix: subgraph-${{ env.DEV_SHELL_NAME }}-unit-tests-
           dev-shell-name: ${{ env.DEV_SHELL_NAME }}
 
       - name: Install dependencies
@@ -70,7 +69,7 @@ jobs:
         uses: ./.github/actions/setup-workflow-base
         with:
           package-name: subgraph
-          cache-key-prefix: subgraph-integration-tests-${{ env.DEV_SHELL_NAME }}-
+          cache-key-prefix: subgraph-${{ env.DEV_SHELL_NAME }}-integration-tests-
           dev-shell-name: ${{ env.DEV_SHELL_NAME }}
 
       - name: Install dependencies
@@ -106,8 +105,8 @@ jobs:
       - name: Docker compose
         if: steps.base.outputs.cache-hit != 'true'
         run: |
-          source ./tasks/setup-graph-node.sh
-          docker compose up &
+          ./tasks/setup-graph-node.sh &
+          # wait 5 seconds for it to warm up
           sleep 5
         working-directory: ${{ env.subgraph-working-directory }}
 

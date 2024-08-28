@@ -139,7 +139,7 @@ export const subgraphRequest = async <T>(
         const response = await request<T & ISubgraphErrors>(
             "http://localhost:8000/subgraphs/name/superfluid-test",
             query,
-            { ...variables, fetch }
+            variables
         );
 
         if (response.errors) {

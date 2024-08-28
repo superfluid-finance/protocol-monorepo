@@ -5,7 +5,7 @@ on:
 
 env:
   # FIXME: subgraph test fails with node20
-  DEV_SHELL_NAME: ci-node20
+  DEV_SHELL_NAME: ci-node18
 
 jobs:
   subgraph-unit-tests:
@@ -106,13 +106,15 @@ jobs:
       - name: Run setup-graph-node
         if: steps.base.outputs.cache-hit != 'true'
         run: |
-          ./tasks/setup-graph-node.sh # FIXME fix this script
+          chmod +x ./tasks/setup-graph-node.sh
+          ./tasks/setup-graph-node.sh
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: Docker compose
         if: steps.base.outputs.cache-hit != 'true'
         run: |
-          docker compose up --force-recreate &
+          docker rm subgraph_graph-node_1 || true
+          docker compose up &
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: Run subgraph integration test suite

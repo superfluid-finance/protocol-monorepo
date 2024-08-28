@@ -32,7 +32,7 @@ HOST_IP=$(docker inspect "$CONTAINER_ID" | jq -r .[0].NetworkSettings.Networks[]
 echo "Host IP: $HOST_IP"
 
 # Inject the host IP into docker-compose.yml
-sed -i -e "s/host.docker.internal/$HOST_IP/g" docker-compose.yml
+#sed -i -e "s/host.docker.internal/$HOST_IP/g" docker-compose.yml
 
 function stop_graph_node {
     # Ensure graph-node is stopped

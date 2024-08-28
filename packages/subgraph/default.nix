@@ -20,6 +20,7 @@
       ./docker-compose.yml
       ./matchstick.yaml
       ./tests
+      ./tasks
     ];
   };
 }

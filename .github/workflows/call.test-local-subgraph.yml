@@ -82,15 +82,15 @@ jobs:
         run: yarn build
         working-directory: ./packages/ethereum-contracts
 
-      - name: Start hardhat node
-        if: steps.base.outputs.cache-hit != 'true'
-        run: ./tasks/startHardhatNode.sh start
-        working-directory: ${{ env.sdk-core-working-directory }}
-
       - name: Build SDK core
         if: steps.base.outputs.cache-hit != 'true'
         # build sdk-core because subgraph tests use sdk-core
         run: yarn build
+        working-directory: ${{ env.sdk-core-working-directory }}
+
+      - name: Start hardhat node
+        if: steps.base.outputs.cache-hit != 'true'
+        run: ./tasks/startHardhatNode.sh start
         working-directory: ${{ env.sdk-core-working-directory }}
 
       - name: Deploy framework and tokens

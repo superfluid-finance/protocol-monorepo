@@ -1,5 +1,11 @@
 version: "3"
 services:
+  docker-host:
+    image: qoomon/docker-host
+    cap_add: [ 'NET_ADMIN', 'NET_RAW' ]
+    restart: on-failure
+    environment:
+      - PORTS=8545
   graph-node:
     image: graphprotocol/graph-node:v0.35.0
     ports:
@@ -9,6 +15,7 @@ services:
       - "8030:8030"
       - "8040:8040"
     depends_on:
+      - docker-host
       - ipfs
       - postgres
     environment:
@@ -17,7 +24,7 @@ services:
       postgres_pass: let-me-in
       postgres_db: graph-node
       ipfs: "ipfs:5001"
-      ethereum: "mainnet:http://host.docker.internal:8545"
+      ethereum: "mainnet:http://docker-host:8545"
       GRAPH_LOG: info
   ipfs:
     image: ipfs/go-ipfs:v0.4.23

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -e
+set -ex
 
 if ! which docker >/dev/null 2>&1 ; then
     echo "Please install 'docker' first"

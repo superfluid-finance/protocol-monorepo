@@ -31,7 +31,7 @@ jobs:
           if [ "${{ inputs.run-coverage-tests }}" == "true" ];then
             echo "matrix={\"node-version\": [20]}" >> "$GITHUB_OUTPUT"
           else
-            echo "matrix={\"node-version\": [uu18, 20]}" >> "$GITHUB_OUTPUT"
+            echo "matrix={\"node-version\": [18, 20]}" >> "$GITHUB_OUTPUT"
           fi
 
   test-sdk-core:

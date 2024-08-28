@@ -44,9 +44,6 @@
         "url": "https://github.com/superfluid-finance/protocol-monorepo.git",
         "directory": "packages/sdk-core"
     },
-    "resolutions": {
-        "graphql": "^16.0.0"
-    },
     "scripts": {
         "build": "yarn generate && rm -rf dist && run-s build:*",
         "build:typechain-types": "./tasks/build-types.sh",

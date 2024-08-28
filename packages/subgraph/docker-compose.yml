@@ -1,11 +1,7 @@
-version: "3"
 services:
   docker-host:
     image: qoomon/docker-host
     cap_add: [ 'NET_ADMIN', 'NET_RAW' ]
-    restart: on-failure
-    environment:
-      - PORTS=8545
   graph-node:
     image: graphprotocol/graph-node:v0.35.0
     ports:

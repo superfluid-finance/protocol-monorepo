@@ -9,6 +9,9 @@ import { FoundrySuperfluidTester, SuperTokenV1Library } from "../FoundrySuperflu
 
 using SuperTokenV1Library for ISuperToken;
 
+// ============== Macro Contracts ==============
+
+// not overriding IUserDefinedMacro here in order to avoid the compiler enforcing the function to be view-only.
 contract NaugthyMacro {
     int naughtyCounter = -1;
 
@@ -26,6 +29,8 @@ contract NaugthyMacro {
         }
         return new ISuperfluid.Operation[](0);
     }
+
+    function postCheck(ISuperfluid host, bytes memory params, address msgSender) external view { }
 }
 
 contract GoodMacro is IUserDefinedMacro {
@@ -56,10 +61,19 @@ contract GoodMacro is IUserDefinedMacro {
             });
         }
     }
+
+    function postCheck(ISuperfluid host, bytes memory params, address msgSender) external view { }
+
+    // recommended view function for parameter encoding
+    function getParams(ISuperToken token, int96 flowRate, address[] calldata recipients) external pure returns (bytes memory) {
+        return abi.encode(token, flowRate, recipients);
+    }
 }
 
-// deletes a bunch of flows of the msgSender
+// deletes a bunch of flows from one sender to muliple receivers
 contract MultiFlowDeleteMacro is IUserDefinedMacro {
+    error InsufficientReward();
+
     function buildBatchOperations(ISuperfluid host, bytes memory params, address msgSender) external override view
         returns (ISuperfluid.Operation[] memory operations)
     {
@@ -68,15 +82,15 @@ contract MultiFlowDeleteMacro is IUserDefinedMacro {
         )));
 
         // parse params
-        (ISuperToken token, address[] memory receivers) =
-            abi.decode(params, (ISuperToken, address[]));
+        (ISuperToken token, address sender, address[] memory receivers, uint256 minBalanceAfter) =
+            abi.decode(params, (ISuperToken, address, address[], uint256));
 
         // construct batch operations
         operations = new ISuperfluid.Operation[](receivers.length);
         for (uint i = 0; i < receivers.length; ++i) {
             bytes memory callData = abi.encodeCall(cfa.deleteFlow,
                                                    (token,
-                                                    msgSender,
+                                                    sender,
                                                     receivers[i],
                                                     new bytes(0) // placeholder
                                                    ));
@@ -85,6 +99,23 @@ contract MultiFlowDeleteMacro is IUserDefinedMacro {
                 target: address(cfa),
                 data: abi.encode(callData, new bytes(0))
             });
+        }
+    }
+
+    // recommended view function for parameter encoding
+    function getParams(ISuperToken superToken, address sender, address[] memory receivers, uint256 minBalanceAfter)
+        external pure
+        returns (bytes memory)
+    {
+        return abi.encode(superToken, sender, receivers, minBalanceAfter);
+    }
+
+    function postCheck(ISuperfluid host, bytes memory params, address msgSender) external view {
+        // parse params
+        (ISuperToken superToken,,, uint256 minBalanceAfter) =
+            abi.decode(params, (ISuperToken, address, address[], uint256));
+        if (superToken.balanceOf(msgSender) < minBalanceAfter) {
+            revert InsufficientReward();
         }
     }
 }
@@ -134,7 +165,11 @@ contract StatefulMacro is IUserDefinedMacro {
             });
         }
     }
+
+    function postCheck(ISuperfluid host, bytes memory params, address msgSender) external view { }
 }
+
+// ============== Test Contract ==============
 
 contract MacroForwarderTest is FoundrySuperfluidTester {
     MacroForwarder internal macroForwarder;
@@ -176,6 +211,20 @@ contract MacroForwarderTest is FoundrySuperfluidTester {
         vm.stopPrank();
     }
 
+    function testGoodMacroUsingGetParams() external {
+        GoodMacro m = new GoodMacro();
+        address[] memory recipients = new address[](2);
+        recipients[0] = bob;
+        recipients[1] = carol;
+        vm.startPrank(admin);
+        // NOTE! This is different from abi.encode(superToken, int96(42), [bob, carol]),
+        //       which is a fixed array: address[2].
+        macroForwarder.runMacro(m, m.getParams(superToken, int96(42), recipients));
+        assertEq(sf.cfa.getNetFlow(superToken, bob), 42);
+        assertEq(sf.cfa.getNetFlow(superToken, carol), 42);
+        vm.stopPrank();
+    }
+
     function testStatefulMacro() external {
         address[] memory recipients = new address[](2);
         recipients[0] = bob;
@@ -193,22 +242,51 @@ contract MacroForwarderTest is FoundrySuperfluidTester {
 
     function testMultiFlowDeleteMacro() external {
         MultiFlowDeleteMacro m = new MultiFlowDeleteMacro();
+        address sender = alice;
         address[] memory recipients = new address[](3);
         recipients[0] = bob;
         recipients[1] = carol;
         recipients[2] = dan;
 
-        vm.startPrank(admin);
+        vm.startPrank(sender);
         // flows to be deleted need to exist in the first place
         for (uint i = 0; i < recipients.length; ++i) {
             superToken.createFlow(recipients[i], 42);
         }
         // now batch-delete them
-        macroForwarder.runMacro(m, abi.encode(superToken, recipients));
+        macroForwarder.runMacro(m, m.getParams(superToken, sender, recipients, 0));
 
         for (uint i = 0; i < recipients.length; ++i) {
             assertEq(sf.cfa.getNetFlow(superToken, recipients[i]), 0);
         }
         vm.stopPrank();
+    }
+
+    function testPostCheck() external {
+        MultiFlowDeleteMacro m = new MultiFlowDeleteMacro();
+        address[] memory recipients = new address[](2);
+        recipients[0] = bob;
+        recipients[1] = carol;
+        int96 flowRate = 1e18;
+
+        vm.startPrank(alice);
+        // flows to be deleted need to exist in the first place
+        for (uint i = 0; i < recipients.length; ++i) {
+            superToken.createFlow(recipients[i], flowRate);
+        }
+        vm.stopPrank();
+
+        // fast forward 3000 days
+        vm.warp(block.timestamp + 86400*3000);
+
+        // alice is now insolvent, dan can batch-delete the flows
+        vm.startPrank(dan);
+        uint256 danBalanceBefore = superToken.balanceOf(dan);
+        // unreasonable reward expectation: post check fails
+        vm.expectRevert(MultiFlowDeleteMacro.InsufficientReward.selector);
+        macroForwarder.runMacro(m, abi.encode(superToken, alice, recipients, danBalanceBefore + 1e24));
+
+        // reasonable reward expectation: post check passes
+        macroForwarder.runMacro(m, abi.encode(superToken, alice, recipients, danBalanceBefore + (uint256(uint96(flowRate)) * 600)));
     }
 }

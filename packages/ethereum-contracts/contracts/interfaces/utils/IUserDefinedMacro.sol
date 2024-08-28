@@ -49,6 +49,5 @@ interface IUserDefinedMacro {
      * - Allows to use generic tooling like Explorers to interact with the macro
      * - Allows to build auto-generated UIs based on the contract ABI
      * - Makes it easier to interface with the macro from Dapps
-     *
      */
 }

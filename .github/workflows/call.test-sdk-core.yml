@@ -29,10 +29,9 @@ jobs:
         id: set-matrix
         run: |
           if [ "${{ inputs.run-coverage-tests }}" == "true" ];then
-            echo "matrix={\"node-version\": [18]}" >> "$GITHUB_OUTPUT"
+            echo "matrix={\"node-version\": [20]}" >> "$GITHUB_OUTPUT"
           else
-            # FIXME: subgraph test fails with node20
-            echo "matrix={\"node-version\": [18]}" >> "$GITHUB_OUTPUT"
+            echo "matrix={\"node-version\": [18, 20]}" >> "$GITHUB_OUTPUT"
           fi
 
   test-sdk-core:
@@ -118,16 +117,10 @@ jobs:
         run: yarn prepare-local
         working-directory: ${{ env.subgraph-working-directory }}
 
-      - name: Run setup-graph-node
-        if: steps.base.outputs.cache-hit != 'true'
-        run: |
-          ./tasks/setup-graph-node.sh
-        working-directory: ${{ env.subgraph-working-directory }}
-
       - name: Docker compose
         if: steps.base.outputs.cache-hit != 'true'
         run: |
-          docker rm subgraph_graph-node_1 || true
+          source ./tasks/setup-graph-node.sh
           docker compose up &
         working-directory: ${{ env.subgraph-working-directory }}
 

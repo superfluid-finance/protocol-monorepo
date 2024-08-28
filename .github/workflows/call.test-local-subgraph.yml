@@ -103,10 +103,16 @@ jobs:
         run: yarn prepare-local
         working-directory: ${{ env.subgraph-working-directory }}
 
+      - name: Run setup-graph-node
+        if: steps.base.outputs.cache-hit != 'true'
+        run: |
+          ./tasks/setup-graph-node.sh
+        working-directory: ${{ env.subgraph-working-directory }}
+
       - name: Docker compose
         if: steps.base.outputs.cache-hit != 'true'
         run: |
-          docker compose up &
+          docker compose up --force-recreate &
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: Run subgraph integration test suite

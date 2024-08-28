@@ -11,8 +11,6 @@ services:
     depends_on:
       - ipfs
       - postgres
-    extra_hosts:
-      - host.docker.internal:host-gateway
     environment:
       postgres_host: postgres
       postgres_user: graph-node

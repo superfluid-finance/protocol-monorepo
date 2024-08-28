@@ -7,7 +7,7 @@
         "@superfluid-finance/ethereum-contracts": "^1.11.0",
         "@superfluid-finance/metadata": "^1.4.1",
         "browserify": "^17.0.0",
-        "graphql-request": "7.1.0",
+        "graphql-request": "^6.1.0",
         "lodash": "^4.17.21",
         "tsify": "^5.0.4"
     },

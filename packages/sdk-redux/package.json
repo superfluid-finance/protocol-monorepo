@@ -9,7 +9,7 @@
         }
     },
     "dependencies": {
-        "graphql-request": "7.1.0",
+        "graphql-request": "^6.1.0",
         "lodash": "^4.17.21",
         "promise-retry": "^2.0.1"
     },

@@ -112,12 +112,12 @@ jobs:
       - name: Docker compose
         if: steps.base.outputs.cache-hit != 'true'
         run: |
-          docker compose up --force-recreate --detach
+          export DOCKER_HOST_GATEWAY_IP=$(docker network inspect subgraph_default | jq -r '.[0].IPAM.Config[].Gateway')
+          docker compose up &
+          sleep 5
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: Run subgraph integration test suite
         if: steps.base.outputs.cache-hit != 'true'
-        run: |
-          export DOCKER_HOST_GATEWAY_IP=$(docker network inspect bridge | jq -r '.[0].IPAM.Config[].Gateway')
-          yarn test --network localhost
+        run: yarn test --network localhost
         working-directory: ${{ env.subgraph-working-directory }}

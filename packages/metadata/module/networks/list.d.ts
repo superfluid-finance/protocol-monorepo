@@ -12,11 +12,10 @@ interface ContractAddresses {
     readonly gdaV1?: string;
     readonly gdaV1Forwarder?: string;
     readonly superTokenFactory: string;
-    readonly constantOutflowNFT?: string;
-    readonly constantInflowNFT?: string;
     readonly superfluidLoader: string;
     readonly toga?: string;
     readonly vestingScheduler?: string;
+    readonly vestingSchedulerV2?: string;
     readonly flowScheduler?: string;
     readonly batchLiquidator?: string;
     readonly superSpreader?: string;
@@ -49,6 +48,9 @@ export interface NetworkMetaData {
     readonly publicRPCs?: string[];
     readonly coinGeckoId?: string;
     readonly trustedForwarders?: string[]; // list of additional trusted forwarders
+    readonly subgraphVesting?: { name: string, hostedEndpoint: string }
+    readonly subgraphFlowScheduler?: { name: string, hostedEndpoint: string }
+    readonly subgraphAutoWrap?: { name: string, hostedEndpoint: string },
 }
 declare const _default: NetworkMetaData[];
 export default _default;

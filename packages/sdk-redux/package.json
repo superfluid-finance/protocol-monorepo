@@ -1,6 +1,6 @@
 {
     "name": "@superfluid-finance/sdk-redux",
-    "version": "0.5.1",
+    "version": "0.6.1",
     "description": "SDK Redux for streamlined front-end application development with Superfluid Protocol",
     "homepage": "https://docs.superfluid.finance/",
     "repository": {
@@ -14,8 +14,7 @@
     "module": "dist/module/index.js",
     "keywords": [],
     "scripts": {
-        "pre-commit": "if [ ! -z \"$(git status -s .)\" ];then run-s lint:*;else true;fi",
-        "build": "rm -rf dist && run-p build:*",
+        "build": "rm -rf dist && run-p -l build:*",
         "build:main": "tsc -p tsconfig.json",
         "build:module": "tsc -p tsconfig.module.json",
         "lint": "run-s lint:*",
@@ -52,7 +51,7 @@
     },
     "peerDependencies": {
         "@reduxjs/toolkit": "^1.7.0 || ^1.8.0 || ^1.9.0",
-        "@superfluid-finance/sdk-core": "^0.6.9"
+        "@superfluid-finance/sdk-core": ">0.7.0"
     },
     "files": [
         "dist/main",

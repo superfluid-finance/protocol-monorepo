@@ -837,7 +837,7 @@ library SuperTokenV1Library {
      * @dev get flow info of a distributor to a pool for given token
      * @param token The token used in flow
      * @param distributor The sitributor of the flow
-     * @param pool The GDA pool 
+     * @param pool The GDA pool
      * @return lastUpdated Timestamp of flow creation or last flowrate change
      * @return flowRate The flow rate
      * @return deposit The amount of deposit the flow
@@ -922,7 +922,7 @@ library SuperTokenV1Library {
             deposit += cfaDeposit;
             owedDeposit += cfaOwedDeposit;
         }
-        
+
         {
             (uint256 lastUpdatedGDA, int96 gdaNetFlowRate, uint256 gdaDeposit) = gda.getAccountFlowInfo(token, account);
 
@@ -968,6 +968,7 @@ library SuperTokenV1Library {
     {
         (, IGeneralDistributionAgreementV1 gda) = _getHostAndGDA(token);
         (lastUpdated, flowRate, deposit) = gda.getAccountFlowInfo(token, account);
+        owedDeposit = 0; // unused in GDA
     }
 
     /**

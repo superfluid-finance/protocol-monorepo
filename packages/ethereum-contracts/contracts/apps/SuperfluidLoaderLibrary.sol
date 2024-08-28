@@ -15,14 +15,15 @@ library SuperfluidLoaderLibrary {
     uint256 private constant CELO_MAINNET = 42220;
     uint256 private constant AVALANCHE_C = 43114;
     uint256 private constant SCROLL_MAINNET = 534352;
+    uint256 private constant DEGENCHAIN = 666666666;
 
 
     // testnets
     uint256 private constant AVALANCHE_FUJI = 43113;
-    uint256 private constant POLYGON_MUMBAI = 80001;
     uint256 private constant SCROLL_SEPOLIA = 534351;
     uint256 private constant ETH_SEPOLIA = 11155111;
     uint256 private constant OPTIMISM_SEPOLIA = 11155420;
+    uint256 private constant BASE_SEPOLIA = 84532;
 
 
     function getHost() public view returns (address) {
@@ -47,17 +48,19 @@ library SuperfluidLoaderLibrary {
             return 0x60377C7016E4cdB03C87EF474896C11cB560752C;
         } else if (block.chainid == SCROLL_MAINNET) {
             return 0x0F86a21F6216c061B222c224e315d9FC34520bb7;
+        } else if (block.chainid == DEGENCHAIN) {
+            return 0xc1314EdcD7e478C831a7a24169F7dEADB2646eD2;
         // testnets
         } else if (block.chainid == AVALANCHE_FUJI) {
             return 0x85Fe79b998509B77BF10A8BD4001D58475D29386;
-        } else if (block.chainid == POLYGON_MUMBAI) {
-            return 0xEB796bdb90fFA0f28255275e16936D25d3418603;
         } else if (block.chainid == SCROLL_SEPOLIA) {
             return 0x42b05a6016B9eED232E13fd56a8F0725693DBF8e;
         } else if (block.chainid == ETH_SEPOLIA) {
             return 0x109412E3C84f0539b43d39dB691B08c90f58dC7c;
         } else if (block.chainid == OPTIMISM_SEPOLIA) {
             return 0xd399e2Fb5f4cf3722a11F65b88FAB6B2B8621005;
+        } else if (block.chainid == BASE_SEPOLIA) {
+            return 0x109412E3C84f0539b43d39dB691B08c90f58dC7c;
         } else {
             revert UnsupportedNetwork();
         }

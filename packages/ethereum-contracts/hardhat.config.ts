@@ -64,7 +64,6 @@ const chainIds = {
     "arbitrum-one": 42161,
 
     "polygon-mainnet": 137,
-    "polygon-mumbai": 80001,
 
     "avalanche-c": 43114,
     "avalanche-fuji": 43113,
@@ -94,7 +93,7 @@ function createNetworkConfig(
 
 const config: HardhatUserConfig = {
     solidity: {
-        version: "0.8.23",
+        version: "0.8.26",
         settings: {
             optimizer: {
                 enabled: true,
@@ -127,10 +126,6 @@ const config: HardhatUserConfig = {
             ...createNetworkConfig("polygon-mainnet"),
             url: process.env.POLYGON_MAINNET_PROVIDER_URL || "",
         },
-        "polygon-mumbai": {
-            ...createNetworkConfig("polygon-mumbai"),
-            url: process.env.POLYGON_MUMBAI_PROVIDER_URL || "",
-        },
         "avalanche-c": {
             ...createNetworkConfig("avalanche-c"),
             url: process.env.AVALANCHE_C_PROVIDER_URL || "",
@@ -156,9 +151,8 @@ const config: HardhatUserConfig = {
             url: process.env.SCROLL_MAINNET_PROVIDER_URL || "",
         },
         hardhat: {
-            // Fixing an issue that parallel coverage test is not working for unkown reason.
-            // Ref: https://github.com/NomicFoundation/hardhat/issues/4310
-            allowUnlimitedContractSize: process.env.IS_COVERAGE_TEST ? true : undefined,
+            // We defer the contract size limit test to foundry.
+            allowUnlimitedContractSize: true,
         },
     },
     mocha: {

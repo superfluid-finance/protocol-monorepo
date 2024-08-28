@@ -23,9 +23,6 @@ import { ISuperToken } from "./ISuperToken.sol";
 import { ISuperTokenFactory } from "./ISuperTokenFactory.sol";
 import { ISETH } from "../tokens/ISETH.sol";
 /// Superfluid/ERC20x NFTs
-import { IFlowNFTBase } from "./IFlowNFTBase.sol";
-import { IConstantOutflowNFT } from "./IConstantOutflowNFT.sol";
-import { IConstantInflowNFT } from "./IConstantInflowNFT.sol";
 import { IPoolAdminNFT } from "../agreements/gdav1/IPoolAdminNFT.sol";
 import { IPoolMemberNFT } from "../agreements/gdav1/IPoolMemberNFT.sol";
 /// Superfluid agreement interfaces:
@@ -622,14 +619,31 @@ interface ISuperfluid {
     /**
      * @dev Batch call function
      * @param operations Array of batch operations
+     *
+     * NOTE: `batchCall` is `payable, because there's limited support for sending
+     * native tokens to batch operation targets.
+     * If value is > 0, the whole amount is sent to the first operation matching any of:
+     * - OPERATION_TYPE_SUPERFLUID_CALL_APP_ACTION
+     * - OPERATION_TYPE_SIMPLE_FORWARD_CALL
+     * - OPERATION_TYPE_ERC2771_FORWARD_CALL
+     * If the first such operation does not allow receiving native tokens,
+     * the transaction will revert.
+     * It's currently not possible to send native tokens to multiple operations, or to
+     * any but the first operation of one of the above mentioned types.
+     * If no such operation is included, the native tokens will be sent back to the sender.
      */
     function batchCall(Operation[] calldata operations) external payable;
 
     /**
-     * @dev Batch call function for trusted forwarders (EIP-2771)
+     * @dev Batch call function with EIP-2771 encoded msgSender
      * @param operations Array of batch operations
+     *
+     * NOTE: This can be called only by contracts recognized as _trusted forwarder_
+     * by the host contract (see `Superfluid.isTrustedForwarder`).
+     * If native tokens are passed along, the same rules as for `batchCall` apply,
+     * with an optional refund going to the encoded msgSender.
      */
-    function forwardBatchCall(Operation[] calldata operations) external;
+    function forwardBatchCall(Operation[] calldata operations) external payable;
 
     /**************************************************************************
      * Function modifiers for access control and parameter validations

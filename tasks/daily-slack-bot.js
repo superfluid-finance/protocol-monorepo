@@ -36,10 +36,6 @@ const whiteListedAddresses = [
 ];
 
 const networkSpecificData = {
-    "polygon-mumbai": {
-        url: "https://api-testnet.polygonscan.com/api",
-        key: process.env.POLYGONSCAN_API_KEY,
-    },
     "avalanche-fuji": {
         url: "https://api-testnet.snowtrace.io/api",
         key: process.env.SNOWTRACE_API_KEY,

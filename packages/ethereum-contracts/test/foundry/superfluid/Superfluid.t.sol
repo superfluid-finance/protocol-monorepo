@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.23;
+pragma solidity ^0.8.23;
 
 import "../FoundrySuperfluidTester.sol";
 import { UUPSProxiable } from "../../../contracts/upgradability/UUPSProxiable.sol";
@@ -7,7 +7,7 @@ import { SuperToken } from "../../../contracts/superfluid/SuperToken.sol";
 import { SuperTokenV1Library } from "../../../contracts/apps/SuperTokenV1Library.sol";
 import { ISuperAgreement } from "../../../contracts/interfaces/superfluid/ISuperAgreement.sol";
 import { ISuperfluid } from "../../../contracts/interfaces/superfluid/ISuperfluid.sol";
-import { AgreementMock } from "../../../contracts/mocks/AgreementMock.sol";
+import { AgreementMock } from "../../../contracts/mocks/AgreementMock.t.sol";
 
 contract SuperfluidIntegrationTest is FoundrySuperfluidTester {
     using SuperTokenV1Library for SuperToken;

@@ -38,7 +38,7 @@ If you get stuck, see The Graph [docs](https://thegraph.com/docs/quick-start#loc
 First install these dependencies:
 
 -   [docker](https://docs.docker.com/install/)
--   [docker-compose](https://docs.docker.com/compose/install/)
+-   [docker compose](https://docs.docker.com/compose/install/)
 
 Now install the necessary node packages with the following commands:
 
@@ -56,7 +56,7 @@ npx hardhat node --hostname 0.0.0.0
 
 ### Setting up a local Subgraph node instance
 
-Run `docker-compose up` in `packages/subgraph`. There is a `docker-compose.yml` file which sets up a local graph node container.
+Run `docker compose up` in `packages/subgraph`. There is a `docker-compose.yml` file which sets up a local graph node container.
 
 You should see logs start coming in on the same terminal window once everything is set up:
 

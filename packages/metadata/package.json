@@ -1,6 +1,6 @@
 {
   "name": "@superfluid-finance/metadata",
-  "version": "1.1.28",
+  "version": "1.4.1",
   "description": "Superfluid Metadata",
   "main": "main/index.cjs",
   "module": "module/index.js",
@@ -17,9 +17,6 @@
   "scripts": {
     "build": "./build.sh && echo '@superfluid-finance/metadata build successfully'",
     "bump-version-to": "./bump-version-to.sh $@",
-    "pre-commit": "if [ ! -z \"$(git status -s .)\" ];then run-s pre-commit:*;else true;fi",
-    "pre-commit:lint": "yarn lint",
-    "pre-commit:check": "./tasks/compare-committed-against-build.sh",
     "lint": "run-s lint:*",
     "lint:js-eslint": "eslint . --max-warnings=0 --report-unused-disable-directives && echo '✔  Your .js files look good.'",
     "lint:consistency": "./tasks/compare-committed-against-build.sh",

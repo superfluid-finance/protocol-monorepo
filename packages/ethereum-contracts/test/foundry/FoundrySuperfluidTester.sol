@@ -9,7 +9,6 @@ import { ERC1820RegistryCompiled } from "../../contracts/libs/ERC1820RegistryCom
 import { SuperfluidFrameworkDeployer } from "../../contracts/utils/SuperfluidFrameworkDeployer.sol";
 import { Superfluid } from "../../contracts/superfluid/Superfluid.sol";
 import { ISuperfluidPool, SuperfluidPool } from "../../contracts/agreements/gdav1/SuperfluidPool.sol";
-import { IFlowNFTBase } from "../../contracts/interfaces/superfluid/IFlowNFTBase.sol";
 import {
     IGeneralDistributionAgreementV1,
     PoolConfig
@@ -17,14 +16,13 @@ import {
 import { IPoolNFTBase } from "../../contracts/interfaces/agreements/gdav1/IPoolNFTBase.sol";
 import { IPoolAdminNFT } from "../../contracts/interfaces/agreements/gdav1/IPoolAdminNFT.sol";
 import { IPoolMemberNFT } from "../../contracts/interfaces/agreements/gdav1/IPoolMemberNFT.sol";
-import { IConstantOutflowNFT } from "../../contracts/interfaces/superfluid/IConstantOutflowNFT.sol";
-import { IConstantInflowNFT } from "../../contracts/interfaces/superfluid/IConstantInflowNFT.sol";
 import { ISuperfluidToken } from "../../contracts/interfaces/superfluid/ISuperfluidToken.sol";
 import { ISETH } from "../../contracts/interfaces/tokens/ISETH.sol";
 import { UUPSProxy } from "../../contracts/upgradability/UUPSProxy.sol";
 import { ConstantFlowAgreementV1 } from "../../contracts/agreements/ConstantFlowAgreementV1.sol";
 import { SuperTokenV1Library } from "../../contracts/apps/SuperTokenV1Library.sol";
-import { IERC20, ISuperToken, SuperToken } from "../../contracts/superfluid/SuperToken.sol";
+import { IERC20, ISuperToken, SuperToken, IConstantOutflowNFT, IConstantInflowNFT }
+    from "../../contracts/superfluid/SuperToken.sol";
 import { SuperfluidLoader } from "../../contracts/utils/SuperfluidLoader.sol";
 import { TestResolver } from "../../contracts/utils/TestResolver.sol";
 import { TestToken } from "../../contracts/utils/TestToken.sol";
@@ -180,8 +178,6 @@ contract FoundrySuperfluidTester is Test {
         // - Host
         // - CFA
         // - IDA
-        // - ConstantOutflowNFT logic
-        // - ConstantInflowNFT logic
         // - SuperToken logic
         // - SuperTokenFactory
         // - Resolver
@@ -371,19 +367,19 @@ contract FoundrySuperfluidTester is Test {
         _assertInvariantAumGtEqSuperTokenTotalSupply();
     }
 
-    function _assertInvariantLiquiditySum() internal {
+    function _assertInvariantLiquiditySum() internal view {
         assertTrue(_definitionLiquiditySumInvariant(), "Invariant: Liquidity Sum Invariant");
     }
 
-    function _assertInvariantNetFlowRateSum() internal {
+    function _assertInvariantNetFlowRateSum() internal view {
         assertTrue(_definitionNetFlowRateSumInvariant(), "Invariant: Net Flow Rate Sum Invariant");
     }
 
-    function _assertInvariantAumGtEqRtbSum() internal {
+    function _assertInvariantAumGtEqRtbSum() internal view {
         assertTrue(_definitionAumGtEqRtbSumInvariant(), "Invariant: AUM > RTB Sum");
     }
 
-    function _assertInvariantAumGtEqSuperTokenTotalSupply() internal {
+    function _assertInvariantAumGtEqSuperTokenTotalSupply() internal view {
         assertTrue(_defintionAumGtEqSuperTokenTotalSupplyInvariant(), "Invariant: AUM > SuperToken Total Supply");
     }
 
@@ -692,8 +688,8 @@ contract FoundrySuperfluidTester is Test {
     ) internal returns (SuperToken localSuperToken) {
         localSuperToken = new SuperToken(
             sf.host,
-            previousSuperToken.CONSTANT_OUTFLOW_NFT(),
-            previousSuperToken.CONSTANT_INFLOW_NFT(),
+            IConstantOutflowNFT(address(0)),
+            IConstantInflowNFT(address(0)),
             previousSuperToken.POOL_ADMIN_NFT(),
             previousSuperToken.POOL_MEMBER_NFT()
         );
@@ -741,8 +737,6 @@ contract FoundrySuperfluidTester is Test {
             _assertAccountFlowInfo(sender, flowRateDelta, senderFlowInfoBefore, true);
             _assertAccountFlowInfo(receiver, flowRateDelta, receiverFlowInfoBefore, false);
         }
-
-        _assertFlowNftState(superToken_, sender, receiver, flowRate);
 
         // Assert RTB for all users
         _assertRealTimeBalances(superToken_);
@@ -1069,7 +1063,7 @@ contract FoundrySuperfluidTester is Test {
         _assertGlobalInvariants();
     }
 
-    function _helperAssertCreateIndex(ISuperToken superToken_, address publisher, uint32 indexId) internal {
+    function _helperAssertCreateIndex(ISuperToken superToken_, address publisher, uint32 indexId) internal view {
         _assertIndexData(superToken_, publisher, indexId, true, 0, 0, 0);
     }
 
@@ -1600,13 +1594,11 @@ contract FoundrySuperfluidTester is Test {
         // there is a hard restriction in which total units must never exceed type(int96).max
         vm.assume(newUnits_ < type(uint72).max);
         ISuperToken poolSuperToken = ISuperToken(address(pool_.superToken()));
-        if (caller_ == address(0) || member_ == address(0) || sf.gda.isPool(poolSuperToken, member_)) return;
 
         (bool isConnected, int256 oldUnits,) = _helperGetMemberPoolState(pool_, member_);
 
         PoolUnitData memory poolUnitDataBefore = _helperGetPoolUnitsData(pool_);
 
-        (int256 claimableBalance,) = pool_.getClaimableNow(member_);
         (int256 balanceBefore,,,) = poolSuperToken.realtimeBalanceOfNow(member_);
         {
             _updateMemberUnits(pool_, poolSuperToken, caller_, member_, newUnits_, useBools_);
@@ -1948,10 +1940,6 @@ contract FoundrySuperfluidTester is Test {
             );
         }
 
-        // Assert Outflow NFT is minted to distributor
-        // Assert Inflow NFT is minted to pool
-        _assertFlowNftState(superToken_, from, address(pool_), requestedFlowRate);
-
         {
             if (members.length == 0) return;
             uint128 poolTotalUnitsAfter = pool_.getTotalUnits();
@@ -2122,7 +2110,7 @@ contract FoundrySuperfluidTester is Test {
         int96 expectedFlowRate,
         uint256 expectedLastUpdated,
         uint256 expectedOwedDeposit
-    ) internal {
+    ) internal view {
         (uint256 lastUpdated, int96 flowRate, uint256 deposit, uint256 owedDeposit) =
             superToken_.getFlowInfo(sender, receiver);
 
@@ -2135,7 +2123,7 @@ contract FoundrySuperfluidTester is Test {
     }
 
     /// @dev Asserts that a single flow has been removed on deletion
-    function _assertFlowDataIsEmpty(ISuperToken superToken_, address sender, address receiver) internal {
+    function _assertFlowDataIsEmpty(ISuperToken superToken_, address sender, address receiver) internal view {
         _assertFlowData(superToken_, sender, receiver, 0, 0, 0);
     }
 
@@ -2145,7 +2133,7 @@ contract FoundrySuperfluidTester is Test {
         address flowOperator,
         int96 expectedFlowRateAllowance,
         uint8 expectedPermissionsBitmask
-    ) internal {
+    ) internal view {
         (bool canCreate, bool canUpdate, bool canDelete, int96 allowance) =
             superToken_.getFlowPermissions(sender, flowOperator);
 
@@ -2159,7 +2147,9 @@ contract FoundrySuperfluidTester is Test {
         assertEq(allowance, expectedFlowRateAllowance, "FlowOperatorData: flow rate allowance");
     }
 
-    function _assertFlowOperatorDataIsEmpty(ISuperToken superToken_, address sender, address flowOperator) internal {
+    function _assertFlowOperatorDataIsEmpty(ISuperToken superToken_, address sender, address flowOperator)
+        internal view
+    {
         _assertFlowOperatorData(superToken_, sender, flowOperator, 0, 0);
     }
 
@@ -2173,7 +2163,7 @@ contract FoundrySuperfluidTester is Test {
         int96 flowRateDelta,
         ConstantFlowAgreementV1.FlowData memory flowInfoBefore,
         bool isSender
-    ) internal {
+    ) internal view {
         (uint256 lastUpdated, int96 netFlowRate, uint256 deposit, uint256 owedDeposit) =
             sf.cfa.getAccountFlowInfo(superToken, account);
         int96 expectedNetFlowRate = flowInfoBefore.flowRate + (isSender ? -flowRateDelta : flowRateDelta);
@@ -2208,7 +2198,7 @@ contract FoundrySuperfluidTester is Test {
         uint128 expectedIndexValue,
         uint128 expectedTotalUnitsApproved,
         uint128 expectedTotalUnitsPending
-    ) internal {
+    ) internal view {
         (bool exist, uint128 indexValue, uint128 totalUnitsApproved, uint128 totalUnitsPending) =
             superToken_.getIndex(publisher, indexId);
 
@@ -2230,7 +2220,7 @@ contract FoundrySuperfluidTester is Test {
         bool expectedApproved,
         uint128 expectedUnits,
         uint256 expectedPending
-    ) internal {
+    ) internal view {
         (,, bool approved, uint128 units, uint256 pending) = superToken_.getSubscriptionByID(subscriptionId);
         assertEq(approved, expectedApproved, "SubscriptionData: approved");
         assertEq(units, expectedUnits, "SubscriptionData: units");
@@ -2268,7 +2258,7 @@ contract FoundrySuperfluidTester is Test {
     // GeneralDistributionAgreement Assertions
 
     function _assertPoolAllowance(ISuperfluidPool _pool, address owner, address spender, uint256 expectedAllowance)
-        internal
+        internal view
     {
         assertEq(_pool.allowance(owner, spender), expectedAllowance, "_assertPoolAllowance: allowance mismatch");
     }
@@ -2293,37 +2283,6 @@ contract FoundrySuperfluidTester is Test {
         } else {
             vm.expectRevert(IPoolNFTBase.POOL_NFT_INVALID_TOKEN_ID.selector);
             poolMemberNFT.ownerOf(tokenId);
-        }
-    }
-
-    function _assertFlowNftState(
-        ISuperfluidToken _superToken,
-        address _senderOrDistributor,
-        address _receiverOrPool,
-        int96 _newFlowRate
-    ) internal {
-        IConstantOutflowNFT constantOutflowNFT = SuperToken(address(_superToken)).CONSTANT_OUTFLOW_NFT();
-        IConstantInflowNFT constantInflowNFT = SuperToken(address(_superToken)).CONSTANT_INFLOW_NFT();
-        uint256 tokenId = constantOutflowNFT.getTokenId(address(_superToken), address(_senderOrDistributor), address(_receiverOrPool));
-        if (_newFlowRate > 0) {
-            // positive flowrate: NFT exists and is owned by sender/distributor and receiver/pool
-            assertEq(
-                constantOutflowNFT.ownerOf(tokenId),
-                _senderOrDistributor,
-                "_assertFlowNftState: sender/distributor doesn't own outflow NFT"
-            );
-            assertEq(
-                constantInflowNFT.ownerOf(tokenId),
-                address(_receiverOrPool),
-                "_assertFlowNftState: receiver/pool doesn't own inflow NFT"
-            );
-        } else {
-            // zero flowrate: NFT doesn't exist (never minted or already burned)
-            vm.expectRevert(IFlowNFTBase.CFA_NFT_INVALID_TOKEN_ID.selector);
-            constantOutflowNFT.ownerOf(tokenId);
-
-            vm.expectRevert(IFlowNFTBase.CFA_NFT_INVALID_TOKEN_ID.selector);
-            constantInflowNFT.ownerOf(tokenId);
         }
     }
 }

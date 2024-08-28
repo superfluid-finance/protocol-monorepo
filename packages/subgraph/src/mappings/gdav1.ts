@@ -19,12 +19,13 @@ import {
     _createTokenStatisticLogEntity,
     getOrInitPool,
     getOrInitPoolDistributor,
-    getOrInitPoolMember,
+    getOrInitOrUpdatePoolMember,
     getOrInitTokenStatistic,
+    settlePDPoolMemberMU,
+    settlePoolParticle,
     updateATSStreamedAndBalanceUntilUpdatedAt,
     updateAggregateDistributionAgreementData,
     updatePoolDistributorTotalAmountFlowedAndDistributed,
-    updatePoolMemberTotalAmountUntilUpdatedAtFields,
     updatePoolTotalAmountFlowedAndDistributed,
     updateSenderATSStreamData,
     updateTokenStatisticStreamData,
@@ -33,6 +34,7 @@ import {
 import {
     BIG_INT_ZERO,
     createEventID,
+    divideOrZero,
     initializeEventEntity,
     membershipWithUnitsExists,
 } from "../utils";
@@ -84,7 +86,7 @@ export function handlePoolConnectionUpdated(
     event: PoolConnectionUpdated
 ): void {
     // Update Pool Member Entity
-    let poolMember = getOrInitPoolMember(
+    let poolMember = getOrInitOrUpdatePoolMember(
         event,
         event.params.pool,
         event.params.account
@@ -98,7 +100,9 @@ export function handlePoolConnectionUpdated(
 
     // Update Pool Entity
     let pool = getOrInitPool(event, event.params.pool.toHex());
+    // @note we modify pool and poolMember here in memory, but do not save
     pool = updatePoolTotalAmountFlowedAndDistributed(event, pool);
+    settlePDPoolMemberMU(pool, poolMember, event.block);
     if (poolMember.units.gt(BIG_INT_ZERO)) {
         if (memberConnectedStatusUpdated) {
             // disconnected -> connected case
@@ -126,9 +130,6 @@ export function handlePoolConnectionUpdated(
             }
         }
     }
-
-    // Update totalAmountDistributedUntilUpdatedAt
-    poolMember = updatePoolMemberTotalAmountUntilUpdatedAtFields(pool, poolMember);
     
     pool.save();
     poolMember.save();
@@ -162,6 +163,9 @@ export function handlePoolConnectionUpdated(
         false // isIDA
     );
 
+    // Create Event Entity
+    _createPoolConnectionUpdatedEntity(event, poolMember.id);
+
     // Create ATS and Token Statistic Log Entities
     const eventName = "PoolConnectionUpdated";
     _createAccountTokenSnapshotLogEntity(
@@ -172,9 +176,6 @@ export function handlePoolConnectionUpdated(
     );
 
     _createTokenStatisticLogEntity(event, event.params.token, eventName);
-
-    // Create Event Entity
-    _createPoolConnectionUpdatedEntity(event, poolMember.id);
 }
 
 export function handleBufferAdjusted(event: BufferAdjusted): void {
@@ -229,7 +230,12 @@ export function handleFlowDistributionUpdated(
 
     // Update Pool
     let pool = getOrInitPool(event, event.params.pool.toHex());
+
+    // @note that we are duplicating update of updatedAtTimestamp/BlockNumber here
+    // in the two functions
     pool = updatePoolTotalAmountFlowedAndDistributed(event, pool);
+    pool = settlePoolParticle(pool, event.block);
+    pool.perUnitFlowRate = divideOrZero(event.params.newDistributorToPoolFlowRate, pool.totalUnits);
     pool.flowRate = event.params.newTotalDistributionFlowRate;
     pool.adjustmentFlowRate = event.params.adjustmentFlowRate;
     pool.save();
@@ -312,7 +318,13 @@ export function handleInstantDistributionUpdated(
 
     // Update Pool
     let pool = getOrInitPool(event, event.params.pool.toHex());
+
+    // @note that we are duplicating update of updatedAtTimestamp/BlockNumber here
+    // in the two functions
     pool = updatePoolTotalAmountFlowedAndDistributed(event, pool);
+    pool = settlePoolParticle(pool, event.block);
+    // @note a speculations on what needs to be done
+    pool.perUnitSettledValue = pool.perUnitSettledValue.plus(divideOrZero(event.params.actualAmount, pool.totalUnits));
     const previousTotalAmountDistributed =
         pool.totalAmountDistributedUntilUpdatedAt;
     pool.totalAmountInstantlyDistributedUntilUpdatedAt =

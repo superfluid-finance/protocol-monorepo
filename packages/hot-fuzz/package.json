@@ -6,8 +6,6 @@
     "scripts": {
         "lint": "run-s lint:*",
         "lint:sol": "solhint -w 0 contracts/*.sol contracts/*/*.sol && echo '✔  Your .sol files look good.'",
-        "pre-commit": "if [ ! -z \"$(git status -s .)\" ];then run-s pre-commit:*;else true;fi",
-        "pre-commit:lint": "yarn lint",
         "check-updates": "ncu --target minor"
     },
     "bin": {
@@ -25,7 +23,7 @@
         "@superfluid-finance/ethereum-contracts": "1.8.0"
     },
     "devDependencies": {
-        "@superfluid-finance/ethereum-contracts": "^1.9.1"
+        "@superfluid-finance/ethereum-contracts": "^1.11.0"
     },
     "license": "AGPL-3.0",
     "bugs": {

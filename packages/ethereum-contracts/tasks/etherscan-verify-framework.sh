@@ -67,6 +67,10 @@ if [ -n "$RESOLVER" ]; then
     try_verify Resolver@"${RESOLVER}"
 fi
 
+if [ -n "$DMZ_FORWARDER" ]; then
+    try_verify DMZForwarder@"${DMZ_FORWARDER}"
+fi
+
 if [ -n "$SUPERFLUID_HOST_LOGIC" ]; then
     # verify the logic contract. May or may not be already set as a proxy implementation
     try_verify Superfluid@"${SUPERFLUID_HOST_LOGIC}"
@@ -96,22 +100,6 @@ if [ -n "$SUPER_TOKEN_FACTORY_LOGIC" ]; then
 fi
 if [ -n "$SUPER_TOKEN_FACTORY_PROXY" ]; then
     try_verify SuperTokenFactory@"${SUPER_TOKEN_FACTORY_PROXY}" --custom-proxy UUPSProxy
-fi
-
-if [ -n "$CONSTANT_OUTFLOW_NFT_LOGIC" ]; then
-    try_verify ConstantOutflowNFT@"${CONSTANT_OUTFLOW_NFT_LOGIC}"
-fi
-
-if [ -n "$CONSTANT_INFLOW_NFT_LOGIC" ]; then
-    try_verify ConstantInflowNFT@"${CONSTANT_INFLOW_NFT_LOGIC}"
-fi
-
-if [ -n "$CONSTANT_OUTFLOW_NFT_PROXY" ]; then
-    try_verify ConstantOutflowNFT@"${CONSTANT_OUTFLOW_NFT_PROXY}" --custom-proxy UUPSProxy
-fi
-
-if [ -n "$CONSTANT_INFLOW_NFT_PROXY" ]; then
-    try_verify ConstantInflowNFT@"${CONSTANT_INFLOW_NFT_PROXY}" --custom-proxy UUPSProxy
 fi
 
 if [ -n "$POOL_ADMIN_NFT_PROXY" ]; then
@@ -156,6 +144,10 @@ mv -f $CONTRACTS_DIR/InstantDistributionAgreementV1.json.bak $CONTRACTS_DIR/Inst
 
 if [ -n "$SUPERFLUID_POOL_DEPLOYER_LIBRARY" ]; then
     try_verify SuperfluidPoolDeployerLibrary@"${SUPERFLUID_POOL_DEPLOYER_LIBRARY}"
+fi
+
+if [ -n "$DUMMY_BEACON_PROXY" ]; then
+    try_verify BeaconProxy@"${DUMMY_BEACON_PROXY}"
 fi
 
 # this will fail with 'Library address is not prefixed with "0x"' if a library address is not set

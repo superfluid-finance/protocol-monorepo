@@ -2,70 +2,6 @@
 module.exports =
 [
     {
-        "name": "polygon-mumbai",
-        "isTestnet": true,
-        "networkId": 80001,
-        "chainId": 80001,
-        "sfId": 102,
-        "shortName": "mumbai",
-        "uppercaseName": "POLYGON_MUMBAI",
-        "humanReadableName": "Polygon Mumbai",
-        "nativeTokenSymbol": "MATIC",
-        "nativeTokenWrapper": "0x96B82B65ACF7072eFEb00502F45757F254c2a0D4",
-        "contractsV1": {
-            "resolver": "0x2feFd8B23e4770B674b0d2fAda5EE8a2bE0B525F",
-            "host": "0xEB796bdb90fFA0f28255275e16936D25d3418603",
-            "cfaV1": "0x49e565Ed1bdc17F3d220f72DF0857C26FA83F873",
-            "cfaV1Forwarder": "0xcfA132E353cB4E398080B9700609bb008eceB125",
-            "idaV1": "0x804348D4960a61f2d5F9ce9103027A3E849E09b8",
-            "gdaV1": "0x63ab406B6eF6c8be732c1edbd15464de16a8F46D",
-            "gdaV1Forwarder": "0x6DA13Bde224A05a288748d857b9e7DDEffd1dE08",
-            "superTokenFactory": "0xB798553db6EB3D3C56912378409370145E97324B",
-            "constantOutflowNFT": "0x502CC982947216C0f94e433BC78c413806301C07",
-            "constantInflowNFT": "0x9906A7e948C642B6bc74b9A5EAfCddB3580b44e0",
-            "superfluidLoader": "0xFcc617a382988a6d081B1821c8d17C47DFF9EDE1",
-            "toga": "0x38DD80876DBA048d0050D28828522c313967D073",
-            "superSpreader": "0x74CDF863b00789c29734F8dFd9F83423Bc55E4cE",
-            "flowScheduler": "0x59A3Ba9d34c387FB70b4f4e4Fbc9eD7519194139",
-            "vestingScheduler": "0x3962EE56c9f7176215D149938BA685F91aBB633B",
-            "autowrap": {
-                "manager": "0x3eAB3c6207F488E475b7955B631B564F0E6317B9",
-                "wrapStrategy": "0x544728AFDBeEafBeC9e1329031788edb53017bC4"
-            },
-            "existentialNFTCloneFactory": "0xfC4E49AfcDDDcc2B90794DC214cc324d17B15619"
-        },
-        "startBlockV1": 8100000,
-        "logsQueryRange": 10000,
-        "explorer": "https://mumbai.polygonscan.com",
-        "subgraphV1": {
-            "cliName": "mumbai",
-            "name": "protocol-v1-mumbai",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-mumbai"
-        },
-        "subgraphVesting": {
-            "name": "vesting-v1-polygon-mumbai",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/vesting-v1-polygon-mumbai"
-        },
-        "subgraphFlowScheduler": {
-            "name": "scheduling-v1-polygon-mumbai",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/scheduling-v1-polygon-mumbai"
-        },
-        "subgraphAutoWrap": {
-            "name": "auto-wrap-v1-polygon-mumbai",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/auto-wrap-v1-polygon-mumbai"
-        },
-        "publicRPCs": [
-            "https://rpc.ankr.com/polygon_mumbai",
-            "https://matic-mumbai.chainstacklabs.com"
-        ],
-        "trustedForwarders": [
-            "0x9399bb24dbb5c4b782c70c2969f58716ebbd6a3b",
-            "0x69015912AA33720b842dCD6aC059Ed623F28d9f7",
-            "0xb539068872230f20456CF38EC52EF2f91AF4AE49",
-            "0xd8253782c45a12053594b9deB72d8e8aB2Fca54c"
-        ]
-    },
-    {
         "name": "avalanche-fuji",
         "isTestnet": true,
         "networkId": 43113,
@@ -85,8 +21,6 @@ module.exports =
             "gdaV1": "0x51f571D934C59185f13d17301a36c07A2268B814",
             "gdaV1Forwarder": "0x6DA13Bde224A05a288748d857b9e7DDEffd1dE08",
             "superTokenFactory": "0x1C92042426B6bAAe497bEf461B6d8342D03aEc92",
-            "constantOutflowNFT": "0x49583f57EFeBe733EC872c5d5437116085a3eE3c",
-            "constantInflowNFT": "0x67d0Efab10b390206b356BA7FB453Ab56AAB7480",
             "superfluidLoader": "0x36446Ec9C7909608065dEB7f491701d815B880e5",
             "autowrap": {
                 "manager": "0x30aE282CF477E2eF28B14d0125aCEAd57Fe1d7a1",
@@ -100,7 +34,7 @@ module.exports =
         "subgraphV1": {
             "cliName": "fuji",
             "name": "protocol-v1-avalanche-fuji",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-avalanche-fuji"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/avalanche-fuji/protocol-v1"
         },
         "publicRPCs": [
             "https://api.avax-test.network/ext/bc/C/rpc",
@@ -132,8 +66,6 @@ module.exports =
             "gdaV1": "0x9823364056BcA85Dc3c4a3b96801314D082C8Eb9",
             "gdaV1Forwarder": "0x6DA13Bde224A05a288748d857b9e7DDEffd1dE08",
             "superTokenFactory": "0x254C2e152E8602839D288A7bccdf3d0974597193",
-            "constantOutflowNFT": "0xfBE332e001D6b54e1F4B63c2343B8E7746d99Ece",
-            "constantInflowNFT": "0xC95346B7394009ccEfaA62Eca28797804B2bCF1C",
             "superfluidLoader": "0x862F59081FC7907F940bE4227b9f485d700E6cdD",
             "existentialNFTCloneFactory": "0x0D1F0d4629B722b4dFabd195c14F12f2095418d9"
         },
@@ -143,7 +75,7 @@ module.exports =
         "subgraphV1": {
             "cliName": "sepolia",
             "name": "protocol-v1-eth-sepolia",
-            "satsumaEndpoint": "https://subgraph.satsuma-prod.com/c5br3jaVlJI6/superfluid/eth-sepolia/api"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/eth-sepolia/protocol-v1"
         },
         "publicRPCs": [
             "https://rpc.sepolia.org",
@@ -170,8 +102,13 @@ module.exports =
             "gdaV1": "0xd453d38A001B47271488886532f1CCeAbf0c7eF3",
             "gdaV1Forwarder": "0x6DA13Bde224A05a288748d857b9e7DDEffd1dE08",
             "superTokenFactory": "0xfcF0489488397332579f35b0F711BE570Da0E8f5",
-            "constantOutflowNFT": "0xda6db863cb2EE39b196edB8159c38A1ed5c55344",
-            "constantInflowNFT": "0x87E00Dced5670e01BEe33a9a724B1dac790937eF",
+            "flowScheduler": "0x73B1Ce21d03ad389C2A291B1d1dc4DAFE7B5Dc68",
+            "vestingScheduler": "0x27444c0235a4D921F3106475faeba0B5e7ABDD7a",
+            "vestingSchedulerV2": "0x3aa62b96f44D0f8892BeBBC819DE8e02E9DE69A8",
+            "autowrap": {
+                "manager": "0xe567b32C10B0dB72d9490eB1B9A409C5ADed192C",
+                "wrapStrategy": "0xf232f1fd34CE12e24F4391865c2D6E374D2C34d9"
+            },
             "superfluidLoader": "0x109412E3C84f0539b43d39dB691B08c90f58dC7c"
         },
         "startBlockV1": 6886559,
@@ -180,7 +117,19 @@ module.exports =
         "subgraphV1": {
             "cliName": "optimism-sepolia",
             "name": "protocol-v1-optimism-sepolia",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-optimism-sepolia"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/optimism-sepolia/protocol-v1"
+        },
+        "subgraphVesting": {
+            "name": "vesting-v1-optimism-sepolia",
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/optimism-sepolia/vesting-scheduler"
+        },
+        "subgraphFlowScheduler": {
+            "name": "scheduling-v1-optimism-sepolia",
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/optimism-sepolia/flow-scheduler"
+        },
+        "subgraphAutoWrap": {
+            "name": "auto-wrap-v1-optimism-sepolia",
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/optimism-sepolia/auto-wrap"
         },
         "publicRPCs": [
             "https://sepolia.optimism.io"
@@ -206,8 +155,6 @@ module.exports =
             "idaV1": "0x296556422F44F19E5d216CBf98348A03BDc445E7",
             "gdaV1": "0x93fA9B627eE016990Fe5e654F923aaE8a480a75b",
             "gdaV1Forwarder": "0x6DA13Bde224A05a288748d857b9e7DDEffd1dE08",
-            "constantOutflowNFT": "0xEdB0A24DDb09cFeffF0C5348EB5d6D1C439d36bf",
-            "constantInflowNFT": "0x1DA4e4F848Cd4D0f528c2D0F19F41226BacB5489",
             "superfluidLoader": "0xe25603df330027d91A0BAcc3e80a7f9e84930FC6",
             "superTokenFactory": "0x87560833d59Be057aFc63cFFa3fc531589Ba428F"
         },
@@ -216,9 +163,42 @@ module.exports =
         "explorer": "https://sepolia.scrollscan.com/",
         "subgraphV1": {
             "cliName": "scroll-sepolia",
-            "name": "protocol-v1-scroll-sepolia"
+            "name": "protocol-v1-scroll-sepolia",
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/scroll-sepolia/protocol-v1"
         },
         "publicRPCs": ["https://sepolia-rpc.scroll.io"]
+    },
+    {
+        "name": "base-sepolia",
+        "isTestnet": true,
+        "networkId": 84532,
+        "chainId": 84532,
+        "sfId": 111,
+        "shortName": "bsepolia",
+        "uppercaseName": "BASE_SEPOLIA",
+        "humanReadableName": "Base Sepolia",
+        "nativeTokenSymbol": "ETH",
+        "nativeTokenWrapper": "0x143ea239159155B408e71CDbE836e8CFD6766732",
+        "contractsV1": {
+            "resolver": "0x21d4E9fbB9DB742E6ef4f29d189a7C18B0b59136",
+            "host": "0x109412E3C84f0539b43d39dB691B08c90f58dC7c",
+            "cfaV1": "0x6836F23d6171D74Ef62FcF776655aBcD2bcd62Ef",
+            "cfaV1Forwarder": "0xcfA132E353cB4E398080B9700609bb008eceB125",
+            "idaV1": "0x9358C7dCCc6B8CA6F526311e8ac266F8C861B7ea",
+            "gdaV1": "0x53F4f44C813Dc380182d0b2b67fe5832A12B97f8",
+            "gdaV1Forwarder": "0x6DA13Bde224A05a288748d857b9e7DDEffd1dE08",
+            "superTokenFactory": "0x7447E94Dfe3d804a9f46Bf12838d467c912C8F6C",
+            "superfluidLoader": "0x777Be25F9fdcA87e8a0E06Ad4be93d65429FCb9f"
+        },
+        "startBlockV1": 10604500,
+        "logsQueryRange": 50000,
+        "explorer": "https://sepolia.basescan.org",
+        "subgraphV1": {
+            "cliName": "base-sepolia"
+        },
+        "publicRPCs": [
+            "https://sepolia.base.org"
+        ]
     },
     {
         "name": "xdai-mainnet",
@@ -242,8 +222,6 @@ module.exports =
             "gdaV1": "0xd7992D358A20478c82dDEd98B3D8A9da46e99b82",
             "gdaV1Forwarder": "0x6DA13Bde224A05a288748d857b9e7DDEffd1dE08",
             "superTokenFactory": "0x23410e2659380784498509698ed70E414D384880",
-            "constantOutflowNFT": "0xfC00dEE8a980110c5608A823a5B3af3872635456",
-            "constantInflowNFT": "0x1497440B4E92DC4ca0F76223b28C20Cb9cB8a0f1",
             "superfluidLoader": "0xb688e4Da3100Bcec4b5B3140C8Fb482ad15D2013",
             "toga": "0xb7DE52F4281a7a276E18C40F94cd93159C4A2d22",
             "batchLiquidator": "0x27636F8E129cdd4ccA0F30E2b4C116DDaC773bE5",
@@ -263,20 +241,19 @@ module.exports =
         "subgraphV1": {
             "cliName": "gnosis",
             "name": "protocol-v1-xdai",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-xdai",
-            "satsumaEndpoint": "https://subgraph.satsuma-prod.com/c5br3jaVlJI6/superfluid/xdai/api"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/xdai-mainnet/protocol-v1"
         },
         "subgraphVesting": {
             "name": "vesting-v1-xdai-mainnet",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/vesting-v1-xdai-mainnet"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/xdai-mainnet/vesting-scheduler"
         },
         "subgraphFlowScheduler": {
             "name": "scheduling-v1-xdai-mainnet",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/scheduling-v1-xdai-mainnet"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/xdai-mainnet/flow-scheduler"
         },
         "subgraphAutoWrap": {
             "name": "auto-wrap-v1-xdai-mainnet",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/auto-wrap-v1-xdai-mainnet"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/xdai-mainnet/auto-wrap"
         },
         "publicRPCs": [
             "https://rpc.gnosischain.com",
@@ -306,8 +283,6 @@ module.exports =
             "gdaV1": "0x961dd5A052741B49B6CBf6759591f9D8576fCFb0",
             "gdaV1Forwarder": "0x6DA13Bde224A05a288748d857b9e7DDEffd1dE08",
             "superTokenFactory": "0x2C90719f25B10Fc5646c82DA3240C76Fa5BcCF34",
-            "constantOutflowNFT": "0x554e2bbaCF43FD87417b7201A9F1649a3ED89d68",
-            "constantInflowNFT": "0x55909bB8cd8276887Aae35118d60b19755201c68",
             "superfluidLoader": "0x444A48dA32649Ed03eeC9B9cD416748262c320E6",
             "toga": "0x6AEAeE5Fd4D05A741723D752D30EE4D72690A8f7",
             "batchLiquidator": "0xA6Cdb472e7E22Bf30ae6fB752E4a13eBF3c12165",
@@ -325,20 +300,19 @@ module.exports =
         "subgraphV1": {
             "cliName": "matic",
             "name": "protocol-v1-matic",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-matic",
-            "satsumaEndpoint": "https://subgraph.satsuma-prod.com/c5br3jaVlJI6/superfluid/matic/api"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/polygon-mainnet/protocol-v1"
         },
         "subgraphVesting": {
             "name": "vesting-v1-polygon-mainnet",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/vesting-v1-polygon-mainnet"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/polygon-mainnet/vesting-scheduler"
         },
         "subgraphFlowScheduler": {
             "name": "scheduling-v1-polygon-mainnet",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/scheduling-v1-polygon-mainnet"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/polygon-mainnet/flow-scheduler"
         },
         "subgraphAutoWrap": {
             "name": "auto-wrap-v1-polygon-mainnet",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/auto-wrap-v1-polygon-mainnet"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/polygon-mainnet/auto-wrap"
         },
         "publicRPCs": [
             "https://polygon-rpc.com",
@@ -368,13 +342,12 @@ module.exports =
             "gdaV1": "0x68Ae17fa7a31b86F306c383277552fd4813b0d35",
             "gdaV1Forwarder": "0x6DA13Bde224A05a288748d857b9e7DDEffd1dE08",
             "superTokenFactory": "0x8276469A443D5C6B7146BED45e2abCaD3B6adad9",
-            "constantOutflowNFT": "0xFb2b126660BE2fdEBa254b1F6e4348644E8482e7",
-            "constantInflowNFT": "0x0C6D90a98426bfD572a5c5Be572a7f6Bd1C5ED76",
             "superfluidLoader": "0xe8B40071df98bBEe23833905AFcF7b28fC7Ca3cb",
             "toga": "0xA3c8502187fD7a7118eAD59dc811281448946C8f",
             "batchLiquidator": "0x36Df169DBf5CE3c6f58D46f0addeF58F01381232",
             "flowScheduler": "0x55c8fc400833eEa791087cF343Ff2409A39DeBcC",
             "vestingScheduler": "0x65377d4dfE9c01639A41952B5083D58964782892",
+            "vestingSchedulerV2": "0xe567b32C10B0dB72d9490eB1B9A409C5ADed192C",
             "autowrap": {
                 "manager": "0x1fA76f2Cd0C3fe6c399A80111408d9C42C0CAC23",
                 "wrapStrategy": "0x0Cf060a501c0040e9CCC708eFE94079F501c6Bb4"
@@ -387,19 +360,19 @@ module.exports =
         "subgraphV1": {
             "cliName": "optimism",
             "name": "protocol-v1-optimism-mainnet",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-optimism-mainnet"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/optimism-mainnet/protocol-v1"
         },
         "subgraphVesting": {
             "name": "vesting-v1-optimism-mainnet",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/vesting-v1-optimism-mainnet"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/optimism-mainnet/vesting-scheduler"
         },
         "subgraphFlowScheduler": {
             "name": "scheduling-v1-optimism-mainnet",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/scheduling-v1-optimism-mainnet"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/optimism-mainnet/flow-scheduler"
         },
         "subgraphAutoWrap": {
             "name": "auto-wrap-v1-optimism-mainnet",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/auto-wrap-v1-optimism-mainnet"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/optimism-mainnet/auto-wrap"
         },
         "publicRPCs": [
             "https://mainnet.optimism.io",
@@ -429,8 +402,6 @@ module.exports =
             "gdaV1": "0x1e299701792a2aF01408B122419d65Fd2dF0Ba02",
             "gdaV1Forwarder": "0x6DA13Bde224A05a288748d857b9e7DDEffd1dE08",
             "superTokenFactory": "0x1C21Ead77fd45C84a4c916Db7A6635D0C6FF09D6",
-            "constantOutflowNFT": "0x051e766e2d8dc65ae2bFCF084A50AD0447634227",
-            "constantInflowNFT": "0x0043d7c85C8b96a49A72A92C0B48CdC4720437d7",
             "superfluidLoader": "0xe8B40071df98bBEe23833905AFcF7b28fC7Ca3cb",
             "toga": "0xFC63B7C762B10670Eda15cF3ca3970bCDB28C9eF",
             "batchLiquidator": "0x6C66e5c5D201A753ff497F2e9eC5D545631854d0",
@@ -448,19 +419,19 @@ module.exports =
         "subgraphV1": {
             "cliName": "arbitrum-one",
             "name": "protocol-v1-arbitrum-one",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-arbitrum-one"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/arbitrum-one/protocol-v1"
         },
         "subgraphVesting": {
             "name": "vesting-v1-arbitrum-one",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/vesting-v1-arbitrum-one"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/arbitrum-one/vesting-scheduler"
         },
         "subgraphFlowScheduler": {
             "name": "scheduling-v1-arbitrum-one",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/scheduling-v1-arbitrum-one"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/arbitrum-one/flow-scheduler"
         },
         "subgraphAutoWrap": {
             "name": "auto-wrap-v1-arbitrum-one",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/auto-wrap-v1-arbitrum-one"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/arbitrum-one/auto-wrap"
         },
         "publicRPCs": [
             "https://arb1.arbitrum.io/rpc",
@@ -490,8 +461,6 @@ module.exports =
             "gdaV1": "0xA7b197cD5b0cEF6d62c4A0a851E3581f5E62e4D2",
             "gdaV1Forwarder": "0x6DA13Bde224A05a288748d857b9e7DDEffd1dE08",
             "superTokenFactory": "0x464AADdBB2B80f3Cb666522EB7381bE610F638b4",
-            "constantOutflowNFT": "0x4247bA6C3658Fa5C0F523BAcea8D0b97aF1a175e",
-            "constantInflowNFT": "0x82b9D8A91A5b333b5A6e78439551ea0E7da153E3",
             "superfluidLoader": "0x42B709822F18595443c308c1BE5E63CbFEf06481",
             "toga": "0x3D9A67D5ec1E72CEcA8157e028855056786b6159",
             "batchLiquidator": "0xdddaD64A9Fe7709A729C4a5428617e369278e0b6",
@@ -509,19 +478,19 @@ module.exports =
         "subgraphV1": {
             "cliName": "avalanche",
             "name": "protocol-v1-avalanche-c",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-avalanche-c"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/avalanche-c/protocol-v1"
         },
         "subgraphVesting": {
             "name": "vesting-v1-avalanche-c",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/vesting-v1-avalanche-c"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/avalanche-c/vesting-scheduler"
         },
         "subgraphFlowScheduler": {
             "name": "scheduling-v1-avalanche-c",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/scheduling-v1-avalanche-c"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/avalanche-c/flow-scheduler"
         },
         "subgraphAutoWrap": {
             "name": "auto-wrap-v1-avalanche-c",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/auto-wrap-v1-avalanche-c"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/avalanche-c/auto-wrap"
         },
         "publicRPCs": [
             "https://api.avax.network/ext/bc/C/rpc",
@@ -551,8 +520,6 @@ module.exports =
             "gdaV1": "0x3bbFA4C406719424C7f66CD97A8Fe27Af383d3e2",
             "gdaV1Forwarder": "0x6DA13Bde224A05a288748d857b9e7DDEffd1dE08",
             "superTokenFactory": "0x8bde47397301F0Cd31b9000032fD517a39c946Eb",
-            "constantOutflowNFT": "0xcb05535bd212eCFC4B7b9db81d6C2C768b726776",
-            "constantInflowNFT": "0xbF7BCcE8D60A9C3F6bFaEc9346Aa85B9f781a4e9",
             "superfluidLoader": "0xF353978890204756fc5fa6dfbD16a91eac9E6f4d",
             "toga": "0xFCD84210f5d51Cd40a30443d44d6A5500d5D10dF",
             "batchLiquidator": "0x5487d078CA8933e83d91d5E7AFBe3A7bfC3412d6",
@@ -570,19 +537,19 @@ module.exports =
         "subgraphV1": {
             "cliName": "bsc",
             "name": "protocol-v1-bsc-mainnet",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-bsc-mainnet"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/bsc-mainnet/protocol-v1"
         },
         "subgraphVesting": {
             "name": "vesting-v1-bsc-mainnet",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/vesting-v1-bsc-mainnet"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/bsc-mainnet/vesting-scheduler"
         },
         "subgraphFlowScheduler": {
             "name": "scheduling-v1-bsc-mainnet",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/scheduling-v1-bsc-mainnet"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/bsc-mainnet/flow-scheduler"
         },
         "subgraphAutoWrap": {
             "name": "auto-wrap-v1-bsc-mainnet",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/auto-wrap-v1-bsc-mainnet"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/bsc-mainnet/auto-wrap"
         },
         "publicRPCs": [
             "https://bscrpc.com",
@@ -609,10 +576,12 @@ module.exports =
             "cfaV1": "0x2844c1BBdA121E9E43105630b9C8310e5c72744b",
             "cfaV1Forwarder": "0xcfA132E353cB4E398080B9700609bb008eceB125",
             "idaV1": "0xbCF9cfA8Da20B591790dF27DE65C1254Bf91563d",
+            "gdaV1": "0xAAdBB3Eee3Bd080f5353d86DdF1916aCA3fAC842",
+            "gdaV1Forwarder": "0x6DA13Bde224A05a288748d857b9e7DDEffd1dE08",
             "superTokenFactory": "0x0422689cc4087b6B7280e0a7e7F655200ec86Ae1",
-            "superfluidLoader": "0x9775EEBdfF8AE845e7Ad3d1D04B85e6c6d284aCB",
+            "superfluidLoader": "0xcb05535bd212eCFC4B7b9db81d6C2C768b726776",
             "toga": "0x8B5a2CF69a56d7F8Fa027edcA23594cdDF544dDc",
-            "batchLiquidator": "0x554c06487bEc8c890A0345eb05a5292C1b1017Bd",
+            "batchLiquidator": "0x4eC223bef5D8cB609FC8Ee2e0ad43244C8e46A02",
             "flowScheduler": "0xAA0cD305eD020137E302CeCede7b18c0A05aCCDA",
             "vestingScheduler": "0x39D5cBBa9adEBc25085a3918d36D5325546C001B",
             "autowrap": {
@@ -626,20 +595,19 @@ module.exports =
         "subgraphV1": {
             "cliName": "mainnet",
             "name": "protocol-v1-eth-mainnet",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-eth-mainnet",
-            "satsumaEndpoint": "https://subgraph.satsuma-prod.com/c5br3jaVlJI6/superfluid/eth-mainnet/api"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/eth-mainnet/protocol-v1"
         },
         "subgraphVesting": {
             "name": "vesting-v1-eth-mainnet",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/vesting-v1-eth-mainnet"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/eth-mainnet/vesting-scheduler"
         },
         "subgraphFlowScheduler": {
             "name": "scheduling-v1-eth-mainnet",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/scheduling-v1-eth-mainnet"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/eth-mainnet/flow-scheduler"
         },
         "subgraphAutoWrap": {
             "name": "auto-wrap-v1-eth-mainnet",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/auto-wrap-v1-eth-mainnet"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/eth-mainnet/auto-wrap"
         },
         "publicRPCs": [
             "https://cloudflare-eth.com",
@@ -669,8 +637,6 @@ module.exports =
             "gdaV1": "0x308b7405272d11494716e30C6E972DbF6fb89555",
             "gdaV1Forwarder": "0x6DA13Bde224A05a288748d857b9e7DDEffd1dE08",
             "superTokenFactory": "0x36be86dEe6BC726Ed0Cbd170ccD2F21760BC73D9",
-            "constantOutflowNFT": "0xbe49ac1EadAc65dccf204D4Df81d650B50122aB2",
-            "constantInflowNFT": "0x0FB7694c990CF19001127391Dbe53924dd7a61c7",
             "superfluidLoader": "0xF0d7d1D47109bA426B9D8A3Cde1941327af1eea3",
             "toga": "0x9bCa3a623e7b2e248510d88B2894F54898d88F91",
             "batchLiquidator": "0x21d4E9fbB9DB742E6ef4f29d189a7C18B0b59136",
@@ -682,7 +648,7 @@ module.exports =
         "subgraphV1": {
             "cliName": "celo",
             "name": "protocol-v1-celo-mainnet",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-celo-mainnet"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/celo-mainnet/protocol-v1"
         },
         "publicRPCs": ["https://forno.celo.org", "https://rpc.ankr.com/celo"],
         "coinGeckoId": "celo"
@@ -709,11 +675,15 @@ module.exports =
             "gdaV1": "0xfE6c87BE05feDB2059d2EC41bA0A09826C9FD7aa",
             "gdaV1Forwarder": "0x6DA13Bde224A05a288748d857b9e7DDEffd1dE08",
             "superTokenFactory": "0xe20B9a38E0c96F61d1bA6b42a61512D56Fea1Eb3",
-            "constantOutflowNFT": "0xD3C78bb5a16Ea4ab584844eeb8F90Ac710c16355",
-            "constantInflowNFT": "0x2d51962A9EE4D3C2819EF585eab7412c2a2C31Ac",
             "superfluidLoader": "0x9F9EEd9Bbc38E9e0514fD9dFcc0Bca9869A9c534",
             "toga": "0xA87F76e99f6C8Ff8996d14f550ceF47f193D9A09",
             "batchLiquidator": "0x889ebeCaD5F8C34Fd96023456d0fC5cE54eb74Cb",
+            "flowScheduler": "0xC72CEd15204d02183c83fEbb918b183E400811Ee",
+            "vestingScheduler": "0xDF92D0E6Bcb9385FDe99aD21Ff5e47Fb47E3c6b2",
+            "autowrap": {
+                "manager": "0x5D0acD0864Ad07ba4E1E0474AE69Da87482e14A9",
+                "wrapStrategy": "0xB29005319B0caB24cF6D4d24e8420E54BB29Cb0d"
+            },
             "existentialNFTCloneFactory": "0x642332562BC60a4Bd9681E7bb1588f7456A497aC"
         },
         "startBlockV1": 1000000,
@@ -721,7 +691,20 @@ module.exports =
         "explorer": "https://basescan.org",
         "subgraphV1": {
             "cliName": "base",
-            "name": "protocol-v1-base-mainnet"
+            "name": "protocol-v1-base-mainnet",
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/base-mainnet/protocol-v1"
+        },
+        "subgraphVesting": {
+            "name": "vesting-v1-base-mainnet",
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/base-mainnet/vesting-scheduler"
+        },
+        "subgraphFlowScheduler": {
+            "name": "scheduling-v1-base-mainnet",
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/base-mainnet/flow-scheduler"
+        },
+        "subgraphAutoWrap": {
+            "name": "auto-wrap-v1-base-mainnet",
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/base-mainnet/auto-wrap"
         },
         "publicRPCs": ["https://developer-access-mainnet.base.org"],
         "coinGeckoId": "base"
@@ -747,8 +730,6 @@ module.exports =
             "idaV1": "0x4112557F0F228A18654d3C39599421DE9F61144d",
             "gdaV1": "0x97a9f293d7eD13f3fbD499cE684Ed4F103295a28",
             "gdaV1Forwarder": "0x6DA13Bde224A05a288748d857b9e7DDEffd1dE08",
-            "constantOutflowNFT": "0x0de05fe0fF8F5eA9475CA8425e2D05Dd38ccED84",
-            "constantInflowNFT": "0x8c24Fc82c8fDd763F08E654212fc27e577EbD934",
             "superfluidLoader": "0x7613030429E95cDFC76FE70f9573037068B51815",
             "toga": "0x1bF9D75d50fD828a93f69ECB06f2B85767792CEB",
             "batchLiquidator": "0x3024A39099D4FAE7c9eA8329FAfe05576AEd2c00",
@@ -760,8 +741,43 @@ module.exports =
         "subgraphV1": {
             "cliName": "scroll",
             "name": "protocol-v1-scroll-mainnet",
-            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-scroll-mainnet"
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/scroll-mainnet/protocol-v1"
         },
         "publicRPCs": ["https://rpc.scroll.io"]
+    },
+    {
+        "name": "degenchain",
+        "isTestnet": false,
+        "networkId": 666666666,
+        "chainId": 666666666,
+        "sfId": 10,
+        "shortName": "degen",
+        "uppercaseName": "DEGENCHAIN",
+        "humanReadableName": "Degen Chain",
+        "nativeTokenSymbol": "DEGEN",
+        "nativeTokenWrapper": "0xda58FA9bfc3D3960df33ddD8D4d762Cf8Fa6F7ad",
+        "contractsV1": {
+            "resolver": "0x649FB24ed0B983f88500F3C37682714aB96D73c2",
+            "host": "0xc1314EdcD7e478C831a7a24169F7dEADB2646eD2",
+            "governance": "0x4D420e94328bF1AEA1b525FDE9e498ADBe60f9B1",
+            "cfaV1": "0x82cc052d1b17aC554a22A88D5876B56c6b51e95c",
+            "cfaV1Forwarder": "0xcfA132E353cB4E398080B9700609bb008eceB125",
+            "idaV1": "0xb19CE3e7DA9FbAf9De2526BD662A82f26421A53E",
+            "gdaV1": "0x210a01ad187003603B2287F78579ec103Eb70D9B",
+            "gdaV1Forwarder": "0x6DA13Bde224A05a288748d857b9e7DDEffd1dE08",
+            "superfluidLoader": "0x5fb676d66eAb8E0c22Ae24C5c10eD7E4A6397c1C",
+            "toga": "0x38ed5512Ac11926bB697F4CF4eE0DD04358E2E7e",
+            "batchLiquidator": "0x7BCE8e8401dc98E3Da26F1D701c3C2168b8e466c",
+            "superTokenFactory": "0x184D999ea60e9b16fE4cCC1f756422114E9B663f"
+        },
+        "startBlockV1": 6500000,
+        "logsQueryRange": 50000,
+        "explorer": "https://explorer.degen.tips/",
+        "subgraphV1": {
+            "cliName": "degen",
+            "name": "protocol-v1-degenchain",
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/degenchain/protocol-v1"
+	    },
+        "publicRPCs": ["https://rpc.degen.tips"]
     }
 ]

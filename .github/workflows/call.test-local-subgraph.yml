@@ -5,14 +5,14 @@ on:
 
 env:
   DEV_SHELL_NAME: ci-node20
+  ethereum-contracts-working-directory: ./packages/ethereum-contracts
+  sdk-core-working-directory: ./packages/sdk-core
+  subgraph-working-directory: ./packages/subgraph
 
 jobs:
   subgraph-unit-tests:
     name: Run subgraph unit tests
     runs-on: ubuntu-latest
-
-    env:
-      subgraph-working-directory: ./packages/subgraph
 
     defaults:
       run:
@@ -41,7 +41,7 @@ jobs:
         run: |
           yarn lint
           yarn build
-        working-directory: ./packages/ethereum-contracts
+        working-directory: ${{ env.ethereum-contracts-working-directory }}
 
       - name: Run unit tests
         if: steps.base.outputs.cache-hit != 'true'
@@ -52,10 +52,6 @@ jobs:
     name: Run subgraph integration tests
 
     runs-on: ubuntu-latest
-
-    env:
-      subgraph-working-directory: ./packages/subgraph
-      sdk-core-working-directory: ./packages/sdk-core
 
     defaults:
       run:
@@ -79,7 +75,7 @@ jobs:
       - name: Build contracts
         if: steps.base.outputs.cache-hit != 'true'
         run: yarn build
-        working-directory: ./packages/ethereum-contracts
+        working-directory: ${{ env.ethereum-contracts-working-directory }}
 
       - name: Build SDK core
         if: steps.base.outputs.cache-hit != 'true'
@@ -95,19 +91,19 @@ jobs:
       - name: Deploy framework and tokens
         if: steps.base.outputs.cache-hit != 'true'
         run: npx hardhat run dev-scripts/run-deploy-contracts-and-token.js --network localhost
-        working-directory: ./packages/ethereum-contracts
+        working-directory: ${{ env.ethereum-contracts-working-directory }}
 
       - name: Prepare files for local testing
         if: steps.base.outputs.cache-hit != 'true'
         run: yarn prepare-local
         working-directory: ${{ env.subgraph-working-directory }}
 
-      - name: Docker compose
+      - name: Setup graph node
         if: steps.base.outputs.cache-hit != 'true'
         run: |
           ./tasks/setup-graph-node.sh &
-          # wait 5 seconds for it to warm up
-          sleep 5
+          # wait for it to warm up
+          sleep 30
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: Run subgraph integration test suite

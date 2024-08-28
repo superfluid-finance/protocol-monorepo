@@ -85,18 +85,11 @@ jobs:
           npx tsc --version
           npx hardhat --version
 
-      - name: Lint and build essentials
+      - name: Build contracts
         if: steps.base.outputs.cache-hit != 'true'
         run: |
-          yarn lint
           yarn build
         working-directory: ${{ env.ethereum-contracts-working-directory }}
-
-      - name: Start hardhat node
-        if: steps.base.outputs.cache-hit != 'true'
-        run: |
-          ./tasks/startHardhatNode.sh start
-        working-directory: ${{ env.sdk-core-working-directory }}
 
       - name: Build SDK Core
         if: steps.base.outputs.cache-hit != 'true'
@@ -106,7 +99,12 @@ jobs:
           yarn build
         working-directory: ${{ env.sdk-core-working-directory }}
 
-      - name: Deploy Framework and Tokens
+      - name: Start hardhat node
+        if: steps.base.outputs.cache-hit != 'true'
+        run: ./tasks/startHardhatNode.sh start
+        working-directory: ${{ env.sdk-core-working-directory }}
+
+      - name: Deploy framework and tokens
         if: steps.base.outputs.cache-hit != 'true'
         run: npx hardhat run dev-scripts/run-deploy-contracts-and-token.js --network localhost
         working-directory: ${{ env.ethereum-contracts-working-directory }}
@@ -116,20 +114,18 @@ jobs:
         run: yarn prepare-local
         working-directory: ${{ env.subgraph-working-directory }}
 
-      - name: Docker compose
+      - name: Setup graph node
         if: steps.base.outputs.cache-hit != 'true'
         run: |
           ./tasks/setup-graph-node.sh &
-          # wait 5 seconds for it to warm up
-          sleep 5
+          # wait for it to warm up
+          sleep 30
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: Build and deploy local subgraph
         if: steps.base.outputs.cache-hit != 'true'
         run: |
           yarn build-and-deploy-local
-          # artificial slow down to give the subgraph time to sync
-          sleep 30
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: Run test suite

@@ -8,7 +8,6 @@ services:
       - "8030:8030"
       - "8040:8040"
     depends_on:
-      - docker-host
       - ipfs
       - postgres
     extra_hosts:
@@ -19,7 +18,7 @@ services:
       postgres_pass: let-me-in
       postgres_db: graph-node
       ipfs: "ipfs:5001"
-      ethereum: "mainnet:http://host.docker.internal:8545"
+      ethereum: "mainnet:http://${DOCKER_HOST_GATEWAY_IP}:8545"
       GRAPH_LOG: info
   ipfs:
     image: ipfs/go-ipfs:v0.4.23

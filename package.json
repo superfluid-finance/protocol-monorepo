@@ -47,7 +47,8 @@
     "private": true,
     "repository": "github:superfluid-finance/protocol-monorepo",
     "resolutions": {
-        "mocha": "^10.2.0"
+        "mocha": "^10.2.0",
+        "cross-fetch": "^4.0.0"
     },
     "scripts": {
         "prepare": "husky && npm run git-submodule:init",

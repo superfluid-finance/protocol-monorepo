@@ -103,16 +103,10 @@ jobs:
         run: yarn prepare-local
         working-directory: ${{ env.subgraph-working-directory }}
 
-      - name: Run setup-graph-node
-        if: steps.base.outputs.cache-hit != 'true'
-        run: |
-          ./tasks/setup-graph-node.sh
-        working-directory: ${{ env.subgraph-working-directory }}
-
       - name: Docker compose
         if: steps.base.outputs.cache-hit != 'true'
         run: |
-          export DOCKER_HOST_GATEWAY_IP=$(docker network inspect subgraph_default | jq -r '.[0].IPAM.Config[].Gateway')
+          source ./tasks/setup-graph-node.sh
           docker compose up &
           sleep 5
         working-directory: ${{ env.subgraph-working-directory }}

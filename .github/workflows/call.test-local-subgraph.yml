@@ -27,7 +27,7 @@ jobs:
         uses: ./.github/actions/setup-workflow-base
         with:
           package-name: subgraph
-          cache-key-prefix: subgraph-unit-tests-
+          cache-key-prefix: subgraph-unit-tests-${{ env.DEV_SHELL_NAME }}-
           dev-shell-name: ${{ env.DEV_SHELL_NAME }}
 
       - name: Install dependencies
@@ -70,7 +70,7 @@ jobs:
         uses: ./.github/actions/setup-workflow-base
         with:
           package-name: subgraph
-          cache-key-prefix: subgraph-integration-tests-
+          cache-key-prefix: subgraph-integration-tests-${{ env.DEV_SHELL_NAME }}-
           dev-shell-name: ${{ env.DEV_SHELL_NAME }}
 
       - name: Install dependencies

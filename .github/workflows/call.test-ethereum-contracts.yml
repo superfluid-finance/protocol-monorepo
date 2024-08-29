@@ -40,6 +40,7 @@ jobs:
 
     strategy:
       matrix: ${{ fromJson(needs.matrix-prep.outputs.matrix) }}
+      fail-fast: false
 
     env:
       DEV_SHELL_NAME: ci-node${{ matrix.node-version }}

@@ -103,7 +103,7 @@ jobs:
         run: |
           ./tasks/setup-graph-node.sh &
           # wait for it to warm up
-          sleep 30
+          sleep 15
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: Run subgraph integration test suite

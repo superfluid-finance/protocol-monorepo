@@ -65,8 +65,8 @@ jobs:
       - name: "Docker compose"
         run: |
           ./tasks/setup-graph-node.sh &
-          # wait 5 seconds for it to warm up
-          sleep 5
+          # wait for it to sync
+          sleep 15
         working-directory: ./packages/subgraph
 
       - name: "Prepare and Deploy Local Subgraph"

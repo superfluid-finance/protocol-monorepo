@@ -3,6 +3,13 @@ All notable changes to the metadata will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.5.0]
+### Added
+- MacroForwarder addresses
+
+### Changed
+- Updated BatchLiquidator addresses
+
 ## [v1.4.1]
 ### Changed
 - New & updated contracts on eth-mainnet

@@ -21,6 +21,7 @@ interface ContractAddresses {
     readonly superSpreader?: string;
     readonly autowrap?: AutowrapAddresses;
     readonly existentialNFTCloneFactory: string;
+    readonly macroForwarder?: string;
 }
 interface SubgraphData {
     readonly name: string;

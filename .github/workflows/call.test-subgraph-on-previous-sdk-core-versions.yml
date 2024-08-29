@@ -62,16 +62,11 @@ jobs:
         run: yarn prepare-local
         working-directory: ./packages/subgraph
 
-      - name: "Run setup-graph-node"
-        run: |
-          chmod +x ./tasks/setup-graph-node.sh
-          ./tasks/setup-graph-node.sh
-        working-directory: ./packages/subgraph
-
       - name: "Docker compose"
         run: |
-          docker rm subgraph_graph-node_1 || true
-          docker compose up &
+          ./tasks/setup-graph-node.sh &
+          # wait 5 seconds for it to warm up
+          sleep 5
         working-directory: ./packages/subgraph
 
       - name: "Prepare and Deploy Local Subgraph"

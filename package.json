@@ -83,7 +83,8 @@
         "web3": "^1.10.4"
     },
     "resolutions": {
-        "mocha": "^10.2.0"
+        "mocha": "^10.2.0",
+        "cross-fetch": "^4.0.0"
     },
     "workspaces": {
         "packages": [

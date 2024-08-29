@@ -4,16 +4,15 @@ on:
   workflow_call:
 
 env:
-  # FIXME: subgraph test fails with node20
-  DEV_SHELL_NAME: ci-node18
+  DEV_SHELL_NAME: ci-node20
+  ethereum-contracts-working-directory: ./packages/ethereum-contracts
+  sdk-core-working-directory: ./packages/sdk-core
+  subgraph-working-directory: ./packages/subgraph
 
 jobs:
   subgraph-unit-tests:
     name: Run subgraph unit tests
     runs-on: ubuntu-latest
-
-    env:
-      subgraph-working-directory: ./packages/subgraph
 
     defaults:
       run:
@@ -27,7 +26,7 @@ jobs:
         uses: ./.github/actions/setup-workflow-base
         with:
           package-name: subgraph
-          cache-key-prefix: subgraph-unit-tests-
+          cache-key-prefix: subgraph-${{ env.DEV_SHELL_NAME }}-unit-tests-
           dev-shell-name: ${{ env.DEV_SHELL_NAME }}
 
       - name: Install dependencies
@@ -42,7 +41,7 @@ jobs:
         run: |
           yarn lint
           yarn build
-        working-directory: ./packages/ethereum-contracts
+        working-directory: ${{ env.ethereum-contracts-working-directory }}
 
       - name: Run unit tests
         if: steps.base.outputs.cache-hit != 'true'
@@ -53,10 +52,6 @@ jobs:
     name: Run subgraph integration tests
 
     runs-on: ubuntu-latest
-
-    env:
-      subgraph-working-directory: ./packages/subgraph
-      sdk-core-working-directory: ./packages/sdk-core
 
     defaults:
       run:
@@ -70,7 +65,7 @@ jobs:
         uses: ./.github/actions/setup-workflow-base
         with:
           package-name: subgraph
-          cache-key-prefix: subgraph-integration-tests-
+          cache-key-prefix: subgraph-${{ env.DEV_SHELL_NAME }}-integration-tests-
           dev-shell-name: ${{ env.DEV_SHELL_NAME }}
 
       - name: Install dependencies
@@ -80,12 +75,7 @@ jobs:
       - name: Build contracts
         if: steps.base.outputs.cache-hit != 'true'
         run: yarn build
-        working-directory: ./packages/ethereum-contracts
-
-      - name: Start hardhat node
-        if: steps.base.outputs.cache-hit != 'true'
-        run: ./tasks/startHardhatNode.sh start
-        working-directory: ${{ env.sdk-core-working-directory }}
+        working-directory: ${{ env.ethereum-contracts-working-directory }}
 
       - name: Build SDK core
         if: steps.base.outputs.cache-hit != 'true'
@@ -93,28 +83,27 @@ jobs:
         run: yarn build
         working-directory: ${{ env.sdk-core-working-directory }}
 
+      - name: Start hardhat node
+        if: steps.base.outputs.cache-hit != 'true'
+        run: ./tasks/startHardhatNode.sh start
+        working-directory: ${{ env.sdk-core-working-directory }}
+
       - name: Deploy framework and tokens
         if: steps.base.outputs.cache-hit != 'true'
         run: npx hardhat run dev-scripts/run-deploy-contracts-and-token.js --network localhost
-        working-directory: ./packages/ethereum-contracts
+        working-directory: ${{ env.ethereum-contracts-working-directory }}
 
       - name: Prepare files for local testing
         if: steps.base.outputs.cache-hit != 'true'
         run: yarn prepare-local
         working-directory: ${{ env.subgraph-working-directory }}
 
-      - name: Run setup-graph-node
+      - name: Setup graph node
         if: steps.base.outputs.cache-hit != 'true'
         run: |
-          chmod +x ./tasks/setup-graph-node.sh
-          ./tasks/setup-graph-node.sh
-        working-directory: ${{ env.subgraph-working-directory }}
-
-      - name: Docker compose
-        if: steps.base.outputs.cache-hit != 'true'
-        run: |
-          docker rm subgraph_graph-node_1 || true
-          docker compose up &
+          ./tasks/setup-graph-node.sh &
+          # wait for it to warm up
+          sleep 30
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: Run subgraph integration test suite

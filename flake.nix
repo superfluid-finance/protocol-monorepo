@@ -156,15 +156,19 @@
     devShells.mk-cache-key = mkShell {
       buildInputs = [ mk-cache-key-pkg ];
     };
+
     devShells.ci-minimum = mkShell {
-      buildInputs = ciInputs ++ commonDevInputs;
+      buildInputs = with pkgs; ciInputs ++ [ actionlint shellcheck ];
     };
+
     devShells.ci-default = mkShellForNodeCI defaultNodeDevInputs;
     devShells.ci-node18 = mkShellForNodeCI node18DevInputs;
-    devShells.ci-node20 = mkShellForSpecCI node20DevInputs;
-    devShells.ci-node22 = mkShellForSpecCI node22DevInputs;
+    devShells.ci-node20 = mkShellForNodeCI node20DevInputs;
+    devShells.ci-node22 = mkShellForNodeCI node22DevInputs;
+
     devShells.ci-spec-ghc92 = mkShellForSpecCI ghcVer92;
     devShells.ci-spec-ghc94 = mkShellForSpecCI ghcVer94;
+
     devShells.ci-hot-fuzz = mkShell {
       buildInputs = with pkgs; ciInputs ++ commonDevInputs ++ ethDevInputs ++ [
         slither-analyzer

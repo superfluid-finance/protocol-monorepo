@@ -14,10 +14,10 @@
     },
     "devDependencies": {
         "@superfluid-finance/ethereum-contracts": "^1.11.0",
-        "chai-as-promised": "8.0.0",
+        "chai-as-promised": "^8.0.0",
         "webpack": "^5.94.0",
         "webpack-bundle-analyzer": "^4.10.2",
-        "webpack-cli": "5.1.4"
+        "webpack-cli": "^5.1.4"
     },
     "files": [
         "src/**/*.md",

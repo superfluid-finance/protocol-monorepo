@@ -9,9 +9,9 @@
         }
     },
     "dependencies": {
-        "graphql-request": "^6.1.0",
-        "lodash": "^4.17.21",
-        "promise-retry": "^2.0.1"
+        "graphql-request": "6.1.0",
+        "lodash": "4.17.21",
+        "promise-retry": "2.0.1"
     },
     "devDependencies": {
         "@reduxjs/toolkit": "^1.9.7",

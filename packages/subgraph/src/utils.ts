@@ -8,13 +8,14 @@ import {
     log,
     Value,
 } from "@graphprotocol/graph-ts";
-import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
 import {
     IndexSubscription,
-    Token,
-    TokenStatistic,
     PoolMember,
+    Token,
 } from "../generated/schema";
+import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
+import { Resolver } from "../generated/templates/SuperToken/Resolver";
+import { getIsLocalIntegrationTesting } from "./addresses";
 
 /**************************************************************************
  * Constants
@@ -25,7 +26,7 @@ export const ZERO_ADDRESS = Address.zero();
 export const MAX_FLOW_RATE = BigInt.fromI32(2).pow(95).minus(BigInt.fromI32(1));
 export const ORDER_MULTIPLIER = BigInt.fromI32(10000);
 export const MAX_SAFE_SECONDS = BigInt.fromI64(8640000000000); //In seconds, https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date#the_ecmascript_epoch_and_timestamps
-
+export const MAX_UINT256 = BigInt.fromString("115792089237316195423570985008687907853269984665640564039457584007913129639935");
 /**************************************************************************
  * Convenience Conversions
  *************************************************************************/
@@ -109,8 +110,7 @@ export function initializeEventEntity(
  *************************************************************************/
 
 export function handleTokenRPCCalls(
-    token: Token,
-    resolverAddress: Address
+    token: Token
 ): Token {
     // we must handle the case when the native token hasn't been initialized
     // there is no name/symbol, but this may occur later
@@ -118,6 +118,20 @@ export function handleTokenRPCCalls(
         token = getTokenInfoAndReturn(token);
     }
     return token;
+}
+
+export function getIsTokenListed(
+    token: Token,
+    resolverAddress: Address
+): boolean {
+    const resolverContract = Resolver.bind(resolverAddress);
+    const isLocalIntegrationTesting = getIsLocalIntegrationTesting();
+    const version = isLocalIntegrationTesting ? "test" : "v1";
+    const result = resolverContract.try_get(
+        "supertokens." + version + "." + token.symbol
+    );
+    const superTokenAddress = result.reverted ? ZERO_ADDRESS : result.value;
+    return token.id == superTokenAddress.toHex();
 }
 
 export function getTokenInfoAndReturn(token: Token): Token {
@@ -135,25 +149,6 @@ export function getTokenInfoAndReturn(token: Token): Token {
     token.decimals = decimalsResult.reverted ? 0 : decimalsResult.value;
 
     return token;
-}
-
-/**
- * Gets and sets the total supply for TokenStatistic of a SuperToken upon initial creation
- * @param tokenStatistic
- * @param tokenAddress
- * @returns TokenStatistic
- */
-export function getInitialTotalSupplyForSuperToken(
-    tokenStatistic: TokenStatistic,
-    tokenAddress: Address
-): TokenStatistic {
-    const tokenContract = SuperToken.bind(tokenAddress);
-    const totalSupplyResult = tokenContract.try_totalSupply();
-    if (totalSupplyResult.reverted) {
-        return tokenStatistic;
-    }
-    tokenStatistic.totalSupply = totalSupplyResult.value;
-    return tokenStatistic;
 }
 
 /**
@@ -406,4 +401,13 @@ export function createLogID(
         "-" +
         event.logIndex.toString()
     );
+}
+
+export function divideOrZero(
+    numerator: BigInt,
+    denominator: BigInt
+): BigInt {
+    return denominator.equals(BIG_INT_ZERO)
+        ? BIG_INT_ZERO
+        : numerator.div(denominator);
 }

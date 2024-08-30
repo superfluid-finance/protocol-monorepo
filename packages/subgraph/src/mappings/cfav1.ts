@@ -163,7 +163,6 @@ export function handleFlowUpdated(event: FlowUpdated): void {
         flowRateDelta,
         isCreate,
         isDelete,
-        true,
         event.block
     );
 

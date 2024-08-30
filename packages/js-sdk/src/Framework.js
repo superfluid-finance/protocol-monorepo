@@ -7,6 +7,8 @@ const {batchCall} = require("./batchCall");
 const ConstantFlowAgreementV1Helper = require("./ConstantFlowAgreementV1Helper");
 const InstantDistributionAgreementV1Helper = require("./InstantDistributionAgreementV1Helper");
 const fetch = require("node-fetch");
+// yes, this is dirty. truffle is deprecated, so this won't stick forever.
+const truffleConfig = require("../../ethereum-contracts/truffle-config");
 
 const User = require("./User");
 
@@ -57,7 +59,7 @@ module.exports = class Framework {
                 options.gasReportType !== "JSON"
             ) {
                 throw new Error(
-                    "Unsuported gas report type: " + options.gasReportType
+                    "Unsupported gas report type: " + options.gasReportType
                 );
             }
             console.debug("Enabling gas report type:", options.gasReportType);
@@ -92,6 +94,36 @@ module.exports = class Framework {
             additionalContracts: this._options.additionalContracts,
             contractLoader: this._options.contractLoader,
             networkId: this.networkId,
+            // copy of ethereum-contracts/ops-scripts/libs/common.js:getGasConfig()
+            gasConfig: ((networkId) => {
+                let gasConfig = {};
+
+                const networkConfig = Object.values(truffleConfig.networks)
+                    .filter((e) => e !== undefined)
+                    .find((e) => e.network_id === networkId);
+
+                if (networkConfig !== undefined) {
+                    // gas limit
+                    if (networkConfig.gas !== undefined) {
+                        gasConfig.gas = networkConfig.gas;
+                    }
+                    // legacy gas price
+                    if (networkConfig.gasPrice !== undefined) {
+                        gasConfig.gasPrice = networkConfig.gasPrice;
+                    }
+
+                    // EIP-1559 gas price
+                    if (networkConfig.maxPriorityFeePerGas !== undefined) {
+                        gasConfig.maxPriorityFeePerGas =
+                            networkConfig.maxPriorityFeePerGas;
+                    }
+                    if (networkConfig.maxFeePerGas !== undefined) {
+                        gasConfig.maxFeePerGas = networkConfig.maxFeePerGas;
+                    }
+                }
+
+                return gasConfig;
+            })(this.networkId),
         });
 
         const resolverAddress =

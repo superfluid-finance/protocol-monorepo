@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.19;
+pragma solidity ^0.8.23;
 
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
-import { SafeGasLibrary } from "../libs/SafeGasLibrary.sol";
 
 import {
     ISuperfluid,
@@ -22,7 +21,9 @@ import {
 import { GeneralDistributionAgreementV1 } from "../agreements/gdav1/GeneralDistributionAgreementV1.sol";
 import { SuperfluidUpgradeableBeacon } from "../upgradability/SuperfluidUpgradeableBeacon.sol";
 import { CallUtils } from "../libs/CallUtils.sol";
+import { CallbackUtils } from "../libs/CallbackUtils.sol";
 import { BaseRelayRecipient } from "../libs/BaseRelayRecipient.sol";
+import { DMZForwarder } from "../utils/DMZForwarder.sol";
 
 /**
  * @dev The Superfluid host implementation.
@@ -51,6 +52,10 @@ contract Superfluid is
     // solhint-disable-next-line var-name-mixedcase
     bool immutable public APP_WHITE_LISTING_ENABLED;
 
+    uint64 immutable public CALLBACK_GAS_LIMIT;
+
+    DMZForwarder immutable public DMZ_FORWARDER;
+
     /**
      * @dev Maximum number of level of apps can be composed together
      *
@@ -60,9 +65,6 @@ contract Superfluid is
      */
     // solhint-disable-next-line var-name-mixedcase
     uint constant public MAX_APP_CALLBACK_LEVEL = 1;
-
-    // solhint-disable-next-line var-name-mixedcase
-    uint64 constant public CALLBACK_GAS_LIMIT = 3000000;
 
     uint32 constant public MAX_NUM_AGREEMENTS = 256;
 
@@ -95,9 +97,16 @@ contract Superfluid is
     /// function in its respective mock contract to ensure that it doesn't break anything or lead to unexpected
     /// behaviors/layout when upgrading
 
-    constructor(bool nonUpgradable, bool appWhiteListingEnabled) {
+    constructor(
+        bool nonUpgradable,
+        bool appWhiteListingEnabled,
+        uint64 callbackGasLimit,
+        address dmzForwarderAddress
+    ) {
         NON_UPGRADABLE_DEPLOYMENT = nonUpgradable;
         APP_WHITE_LISTING_ENABLED = appWhiteListingEnabled;
+        CALLBACK_GAS_LIMIT = callbackGasLimit;
+        DMZ_FORWARDER = DMZForwarder(dmzForwarderAddress);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -312,7 +321,7 @@ contract Superfluid is
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Superfluid Upgradeable Beacon
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
+
     /// @inheritdoc ISuperfluid
     function updatePoolBeaconLogic(address newLogic) external override onlyGovernance {
         GeneralDistributionAgreementV1 gda = GeneralDistributionAgreementV1(
@@ -794,12 +803,11 @@ contract Superfluid is
     **************************************************************************/
 
     function _batchCall(
-        address msgSender,
+        address payable msgSender,
         Operation[] calldata operations
     )
        internal
     {
-        bool valueForwarded = false;
         for (uint256 i = 0; i < operations.length; ++i) {
             uint32 operationType = operations[i].operationType;
             if (operationType == BatchOperation.OPERATION_TYPE_ERC20_APPROVE) {
@@ -847,6 +855,18 @@ contract Superfluid is
                 ISuperToken(operations[i].target).operationDowngrade(
                     msgSender,
                     abi.decode(operations[i].data, (uint256))); // amount
+            } else if (operationType == BatchOperation.OPERATION_TYPE_SUPERTOKEN_UPGRADE_TO) {
+                (address to, uint256 amount) = abi.decode(operations[i].data, (address, uint256));
+                ISuperToken(operations[i].target).operationUpgradeTo(
+                    msgSender,
+                    to,
+                    amount);
+            } else if (operationType == BatchOperation.OPERATION_TYPE_SUPERTOKEN_DOWNGRADE_TO) {
+                (address to, uint256 amount) = abi.decode(operations[i].data, (address, uint256));
+                ISuperToken(operations[i].target).operationDowngradeTo(
+                    msgSender,
+                    to,
+                    amount);
             } else if (operationType == BatchOperation.OPERATION_TYPE_SUPERFLUID_CALL_AGREEMENT) {
                 (bytes memory callData, bytes memory userData) = abi.decode(operations[i].data, (bytes, bytes));
                 _callAgreement(
@@ -854,20 +874,42 @@ contract Superfluid is
                     ISuperAgreement(operations[i].target),
                     callData,
                     userData);
-            } else if (operationType == BatchOperation.OPERATION_TYPE_SUPERFLUID_CALL_APP_ACTION) {
+            }
+            // The following operations for call proxies allow forwarding of native tokens.
+            // we use `address(this).balance` instead of `msg.value`, because the latter ist not
+            // updated after forwarding to the first operation, while `balance` is.
+            // The initial balance is equal to `msg.value` because there's no other path
+            // for the contract to receive native tokens.
+            else if (operationType == BatchOperation.OPERATION_TYPE_SUPERFLUID_CALL_APP_ACTION) {
                 _callAppAction(
                     msgSender,
                     ISuperApp(operations[i].target),
-                    valueForwarded ? 0 : msg.value,
+                    address(this).balance,
                     operations[i].data);
-                valueForwarded = true;
+            } else if (operationType == BatchOperation.OPERATION_TYPE_SIMPLE_FORWARD_CALL) {
+                (bool success, bytes memory returnData) =
+                    DMZ_FORWARDER.forwardCall{value: address(this).balance}(
+                        operations[i].target,
+                        operations[i].data);
+                if (!success) {
+                    CallUtils.revertFromReturnedData(returnData);
+                }
+            } else if (operationType == BatchOperation.OPERATION_TYPE_ERC2771_FORWARD_CALL) {
+                (bool success, bytes memory returnData) =
+                    DMZ_FORWARDER.forward2771Call{value: address(this).balance}(
+                        operations[i].target,
+                        msgSender,
+                        operations[i].data);
+                if (!success) {
+                    CallUtils.revertFromReturnedData(returnData);
+                }
             } else {
                revert HOST_UNKNOWN_BATCH_CALL_OPERATION_TYPE();
             }
         }
-        if (msg.value != 0 && !valueForwarded) {
-            // return ETH provided if not forwarded
-            payable(msg.sender).transfer(msg.value);
+        if (address(this).balance != 0) {
+            // return any native tokens left to the sender.
+            msgSender.transfer(address(this).balance);
         }
     }
 
@@ -877,12 +919,12 @@ contract Superfluid is
     )
        external override payable
     {
-        _batchCall(msg.sender, operations);
+        _batchCall(payable(msg.sender), operations);
     }
 
     /// @dev ISuperfluid.forwardBatchCall implementation
     function forwardBatchCall(Operation[] calldata operations)
-        external override
+        external override payable
     {
         _batchCall(_getTransactionSigner(), operations);
     }
@@ -899,7 +941,7 @@ contract Superfluid is
         ) != 0;
     }
 
-    /// @dev IRelayRecipient.isTrustedForwarder implementation
+    /// @dev IRelayRecipient.versionRecipient implementation
     function versionRecipient()
         external override pure
         returns (string memory)
@@ -1037,26 +1079,14 @@ contract Superfluid is
 
         callData = _replacePlaceholderCtx(callData, ctx);
 
-        uint256 gasLimit = CALLBACK_GAS_LIMIT;
-        uint256 gasLeftBefore = gasleft();
-        if (isStaticall) {
-            /* solhint-disable-next-line avoid-low-level-calls*/
-            (success, returnedData) = address(app).staticcall{ gas: gasLimit }(callData);
-        } else {
-            /* solhint-disable-next-line avoid-low-level-calls*/
-            (success, returnedData) = address(app).call{ gas: gasLimit }(callData);
-        }
+        uint256 callbackGasLimit = CALLBACK_GAS_LIMIT;
+        bool insufficientCallbackGasProvided;
+        (success, insufficientCallbackGasProvided, returnedData) = isStaticall ?
+            CallbackUtils.staticCall(address(app), callData, callbackGasLimit) :
+            CallbackUtils.externalCall(address(app), callData, callbackGasLimit);
 
         if (!success) {
-            // - "/ 63" is a magic to avoid out of gas attack.
-            //   See: https://medium.com/@wighawag/ethereum-the-concept-of-gas-and-its-dangers-28d0eb809bb2.
-            // - Without it, an app callback may use this to block the APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK jail
-            //   rule.
-            // - Also note that, the CALLBACK_GAS_LIMIT given to the app includes the overhead an app developer may not
-            //   have direct control of, such as abi decoding code block. It is recommend for the app developer to stay
-            //   at least 30000 less gas usage from that value to not trigger
-            //   APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK.
-            if (!SafeGasLibrary._isOutOfGas(gasLeftBefore)) {
+            if (!insufficientCallbackGasProvided) {
                 if (!isTermination) {
                     CallUtils.revertFromReturnedData(returnedData);
                 } else {

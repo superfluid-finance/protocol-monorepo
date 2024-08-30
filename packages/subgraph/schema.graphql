@@ -830,7 +830,8 @@ type AgreementClassRegisteredEvent implements Event @entity(immutable: true) {
     name: String!
 
     """
-    Empty addresses array.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `code`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -849,7 +850,8 @@ type AgreementClassUpdatedEvent implements Event @entity(immutable: true) {
     name: String!
 
     """
-    Empty addresses array.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `code`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -868,7 +870,8 @@ type AppRegisteredEvent implements Event @entity(immutable: true) {
     name: String!
 
     """
-    Empty addresses array.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `app`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -889,7 +892,9 @@ type GovernanceReplacedEvent implements Event @entity(immutable: true) {
     order: BigInt!
 
     """
-    Empty addresses array.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `oldGovernance`
+    addresses[1] = `newGovernance`
     """
     addresses: [Bytes!]!
     oldGovernance: Bytes!
@@ -905,7 +910,8 @@ type JailEvent implements Event @entity(immutable: true) {
     name: String!
 
     """
-    Empty addresses array.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `app`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -924,7 +930,8 @@ type SuperTokenFactoryUpdatedEvent implements Event @entity(immutable: true) {
     name: String!
 
     """
-    Empty addresses array.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `newFactory`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -942,7 +949,9 @@ type SuperTokenLogicUpdatedEvent implements Event @entity(immutable: true) {
     name: String!
 
     """
-    Empty addresses array.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `token`
+    addresses[1] = `code`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -963,7 +972,9 @@ type RoleAdminChangedEvent implements Event @entity(immutable: true) {
     name: String!
 
     """
-    Empty addresses array.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `previousAdminRole`
+    addresses[1] = `newAdminRole`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -983,7 +994,9 @@ type RoleGrantedEvent implements Event @entity(immutable: true) {
     name: String!
 
     """
-    Empty addresses array.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `account`
+    addresses[1] = `sender`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -1003,7 +1016,9 @@ type RoleRevokedEvent implements Event @entity(immutable: true) {
     name: String!
 
     """
-    Empty addresses array.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `account`
+    addresses[1] = `sender`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -1057,7 +1072,10 @@ type CFAv1LiquidationPeriodChangedEvent implements Event
     governanceAddress: Bytes!
 
     """
-    Empty addresses array.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `governanceAddress`
+    addresses[1] = `host`
+    addresses[2] = `superToken`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -1083,7 +1101,10 @@ type ConfigChangedEvent implements Event @entity(immutable: true) {
     governanceAddress: Bytes!
 
     """
-    Empty addresses array.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `governanceAddress`
+    addresses[1] = `host`
+    addresses[2] = `superToken`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -1110,7 +1131,11 @@ type RewardAddressChangedEvent implements Event @entity(immutable: true) {
     governanceAddress: Bytes!
 
     """
-    Empty addresses array.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `governanceAddress`
+    addresses[1] = `host`
+    addresses[2] = `superToken`
+    addresses[3] = `rewardAddress`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -1136,7 +1161,10 @@ type PPPConfigurationChangedEvent implements Event @entity(immutable: true) {
     governanceAddress: Bytes!
 
     """
-    Empty addresses array.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `governanceAddress`
+    addresses[1] = `host`
+    addresses[2] = `superToken`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -1164,7 +1192,10 @@ type SuperTokenMinimumDepositChangedEvent implements Event
     governanceAddress: Bytes!
 
     """
-    Empty addresses array.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `governanceAddress`
+    addresses[1] = `host`
+    addresses[2] = `superToken`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -1190,7 +1221,11 @@ type TrustedForwarderChangedEvent implements Event @entity(immutable: true) {
     governanceAddress: Bytes!
 
     """
-    Empty addresses array.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `governanceAddress`
+    addresses[1] = `host`
+    addresses[2] = `superToken`
+    addresses[3] = `forwarder`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -1388,7 +1423,7 @@ type TransferEvent implements Event @entity(immutable: true) {
 
     """
     Contains the addresses that were impacted by this event:
-    addresses[0] = `token` (superToken if `isNFTTransfer` is false, otherwise the ConstantOutflowNFT or ConstantInflowNFT)
+    addresses[0] = `token`
     addresses[1] = `from`
     addresses[2] = `to`
     """
@@ -1399,15 +1434,8 @@ type TransferEvent implements Event @entity(immutable: true) {
 
     from: Account!
     to: Account!
-    isNFTTransfer: Boolean!
-    """
-    If `isNFTTransfer` is true, value is the `tokenId` of the NFT transferred.
-    """
     value: BigInt!
 
-    """
-    If `isNFTTransfer` is true, value is the NFT address, else it is the SuperToken address.
-    """
     token: Bytes!
 }
 
@@ -1457,8 +1485,6 @@ type TokenUpgradedEvent implements Event @entity(immutable: true) {
     amount: BigInt!
 }
 
-
-#     NFTs    #
 type ApprovalEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
@@ -1468,75 +1494,31 @@ type ApprovalEvent implements Event @entity(immutable: true) {
     name: String!
 
     """
-    Empty addresses array.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `token` (superToken)
+    addresses[1] = `owner`
+    addresses[2] = `to`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
     logIndex: BigInt!
     order: BigInt!
 
+    """
+    The address that will be granting allowance to transfer ERC20.
+    """
     owner: Account!
 
     """
-    The address that will be granted allowance to transfer the NFT.
+    The address that will be granted allowance to transfer ERC20.
     """
     to: Account!
-    """
-    The id of the NFT that will be granted allowance to transfer.
-    The id is: uint256(keccak256(abi.encode(block.chainid, superToken, sender, receiver)))
-    """
-    tokenId: BigInt!
-}
-
-type ApprovalForAllEvent implements Event @entity(immutable: true) {
-    id: ID!
-    transactionHash: Bytes!
-    gasPrice: BigInt!
-    gasUsed: BigInt!
-    timestamp: BigInt!
-    name: String!
 
     """
-    Empty addresses array.
+    If `amount` is non-zero, this event was emitted for the approval of an ERC20.
+    Tne amount of ERC20 tokens that will be granted allowance to transfer.
     """
-    addresses: [Bytes!]!
-    blockNumber: BigInt!
-    logIndex: BigInt!
-    order: BigInt!
-
-    owner: Account!
-
-    """
-    The address that will be granted operator permissions for the all of the owner's tokens.
-    """
-    operator: Account!
-    """
-    Whether the operator is enabled or disabled for `owner`.
-    """
-    approved: Boolean!
-}
-
-type MetadataUpdateEvent implements Event @entity(immutable: true) {
-    id: ID!
-    transactionHash: Bytes!
-    gasPrice: BigInt!
-    gasUsed: BigInt!
-    timestamp: BigInt!
-    name: String!
-
-    """
-    Empty addresses array.
-    """
-    addresses: [Bytes!]!
-    blockNumber: BigInt!
-    logIndex: BigInt!
-    order: BigInt!
-
-    """
-    The id of the NFT that will be granted allowance to transfer.
-    The id is: uint256(keccak256(abi.encode(block.chainid, superToken, sender, receiver)))
-    """
-    tokenId: BigInt!
+    amount: BigInt!
 }
 
 #     SuperTokenFactory    #
@@ -1590,7 +1572,8 @@ type SuperTokenLogicCreatedEvent implements Event @entity(immutable: true) {
     name: String!
 
     """
-    Empty addresses array.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `tokenLogic`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -1757,6 +1740,11 @@ type Pool @entity {
     totalAmountInstantlyDistributedUntilUpdatedAt: BigInt!
     totalAmountFlowedDistributedUntilUpdatedAt: BigInt!
     totalAmountDistributedUntilUpdatedAt: BigInt!
+    totalFlowAdjustmentAmountDistributedUntilUpdatedAt: BigInt!
+
+    perUnitSettledValue: BigInt!
+    perUnitFlowRate: BigInt!
+
     """
     A member is any account which has more than 0 units in the pool.
     """
@@ -1811,6 +1799,9 @@ type PoolMember @entity {
     totalAmountClaimed: BigInt!
     poolTotalAmountDistributedUntilUpdatedAt: BigInt!
     totalAmountReceivedUntilUpdatedAt: BigInt!
+
+    syncedPerUnitSettledValue: BigInt!
+    syncedPerUnitFlowRate: BigInt!
 
     account: Account!
     pool: Pool!
@@ -2206,6 +2197,7 @@ type Token @entity {
     underlyingToken: Token
 
     """
+    If `governanceConfig.id` is the zero address, the token uses the default governance config.
     """
     governanceConfig: TokenGovernanceConfig
 }
@@ -2237,6 +2229,8 @@ type AccountTokenSnapshot @entity {
     ID composed of: accountID-tokenID
     """
     id: ID!
+    createdAtTimestamp: BigInt!
+    createdAtBlockNumber: BigInt!
     updatedAtTimestamp: BigInt!
     updatedAtBlockNumber: BigInt!
     # ---------------------------------- state ----------------------------------
@@ -2282,19 +2276,10 @@ type AccountTokenSnapshot @entity {
     activeGDAOutgoingStreamCount: Int!
 
     """
-    The count of active incoming streams to this account for all agreements.
+    The count of active incoming streams to this account for the CFA.
+    GDA incoming streams are *NOT* counted here.
     """
     activeIncomingStreamCount: Int!
-
-    """
-    The count of active incoming streams to this account for the CFA.
-    """
-    activeCFAIncomingStreamCount: Int!
-
-    """
-    The count of active incoming streams to this account for the GDA.
-    """
-    activeGDAIncomingStreamCount: Int!
 
     """
     The count of closed streams by `account`, both incoming and outgoing for all agreements.
@@ -2327,19 +2312,10 @@ type AccountTokenSnapshot @entity {
     inactiveGDAOutgoingStreamCount: Int!
 
     """
-    The count of closed incoming streams by `account` for all agreements.
+    The count of closed incoming streams by `account` for the CFA.
+    Close incoming GDA streams are *NOT* counted here.
     """
     inactiveIncomingStreamCount: Int!
-
-    """
-    The count of closed incoming streams by `account` for the CFA.
-    """
-    inactiveCFAIncomingStreamCount: Int!
-
-    """
-    The count of closed incoming streams by `account` for the GDA.
-    """
-    inactiveGDAIncomingStreamCount: Int!
 
     """
     The current (as of updatedAt) number of subscriptions with units allocated to them tied to this `account`.
@@ -2384,6 +2360,7 @@ type AccountTokenSnapshot @entity {
     """
     The total net flow rate of the `account` as of `updatedAtTimestamp`/`updatedAtBlock` for all flow agreements.
     This can be obtained by: `totalInflowRate - totalOutflowRate`.
+    NOTE: this property will NOT be 100% accurate all the time for receivers of GDA flows.
     """
     totalNetFlowRate: BigInt!
 
@@ -2393,24 +2370,10 @@ type AccountTokenSnapshot @entity {
     totalCFANetFlowRate: BigInt!
 
     """
-    The total net flow rate of the `account` as of `updatedAtTimestamp`/`updatedAtBlock` for the GDA.
-    """
-    totalGDANetFlowRate: BigInt!
-
-    """
-    The total inflow rate (receive flowRate per second) of the `account` for all flow agreements.
+    The total inflow rate (receive flowRate per second) of the `account` for the CFA.
+    GDA inflow rate is *NOT* included here.
     """
     totalInflowRate: BigInt!
-
-    """
-    The total inflow rate (receive flowRate per second) of the `account` for the CFA.
-    """
-    totalCFAInflowRate: BigInt!
-
-    """
-    The total inflow rate (receive flowRate per second) of the `account` for the GDA.
-    """
-    totalGDAInflowRate: BigInt!
 
     """
     The total outflow rate (send flowrate per second) of the `account` for all flow agreements.
@@ -2428,19 +2391,9 @@ type AccountTokenSnapshot @entity {
     totalGDAOutflowRate: BigInt!
 
     """
-    The total amount of `token` streamed into this `account` until the `updatedAtTimestamp`/`updatedAtBlock` for all flow agreements.
-    """
-    totalAmountStreamedInUntilUpdatedAt: BigInt!
-
-    """
     The total amount of `token` streamed into this `account` until the `updatedAtTimestamp`/`updatedAtBlock` for the CFA.
     """
-    totalCFAAmountStreamedInUntilUpdatedAt: BigInt!
-
-    """
-    The total amount of `token` streamed into this `account` until the `updatedAtTimestamp`/`updatedAtBlock` for the GDA.
-    """
-    totalGDAAmountStreamedInUntilUpdatedAt: BigInt!
+    totalAmountStreamedInUntilUpdatedAt: BigInt!
 
     """
     The total amount of `token` streamed from this `account` until the `updatedAtTimestamp`/`updatedAtBlock` for all flow agreements.
@@ -2453,11 +2406,6 @@ type AccountTokenSnapshot @entity {
     totalCFAAmountStreamedOutUntilUpdatedAt: BigInt!
 
     """
-    The total amount of `token` streamed from this `account` until the `updatedAtTimestamp`/`updatedAtBlock` for the GDA.
-    """
-    totalGDAAmountStreamedOutUntilUpdatedAt: BigInt!
-
-    """
     The total amount of `token` streamed through this `account` until the `updatedAtTimestamp`/`updatedAtBlock` for all flow agreements.
     """
     totalAmountStreamedUntilUpdatedAt: BigInt!
@@ -2466,11 +2414,6 @@ type AccountTokenSnapshot @entity {
     The total amount of `token` streamed through this `account` until the `updatedAtTimestamp`/`updatedAtBlock` for the CFA.
     """
     totalCFAAmountStreamedUntilUpdatedAt: BigInt!
-
-    """
-    The total amount of `token` streamed through this `account` until the `updatedAtTimestamp`/`updatedAtBlock` for the GDA.
-    """
-    totalGDAAmountStreamedUntilUpdatedAt: BigInt!
 
     """
     The total amount of `token` this `account` has transferred.
@@ -2539,16 +2482,6 @@ type AccountTokenSnapshotLog @entity {
     activeIncomingStreamCount: Int!
 
     """
-    The count of active incoming streams to this account for the CFA.
-    """
-    activeCFAIncomingStreamCount: Int!
-
-    """
-    The count of active incoming streams to this account for the GDA.
-    """
-    activeGDAIncomingStreamCount: Int!
-
-    """
     The current (as of timestamp) count of closed streams for all agreements.
     """
     totalNumberOfClosedStreams: Int!
@@ -2579,19 +2512,10 @@ type AccountTokenSnapshotLog @entity {
     inactiveGDAOutgoingStreamCount: Int!
 
     """
-    The count of closed incoming streams by `account` for all agreements.
+    The count of closed incoming streams by `account` for the CFA.
+    Close incoming GDA streams are *NOT* counted here.
     """
     inactiveIncomingStreamCount: Int!
-
-    """
-    The count of closed incoming streams by `account` for the CFA.
-    """
-    inactiveCFAIncomingStreamCount: Int!
-
-    """
-    The count of closed incoming streams by `account` for the GDA.
-    """
-    inactiveGDAIncomingStreamCount: Int!
 
     """
     The current (as of timestamp) number of subscriptions with units allocated to them tied to this `account`.
@@ -2641,30 +2565,13 @@ type AccountTokenSnapshotLog @entity {
 
     """
     The total (as of timestamp) net flow rate of the `account` as of `timestamp`/`block` for the CFA.
-    This can be obtained by: `totalCFAInflowRate - totalCFAOutflowRate`
     """
     totalCFANetFlowRate: BigInt!
-
-    """
-    The total (as of timestamp) net flow rate of the `account` as of `timestamp`/`block` for the GDA.
-    This can be obtained by: `totalGDAInflowRate - totalGDAOutflowRate`
-    """
-    totalGDANetFlowRate: BigInt!
 
     """
     The total (as of timestamp) inflow rate (receive flowRate per second) of the `account`.
     """
     totalInflowRate: BigInt!
-
-    """
-    The total (as of timestamp) inflow rate (receive flowRate per second) of the `account` for the CFA.
-    """
-    totalCFAInflowRate: BigInt!
-
-    """
-    The total (as of timestamp) inflow rate (receive flowRate per second) of the `account` for the GDA.
-    """
-    totalGDAInflowRate: BigInt!
 
     """
     The total (as of timestamp) outflow rate (send flowrate per second) of the `account`.
@@ -2687,16 +2594,6 @@ type AccountTokenSnapshotLog @entity {
     totalAmountStreamedIn: BigInt!
 
     """
-    The total (as of timestamp) amount of `token` streamed into this `account` until the `timestamp`/`block` for the CFA.
-    """
-    totalCFAAmountStreamedIn: BigInt!
-
-    """
-    The total (as of timestamp) amount of `token` streamed into this `account` until the `timestamp`/`block` for the GDA.
-    """
-    totalGDAAmountStreamedIn: BigInt!
-
-    """
     The total (as of timestamp) amount of `token` streamed from this `account` until the `timestamp`/`block`.
     """
     totalAmountStreamedOut: BigInt!
@@ -2707,11 +2604,6 @@ type AccountTokenSnapshotLog @entity {
     totalCFAAmountStreamedOut: BigInt!
 
     """
-    The total (as of timestamp) amount of `token` streamed from this `account` until the `timestamp`/`block` for the GDA.
-    """
-    totalGDAAmountStreamedOut: BigInt!
-
-    """
     The total (as of timestamp) net amount of `token` streamed through this `account` until the `timestamp`/`block`.
     """
     totalAmountStreamed: BigInt!
@@ -2720,11 +2612,6 @@ type AccountTokenSnapshotLog @entity {
     The total (as of timestamp) net amount of `token` streamed through this `account` until the `timestamp`/`block` for the CFA.
     """
     totalCFAAmountStreamed: BigInt!
-
-    """
-    The total (as of timestamp) net amount of `token` streamed through this `account` until the `timestamp`/`block` for the GDA.
-    """
-    totalGDAAmountStreamed: BigInt!
 
     """
     The total (as of timestamp) amount of `token` this `account` has transferred out until the `timestamp`/`block`.
@@ -2856,11 +2743,6 @@ type TokenStatistic @entity {
     The all-time total amount streamed (outflows) until the `updatedAtTimestamp`/`updatedAtBlock` for the CFA.
     """
     totalCFAAmountStreamedUntilUpdatedAt: BigInt!
-
-    """
-    The all-time total amount streamed (outflows) until the `updatedAtTimestamp`/`updatedAtBlock` for the GDA.
-    """
-    totalGDAAmountStreamedUntilUpdatedAt: BigInt!
 
     """
     The all-time total amount transferred until the `updatedAtTimestamp`/`updatedAtBlock`.
@@ -3017,11 +2899,6 @@ type TokenStatisticLog @entity {
     totalCFAAmountStreamed: BigInt!
 
     """
-    The all-time total amount of `token` streamed (outflows) until the `timestamp`/`block` for the GDA.
-    """
-    totalGDAAmountStreamed: BigInt!
-
-    """
     The all-time total amount of `token` transferred until the `timestamp`/`block`.
     """
     totalAmountTransferred: BigInt!
@@ -3062,12 +2939,19 @@ type SFMeta @entity {
     id: ID!
     timestamp: BigInt!
     blockNumber: BigInt!
+
     """
     Whether the branch is feature/dev/v1.
     """
     configuration: String!
+
     """
     The branch the current deployment is coming from.
     """
     branch: String!
+
+    """
+    The subgraph package.json semver version of the current deployment.
+    """
+    packageVersion: String!
 }

@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.19;
+pragma solidity ^0.8.23;
 
 import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
-import { IBeacon } from "@openzeppelin/contracts/proxy/beacon/IBeacon.sol";
 import "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
 import "../../FoundrySuperfluidTester.sol";
 import {
@@ -11,16 +10,14 @@ import {
     IGeneralDistributionAgreementV1
 } from "../../../../contracts/agreements/gdav1/GeneralDistributionAgreementV1.sol";
 import { SuperTokenV1Library } from "../../../../contracts/apps/SuperTokenV1Library.sol";
+import { SuperfluidUpgradeableBeacon } from "../../../../contracts/upgradability/SuperfluidUpgradeableBeacon.sol";
 import { ISuperToken, SuperToken } from "../../../../contracts/superfluid/SuperToken.sol";
 import { ISuperfluidToken } from "../../../../contracts/interfaces/superfluid/ISuperfluidToken.sol";
 import { ISuperfluidPool, SuperfluidPool } from "../../../../contracts/agreements/gdav1/SuperfluidPool.sol";
-import { SuperfluidPoolStorageLayoutMock } from "../../../../contracts/mocks/SuperfluidPoolUpgradabilityMock.sol";
 import { IPoolNFTBase } from "../../../../contracts/interfaces/agreements/gdav1/IPoolNFTBase.sol";
 import { IPoolAdminNFT } from "../../../../contracts/interfaces/agreements/gdav1/IPoolAdminNFT.sol";
 import { IPoolMemberNFT } from "../../../../contracts/interfaces/agreements/gdav1/IPoolMemberNFT.sol";
-import { IFlowNFTBase } from "../../../../contracts/interfaces/superfluid/IFlowNFTBase.sol";
-import { IConstantOutflowNFT } from "../../../../contracts/interfaces/superfluid/IConstantOutflowNFT.sol";
-import { IConstantInflowNFT } from "../../../../contracts/interfaces/superfluid/IConstantInflowNFT.sol";
+import { SuperfluidPoolStorageLayoutMock } from "./SuperfluidPoolUpgradabilityMock.t.sol";
 
 /// @title GeneralDistributionAgreementV1 Integration Tests
 /// @author Superfluid
@@ -45,7 +42,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
     SuperfluidPool public freePool;
     uint256 public liquidationPeriod;
 
-    constructor() FoundrySuperfluidTester(7) { }
+    constructor() FoundrySuperfluidTester(10) { }
 
     function setUp() public override {
         super.setUp();
@@ -70,17 +67,9 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
                                 GDA Integration Tests
     //////////////////////////////////////////////////////////////////////////*/
 
-    function testInitializeGDA(IBeacon beacon) public {
-        GeneralDistributionAgreementV1 gdaV1 = new GeneralDistributionAgreementV1(sf.host);
-        assertEq(address(gdaV1.superfluidPoolBeacon()), address(0), "GDAv1.t: Beacon address not address(0)");
-        gdaV1.initialize(beacon);
-
+    function testInitializeGDA(SuperfluidUpgradeableBeacon beacon) public {
+        GeneralDistributionAgreementV1 gdaV1 = new GeneralDistributionAgreementV1(sf.host, beacon);
         assertEq(address(gdaV1.superfluidPoolBeacon()), address(beacon), "GDAv1.t: Beacon address not equal");
-    }
-
-    function testRevertReinitializeGDA(IBeacon beacon) public {
-        vm.expectRevert("Initializable: contract is already initialized");
-        sf.gda.initialize(beacon);
     }
 
     function testRevertAppendIndexUpdateByPoolByNonPool(BasicParticle memory p, Time t) public {
@@ -101,7 +90,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         );
     }
 
-    function testPositiveBalanceIsPatricianPeriodNow(address account) public {
+    function testPositiveBalanceIsPatricianPeriodNow(address account) public view {
         (bool isPatricianPeriod,) = sf.gda.isPatricianPeriodNow(superToken, account);
         assertEq(isPatricianPeriod, true);
     }
@@ -243,11 +232,10 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         vm.stopPrank();
     }
 
-    function testRevertIfNotAdminOrGDAUpdatesMemberUnitsViaPool(address caller) public {
-        vm.assume(caller != alice);
-        vm.startPrank(caller);
+    function testRevertIfNotAdminOrGDAUpdatesMemberUnitsViaPool() public {
+        vm.startPrank(bob);
         vm.expectRevert(ISuperfluidPool.SUPERFLUID_POOL_NOT_POOL_ADMIN_OR_GDA.selector);
-        freePool.updateMemberUnits(caller, 69);
+        freePool.updateMemberUnits(bob, 69);
         vm.stopPrank();
     }
 
@@ -384,15 +372,15 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         mock.validateStorageLayout();
     }
 
-    function testDistributeFlowUsesMinDeposit(
+    function testDistributeFlowUsesMinDepositWhenFlowDepositIsLess(
         uint64 distributionFlowRate,
-        uint32 minDepositMultiplier,
+        uint32 minDepositFlowRate,
         address member,
         FoundrySuperfluidTester._StackVars_UseBools memory useBools_,
         PoolConfig memory config
     ) public {
         ISuperfluidPool pool = _helperCreatePool(superToken, alice, alice, false, config);
-        vm.assume(distributionFlowRate < minDepositMultiplier);
+        vm.assume(distributionFlowRate < minDepositFlowRate);
         vm.assume(distributionFlowRate > 0);
         vm.assume(member != address(pool));
         vm.assume(member != address(0));
@@ -400,7 +388,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         _addAccount(member);
 
         vm.startPrank(address(sf.governance.owner()));
-        uint256 minimumDeposit = 4 hours * uint256(minDepositMultiplier);
+        uint256 minimumDeposit = 4 hours * uint256(minDepositFlowRate);
         sf.governance.setSuperTokenMinimumDeposit(sf.host, superToken, minimumDeposit);
         vm.stopPrank();
 
@@ -411,15 +399,15 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         assertEq(buffer, minimumDeposit, "GDAv1.t: Min buffer should be used");
     }
 
-    function testDistributeFlowIgnoresMinDeposit(
+    function testDistributeFlowIgnoresMinDepositWhenFlowDepositIsGreater(
         int32 distributionFlowRate,
-        uint32 minDepositMultiplier,
+        uint32 minDepositFlowRate,
         address member,
         FoundrySuperfluidTester._StackVars_UseBools memory useBools_,
         PoolConfig memory config
     ) public {
         ISuperfluidPool pool = _helperCreatePool(superToken, alice, alice, false, config);
-        vm.assume(uint32(distributionFlowRate) >= minDepositMultiplier);
+        vm.assume(uint32(distributionFlowRate) >= minDepositFlowRate);
         vm.assume(distributionFlowRate > 0);
         vm.assume(member != address(0));
         vm.assume(member != address(freePool));
@@ -428,7 +416,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
 
         vm.startPrank(address(sf.governance.owner()));
 
-        uint256 minimumDeposit = 4 hours * uint256(minDepositMultiplier);
+        uint256 minimumDeposit = 4 hours * uint256(minDepositFlowRate);
         sf.governance.setSuperTokenMinimumDeposit(sf.host, superToken, minimumDeposit);
         vm.stopPrank();
 
@@ -561,7 +549,17 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
 
             _helperUpdateMemberUnits(pool, alice, members[i], memberUnits[i], useBools_);
         }
+        uint256 actualAmount = sf.gda.estimateDistributionActualAmount(superToken, alice, pool, distributionAmount);
         _helperDistributeViaGDA(superToken, alice, alice, pool, distributionAmount, useBools_.useForwarder);
+
+        uint128 perUnitDistributionAmount = uint128(actualAmount / pool.getTotalUnits());
+        for (uint256 i = 0; i < members.length; ++i) {
+            if (sf.gda.isPool(superToken, members[i]) || members[i] == address(0)) continue;
+
+            uint128 memberIUnits = pool.getUnits(members[i]);
+
+            assertEq(perUnitDistributionAmount * memberIUnits, pool.getTotalAmountReceivedByMember(members[i]));
+        }
     }
 
     function testDistributeToConnectedMembers(
@@ -586,7 +584,17 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
             _helperUpdateMemberUnits(pool, alice, members[i], memberUnits[i], useBools_);
             _addAccount(members[i]);
         }
+        uint256 actualAmount = sf.gda.estimateDistributionActualAmount(superToken, alice, pool, distributionAmount);
         _helperDistributeViaGDA(superToken, alice, alice, pool, distributionAmount, useBools_.useForwarder);
+
+        uint128 perUnitDistributionAmount = uint128(actualAmount / pool.getTotalUnits());
+        for (uint256 i = 0; i < members.length; ++i) {
+            if (sf.gda.isPool(superToken, members[i]) || members[i] == address(0)) continue;
+
+            uint128 memberIUnits = pool.getUnits(members[i]);
+
+            assertEq(perUnitDistributionAmount * memberIUnits, pool.getTotalAmountReceivedByMember(members[i]));
+        }
     }
 
     function testDistributeFlowToConnectedMembers(
@@ -731,15 +739,13 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         _helperSuperfluidPoolDecreaseAllowance(pool, owner, spender, subtractedValue);
     }
 
-    function testRevertIfUnitsTransferReceiverIsPool(address from, address to, int96 unitsAmount, int128 transferAmount)
+    function testRevertIfUnitsTransferReceiverIsPool(address from, int96 unitsAmount, int128 transferAmount)
         public
     {
         // @note we use int96 because overflow will happen otherwise
         vm.assume(unitsAmount >= 0);
         vm.assume(transferAmount > 0);
         vm.assume(from != address(0));
-        vm.assume(to != address(0));
-        vm.assume(from != to);
         vm.assume(transferAmount <= unitsAmount);
         _helperUpdateMemberUnits(freePool, alice, from, uint128(int128(unitsAmount)));
 
@@ -778,22 +784,32 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
     }
 
     function testBasicTransfer(
-        address from,
-        address to,
-        int96 unitsAmount,
-        int128 transferAmount,
-        FoundrySuperfluidTester._StackVars_UseBools memory useBools_
+        FoundrySuperfluidTester._StackVars_UseBools memory useBools_,
+        uint8 a, uint8 b, // One must use small sized data type to find equality cases
+        uint128 unitsAmount,
+        uint128 transferAmount
     ) public {
-        // @note we use int96 because overflow will happen otherwise
-        vm.assume(unitsAmount >= 0);
-        vm.assume(transferAmount > 0);
-        vm.assume(from != address(0));
-        vm.assume(to != address(0));
-        vm.assume(from != to);
-        vm.assume(transferAmount <= unitsAmount);
-        _helperUpdateMemberUnits(freePool, alice, from, uint128(int128(unitsAmount)), useBools_);
+        address from = address(uint160(a));
+        address to = address(uint160(b));
 
-        _helperSuperfluidPoolUnitsTransfer(freePool, from, to, uint256(uint128(transferAmount)));
+        transferAmount = uint96(bound(transferAmount, 0, unitsAmount));
+
+        vm.assume(from != address(0));
+        _helperUpdateMemberUnits(freePool, alice, from, unitsAmount, useBools_);
+
+        if (from == to) {
+            vm.startPrank(from);
+            vm.expectRevert(ISuperfluidPool.SUPERFLUID_POOL_SELF_TRANSFER_NOT_ALLOWED.selector);
+            freePool.transfer(to, transferAmount);
+            vm.stopPrank();
+        } else if (to == address(0)) {
+            vm.startPrank(from);
+            vm.expectRevert(ISuperfluidPool.SUPERFLUID_POOL_NO_ZERO_ADDRESS.selector);
+            freePool.transfer(to, transferAmount);
+            vm.stopPrank();
+        } else {
+            _helperSuperfluidPoolUnitsTransfer(freePool, from, to, uint256(uint128(transferAmount)));
+        }
     }
 
     function testApproveAndTransferFrom(

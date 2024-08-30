@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.19;
+pragma solidity ^0.8.23;
 
 // code taken from:
 // https://github.com/superfluid-finance/super-examples/blob/main/projects/flow-splitter/contracts/FlowSplitter.sol
@@ -8,13 +8,13 @@ pragma solidity 0.8.19;
 // import "hardhat/console.sol";
 
 import { SuperTokenV1Library } from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperTokenV1Library.sol";
-import { SuperAppBaseFlow } from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperAppBaseFlow.sol";
+import { CFASuperAppBase } from "@superfluid-finance/ethereum-contracts/contracts/apps/CFASuperAppBase.sol";
 import {
     ISuperfluid,
     ISuperToken
 } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
 
-contract FlowSplitter is SuperAppBaseFlow {
+contract FlowSplitter is CFASuperAppBase {
     using SuperTokenV1Library for ISuperToken;
 
     /// @dev Account that ought to be routed the majority of the inflows
@@ -36,7 +36,8 @@ contract FlowSplitter is SuperAppBaseFlow {
         int96 _sideReceiverPortion,
         ISuperToken _acceptedSuperToken,
         ISuperfluid _host
-    ) SuperAppBaseFlow(_host, true, true, true, "") {
+    ) CFASuperAppBase(_host) {
+        selfRegister(true, true, true);
         mainReceiver = _mainReceiver;
         sideReceiver = _sideReceiver;
         sideReceiverPortion = _sideReceiverPortion;

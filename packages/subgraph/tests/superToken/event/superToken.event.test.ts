@@ -9,6 +9,7 @@ import {
 import {
     handleAgreementLiquidatedBy,
     handleAgreementLiquidatedV2,
+    handleApproval,
     handleBurned,
     handleMinted,
     handleSent,
@@ -18,7 +19,7 @@ import {
 } from "../../../src/mappings/superToken";
 import { BIG_INT_ONE, BIG_INT_ZERO, encode, ZERO_ADDRESS } from "../../../src/utils";
 import { assertEmptyTokenStatisticProperties, assertEventBaseProperties, assertTokenStatisticProperties } from "../../assertionHelpers";
-import { alice, bob, cfaV1Address, charlie, DEFAULT_DECIMALS, delta, FAKE_INITIAL_BALANCE, maticXName, maticXSymbol } from "../../constants";
+import { alice, bob, cfaV1Address, charlie, DEFAULT_DECIMALS, delta, FAKE_INITIAL_BALANCE, FALSE, maticXName, maticXSymbol, TRUE } from "../../constants";
 import { getETHAddress, getETHUnsignedBigInt, stringToBytes } from "../../converters";
 import { createStream, createStreamRevision } from "../../mockedEntities";
 import { mockedGetAppManifest, mockedGetHost, mockedHandleSuperTokenInitRPCCalls, mockedRealtimeBalanceOf } from "../../mockedFunctions";
@@ -28,6 +29,7 @@ import {
     createBurnedEvent,
     createMintedEvent,
     createSentEvent,
+    createSuperTokenApprovalEvent,
     createTokenDowngradedEvent,
     createTokenUpgradedEvent,
     createTransferEvent,
@@ -287,10 +289,9 @@ describe("SuperToken Mapper Unit Tests", () => {
                 BIG_INT_ZERO, // totalGDAOutflowRate
                 BIG_INT_ZERO, // totalAmountStreamedUntilUpdatedAt
                 BIG_INT_ZERO, // totalCFAAmountStreamedUntilUpdatedAt
-                BIG_INT_ZERO, // totalGDAAmountStreamedUntilUpdatedAt
                 BIG_INT_ZERO, // totalAmountTransferredUntilUpdatedAt
                 BIG_INT_ZERO, // totalAmountDistributedUntilUpdatedAt
-                BigInt.fromI32(1000000), // totalSupply = 100
+                BIG_INT_ZERO, // totalSupply = 0
                 3, // totalNumberOfAccounts
                 3 // totalNumberOfHolders
             );
@@ -338,6 +339,28 @@ describe("SuperToken Mapper Unit Tests", () => {
             assert.fieldEquals("TokenDowngradedEvent", id, "amount", amount.toString());
         });
 
+        test("handleApproval() - Should create a new ApprovalEvent entity", () => {
+            const owner = alice;
+            const spender = bob;
+            const value = BigInt.fromI32(100);
+
+            const superTokenApprovalEvent = createSuperTokenApprovalEvent(
+                owner,
+                spender,
+                value
+            );
+
+            handleApproval(superTokenApprovalEvent);
+
+            const id = assertEventBaseProperties(
+                superTokenApprovalEvent,
+                "Approval"
+            );
+            assert.fieldEquals("ApprovalEvent", id, "owner", owner);
+            assert.fieldEquals("ApprovalEvent", id, "to", spender);
+            assert.fieldEquals("ApprovalEvent", id, "amount", value.toString());
+        });
+
         test("handleTransfer() - Should create a new TransferEvent entity", () => {
             const from = alice;
             const to = bob;
@@ -382,10 +405,9 @@ describe("SuperToken Mapper Unit Tests", () => {
                 BIG_INT_ZERO, // totalGDAOutflowRate
                 BIG_INT_ZERO, // totalAmountStreamedUntilUpdatedAt
                 BIG_INT_ZERO, // totalCFAAmountStreamedUntilUpdatedAt
-                BIG_INT_ZERO, // totalGDAAmountStreamedUntilUpdatedAt
                 value, // totalAmountTransferredUntilUpdatedAt
                 BIG_INT_ZERO, // totalAmountDistributedUntilUpdatedAt
-                BigInt.fromI32(1000000), // totalSupply = 100
+                BIG_INT_ZERO, // totalSupply = 0
                 2, // totalNumberOfAccounts,
                 2 // totalNumberOfHolders
             );
@@ -488,15 +510,15 @@ describe("SuperToken Mapper Unit Tests", () => {
             const from = alice;
             const to = bob;
             const value = BigInt.fromI32(100);
-    
+
             const transferEvent = createTransferEvent(
                 from,
                 to,
                 value
             );
-    
+
             handleTransfer(transferEvent);
-    
+
             const id = assertEventBaseProperties(
                 transferEvent,
                 "Transfer"
@@ -504,7 +526,7 @@ describe("SuperToken Mapper Unit Tests", () => {
             assert.fieldEquals("TransferEvent", id, "from", from);
             assert.fieldEquals("TransferEvent", id, "to", to);
             assert.fieldEquals("TransferEvent", id, "value", value.toString());
-    
+
             assertTokenStatisticProperties(
                 null,
                 null,
@@ -529,13 +551,12 @@ describe("SuperToken Mapper Unit Tests", () => {
                 BIG_INT_ZERO, // totalGDAOutflowRate
                 BIG_INT_ZERO, // totalAmountStreamedUntilUpdatedAt
                 BIG_INT_ZERO, // totalCFAAmountStreamedUntilUpdatedAt
-                BIG_INT_ZERO, // totalGDAAmountStreamedUntilUpdatedAt
                 value, // totalAmountTransferredUntilUpdatedAt
                 BIG_INT_ZERO, // totalAmountDistributedUntilUpdatedAt
-                BigInt.fromI32(1000000), // totalSupply = 100
+                BIG_INT_ZERO, // totalSupply = 0
                 2, // totalNumberOfAccounts,
                 2 // totalNumberOfHolders
-            ); 
+            );
 
 
             const secondTransferEvent = createTransferEvent(
@@ -579,10 +600,9 @@ describe("SuperToken Mapper Unit Tests", () => {
                 BIG_INT_ZERO, // totalGDAOutflowRate
                 BIG_INT_ZERO, // totalAmountStreamedUntilUpdatedAt
                 BIG_INT_ZERO, // totalCFAAmountStreamedUntilUpdatedAt
-                BIG_INT_ZERO, // totalGDAAmountStreamedUntilUpdatedAt
                 value.times(BigInt.fromI32(2)), // totalAmountTransferredUntilUpdatedAt
                 BIG_INT_ZERO, // totalAmountDistributedUntilUpdatedAt
-                BigInt.fromI32(1000000), // totalSupply = 100
+                BIG_INT_ZERO, // totalSupply = 100
                 2, // totalNumberOfAccounts,
                 1 // totalNumberOfHolders
             );

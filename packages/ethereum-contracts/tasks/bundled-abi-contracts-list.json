@@ -10,9 +10,6 @@
     "ISuperToken", "SuperToken",
     "ISuperTokenFactory", "SuperTokenFactory",
     "ISETH", "SETHProxy",
-    "IFlowNFTBase", "FlowNFTBase",
-    "IConstantInflowNFT", "ConstantInflowNFT",
-    "IConstantOutflowNFT", "ConstantOutflowNFT",
     "IPoolAdminNFT", "PoolAdminNFT",
     "IPoolMemberNFT", "PoolMemberNFT",
     "ISuperAgreement",
@@ -23,5 +20,6 @@
     "TestToken",
     "IPureSuperToken",
     "IResolver", "Resolver", "TestResolver",
-    "SuperfluidLoader"
+    "SuperfluidLoader",
+    "IUserDefinedMacro"
 ]

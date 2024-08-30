@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.19;
+pragma solidity ^0.8.23;
 
 import { Test } from "forge-std/Test.sol";
 import { UUPSProxy } from "../../../contracts/upgradability/UUPSProxy.sol";
 import { UUPSProxiable } from "../../../contracts/upgradability/UUPSProxiable.sol";
-import { IERC20, ISuperToken, SuperToken } from "../../../contracts/superfluid/SuperToken.sol";
-import { ConstantOutflowNFT, IConstantOutflowNFT } from "../../../contracts/superfluid/ConstantOutflowNFT.sol";
-import { ConstantInflowNFT, IConstantInflowNFT } from "../../../contracts/superfluid/ConstantInflowNFT.sol";
+import { IERC20, ISuperToken, SuperToken, IConstantOutflowNFT, IConstantInflowNFT }
+    from "../../../contracts/superfluid/SuperToken.sol";
 import { PoolAdminNFT, IPoolAdminNFT } from "../../../contracts/agreements/gdav1/PoolAdminNFT.sol";
 import { PoolMemberNFT, IPoolMemberNFT } from "../../../contracts/agreements/gdav1/PoolMemberNFT.sol";
 import { FoundrySuperfluidTester } from "../FoundrySuperfluidTester.sol";
@@ -20,7 +19,7 @@ contract SuperTokenIntegrationTest is FoundrySuperfluidTester {
         super.setUp();
     }
 
-    function testUnderlyingTokenDecimals() public {
+    function testUnderlyingTokenDecimals() public view {
         assertEq(token.decimals(), superToken.getUnderlyingDecimals());
     }
 
@@ -69,79 +68,6 @@ contract SuperTokenIntegrationTest is FoundrySuperfluidTester {
         );
     }
 
-    function testRevertSuperTokenUpdateCodeWrongNFTProxies() public {
-        UUPSProxy cifProxy = new UUPSProxy();
-        UUPSProxy cofProxy = new UUPSProxy();
-        UUPSProxy paProxy = new UUPSProxy();
-        UUPSProxy pmProxy = new UUPSProxy();
-
-        ConstantInflowNFT cifNFTLogic = new ConstantInflowNFT(
-            sf.host,
-            IConstantOutflowNFT(address(cofProxy))
-        );
-        ConstantOutflowNFT cofNFTLogic = new ConstantOutflowNFT(
-            sf.host,
-            IConstantInflowNFT(address(cifProxy))
-        );
-        PoolAdminNFT paNFTLogic = new PoolAdminNFT(
-            sf.host
-        );
-        PoolMemberNFT pmNFTLogic = new PoolMemberNFT(
-            sf.host
-        );
-
-        cifNFTLogic.castrate();
-        cofNFTLogic.castrate();
-        paNFTLogic.castrate();
-        pmNFTLogic.castrate();
-
-        cifProxy.initializeProxy(address(cifNFTLogic));
-        cofProxy.initializeProxy(address(cofNFTLogic));
-        paProxy.initializeProxy(address(paNFTLogic));
-        pmProxy.initializeProxy(address(pmNFTLogic));
-
-        ConstantInflowNFT(address(cofProxy)).initialize("Constant Outflow NFT", "COF");
-        ConstantOutflowNFT(address(cifProxy)).initialize("Constant Inflow NFT", "CIF");
-        PoolAdminNFT(address(paProxy)).initialize("Pool Admin NFT", "PA");
-        PoolMemberNFT(address(pmProxy)).initialize("Pool Member NFT", "PM");
-
-        // all nft proxies incorrect
-        SuperToken superTokenLogic = new SuperToken(
-            sf.host,
-            ConstantOutflowNFT(address(cofProxy)),
-            ConstantInflowNFT(address(cifProxy)),
-            PoolAdminNFT(address(paProxy)),
-            PoolMemberNFT(address(pmProxy))
-        );
-        vm.prank(address(sf.host));
-        vm.expectRevert(ISuperToken.SUPER_TOKEN_NFT_PROXY_ADDRESS_CHANGED.selector);
-        UUPSProxiable(address(superToken)).updateCode(address(superTokenLogic));
-
-        // inflow nft proxy incorrect
-        superTokenLogic = new SuperToken(
-            sf.host,
-            superToken.CONSTANT_OUTFLOW_NFT(),
-            ConstantInflowNFT(address(cifProxy)),
-            superToken.POOL_ADMIN_NFT(),
-            superToken.POOL_MEMBER_NFT()
-        );
-        vm.prank(address(sf.host));
-        vm.expectRevert(ISuperToken.SUPER_TOKEN_NFT_PROXY_ADDRESS_CHANGED.selector);
-        UUPSProxiable(address(superToken)).updateCode(address(superTokenLogic));
-
-        // outflow nft proxy incorrect
-        superTokenLogic = new SuperToken(
-            sf.host,
-            ConstantOutflowNFT(address(cofProxy)),
-            superToken.CONSTANT_INFLOW_NFT(),
-            superToken.POOL_ADMIN_NFT(),
-            superToken.POOL_MEMBER_NFT()
-        );
-        vm.prank(address(sf.host));
-        vm.expectRevert(ISuperToken.SUPER_TOKEN_NFT_PROXY_ADDRESS_CHANGED.selector);
-        UUPSProxiable(address(superToken)).updateCode(address(superTokenLogic));
-    }
-
     function testInitializeSuperTokenWithAndWithoutAdmin(address _admin) public {
         (, ISuperToken localSuperToken) =
             sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max, _admin);
@@ -162,9 +88,7 @@ contract SuperTokenIntegrationTest is FoundrySuperfluidTester {
         vm.stopPrank();
 
         assertEq(
-            localSuperToken.getAdmin(),
-            _admin,
-            "testOnlyHostCanChangeAdminWhenNoAdmin: admin address not set correctly"
+            localSuperToken.getAdmin(), _admin, "testOnlyHostCanChangeAdminWhenNoAdmin: admin address not set correctly"
         );
     }
 
@@ -180,11 +104,7 @@ contract SuperTokenIntegrationTest is FoundrySuperfluidTester {
         localSuperToken.changeAdmin(newAdmin);
         vm.stopPrank();
 
-        assertEq(
-            localSuperToken.getAdmin(),
-            newAdmin,
-            "testOnlyAdminCanChangeAdmin: admin address not set correctly"
-        );
+        assertEq(localSuperToken.getAdmin(), newAdmin, "testOnlyAdminCanChangeAdmin: admin address not set correctly");
     }
 
     function testRevertWhenNonAdminTriesToChangeAdmin(address _admin, address nonAdmin) public {

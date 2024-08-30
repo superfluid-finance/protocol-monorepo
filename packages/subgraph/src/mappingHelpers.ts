@@ -1,4 +1,5 @@
 import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
+import { FlowUpdated } from "../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
 import { ISuperfluid as Superfluid } from "../generated/Host/ISuperfluid";
 import {
     Account,
@@ -10,7 +11,6 @@ import {
     Pool,
     PoolDistributor,
     PoolMember,
-    ResolverEntry,
     Stream,
     StreamRevision,
     Token,
@@ -18,26 +18,6 @@ import {
     TokenStatistic,
     TokenStatisticLog,
 } from "../generated/schema";
-import {
-    BIG_INT_ZERO,
-    createLogID,
-    calculateMaybeCriticalAtTimestamp,
-    getAccountTokenSnapshotID,
-    getAmountStreamedSinceLastUpdatedAt,
-    getFlowOperatorID,
-    getIndexID,
-    getOrder,
-    getStreamID,
-    getStreamRevisionID,
-    getSubscriptionID,
-    getInitialTotalSupplyForSuperToken,
-    ZERO_ADDRESS,
-    handleTokenRPCCalls,
-    getPoolMemberID,
-    getPoolDistributorID,
-    getActiveStreamsDelta,
-    getClosedStreamsDelta,
-} from "./utils";
 import { SuperToken as SuperTokenTemplate } from "../generated/templates";
 import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
 import {
@@ -45,7 +25,26 @@ import {
     getNativeAssetSuperTokenAddress,
     getResolverAddress,
 } from "./addresses";
-import { FlowUpdated } from "../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
+import {
+    BIG_INT_ZERO,
+    ZERO_ADDRESS,
+    calculateMaybeCriticalAtTimestamp,
+    createLogID,
+    getAccountTokenSnapshotID,
+    getActiveStreamsDelta,
+    getAmountStreamedSinceLastUpdatedAt,
+    getClosedStreamsDelta,
+    getFlowOperatorID,
+    getIndexID,
+    getIsTokenListed,
+    getOrder,
+    getPoolDistributorID,
+    getPoolMemberID,
+    getStreamID,
+    getStreamRevisionID,
+    getSubscriptionID,
+    handleTokenRPCCalls
+} from "./utils";
 
 /**************************************************************************
  * HOL initializer functions
@@ -118,20 +117,17 @@ export function getOrInitSuperToken(
             nativeAssetSuperTokenAddress
         );
 
-        token = handleTokenRPCCalls(token, resolverAddress);
-        token.isListed = false;
+        token = handleTokenRPCCalls(token);
+        token.isListed = getIsTokenListed(token, resolverAddress);
         const underlyingAddress = token.underlyingAddress;
         token.underlyingToken = underlyingAddress.toHexString();
+        token.governanceConfig = ZERO_ADDRESS.toHexString();
 
         token.save();
 
         // Note: we initialize and create tokenStatistic whenever we create a
         // token as well.
         let tokenStatistic = getOrInitTokenStatistic(tokenAddress, block);
-        tokenStatistic = getInitialTotalSupplyForSuperToken(
-            tokenStatistic,
-            tokenAddress
-        );
         tokenStatistic.save();
 
         // Per our TokenStatistic Invariant: whenever we create TokenStatistic, we must create TokenStatisticLog
@@ -152,11 +148,11 @@ export function getOrInitSuperToken(
         return token as Token;
     }
 
-    // @note - this is currently being called every single time to handle list/unlist of tokens
-    // because we don't have the Resolver Set event on some networks
-    // We can remove this once we have migrated data to a new resolver which emits this event on
-    // all networks.
-    token = handleTokenRPCCalls(token, resolverAddress);
+    if (token.symbol == "") {
+        const tokenContract = SuperToken.bind(tokenAddress);
+        const symbolResult = tokenContract.try_symbol();
+        token.symbol = symbolResult.reverted ? "" : symbolResult.value;
+    }
 
     token.save();
 
@@ -208,6 +204,12 @@ export function getOrInitTokenGovernanceConfig(
             governanceConfig.token = superTokenAddress.toHexString();
 
             governanceConfig.save();
+
+            const superToken = Token.load(superTokenAddress.toHexString());
+            if (superToken) {
+                superToken.governanceConfig = governanceConfig.id;
+                superToken.save();
+            }
         }
         return governanceConfig;
     }
@@ -238,7 +240,7 @@ export function getOrInitToken(
     token.isNativeAssetSuperToken = false;
     token.isListed = false;
 
-    token = handleTokenRPCCalls(token, resolverAddress);
+    token = handleTokenRPCCalls(token);
     token.save();
 }
 
@@ -461,30 +463,6 @@ export function getOrInitSubscription(
     return subscription as IndexSubscription;
 }
 
-export function getOrInitResolverEntry(
-    id: string,
-    target: Address,
-    block: ethereum.Block
-): ResolverEntry {
-    let resolverEntry = ResolverEntry.load(id);
-
-    if (resolverEntry == null) {
-        resolverEntry = new ResolverEntry(id);
-        resolverEntry.createdAtBlockNumber = block.number;
-        resolverEntry.createdAtTimestamp = block.timestamp;
-        resolverEntry.targetAddress = target;
-
-        const superToken = Token.load(target.toHex());
-        resolverEntry.isToken = superToken != null;
-    }
-    resolverEntry.updatedAtBlockNumber = block.number;
-    resolverEntry.updatedAtTimestamp = block.timestamp;
-    resolverEntry.isListed = target.notEqual(ZERO_ADDRESS);
-
-    resolverEntry.save();
-    return resolverEntry as ResolverEntry;
-}
-
 export function getOrInitPool(event: ethereum.Event, poolId: string): Pool {
     // get existing pool
     let pool = Pool.load(poolId);
@@ -503,6 +481,11 @@ export function getOrInitPool(event: ethereum.Event, poolId: string): Pool {
         pool.totalAmountInstantlyDistributedUntilUpdatedAt = BIG_INT_ZERO;
         pool.totalAmountFlowedDistributedUntilUpdatedAt = BIG_INT_ZERO;
         pool.totalAmountDistributedUntilUpdatedAt = BIG_INT_ZERO;
+        pool.totalFlowAdjustmentAmountDistributedUntilUpdatedAt = BIG_INT_ZERO;
+
+        pool.perUnitSettledValue = BIG_INT_ZERO;
+        pool.perUnitFlowRate = BIG_INT_ZERO;
+
         pool.totalMembers = 0;
         pool.totalConnectedMembers = 0;
         pool.totalDisconnectedMembers = 0;
@@ -523,9 +506,6 @@ export function updatePoolTotalAmountFlowedAndDistributed(
     const timeDelta = event.block.timestamp.minus(pool.updatedAtTimestamp);
     const amountFlowedSinceLastUpdate = pool.flowRate.times(timeDelta);
 
-    pool.updatedAtBlockNumber = event.block.number;
-    pool.updatedAtTimestamp = event.block.timestamp;
-
     pool.totalAmountFlowedDistributedUntilUpdatedAt =
         pool.totalAmountFlowedDistributedUntilUpdatedAt.plus(
             amountFlowedSinceLastUpdate
@@ -540,7 +520,7 @@ export function updatePoolTotalAmountFlowedAndDistributed(
     return pool;
 }
 
-export function getOrInitPoolMember(
+export function getOrInitOrUpdatePoolMember(
     event: ethereum.Event,
     poolAddress: Address,
     poolMemberAddress: Address
@@ -552,19 +532,25 @@ export function getOrInitPoolMember(
         poolMember = new PoolMember(poolMemberID);
         poolMember.createdAtTimestamp = event.block.timestamp;
         poolMember.createdAtBlockNumber = event.block.number;
-        poolMember.updatedAtTimestamp = event.block.timestamp;
-        poolMember.updatedAtBlockNumber = event.block.number;
-
+        
         poolMember.units = BIG_INT_ZERO;
         poolMember.isConnected = false;
         poolMember.totalAmountClaimed = BIG_INT_ZERO;
         poolMember.poolTotalAmountDistributedUntilUpdatedAt = BIG_INT_ZERO;
         poolMember.totalAmountReceivedUntilUpdatedAt = BIG_INT_ZERO;
 
+        poolMember.syncedPerUnitSettledValue = BIG_INT_ZERO;
+        poolMember.syncedPerUnitFlowRate = BIG_INT_ZERO;
+
         poolMember.account = poolMemberAddress.toHex();
         poolMember.pool = poolAddress.toHex();
     }
-
+    poolMember.updatedAtTimestamp = event.block.timestamp;
+    poolMember.updatedAtBlockNumber = event.block.number;
+    
+    poolMember.updatedAtTimestamp = event.block.timestamp;
+    poolMember.updatedAtBlockNumber = event.block.number;
+    
     return poolMember;
 }
 
@@ -640,20 +626,18 @@ export function getOrInitAccountTokenSnapshot(
 
 if (accountTokenSnapshot == null) {
         accountTokenSnapshot = new AccountTokenSnapshot(atsId);
+        accountTokenSnapshot.createdAtTimestamp = block.timestamp;
+        accountTokenSnapshot.createdAtBlockNumber = block.number;
         accountTokenSnapshot.updatedAtTimestamp = block.timestamp;
         accountTokenSnapshot.updatedAtBlockNumber = block.number;
         accountTokenSnapshot.totalNumberOfActiveStreams = 0;
         accountTokenSnapshot.totalCFANumberOfActiveStreams = 0;
         accountTokenSnapshot.totalGDANumberOfActiveStreams = 0;
         accountTokenSnapshot.activeIncomingStreamCount = 0;
-        accountTokenSnapshot.activeCFAIncomingStreamCount = 0;
-        accountTokenSnapshot.activeGDAIncomingStreamCount = 0;
         accountTokenSnapshot.activeOutgoingStreamCount = 0;
         accountTokenSnapshot.activeCFAOutgoingStreamCount = 0;
         accountTokenSnapshot.activeGDAOutgoingStreamCount = 0;
         accountTokenSnapshot.inactiveIncomingStreamCount = 0;
-        accountTokenSnapshot.inactiveCFAIncomingStreamCount = 0;
-        accountTokenSnapshot.inactiveGDAIncomingStreamCount = 0;
         accountTokenSnapshot.inactiveOutgoingStreamCount = 0;
         accountTokenSnapshot.inactiveCFAOutgoingStreamCount = 0;
         accountTokenSnapshot.inactiveGDAOutgoingStreamCount = 0;
@@ -668,28 +652,17 @@ if (accountTokenSnapshot == null) {
         accountTokenSnapshot.balanceUntilUpdatedAt = BIG_INT_ZERO;
         accountTokenSnapshot.totalNetFlowRate = BIG_INT_ZERO;
         accountTokenSnapshot.totalCFANetFlowRate = BIG_INT_ZERO;
-        accountTokenSnapshot.totalGDANetFlowRate = BIG_INT_ZERO;
         accountTokenSnapshot.totalInflowRate = BIG_INT_ZERO;
-        accountTokenSnapshot.totalCFAInflowRate = BIG_INT_ZERO;
-        accountTokenSnapshot.totalGDAInflowRate = BIG_INT_ZERO;
         accountTokenSnapshot.totalOutflowRate = BIG_INT_ZERO;
         accountTokenSnapshot.totalCFAOutflowRate = BIG_INT_ZERO;
         accountTokenSnapshot.totalGDAOutflowRate = BIG_INT_ZERO;
         accountTokenSnapshot.totalAmountStreamedInUntilUpdatedAt = BIG_INT_ZERO;
-        accountTokenSnapshot.totalCFAAmountStreamedInUntilUpdatedAt =
-            BIG_INT_ZERO;
-        accountTokenSnapshot.totalGDAAmountStreamedInUntilUpdatedAt =
-            BIG_INT_ZERO;
         accountTokenSnapshot.totalAmountStreamedOutUntilUpdatedAt =
             BIG_INT_ZERO;
         accountTokenSnapshot.totalCFAAmountStreamedOutUntilUpdatedAt =
             BIG_INT_ZERO;
-        accountTokenSnapshot.totalGDAAmountStreamedOutUntilUpdatedAt =
-            BIG_INT_ZERO;
         accountTokenSnapshot.totalAmountStreamedUntilUpdatedAt = BIG_INT_ZERO;
         accountTokenSnapshot.totalCFAAmountStreamedUntilUpdatedAt =
-            BIG_INT_ZERO;
-        accountTokenSnapshot.totalGDAAmountStreamedUntilUpdatedAt =
             BIG_INT_ZERO;
         accountTokenSnapshot.totalAmountTransferredUntilUpdatedAt =
             BIG_INT_ZERO;
@@ -739,8 +712,6 @@ export function _createAccountTokenSnapshotLogEntity(
     atsLog.totalCFANumberOfActiveStreams = ats.totalCFANumberOfActiveStreams;
     atsLog.totalGDANumberOfActiveStreams = ats.totalGDANumberOfActiveStreams;
     atsLog.activeIncomingStreamCount = ats.activeIncomingStreamCount;
-    atsLog.activeCFAIncomingStreamCount = ats.activeCFAIncomingStreamCount;
-    atsLog.activeGDAIncomingStreamCount = ats.activeGDAIncomingStreamCount;
     atsLog.activeOutgoingStreamCount = ats.activeOutgoingStreamCount;
     atsLog.activeCFAOutgoingStreamCount = ats.activeCFAOutgoingStreamCount;
     atsLog.activeGDAOutgoingStreamCount = ats.activeGDAOutgoingStreamCount;
@@ -748,8 +719,6 @@ export function _createAccountTokenSnapshotLogEntity(
     atsLog.totalCFANumberOfClosedStreams = ats.totalCFANumberOfClosedStreams;
     atsLog.totalGDANumberOfClosedStreams = ats.totalGDANumberOfClosedStreams;
     atsLog.inactiveIncomingStreamCount = ats.inactiveIncomingStreamCount;
-    atsLog.inactiveCFAIncomingStreamCount = ats.inactiveCFAIncomingStreamCount;
-    atsLog.inactiveGDAIncomingStreamCount = ats.inactiveGDAIncomingStreamCount;
     atsLog.inactiveOutgoingStreamCount = ats.inactiveOutgoingStreamCount;
     atsLog.inactiveCFAOutgoingStreamCount = ats.inactiveCFAOutgoingStreamCount;
     atsLog.inactiveGDAOutgoingStreamCount = ats.inactiveGDAOutgoingStreamCount;
@@ -760,26 +729,16 @@ export function _createAccountTokenSnapshotLogEntity(
     atsLog.balance = ats.balanceUntilUpdatedAt;
     atsLog.totalNetFlowRate = ats.totalNetFlowRate;
     atsLog.totalCFANetFlowRate = ats.totalCFANetFlowRate;
-    atsLog.totalGDANetFlowRate = ats.totalGDANetFlowRate;
     atsLog.totalInflowRate = ats.totalInflowRate;
-    atsLog.totalCFAInflowRate = ats.totalCFAInflowRate;
-    atsLog.totalGDAInflowRate = ats.totalGDAInflowRate;
     atsLog.totalOutflowRate = ats.totalOutflowRate;
     atsLog.totalCFAOutflowRate = ats.totalCFAOutflowRate;
     atsLog.totalGDAOutflowRate = ats.totalGDAOutflowRate;
     atsLog.totalAmountStreamed = ats.totalAmountStreamedUntilUpdatedAt;
     atsLog.totalCFAAmountStreamed = ats.totalCFAAmountStreamedUntilUpdatedAt;
-    atsLog.totalGDAAmountStreamed = ats.totalGDAAmountStreamedUntilUpdatedAt;
     atsLog.totalAmountStreamedIn = ats.totalAmountStreamedInUntilUpdatedAt;
-    atsLog.totalCFAAmountStreamedIn =
-        ats.totalCFAAmountStreamedInUntilUpdatedAt;
     atsLog.totalAmountStreamedOut = ats.totalAmountStreamedOutUntilUpdatedAt;
-    atsLog.totalGDAAmountStreamedIn =
-        ats.totalGDAAmountStreamedInUntilUpdatedAt;
     atsLog.totalCFAAmountStreamedOut =
         ats.totalCFAAmountStreamedOutUntilUpdatedAt;
-    atsLog.totalGDAAmountStreamedOut =
-        ats.totalGDAAmountStreamedOutUntilUpdatedAt;
     atsLog.totalAmountTransferred = ats.totalAmountTransferredUntilUpdatedAt;
     atsLog.totalDeposit = ats.totalDeposit;
     atsLog.totalCFADeposit = ats.totalCFADeposit;
@@ -821,7 +780,6 @@ export function getOrInitTokenStatistic(
         tokenStatistic.totalNumberOfAccounts = 0;
         tokenStatistic.totalAmountStreamedUntilUpdatedAt = BIG_INT_ZERO;
         tokenStatistic.totalCFAAmountStreamedUntilUpdatedAt = BIG_INT_ZERO;
-        tokenStatistic.totalGDAAmountStreamedUntilUpdatedAt = BIG_INT_ZERO;
         tokenStatistic.totalAmountTransferredUntilUpdatedAt = BIG_INT_ZERO;
         tokenStatistic.totalAmountDistributedUntilUpdatedAt = BIG_INT_ZERO;
         tokenStatistic.totalSupply = BIG_INT_ZERO;
@@ -891,8 +849,6 @@ export function _createTokenStatisticLogEntity(
         tokenStatistic.totalAmountStreamedUntilUpdatedAt;
     tokenStatisticLog.totalCFAAmountStreamed =
         tokenStatistic.totalCFAAmountStreamedUntilUpdatedAt;
-    tokenStatisticLog.totalGDAAmountStreamed =
-        tokenStatistic.totalGDAAmountStreamedUntilUpdatedAt;
     tokenStatisticLog.totalAmountTransferred =
         tokenStatistic.totalAmountTransferredUntilUpdatedAt;
     tokenStatisticLog.totalAmountDistributed =
@@ -1139,12 +1095,6 @@ export function updateATSStreamedAndBalanceUntilUpdatedAt(
             accountTokenSnapshot.updatedAtTimestamp,
             accountTokenSnapshot.totalCFANetFlowRate
         );
-    const totalCFAAmountStreamedInSinceLastUpdatedAt =
-        getAmountStreamedSinceLastUpdatedAt(
-            block.timestamp,
-            accountTokenSnapshot.updatedAtTimestamp,
-            accountTokenSnapshot.totalCFAInflowRate
-        );
     const totalCFAAmountStreamedOutSinceLastUpdatedAt =
         getAmountStreamedSinceLastUpdatedAt(
             block.timestamp,
@@ -1158,54 +1108,10 @@ export function updateATSStreamedAndBalanceUntilUpdatedAt(
             totalCFAAmountStreamedSinceLastUpdatedAt
         );
 
-    // update the totalCFAStreamedUntilUpdatedAt (in)
-    accountTokenSnapshot.totalCFAAmountStreamedInUntilUpdatedAt =
-        accountTokenSnapshot.totalCFAAmountStreamedInUntilUpdatedAt.plus(
-            totalCFAAmountStreamedInSinceLastUpdatedAt
-        );
-
     // update the totalCFAStreamedUntilUpdatedAt (out)
     accountTokenSnapshot.totalCFAAmountStreamedOutUntilUpdatedAt =
         accountTokenSnapshot.totalCFAAmountStreamedOutUntilUpdatedAt.plus(
             totalCFAAmountStreamedOutSinceLastUpdatedAt
-        );
-
-    //////////////// GDA streamed amounts ////////////////
-    const totalGDAAmountStreamedSinceLastUpdatedAt =
-        getAmountStreamedSinceLastUpdatedAt(
-            block.timestamp,
-            accountTokenSnapshot.updatedAtTimestamp,
-            accountTokenSnapshot.totalGDANetFlowRate
-        );
-    const totalGDAAmountStreamedInSinceLastUpdatedAt =
-        getAmountStreamedSinceLastUpdatedAt(
-            block.timestamp,
-            accountTokenSnapshot.updatedAtTimestamp,
-            accountTokenSnapshot.totalGDAInflowRate
-        );
-    const totalGDAAmountStreamedOutSinceLastUpdatedAt =
-        getAmountStreamedSinceLastUpdatedAt(
-            block.timestamp,
-            accountTokenSnapshot.updatedAtTimestamp,
-            accountTokenSnapshot.totalGDAOutflowRate
-        );
-
-    // update the totalGDAStreamedUntilUpdatedAt (net)
-    accountTokenSnapshot.totalGDAAmountStreamedUntilUpdatedAt =
-        accountTokenSnapshot.totalGDAAmountStreamedUntilUpdatedAt.plus(
-            totalGDAAmountStreamedSinceLastUpdatedAt
-        );
-
-    // update the totalGDAStreamedUntilUpdatedAt (in)
-    accountTokenSnapshot.totalGDAAmountStreamedInUntilUpdatedAt =
-        accountTokenSnapshot.totalGDAAmountStreamedInUntilUpdatedAt.plus(
-            totalGDAAmountStreamedInSinceLastUpdatedAt
-        );
-
-    // update the totalGDAStreamedUntilUpdatedAt (out)
-    accountTokenSnapshot.totalGDAAmountStreamedOutUntilUpdatedAt =
-        accountTokenSnapshot.totalGDAAmountStreamedOutUntilUpdatedAt.plus(
-            totalGDAAmountStreamedOutSinceLastUpdatedAt
         );
 
     accountTokenSnapshot.save();
@@ -1274,18 +1180,6 @@ export function updateTokenStatsStreamedUntilUpdatedAt(
     tokenStats.totalCFAAmountStreamedUntilUpdatedAt =
         tokenStats.totalCFAAmountStreamedUntilUpdatedAt.plus(
             cfaAmountStreamedSinceLastUpdatedAt
-        );
-
-    //// GDA streamed amounts ////
-    const gdaAmountStreamedSinceLastUpdatedAt =
-        getAmountStreamedSinceLastUpdatedAt(
-            block.timestamp,
-            tokenStats.updatedAtTimestamp,
-            tokenStats.totalGDAOutflowRate
-        );
-    tokenStats.totalGDAAmountStreamedUntilUpdatedAt =
-        tokenStats.totalGDAAmountStreamedUntilUpdatedAt.plus(
-            gdaAmountStreamedSinceLastUpdatedAt
         );
 
     tokenStats.updatedAtTimestamp = block.timestamp;
@@ -1446,9 +1340,6 @@ export function updateSenderATSStreamData(
         senderATS.totalCFADeposit =
             senderATS.totalCFADeposit.plus(depositDelta);
     } else {
-        senderATS.totalGDANetFlowRate =
-            senderATS.totalGDANetFlowRate.minus(flowRateDelta);
-
         // the outflow rate should never go below 0.
         senderATS.totalGDAOutflowRate = senderATS.totalGDAOutflowRate
             .plus(flowRateDelta)
@@ -1488,7 +1379,6 @@ export function updateReceiverATSStreamData(
     flowRateDelta: BigInt,
     isCreate: boolean,
     isDelete: boolean,
-    isCFA: boolean,
     block: ethereum.Block
 ): void {
     const totalNumberOfActiveStreamsDelta = getActiveStreamsDelta(
@@ -1531,55 +1421,17 @@ export function updateReceiverATSStreamData(
         receiverATS.maybeCriticalAtTimestamp
     );
 
-    if (isCFA) {
-        receiverATS.totalCFANetFlowRate =
-            receiverATS.totalCFANetFlowRate.plus(flowRateDelta);
+    receiverATS.totalCFANetFlowRate =
+        receiverATS.totalCFANetFlowRate.plus(flowRateDelta);
 
-        // the inflow rate should never go below 0.
-        receiverATS.totalCFAInflowRate = receiverATS.totalCFAInflowRate
-            .plus(flowRateDelta)
-            .lt(BIG_INT_ZERO)
-            ? newFlowRate
-            : receiverATS.totalCFAInflowRate.plus(flowRateDelta);
+    receiverATS.totalCFANumberOfActiveStreams =
+        receiverATS.totalCFANumberOfActiveStreams +
+        totalNumberOfActiveStreamsDelta;
+        totalNumberOfClosedStreamsDelta;
 
-        receiverATS.totalCFANumberOfActiveStreams =
-            receiverATS.totalCFANumberOfActiveStreams +
-            totalNumberOfActiveStreamsDelta;
-        receiverATS.activeCFAIncomingStreamCount =
-            receiverATS.activeCFAIncomingStreamCount +
-            totalNumberOfActiveStreamsDelta;
-        receiverATS.inactiveCFAIncomingStreamCount =
-            receiverATS.inactiveCFAIncomingStreamCount +
-            totalNumberOfClosedStreamsDelta;
-
-        receiverATS.totalCFANumberOfClosedStreams =
-            receiverATS.totalCFANumberOfClosedStreams +
-            totalNumberOfClosedStreamsDelta;
-    } else {
-        receiverATS.totalGDANetFlowRate =
-            receiverATS.totalGDANetFlowRate.plus(flowRateDelta);
-
-        // the inflow rate should never go below 0.
-        receiverATS.totalGDAInflowRate = receiverATS.totalGDAInflowRate
-            .plus(flowRateDelta)
-            .lt(BIG_INT_ZERO)
-            ? newFlowRate
-            : receiverATS.totalGDAInflowRate.plus(flowRateDelta);
-
-        receiverATS.totalGDANumberOfActiveStreams =
-            receiverATS.totalGDANumberOfActiveStreams +
-            totalNumberOfActiveStreamsDelta;
-        receiverATS.activeGDAIncomingStreamCount =
-            receiverATS.activeGDAIncomingStreamCount +
-            totalNumberOfActiveStreamsDelta;
-        receiverATS.inactiveGDAIncomingStreamCount =
-            receiverATS.inactiveGDAIncomingStreamCount +
-            totalNumberOfClosedStreamsDelta;
-
-        receiverATS.totalGDANumberOfClosedStreams =
-            receiverATS.totalGDANumberOfClosedStreams +
-            totalNumberOfClosedStreamsDelta;
-    }
+    receiverATS.totalCFANumberOfClosedStreams =
+        receiverATS.totalCFANumberOfClosedStreams +
+        totalNumberOfClosedStreamsDelta;
 
     receiverATS.save();
 }
@@ -1611,24 +1463,80 @@ export function updateAggregateEntitiesTransferData(
     tokenStatistic.save();
 }
 
+
+export function particleRTB(
+    perUnitSettledValue: BigInt,
+    perUnitFlowRate: BigInt,
+    currentTimestamp: BigInt,
+    lastUpdatedTimestamp: BigInt
+): BigInt {
+    const amountFlowedPerUnit = perUnitFlowRate.times(currentTimestamp.minus(lastUpdatedTimestamp));
+    return perUnitSettledValue.plus(amountFlowedPerUnit);
+}
+
+export function monetaryUnitPoolMemberRTB(pool: Pool, poolMember: PoolMember, currentTimestamp: BigInt): BigInt {
+    const poolPerUnitRTB = particleRTB(
+        pool.perUnitSettledValue,
+        pool.perUnitFlowRate,
+        currentTimestamp,
+        pool.updatedAtTimestamp
+    );
+    const poolMemberPerUnitRTB = particleRTB(
+        poolMember.syncedPerUnitSettledValue,
+        poolMember.syncedPerUnitFlowRate,
+        currentTimestamp,
+        poolMember.updatedAtTimestamp
+    );
+
+    return poolMember.totalAmountReceivedUntilUpdatedAt.plus(
+        poolPerUnitRTB.minus(poolMemberPerUnitRTB).times(poolMember.units)
+    );
+}
+
 /**
- * Updates `totalAmountReceivedUntilUpdatedAt` and `poolTotalAmountDistributedUntilUpdatedAt` fields
- * Requires an explicit save on the PoolMember entity.
- * Requires `pool.totalAmountDistributedUntilUpdatedAt` to be updated prior to calling this function.
- * @param pool the pool entity
- * @param poolMember the pool member entity
- * @returns the updated pool member entity to be saved
+ * Updates the pool.perUnitSettledValue to the up to date value based on the current block,
+ * and updates the updatedAtTimestamp and updatedAtBlockNumber.
+ * @param pool pool entity
+ * @param block current block
+ * @returns updated pool entity
  */
-export function updatePoolMemberTotalAmountUntilUpdatedAtFields(pool: Pool, poolMember: PoolMember): PoolMember {
-    const amountReceivedDelta = pool.totalUnits.equals(BIG_INT_ZERO)
-        ? BIG_INT_ZERO
-        : pool.totalAmountDistributedUntilUpdatedAt
-              .minus(poolMember.poolTotalAmountDistributedUntilUpdatedAt)
-              .div(pool.totalUnits)
-              .times(poolMember.units);
-    poolMember.totalAmountReceivedUntilUpdatedAt =
-        poolMember.totalAmountReceivedUntilUpdatedAt.plus(amountReceivedDelta);
-    poolMember.poolTotalAmountDistributedUntilUpdatedAt = pool.totalAmountDistributedUntilUpdatedAt;
+export function settlePoolParticle(pool: Pool, block: ethereum.Block): Pool {
+    pool.perUnitSettledValue = particleRTB(
+        pool.perUnitSettledValue,
+        pool.perUnitFlowRate,
+        block.timestamp,
+        pool.updatedAtTimestamp
+    );
+    pool.updatedAtTimestamp = block.timestamp;
+    pool.updatedAtBlockNumber = block.number;
+
+    return pool;
+}
+
+export function settlePoolMemberParticle(poolMember: PoolMember, block: ethereum.Block): PoolMember {
+    poolMember.syncedPerUnitSettledValue = particleRTB(
+        poolMember.syncedPerUnitSettledValue,
+        poolMember.syncedPerUnitFlowRate,
+        block.timestamp,
+        poolMember.updatedAtTimestamp
+    );
+    poolMember.updatedAtTimestamp = block.timestamp;
+    poolMember.updatedAtBlockNumber = block.number;
 
     return poolMember;
+}
+
+export function syncPoolMemberParticle(pool: Pool, poolMember: PoolMember): PoolMember {
+    poolMember.syncedPerUnitSettledValue = pool.perUnitSettledValue;
+    poolMember.syncedPerUnitFlowRate = pool.perUnitFlowRate;
+    poolMember.updatedAtTimestamp = pool.updatedAtTimestamp;
+    poolMember.updatedAtBlockNumber = pool.updatedAtBlockNumber;
+
+    return poolMember;
+}
+
+export function settlePDPoolMemberMU(pool: Pool, poolMember: PoolMember, block: ethereum.Block): void {
+    pool = settlePoolParticle(pool, block);
+    poolMember.totalAmountReceivedUntilUpdatedAt = monetaryUnitPoolMemberRTB(pool, poolMember, block.timestamp);
+    poolMember = syncPoolMemberParticle(pool, poolMember);
 }

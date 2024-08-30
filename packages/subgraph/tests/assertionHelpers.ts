@@ -160,7 +160,6 @@ export function assertIDAEventBaseProperties(
  * @param totalGDAOutflowRate expected total outflow rate for the GDA
  * @param totalAmountStreamedUntilUpdatedAt expected total amount streamed until updated at timestamp for all flow agreements
  * @param totalCFAAmountStreamedUntilUpdatedAt expected total amount streamed until updated at timestamp for the CFA
- * @param totalGDAAmountStreamedUntilUpdatedAt expected total amount streamed until updated at timestamp for the GDA
  * @param totalAmountTransferredUntilUpdatedAt expected total amount transferred until updated at timestamp
  * @param totalAmountDistributedUntilUpdatedAt expected total amount distributed (with IDA) until updated at timestamp
  * @param totalSupply expected total supply
@@ -191,7 +190,6 @@ export function assertTokenStatisticProperties(
     totalGDAOutflowRate: BigInt,
     totalAmountStreamedUntilUpdatedAt: BigInt,
     totalCFAAmountStreamedUntilUpdatedAt: BigInt,
-    totalGDAAmountStreamedUntilUpdatedAt: BigInt,
     totalAmountTransferredUntilUpdatedAt: BigInt,
     totalAmountDistributedUntilUpdatedAt: BigInt,
     totalSupply: BigInt,
@@ -222,7 +220,6 @@ export function assertTokenStatisticProperties(
     assert.fieldEquals(entityName, id, "totalGDAOutflowRate", totalGDAOutflowRate.toString());
     assert.fieldEquals(entityName, id, "totalAmountStreamedUntilUpdatedAt", totalAmountStreamedUntilUpdatedAt.toString());
     assert.fieldEquals(entityName, id, "totalCFAAmountStreamedUntilUpdatedAt", totalCFAAmountStreamedUntilUpdatedAt.toString());
-    assert.fieldEquals(entityName, id, "totalGDAAmountStreamedUntilUpdatedAt", totalGDAAmountStreamedUntilUpdatedAt.toString());
     assert.fieldEquals(entityName, id, "totalAmountTransferredUntilUpdatedAt", totalAmountTransferredUntilUpdatedAt.toString());
     assert.fieldEquals(entityName, id, "totalAmountDistributedUntilUpdatedAt", totalAmountDistributedUntilUpdatedAt.toString());
     assert.fieldEquals(entityName, id, "totalSupply", totalSupply.toString());
@@ -250,10 +247,8 @@ export function assertTokenStatisticProperties(
             totalGDADeposit,
             totalOutflowRate,
             totalCFAOutflowRate,
-            totalGDAOutflowRate,
             totalAmountStreamedUntilUpdatedAt,
             totalCFAAmountStreamedUntilUpdatedAt,
-            totalGDAAmountStreamedUntilUpdatedAt,
             totalAmountTransferredUntilUpdatedAt,
             totalAmountDistributedUntilUpdatedAt,
             totalSupply,
@@ -302,10 +297,8 @@ export function assertTokenStatisticProperties(
  * @param totalGDADeposit expected total deposit amount for the GDA
  * @param totalOutflowRate expected total outflow rate for all flow agreements
  * @param totalCFAOutflowRate expected total outflow rate for the CFA
- * @param totalGDAOutflowRate expected total outflow rate for the GDA
  * @param totalAmountStreamed expected total amount streamed until timestamp for all flow agreements
  * @param totalCFAAmountStreamed expected total amount streamed until timestamp for the CFA
- * @param totalGDAAmountStreamed expected total amount streamed until timestamp for the GDA
  * @param totalAmountTransferred expected total amount transferred until timestamp
  * @param totalAmountDistributed expected total amount distributed (with IDA) until timestamp
  * @param totalSupply expected total supply
@@ -331,10 +324,8 @@ export function assertTokenStatisticLogProperties(
     totalGDADeposit: BigInt,
     totalOutflowRate: BigInt,
     totalCFAOutflowRate: BigInt,
-    totalGDAOutflowRate: BigInt,
     totalAmountStreamed: BigInt,
     totalCFAAmountStreamed: BigInt,
-    totalGDAAmountStreamed: BigInt,
     totalAmountTransferred: BigInt,
     totalAmountDistributed: BigInt,
     totalSupply: BigInt,
@@ -370,10 +361,8 @@ export function assertTokenStatisticLogProperties(
     assert.fieldEquals(entityName, id, "totalGDADeposit", totalGDADeposit.toString());
     assert.fieldEquals(entityName, id, "totalOutflowRate", totalOutflowRate.toString());
     assert.fieldEquals(entityName, id, "totalCFAOutflowRate", totalCFAOutflowRate.toString());
-    assert.fieldEquals(entityName, id, "totalGDAOutflowRate", totalGDAOutflowRate.toString());
     assert.fieldEquals(entityName, id, "totalAmountStreamed", totalAmountStreamed.toString());
     assert.fieldEquals(entityName, id, "totalCFAAmountStreamed", totalCFAAmountStreamed.toString());
-    assert.fieldEquals(entityName, id, "totalGDAAmountStreamed", totalGDAAmountStreamed.toString());
     assert.fieldEquals(entityName, id, "totalAmountTransferred", totalAmountTransferred.toString());
     assert.fieldEquals(entityName, id, "totalAmountDistributed", totalAmountDistributed.toString());
     assert.fieldEquals(entityName, id, "totalSupply", totalSupply.toString());
@@ -424,7 +413,6 @@ export function assertEmptyTokenStatisticProperties(
         BIG_INT_ZERO, // totalGDAOutflowRate
         BIG_INT_ZERO, // totalAmountStreamedUntilUpdatedAt
         BIG_INT_ZERO, // totalCFAAmountStreamedUntilUpdatedAt
-        BIG_INT_ZERO, // totalGDAAmountStreamedUntilUpdatedAt
         BIG_INT_ZERO, // totalAmountTransferredUntilUpdatedAt
         BIG_INT_ZERO, // totalAmountDistributedUntilUpdatedAt
         totalSupply, // totalSupply

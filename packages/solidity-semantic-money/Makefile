@@ -4,7 +4,7 @@ CERTORA_OPTS = \
 	--packages @openzeppelin=../../node_modules/@openzeppelin @superfluid-finance/solidity-semantic-money/src=src \
 	--optimistic_loop \
 	--loop_iter 3 \
-	--solc solc-0.8.19
+	--solc solc-0.8.23
 FORGE_TEST = FOUNDRY_PROFILE=test forge test
 
 # Other CERTORA_OPTS fragments:

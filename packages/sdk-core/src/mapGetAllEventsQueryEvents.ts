@@ -673,12 +673,97 @@ export const mapGetAllEventsQueryEvents = (
                     token: x.token,
                     additionalBond: x.additionalBond,
                 });
+            case "PoolCreatedEvent":
+                return typeGuard<events.PoolCreatedEvent>({
+                    name: "PoolCreatedEvent",
+                    id: x.id,
+                    blockNumber: Number(x.blockNumber),
+                    transactionHash: x.transactionHash,
+                    gasPrice: x.gasPrice,
+                    order: Number(x.order),
+                    timestamp: Number(x.timestamp),
+                    logIndex: Number(x.logIndex),
+                });
+            case "PoolConnectionUpdatedEvent":
+                return typeGuard<events.PoolConnectionUpdatedEvent>({
+                    name: "PoolConnectionUpdatedEvent",
+                    id: x.id,
+                    blockNumber: Number(x.blockNumber),
+                    transactionHash: x.transactionHash,
+                    gasPrice: x.gasPrice,
+                    order: Number(x.order),
+                    timestamp: Number(x.timestamp),
+                    logIndex: Number(x.logIndex),
+                });
+            case "BufferAdjustedEvent":
+                return typeGuard<events.BufferAdjustedEvent>({
+                    name: "BufferAdjustedEvent",
+                    id: x.id,
+                    blockNumber: Number(x.blockNumber),
+                    transactionHash: x.transactionHash,
+                    gasPrice: x.gasPrice,
+                    order: Number(x.order),
+                    timestamp: Number(x.timestamp),
+                    logIndex: Number(x.logIndex),
+                });
+            case "InstantDistributionUpdatedEvent":
+                return typeGuard<events.InstantDistributionUpdatedEvent>({
+                    name: "InstantDistributionUpdatedEvent",
+                    id: x.id,
+                    blockNumber: Number(x.blockNumber),
+                    transactionHash: x.transactionHash,
+                    gasPrice: x.gasPrice,
+                    order: Number(x.order),
+                    timestamp: Number(x.timestamp),
+                    logIndex: Number(x.logIndex),
+                });
+            case "FlowDistributionUpdatedEvent":
+                return typeGuard<events.FlowDistributionUpdatedEvent>({
+                    name: "FlowDistributionUpdatedEvent",
+                    id: x.id,
+                    blockNumber: Number(x.blockNumber),
+                    transactionHash: x.transactionHash,
+                    gasPrice: x.gasPrice,
+                    order: Number(x.order),
+                    timestamp: Number(x.timestamp),
+                    logIndex: Number(x.logIndex),
+                });
+            case "DistributionClaimedEvent":
+                return typeGuard<events.DistributionClaimedEvent>({
+                    name: "DistributionClaimedEvent",
+                    id: x.id,
+                    blockNumber: Number(x.blockNumber),
+                    transactionHash: x.transactionHash,
+                    gasPrice: x.gasPrice,
+                    order: Number(x.order),
+                    timestamp: Number(x.timestamp),
+                    logIndex: Number(x.logIndex),
+                });
+            case "MemberUnitsUpdatedEvent":
+                return typeGuard<events.MemberUnitsUpdatedEvent>({
+                    name: "MemberUnitsUpdatedEvent",
+                    id: x.id,
+                    blockNumber: Number(x.blockNumber),
+                    transactionHash: x.transactionHash,
+                    gasPrice: x.gasPrice,
+                    order: Number(x.order),
+                    timestamp: Number(x.timestamp),
+                    logIndex: Number(x.logIndex),
+                });
+            case "ApprovalEvent":
+                return typeGuard<events.ApprovalEvent>({
+                    name: "ApprovalEvent",
+                    id: x.id,
+                    blockNumber: Number(x.blockNumber),
+                    transactionHash: x.transactionHash,
+                    gasPrice: x.gasPrice,
+                    order: Number(x.order),
+                    timestamp: Number(x.timestamp),
+                    logIndex: Number(x.logIndex),
+                });
             default:
                 // eslint-disable-next-line no-case-declarations
                 const eventBase = x as events.EventBase;
-                console.warn(
-                    `An unknown event [${eventBase.name}] was detected which couldn't be properly mapped. Please update to the latest version of @superfluid-finance/sdk-core.`
-                );
                 return typeGuard<events.UnknownEvent>({
                     // force casted as empty string for the type system
                     name: eventBase.name as "",

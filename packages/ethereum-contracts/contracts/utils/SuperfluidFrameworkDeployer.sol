@@ -14,33 +14,12 @@ import { SETHProxy } from "../tokens/SETH.sol";
 
 /// @title Superfluid Framework Deployer
 /// @dev This deployer should only be used for local testing environments.
-/// NOTE: ERC1820 must be deployed as a prerequisite to using this contract.
+///
+///      Notes:
+///      - ERC1820 must be deployed as a prerequisite to using this contract.
+///      - Some test frameworks may have difficulties in tuning its maximum contract code size limit. Using deployment
+///        steps contract solves this issue.
 contract SuperfluidFrameworkDeployer is SuperfluidFrameworkDeploymentSteps {
-    struct TestFrameworkConfigs {
-        // Whether the protocol is not upgradeable
-        // Default: false
-        bool nonUpgradeable;
-        // Whether app whitelisting is required
-        // Default: false
-        bool appWhitelistingEnabled;
-        // Trusted forwarders that can forward batch calls on your behalf via the Host
-        // Default: []
-        address[] trustedForwarders;
-        // The default address to receive patrician period liquidation rewards (TOGA if unset/address(0))
-        // Default: address(69)
-        address defaultRewardAddress;
-        // The multiplier against the flow rate which determines the buffer required for flow creation
-        // Buffer = flowRate * liquidationPeriod
-        // Default: 4 hours
-        uint256 liquidationPeriod;
-        // The amount of time where a liquidation results in a reward for the defaultRewardAddress
-        // Default: 30 minutes
-        uint256 patricianPeriod;
-        // The minimum amount of time that a user must bond their tokens in TOGA for
-        // Default: 1 week
-        uint256 minBondDuration;
-    }
-
     /// @notice Deploys the Superfluid Framework (Test)
     /// @dev This uses default configurations for the framework.
     /// NOTE: ERC1820 must be deployed as a prerequisite before calling this function.

@@ -10,16 +10,16 @@ const SuperfluidGDAv1DeployerLibraryArtifact = require("@superfluid-finance/ethe
 const SuperTokenDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/SuperTokenDeployerLibrary.json");
 const SuperfluidPeripheryDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/SuperfluidPeripheryDeployerLibrary.json");
 const SuperfluidPoolLogicDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/SuperfluidPoolLogicDeployerLibrary.json");
-const SuperfluidFlowNFTLogicDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/SuperfluidFlowNFTLogicDeployerLibrary.json");
 const SuperfluidPoolNFTLogicDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/SuperfluidPoolNFTLogicDeployerLibrary.json");
 const ProxyDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/ProxyDeployerLibrary.json");
 const CFAv1ForwarderDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/CFAv1ForwarderDeployerLibrary.json");
 const IDAv1ForwarderDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/IDAv1ForwarderDeployerLibrary.json");
 const GDAv1ForwarderDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/GDAv1ForwarderDeployerLibrary.json");
-const SuperfluidLoaderDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/SuperfluidLoaderDeployerLibrary.json");
+const SuperTokenFactoryDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/SuperTokenFactoryDeployerLibrary.json");
 const SuperfluidFrameworkDeployerArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/utils/SuperfluidFrameworkDeployer.sol/SuperfluidFrameworkDeployer.json");
 const SlotsBitmapLibraryArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/libs/SlotsBitmapLibrary.sol/SlotsBitmapLibrary.json");
 const TokenDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/TokenDeployerLibrary.json");
+const SuperfluidDMZForwarderDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/SuperfluidDMZForwarderDeployerLibrary.json");
 
 const ERC1820Registry = require("../dev-scripts/artifacts/ERC1820Registry.json");
 
@@ -192,12 +192,6 @@ const _deployTestFramework = async (provider, signer) => {
             SuperfluidPoolLogicDeployerLibraryArtifact,
             signer
         );
-    const SuperfluidFlowNFTLogicDeployerLibrary =
-        await _getFactoryAndReturnDeployedContract(
-            "SuperfluidFlowNFTLogicDeployerLibrary",
-            SuperfluidFlowNFTLogicDeployerLibraryArtifact,
-            signer
-        );
     const SuperfluidPoolNFTLogicDeployerLibrary =
         await _getFactoryAndReturnDeployedContract(
             "SuperfluidPoolNFTLogicDeployerLibrary",
@@ -227,10 +221,10 @@ const _deployTestFramework = async (provider, signer) => {
             GDAv1ForwarderDeployerLibraryArtifact,
             signer
         );
-    const SuperfluidLoaderDeployerLibrary =
+    const SuperTokenFactoryDeployerLibrary =
         await _getFactoryAndReturnDeployedContract(
-            "SuperfluidLoaderDeployerLibrary",
-            SuperfluidLoaderDeployerLibraryArtifact,
+            "SuperTokenFactoryDeployerLibrary",
+            SuperTokenFactoryDeployerLibraryArtifact,
             signer
         );
     const TokenDeployerLibrary = await _getFactoryAndReturnDeployedContract(
@@ -238,6 +232,12 @@ const _deployTestFramework = async (provider, signer) => {
         TokenDeployerLibraryArtifact,
         signer
     );
+    const SuperfluidDMZForwarderDeployerLibrary =
+        await _getFactoryAndReturnDeployedContract(
+            "SuperfluidDMZForwarderDeployerLibrary",
+            SuperfluidDMZForwarderDeployerLibraryArtifact,
+            signer
+        );
 
     const sfDeployer = await _getFactoryAndReturnDeployedContract(
         "SuperfluidFrameworkDeployer",
@@ -269,9 +269,6 @@ const _deployTestFramework = async (provider, signer) => {
                 SuperfluidPoolLogicDeployerLibrary: getContractAddress(
                     SuperfluidPoolLogicDeployerLibrary
                 ),
-                SuperfluidFlowNFTLogicDeployerLibrary: getContractAddress(
-                    SuperfluidFlowNFTLogicDeployerLibrary
-                ),
                 SuperfluidPoolNFTLogicDeployerLibrary: getContractAddress(
                     SuperfluidPoolNFTLogicDeployerLibrary
                 ),
@@ -285,10 +282,13 @@ const _deployTestFramework = async (provider, signer) => {
                 GDAv1ForwarderDeployerLibrary: getContractAddress(
                     GDAv1ForwarderDeployerLibrary
                 ),
-                SuperfluidLoaderDeployerLibrary: getContractAddress(
-                    SuperfluidLoaderDeployerLibrary
+                SuperTokenFactoryDeployerLibrary: getContractAddress(
+                    SuperTokenFactoryDeployerLibrary
                 ),
                 TokenDeployerLibrary: getContractAddress(TokenDeployerLibrary),
+                SuperfluidDMZForwarderDeployerLibrary: getContractAddress(
+                    SuperfluidDMZForwarderDeployerLibrary
+                ),
             },
         }
     );
@@ -306,8 +306,6 @@ const printProtocolFrameworkAddresses = (framework) => {
         IDAv1: framework.ida,
         SuperTokenFactory: framework.superTokenFactory,
         SuperTokenLogic: framework.superTokenLogic,
-        ConstantOutflowNFT: framework.constantOutflowNFT,
-        ConstantInflowNFT: framework.constantInflowNFT,
         Resolver: framework.resolver,
         SuperfluidLoader: framework.superfluidLoader,
         CFAv1Forwarder: framework.cfaV1Forwarder,

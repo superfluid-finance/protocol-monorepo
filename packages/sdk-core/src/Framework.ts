@@ -199,14 +199,12 @@ export default class Framework {
                         hostAddress: networkData.addresses.host,
                         cfaV1Address: networkData.addresses.cfaV1,
                         idaV1Address: networkData.addresses.idaV1,
-                        // @note TODO - remove the any once you add gdaV1 and gdaV1Forwarder to metadata
-                        // add idaV1Forwarder to metadata as well
                         gdaV1Address:
-                            (networkData.addresses as any).gdaV1 ||
-                            networkData.addresses.idaV1,
+                            networkData.addresses.gdaV1 ||
+                            ethers.constants.AddressZero,
                         gdaV1ForwarderAddress:
-                            (networkData.addresses as any).gdaV1Forwarder ||
-                            networkData.addresses.idaV1,
+                            networkData.addresses.gdaV1Forwarder ||
+                            ethers.constants.AddressZero,
                         governanceAddress,
                         cfaV1ForwarderAddress:
                             networkData.addresses.cfaV1Forwarder,

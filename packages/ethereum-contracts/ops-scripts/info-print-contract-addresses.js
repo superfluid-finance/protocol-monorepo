@@ -130,7 +130,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     const superfluidPoolBeaconContract = await SuperfluidUpgradeableBeacon.at(
         await gdaContract.superfluidPoolBeacon()
     );
-    output += `SUPERFLUID_POOL_DEPLOYER=${await gdaContract.SUPERFLUID_POOL_DEPLOYER_ADDRESS()}\n`;
+    output += `SUPERFLUID_POOL_DEPLOYER_LIBRARY=${await gdaContract.SUPERFLUID_POOL_DEPLOYER_ADDRESS()}\n`;
     output += `SUPERFLUID_POOL_BEACON=${superfluidPoolBeaconContract.address}\n`;
     output += `SUPERFLUID_POOL_LOGIC=${await superfluidPoolBeaconContract.implementation()}\n`;
 
@@ -141,49 +141,29 @@ module.exports = eval(`(${S.toString()})()`)(async function (
 
     const superTokenLogicContract = await SuperToken.at(superTokenLogicAddress);
 
-    const constantOutflowNFTProxyAddress =
-        await superTokenLogicContract.CONSTANT_OUTFLOW_NFT();
+    // not yet deployed on all networks
+    // TODO: remove try after rollout
+    try {
+        const poolAdminNFTProxyAddress =
+            await superTokenLogicContract.POOL_ADMIN_NFT();
+        output += `POOL_ADMIN_NFT_PROXY=${poolAdminNFTProxyAddress}\n`;
 
-    // FlowNFTs are optional, zero address means not deployed
-    if (constantOutflowNFTProxyAddress !== ZERO_ADDRESS) {
-        output += `CONSTANT_OUTFLOW_NFT_PROXY=${constantOutflowNFTProxyAddress}\n`;
-
-        const constantOutflowNFTLogicAddress = await (
-            await UUPSProxiable.at(constantOutflowNFTProxyAddress)
+        const poolAdminNFTLogicAddress = await (
+            await UUPSProxiable.at(poolAdminNFTProxyAddress)
         ).getCodeAddress();
-        output += `CONSTANT_OUTFLOW_NFT_LOGIC=${constantOutflowNFTLogicAddress}\n`;
-    }
+        output += `POOL_ADMIN_NFT_LOGIC=${poolAdminNFTLogicAddress}\n`;
 
-    const constantInflowNFTProxyAddress =
-        await superTokenLogicContract.CONSTANT_INFLOW_NFT();
+        const poolMemberNFTProxyAddress =
+            await superTokenLogicContract.POOL_MEMBER_NFT();
+        output += `POOL_MEMBER_NFT_PROXY=${poolMemberNFTProxyAddress}\n`;
 
-    // FlowNFTs are optional, zero address means not deployed
-    if (constantInflowNFTProxyAddress !== ZERO_ADDRESS) {
-        output += `CONSTANT_INFLOW_NFT_PROXY=${constantInflowNFTProxyAddress}\n`;
-
-        const constantInflowNFTLogicAddress = await (
-            await UUPSProxiable.at(constantInflowNFTProxyAddress)
+        const poolMemberNFTLogicAddress = await (
+            await UUPSProxiable.at(poolMemberNFTProxyAddress)
         ).getCodeAddress();
-        output += `CONSTANT_INFLOW_NFT_LOGIC=${constantInflowNFTLogicAddress}\n`;
+        output += `POOL_MEMBER_NFT_LOGIC=${poolMemberNFTLogicAddress}\n`;
+    } catch (e) {
+        console.warn("POOL_ADMIN_NFT or POOL_MEMBER_NFT probably not deployed yet");
     }
-
-    const poolAdminNFTProxyAddress =
-        await superTokenLogicContract.POOL_ADMIN_NFT();
-    output += `POOL_ADMIN_NFT_PROXY=${poolAdminNFTProxyAddress}\n`;
-
-    const poolAdminNFTLogicAddress = await (
-        await UUPSProxiable.at(poolAdminNFTProxyAddress)
-    ).getCodeAddress();
-    output += `POOL_ADMIN_NFT_LOGIC=${poolAdminNFTLogicAddress}\n`;
-
-    const poolMemberNFTProxyAddress =
-        await superTokenLogicContract.POOL_MEMBER_NFT();
-    output += `POOL_MEMBER_NFT_PROXY=${poolMemberNFTProxyAddress}\n`;
-
-    const poolMemberNFTLogicAddress = await (
-        await UUPSProxiable.at(poolMemberNFTProxyAddress)
-    ).getCodeAddress();
-    output += `POOL_MEMBER_NFT_LOGIC=${poolMemberNFTLogicAddress}\n`;
 
     if (! skipTokens) {
         await Promise.all(
@@ -204,6 +184,14 @@ module.exports = eval(`(${S.toString()})()`)(async function (
                 sf.tokens[sf.config.nativeTokenSymbol + "x"].address
             }\n`;
         }
+    }
+
+    // forwarders
+    if (config.metadata?.contractsV1?.cfaV1Forwarder) {
+        output += `CFAV1_FORWARDER=${config.metadata.contractsV1.cfaV1Forwarder}\n`;
+    }
+    if (config.metadata?.contractsV1?.gdaV1Forwarder) {
+        output += `GDAV1_FORWARDER=${config.metadata.contractsV1.gdaV1Forwarder}\n`;
     }
 
     // optional periphery contracts

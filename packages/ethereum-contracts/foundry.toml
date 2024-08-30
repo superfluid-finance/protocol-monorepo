@@ -1,10 +1,12 @@
 [profile.default]
 root = '../..'
 src = 'packages/ethereum-contracts/contracts'
-test = 'packages/ethereum-contracts/test/foundry/'
-solc_version = "0.8.19"
-ignored_error_codes = [5159] # selfdestruct in contracts/mocks/SuperfluidDestructorMock.sol
-# deny_warnings = true
+test = 'packages/ethereum-contracts/test/foundry'
+solc_version = "0.8.26"
+#deny_warnings = true
+ignored_error_codes = [
+    1699 # assembly { selfdestruct } in contracts/mocks/SuperfluidDestructorMock.sol
+]
 # keep in sync with truffle-config.js
 evm_version = 'paris'
 remappings = [
@@ -30,6 +32,7 @@ wrap_comments = true
 
 [profile.ci]
 offline = true
+verbosity = 2
 
 [profile.ci.fuzz]
 runs = 1000

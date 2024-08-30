@@ -36,7 +36,7 @@ contract HotFuzzBase {
     uint private constant INIT_SUPER_TOKEN_BALANCE = type(uint128).max;
 
     // immutables
-    SuperfluidFrameworkDeployer private immutable _sfDeployer;
+    SuperfluidFrameworkDeployer internal immutable _sfDeployer;
     TestToken  internal immutable token;
     SuperToken internal immutable superToken;
     uint internal immutable nTesters;

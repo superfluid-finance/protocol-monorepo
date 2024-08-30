@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.19;
+pragma solidity ^0.8.23;
 
 import "../FoundrySuperfluidTester.sol";
 import { UUPSProxiable } from "../../../contracts/upgradability/UUPSProxiable.sol";
@@ -7,7 +7,6 @@ import { ISuperToken, SuperToken } from "../../../contracts/superfluid/SuperToke
 import { SuperTokenV1Library } from "../../../contracts/apps/SuperTokenV1Library.sol";
 import { ISuperAgreement } from "../../../contracts/interfaces/superfluid/ISuperAgreement.sol";
 import { ISuperfluid } from "../../../contracts/interfaces/superfluid/ISuperfluid.sol";
-import { AgreementMock } from "../../../contracts/mocks/AgreementMock.sol";
 import { SuperfluidPool } from "../../../contracts/agreements/gdav1/SuperfluidPool.sol";
 
 contract SuperfluidGovernanceIntegrationTest is FoundrySuperfluidTester {
@@ -68,7 +67,7 @@ contract SuperfluidGovernanceIntegrationTest is FoundrySuperfluidTester {
             "testUpdateContractsToUpgradePoolBeaconLogic: pool beacon logic not upgraded"
         );
     }
-    
+
     function testRevertUpgradePoolBeaconLogicWhenNotGovernance() public {
         SuperfluidPool newPoolLogic = new SuperfluidPool(sf.gda);
         vm.expectRevert();

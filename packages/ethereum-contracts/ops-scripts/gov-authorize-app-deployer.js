@@ -27,13 +27,13 @@ module.exports = eval(`(${S.toString()})({
     console.log("======== Authorizing Super App Deployer ========");
     let {protocolReleaseVersion} = options;
 
-    if (args.length > 3 || args.length < 2) {
+    if (args.length > 2 || args.length < 1) {
         throw new Error("Wrong number of arguments");
     }
 
     // default: 2^64 - 1 (far in the future - for practical purposes, never expiring)
     let expirationTs = (BigInt(2) ** BigInt(64) - BigInt(1)).toString();
-    if (args.length === 3) {
+    if (args.length === 2) {
         const expTsStr = args.pop();
         const parsedExpTs = parseInt(expTsStr);
         if (parsedExpTs.toString() !== expTsStr) {
@@ -43,8 +43,9 @@ module.exports = eval(`(${S.toString()})({
         console.log("Expiration timestamp", expirationTs);
         console.log("Expiration date", new Date(expirationTs * 1000)); // print human readable
     }
-    // for historical reasons, we have "registration keys" and now hardcode those to "k1"
-    const registrationKey = "k1";
+    // for historical reasons, we have "registration keys" and now hardcode those to "k1" by default
+    const registrationKey = process.env.REGISTRATION_KEY !== undefined ? process.env.REGISTRATION_KEY : "k1";
+    console.log("Registration key", registrationKey);
     const deployer = args.pop();
     console.log("Deployer", deployer);
 

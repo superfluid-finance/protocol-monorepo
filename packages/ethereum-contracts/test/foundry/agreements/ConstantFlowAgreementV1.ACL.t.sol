@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.19;
+pragma solidity ^0.8.23;
 
 import { ISuperToken, SuperToken } from "../../../contracts/superfluid/SuperToken.sol";
 import { IConstantFlowAgreementV1 } from "../../../contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
@@ -297,7 +297,7 @@ contract ConstantFlowAgreementV1ACLTest is FoundrySuperfluidTester {
         );
     }
 
-    function _assertFlowOperatorData(AssertFlowOperator memory data) internal {
+    function _assertFlowOperatorData(AssertFlowOperator memory data) internal view {
         (uint8 newPermissions, int96 newFlowRateAllowance) =
             sf.cfa.getFlowOperatorDataByID(data.superToken, data.flowOperatorId);
 

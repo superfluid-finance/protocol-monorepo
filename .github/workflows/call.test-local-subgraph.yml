@@ -4,7 +4,7 @@ on:
   workflow_call:
 
 env:
-  DEV_SHELL_NAME: ci-node20
+  DEV_SHELL_NAME: ci-node22
   ethereum-contracts-working-directory: ./packages/ethereum-contracts
   sdk-core-working-directory: ./packages/sdk-core
   subgraph-working-directory: ./packages/subgraph
@@ -103,7 +103,7 @@ jobs:
         run: |
           ./tasks/setup-graph-node.sh &
           # wait for it to warm up
-          sleep 30
+          sleep 15
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: Run subgraph integration test suite

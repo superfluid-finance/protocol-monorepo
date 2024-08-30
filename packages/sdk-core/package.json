@@ -1,17 +1,28 @@
 {
     "name": "@superfluid-finance/sdk-core",
-    "version": "0.8.0",
     "description": "SDK Core for building with Superfluid Protocol",
-    "homepage": "https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/sdk-core#readme",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/superfluid-finance/protocol-monorepo.git",
-        "directory": "packages/sdk-core"
+    "version": "0.8.0",
+    "bugs": "https://github.com/superfluid-finance/protocol-monorepo/issues",
+    "dependencies": {
+        "@superfluid-finance/ethereum-contracts": "1.11.0",
+        "@superfluid-finance/metadata": "^1.4.1",
+        "browserify": "17.0.0",
+        "graphql-request": "6.1.0",
+        "lodash": "4.17.21",
+        "tsify": "5.0.4"
     },
-    "license": "MIT",
-    "main": "dist/main/index.js",
-    "module": "dist/module/index.js",
-    "types": "dist/module/index.d.ts",
+    "devDependencies": {
+        "@graphql-codegen/cli": "^5.0.2",
+        "@graphql-codegen/near-operation-file-preset": "^3.0.0",
+        "@graphql-typed-document-node/core": "^3.2.0",
+        "ajv": "^8.17.1",
+        "ethers": "^5.7.2",
+        "get-graphql-schema": "^2.1.2",
+        "mocha": "^10.7.3"
+    },
+    "engines": {
+        "node": ">=12"
+    },
     "files": [
         "dist/main",
         "dist/module",
@@ -20,6 +31,19 @@
         "LICENSE",
         "README.md"
     ],
+    "homepage": "https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/sdk-core#readme",
+    "license": "MIT",
+    "main": "dist/main/index.js",
+    "module": "dist/module/index.js",
+    "peerDependencies": {
+        "ethers": "^5.7.2",
+        "graphql": "^16.0.0"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/superfluid-finance/protocol-monorepo.git",
+        "directory": "packages/sdk-core"
+    },
     "scripts": {
         "build": "yarn generate && rm -rf dist && run-s build:*",
         "build:typechain-types": "./tasks/build-types.sh",
@@ -52,38 +76,5 @@
         "get-graphql-schema:custom-url": "get-graphql-schema $1 > src/subgraph/schema.graphql",
         "cloc": "sh tasks/cloc.sh"
     },
-    "bugs": {
-        "url": "https://github.com/superfluid-finance/protocol-monorepo/issues"
-    },
-    "dependencies": {
-        "@superfluid-finance/ethereum-contracts": "^1.11.0",
-        "@superfluid-finance/metadata": "^1.4.0",
-        "browserify": "^17.0.0",
-        "graphql-request": "^6.1.0",
-        "lodash": "^4.17.21",
-        "tsify": "^5.0.4"
-    },
-    "devDependencies": {
-        "@graphql-codegen/cli": "^5.0.2",
-        "@graphql-codegen/introspection": "^4.0.2",
-        "@graphql-codegen/near-operation-file-preset": "^2.5.0",
-        "@graphql-codegen/typed-document-node": "^5.0.4",
-        "@graphql-codegen/typescript": "^4.0.4",
-        "@graphql-codegen/typescript-operations": "^4.1.2",
-        "@graphql-typed-document-node/core": "^3.2.0",
-        "ajv": "^8.12.0",
-        "ethers": "^5.7.2",
-        "get-graphql-schema": "^2.1.2",
-        "mocha": "^10.2.0"
-    },
-    "peerDependencies": {
-        "ethers": "^5.7.2",
-        "graphql": "^16.0.0"
-    },
-    "resolutions": {
-        "graphql": "^16.0.0"
-    },
-    "engines": {
-        "node": ">=12"
-    }
+    "types": "dist/module/index.d.ts"
 }

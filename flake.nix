@@ -73,6 +73,8 @@
     ];
     node18DevInputs = nodeDevInputsWith pkgs.nodejs_18;
     node20DevInputs = nodeDevInputsWith pkgs.nodejs_20;
+    node22DevInputs = nodeDevInputsWith pkgs.nodejs_22;
+    defaultNodeDevInputs = node22DevInputs;
 
     # CI inputs
     ciInputs = with pkgs; [
@@ -81,7 +83,7 @@
     ];
 
     # minimem development shell
-    minimumDevInputs = commonDevInputs ++ ethDevInputs ++ node20DevInputs;
+    minimumDevInputs = commonDevInputs ++ ethDevInputs ++ defaultNodeDevInputs;
 
     # additional tooling for whitehat hackers
     whitehatInputs = with pkgs; [
@@ -121,6 +123,9 @@
       FOUNDRY_OFFLINE = "true";
       FOUNDRY_SOLC_VERSION = pkgs.lib.getExe pkgs.${solcVer};
     } // o);
+    mkShellForNodeCI = nodeDevInputs : mkShell {
+      buildInputs = ciInputs ++ commonDevInputs ++ ethDevInputs ++ nodeDevInputs;
+    };
     mkShellForSpecCI = ghcVer : mkShell {
       buildInputs = with pkgs; [
         cabal-install
@@ -151,20 +156,19 @@
     devShells.mk-cache-key = mkShell {
       buildInputs = [ mk-cache-key-pkg ];
     };
+
     devShells.ci-minimum = mkShell {
-      buildInputs = ciInputs ++ commonDevInputs;
+      buildInputs = with pkgs; ciInputs ++ [ actionlint shellcheck ];
     };
-    devShells.ci-default = mkShell {
-      buildInputs = ciInputs ++ minimumDevInputs;
-    };
-    devShells.ci-node18 = mkShell {
-      buildInputs = ciInputs ++ commonDevInputs ++ ethDevInputs ++ node18DevInputs;
-    };
-    devShells.ci-node20 = mkShell {
-      buildInputs = ciInputs ++ commonDevInputs ++ ethDevInputs ++ node20DevInputs;
-    };
+
+    devShells.ci-default = mkShellForNodeCI defaultNodeDevInputs;
+    devShells.ci-node18 = mkShellForNodeCI node18DevInputs;
+    devShells.ci-node20 = mkShellForNodeCI node20DevInputs;
+    devShells.ci-node22 = mkShellForNodeCI node22DevInputs;
+
     devShells.ci-spec-ghc92 = mkShellForSpecCI ghcVer92;
     devShells.ci-spec-ghc94 = mkShellForSpecCI ghcVer94;
+
     devShells.ci-hot-fuzz = mkShell {
       buildInputs = with pkgs; ciInputs ++ commonDevInputs ++ ethDevInputs ++ [
         slither-analyzer

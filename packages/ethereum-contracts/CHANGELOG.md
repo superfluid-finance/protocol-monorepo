@@ -84,10 +84,6 @@ Note: this will NOT break any deployed contracts, only affects undeployed Super 
 
 - FlowNFT hooks can't revert with outofgas anymore
 
-### Added
-
-- New utility: TrustedMacrosVanilla trusted forwarder.
-
 ## [v1.9.0] - 2024-01-09
 
 ### Breaking

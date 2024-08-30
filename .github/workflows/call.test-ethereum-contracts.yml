@@ -26,9 +26,9 @@ jobs:
         id: set-matrix
         run: |
           if [ "${{ inputs.run-coverage-tests }}" == "true" ];then
-            echo "matrix={\"node-version\": [20]}" >> "$GITHUB_OUTPUT"
+            echo "matrix={\"node-version\": [22]}" >> "$GITHUB_OUTPUT"
           else
-            echo "matrix={\"node-version\": [18, 20]}" >> "$GITHUB_OUTPUT"
+            echo "matrix={\"node-version\": [18, 20, 22]}" >> "$GITHUB_OUTPUT"
           fi
 
   test-ethereum-contracts:
@@ -40,6 +40,7 @@ jobs:
 
     strategy:
       matrix: ${{ fromJson(needs.matrix-prep.outputs.matrix) }}
+      fail-fast: false
 
     env:
       DEV_SHELL_NAME: ci-node${{ matrix.node-version }}
@@ -56,11 +57,10 @@ jobs:
       - name: Set cache key prefix
         id: set-cache-key-prefix
         run: |
-          node_version=${{ matrix.node-version }}
           if [ "${{ inputs.run-coverage-tests }}" == false ]; then
-            v=ethereum-contracts-test-${node_version}-
+            v=ethereum-contracts-${{ env.DEV_SHELL_NAME }}-test-
           else
-            v=ethereum-contracts-coverage-${node_version}-
+            v=ethereum-contracts-${{ env.DEV_SHELL_NAME }}-coverage-
           fi
           echo "cache_key_prefix=$v" >> "$GITHUB_OUTPUT"
         shell: bash

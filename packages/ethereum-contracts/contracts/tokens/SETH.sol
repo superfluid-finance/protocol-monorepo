@@ -19,7 +19,8 @@ contract SETHProxy is ISETHCustom, CustomSuperTokenBase, UUPSProxy {
     event TokenUpgraded(address indexed account, uint256 amount);
     event TokenDowngraded(address indexed account, uint256 amount);
 
-    // fallback function which mints Super Tokens for received ETH
+    /// fallback function which mints Super Tokens for received ETH
+    // solhint-disable-next-line no-complex-fallback
     receive() external payable override {
         ISuperToken(address(this)).selfMint(msg.sender, msg.value, new bytes(0));
         emit TokenUpgraded(msg.sender, msg.value);

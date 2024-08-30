@@ -29,10 +29,9 @@ jobs:
         id: set-matrix
         run: |
           if [ "${{ inputs.run-coverage-tests }}" == "true" ];then
-            echo "matrix={\"node-version\": [18]}" >> "$GITHUB_OUTPUT"
+            echo "matrix={\"node-version\": [22]}" >> "$GITHUB_OUTPUT"
           else
-            # FIXME: subgraph test fails with node20
-            echo "matrix={\"node-version\": [18]}" >> "$GITHUB_OUTPUT"
+            echo "matrix={\"node-version\": [18, 20, 22]}" >> "$GITHUB_OUTPUT"
           fi
 
   test-sdk-core:
@@ -44,6 +43,7 @@ jobs:
 
     strategy:
       matrix: ${{ fromJson(needs.matrix-prep.outputs.matrix) }}
+      fail-fast: false
 
     env:
       DEV_SHELL_NAME: ci-node${{ matrix.node-version }}
@@ -63,11 +63,10 @@ jobs:
       - name: Set cache key prefix
         id: set-cache-key-prefix
         run: |
-          node_version=${{ matrix.node-version }}
           if [ "${{ inputs.run-coverage-tests }}" == false ]; then
-            v=sdk-core-test-${node_version}-
+            v=sdk-core-${{ env.DEV_SHELL_NAME }}-test-
           else
-            v=sdk-core-coverage-${node_version}-
+            v=sdk-core-${{ env.DEV_SHELL_NAME }}-coverage-
           fi
           echo "cache_key_prefix=$v" >> "$GITHUB_OUTPUT"
         shell: bash
@@ -87,18 +86,11 @@ jobs:
           npx tsc --version
           npx hardhat --version
 
-      - name: Lint and build essentials
+      - name: Build contracts
         if: steps.base.outputs.cache-hit != 'true'
         run: |
-          yarn lint
           yarn build
         working-directory: ${{ env.ethereum-contracts-working-directory }}
-
-      - name: Start hardhat node
-        if: steps.base.outputs.cache-hit != 'true'
-        run: |
-          ./tasks/startHardhatNode.sh start
-        working-directory: ${{ env.sdk-core-working-directory }}
 
       - name: Build SDK Core
         if: steps.base.outputs.cache-hit != 'true'
@@ -108,7 +100,12 @@ jobs:
           yarn build
         working-directory: ${{ env.sdk-core-working-directory }}
 
-      - name: Deploy Framework and Tokens
+      - name: Start hardhat node
+        if: steps.base.outputs.cache-hit != 'true'
+        run: ./tasks/startHardhatNode.sh start
+        working-directory: ${{ env.sdk-core-working-directory }}
+
+      - name: Deploy framework and tokens
         if: steps.base.outputs.cache-hit != 'true'
         run: npx hardhat run dev-scripts/run-deploy-contracts-and-token.js --network localhost
         working-directory: ${{ env.ethereum-contracts-working-directory }}
@@ -118,26 +115,20 @@ jobs:
         run: yarn prepare-local
         working-directory: ${{ env.subgraph-working-directory }}
 
-      - name: Run setup-graph-node
+      - name: Setup graph node
         if: steps.base.outputs.cache-hit != 'true'
         run: |
-          chmod +x ./tasks/setup-graph-node.sh
-          ./tasks/setup-graph-node.sh
-        working-directory: ${{ env.subgraph-working-directory }}
-
-      - name: Docker compose
-        if: steps.base.outputs.cache-hit != 'true'
-        run: |
-          docker rm subgraph_graph-node_1 || true
-          docker compose up &
+          ./tasks/setup-graph-node.sh &
+          # wait for it to warm up
+          sleep 15
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: Build and deploy local subgraph
         if: steps.base.outputs.cache-hit != 'true'
         run: |
           yarn build-and-deploy-local
-          # artificial slow down to give the subgraph time to sync
-          sleep 30
+          # wait for it to sync
+          sleep 15
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: Run test suite

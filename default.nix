@@ -6,6 +6,7 @@
       ./flake.lock
       # managing the npm dependencies with yarna
       ./package.json
+      ./.yarnrc
       ./yarn.lock
     ];
   };

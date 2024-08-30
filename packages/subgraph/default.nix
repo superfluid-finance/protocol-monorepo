@@ -11,13 +11,16 @@
     includedFiles = [
       ./package.json
       ./config
-      ./matchstick.yaml
       ./schema.graphql
       ./tsconfig.json
       ./types
       ./src
       ./scripts
+      # for testing
+      ./docker-compose.yml
+      ./matchstick.yaml
       ./tests
+      ./tasks
     ];
   };
 }

@@ -16,10 +16,15 @@ export const getChainId = () => {
 };
 
 export const testQueryClassFunctions = async (query: Query) => {
+    console.log("query listAllSuperTokens...");
     await query.listAllSuperTokens({}, { take: 10 });
+    console.log("query listIndexes...");
     await query.listIndexes({}, { take: 10 });
+    console.log("query listIndexSubscriptions...");
     await query.listIndexSubscriptions({}, { take: 10 });
+    console.log("query listStreams...");
     await query.listStreams({}, { take: 10 });
+    console.log("query listUserInteractedSuperTokens...");
     await query.listUserInteractedSuperTokens({}, { take: 10 });
 };
 

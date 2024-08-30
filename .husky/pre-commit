@@ -1,9 +1,19 @@
-#!/bin/sh
-. "$(dirname "$0")/_/husky.sh"
+#!/usr/bin/env bash
+
+maybe_run() {
+    exec=$1
+    shift
+    if which "$exec" &>/dev/null; then
+        "$@"
+    else
+        echo "⚠️  Please install $exec!"
+    fi
+}
 
 # always lint these
-npm run lint:shellcheck
-npm run lint:actionlint
+npm run lint:syncpack
+maybe_run shellcheck npm run lint:shellcheck
+maybe_run actionlint npm run lint:actionlint
 
 # only lint the workspace if there is staged files
 for i in $(jq -r '.workspaces.packages | .[]' package.json); do

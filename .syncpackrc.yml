@@ -3,10 +3,9 @@ dependencyTypes: ["!peer", "!resolutions"] # let us take care of the peer depend
 sortAz: ["!scripts"] # we prefer to sort scripts by-hand, because sometimes it uses run-s pattern
 semverGroups:
   # Note: rule priority is top (high) to bottom (low)
-  - label: Use looser ranges for metadata and ethereum-contracts local packages
+  - label: Use looser ranges for metadata local packages
     dependencies:
       - "@superfluid-finance/metadata"
-      - "@superfluid-finance/ethereum-contracts"
     range: "^"
   - label: Use exact version for prod dependencies
     dependencyTypes: ["prod"]

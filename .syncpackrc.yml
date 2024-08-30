@@ -5,6 +5,10 @@ semverGroups:
   # Note: rule priority is top (high) to bottom (low)
   - label: Use looser ranges for metadata local packages
     dependencies:
+      # Note: - Metadata updates often include new network configuration, which we do not want to force a new SDK
+      #         version in order for the client to be able to use.
+      #       - Probably this is better set in peerDependencies, instaed. However, that might be a breaking change to
+      #         the current developers of SDK.
       - "@superfluid-finance/metadata"
     range: "^"
   - label: Use exact version for prod dependencies

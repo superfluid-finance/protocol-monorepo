@@ -19,7 +19,7 @@ contract NaugthyMacro {
         if (beNaughty) naughtyCounter = 0;
     }
 
-    // if naughtyCounter >= 0, this changes state, which leads to a rever in the context of a macro call
+    // if naughtyCounter >= 0, this changes state, which leads to a revert in the context of a macro call
     function buildBatchOperations(ISuperfluid, bytes memory, address /*msgSender*/) external
         returns (ISuperfluid.Operation[] memory /*operation*/)
     {

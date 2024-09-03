@@ -35,7 +35,7 @@ If you're building a smart contract that uses Superfluid protocol, or even your 
 ### Installation
 
 Prerequisites:
-- [node.js v18+](https://nodejs.org/en/download)
+- [node.js v18+](https://nodejs.org/en/download). The project recommends 22, and is tested with node 18,20,22.
 - [yarn](https://classic.yarnpkg.com/en/docs/install)
 - [forge](https://book.getfoundry.sh/getting-started/installation)
 

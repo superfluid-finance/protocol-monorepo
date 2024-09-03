@@ -19,9 +19,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check changeset
-        run: tasks/check-changeset.sh ${{ github.sha }} dev
-  
+      - name: Create build set
+        run: tasks/create-build-set.sh ${{ github.sha }} dev origin
+
   create-reminder:
     name: Create Changelog reminder in PR discussion
 

@@ -1,7 +1,12 @@
 {
     "name": "scheduler",
-    "version": "1.2.0",
     "description": "Open contracts that allow scheduling streams and vestings onchain",
+    "version": "1.2.0",
+    "devDependencies": {
+        "@openzeppelin/contracts": "^4.9.6",
+        "@superfluid-finance/ethereum-contracts": "^1.11.0",
+        "@superfluid-finance/metadata": "^1.5.0"
+    },
     "license": "MIT",
     "scripts": {
         "test": "forge test",
@@ -9,13 +14,6 @@
         "deploy": "npx hardhat deploy --network",
         "lint": "run-s lint:*",
         "lint:sol": "solhint -w 0 contracts/*.sol contracts/*/*.sol && echo '✔  Your .sol files look good.'",
-        "pre-commit": "if [ ! -z \"$(git status -s .)\" ];then run-s pre-commit:*;else true;fi",
-        "pre-commit:lint": "yarn lint",
         "check-updates": "ncu --target minor"
-    },
-    "devDependencies": {
-        "@openzeppelin/contracts": "4.9.6",
-        "@superfluid-finance/ethereum-contracts": "^1.11.0",
-        "@superfluid-finance/metadata": "^1.4.0"
     }
 }

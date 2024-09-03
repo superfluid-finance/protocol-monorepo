@@ -128,18 +128,22 @@ function createNetworkDefaultConfiguration(
     networkName,
     providerWrapper = (a) => a
 ) {
+    const providerConfig = {
+        url: providerWrapper(
+            getEnvValue(networkName, "PROVIDER_URL") ||
+            getProviderUrlByTemplate(networkName)
+        ),
+        addressIndex: 0,
+        numberOfAddresses: 10,
+        shareNonce: true,
+    };
+    providerConfig.mnemonic = getEnvValue(networkName, "MNEMONIC");
+    if (!providerConfig.mnemonic) {
+        const pkey = getEnvValue(networkName, "PRIVATE_KEY");
+        providerConfig.privateKeys = [pkey];
+    }
     return {
-        provider: () =>
-            new HDWalletProvider({
-                mnemonic: getEnvValue(networkName, "MNEMONIC"),
-                url: providerWrapper(
-                    getEnvValue(networkName, "PROVIDER_URL") ||
-                    getProviderUrlByTemplate(networkName)
-                ),
-                addressIndex: 0,
-                numberOfAddresses: 10,
-                shareNonce: true,
-            }),
+        provider: () => new HDWalletProvider(providerConfig),
         gasPrice: getEnvValue(networkName, "GAS_PRICE"),
         maxFeePerGas: getEnvValue(networkName, "MAX_FEE_PER_GAS"),
         maxPriorityFeePerGas: getEnvValue(networkName, "MAX_PRIORITY_FEE_PER_GAS"),
@@ -177,8 +181,6 @@ const E = (module.exports = {
         "eth-mainnet": {
             ...createNetworkDefaultConfiguration("eth-mainnet"),
             network_id: 1, // mainnet's id
-            maxPriorityFeePerGas: 200e6, // 0.2 gwei. The default of 2.5 gwei is overpaying
-            maxFeePerGas: 50e9,
         },
 
         "eth-sepolia": {

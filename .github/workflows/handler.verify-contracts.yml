@@ -28,7 +28,7 @@ jobs:
 
     defaults:
       run:
-        shell: nix develop -c bash -xe {0}
+        shell: nix develop .#ci-default -c bash -xe {0}
 
     steps:
       - uses: actions/checkout@v4
@@ -37,7 +37,7 @@ jobs:
         if: ${{ github.event.inputs.only_network != '' && github.event.inputs.only_network != matrix.network }}
         run: echo "DO_SKIP=1" >> "$GITHUB_ENV"
 
-      - uses: cachix/install-nix-action@v19
+      - uses: cachix/install-nix-action@v27
         if: env.DO_SKIP != 1
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}

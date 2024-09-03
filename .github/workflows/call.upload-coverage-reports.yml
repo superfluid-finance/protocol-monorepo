@@ -21,7 +21,7 @@ jobs:
           name: ethereum-contracts-coverage
           path: packages/ethereum-contracts/coverage
       - name: Upload ethereum-contracts-coverage to codecov
-        uses: codecov/codecov-action@v4.2.0
+        uses: codecov/codecov-action@v4.3.0
         with:
           token: ${{ secrets.codecov_token }}
           files: packages/ethereum-contracts/coverage/lcov.info

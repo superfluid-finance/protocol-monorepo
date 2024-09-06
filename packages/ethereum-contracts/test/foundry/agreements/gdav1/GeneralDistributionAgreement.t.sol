@@ -204,6 +204,16 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         vm.stopPrank();
     }
 
+    function testRevertDistributeFlowToPoolOfWrongToken(int96 requestedFlowRate) public {
+        vm.assume(requestedFlowRate >= 0);
+        vm.assume(requestedFlowRate < int96(type(int64).max));
+        ISuperToken badToken = sfDeployer.deployNativeAssetSuperToken("Super Bad", "BADx");
+        vm.startPrank(alice);
+        vm.expectRevert(IGeneralDistributionAgreementV1.GDA_ONLY_SUPER_TOKEN_POOL.selector);
+        badToken.distributeFlow(alice, ISuperfluidPool(bob), requestedFlowRate);
+        vm.stopPrank();
+    }
+
     function testRevertDistributeFromAnyAddressWhenNotAllowed(bool useForwarder) public {
         PoolConfig memory config = PoolConfig({ transferabilityForUnitsOwner: true, distributionFromAnyAddress: false });
         ISuperfluidPool pool = _helperCreatePool(superToken, alice, alice, useForwarder, config);
@@ -255,6 +265,15 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         vm.startPrank(alice);
         vm.expectRevert(IGeneralDistributionAgreementV1.GDA_ONLY_SUPER_TOKEN_POOL.selector);
         superToken.distributeToPool(alice, ISuperfluidPool(bob), requestedAmount);
+        vm.stopPrank();
+    }
+
+    function testRevertDistributeToPoolOfWrongToken(uint256 requestedAmount) public {
+        vm.assume(requestedAmount < uint256(type(uint128).max));
+        ISuperToken badToken = sfDeployer.deployNativeAssetSuperToken("Super Bad", "BADx");
+        vm.startPrank(alice);
+        vm.expectRevert(IGeneralDistributionAgreementV1.GDA_ONLY_SUPER_TOKEN_POOL.selector);
+        badToken.distributeToPool(alice, ISuperfluidPool(bob), requestedAmount);
         vm.stopPrank();
     }
 

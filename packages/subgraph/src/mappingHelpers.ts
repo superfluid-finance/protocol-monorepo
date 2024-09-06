@@ -145,16 +145,7 @@ export function getOrInitSuperToken(
             let address = Address.fromString(underlyingAddress.toHexString());
             getOrInitToken(address, block, resolverAddress);
         }
-        return token as Token;
     }
-
-    if (token.symbol == "") {
-        const tokenContract = SuperToken.bind(tokenAddress);
-        const symbolResult = tokenContract.try_symbol();
-        token.symbol = symbolResult.reverted ? "" : symbolResult.value;
-    }
-
-    token.save();
 
     return token as Token;
 }
@@ -532,7 +523,7 @@ export function getOrInitOrUpdatePoolMember(
         poolMember = new PoolMember(poolMemberID);
         poolMember.createdAtTimestamp = event.block.timestamp;
         poolMember.createdAtBlockNumber = event.block.number;
-        
+
         poolMember.units = BIG_INT_ZERO;
         poolMember.isConnected = false;
         poolMember.totalAmountClaimed = BIG_INT_ZERO;
@@ -547,10 +538,10 @@ export function getOrInitOrUpdatePoolMember(
     }
     poolMember.updatedAtTimestamp = event.block.timestamp;
     poolMember.updatedAtBlockNumber = event.block.number;
-    
+
     poolMember.updatedAtTimestamp = event.block.timestamp;
     poolMember.updatedAtBlockNumber = event.block.number;
-    
+
     return poolMember;
 }
 

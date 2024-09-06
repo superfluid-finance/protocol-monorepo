@@ -1,4 +1,4 @@
-import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
+import { Address, BigInt, ethereum, log } from "@graphprotocol/graph-ts";
 import { FlowUpdated } from "../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
 import { ISuperfluid as Superfluid } from "../generated/Host/ISuperfluid";
 import {
@@ -43,7 +43,8 @@ import {
     getStreamID,
     getStreamRevisionID,
     getSubscriptionID,
-    handleTokenRPCCalls
+    handleTokenRPCCalls,
+    getTokenInfoAndReturn,
 } from "./utils";
 
 /**************************************************************************
@@ -101,6 +102,7 @@ export function getOrInitSuperToken(
     const resolverAddress = getResolverAddress();
 
     if (token == null) {
+        log.info("Init SuperToken {} triggered by event {}", [tokenAddress.toHexString(), triggeredByEventName]);
         // Note: this is necessary otherwise we will not be able to capture
         // template data source events.
         SuperTokenTemplate.create(tokenAddress);
@@ -145,6 +147,12 @@ export function getOrInitSuperToken(
             let address = Address.fromString(underlyingAddress.toHexString());
             getOrInitToken(address, block, resolverAddress);
         }
+    } else if (token.name.length == 0 && token.symbol.length == 0) {
+        // custom SuperTokens may emit the factory event before the token is initialized, resulting in empty name and symbol.
+        // In such cases, this branch allows is to be updated once set.
+        log.info("Trying to update SuperToken {} with empty name or symbol", [tokenId]);
+        token = getTokenInfoAndReturn(token);
+        token.save();
     }
 
     return token as Token;

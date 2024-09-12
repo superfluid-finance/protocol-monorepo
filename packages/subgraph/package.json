@@ -59,6 +59,7 @@
         "generate-sf-meta": "./tasks/getSFMeta.sh",
         "generate-sf-meta-local": "COMMIT_HASH=local CONFIGURATION=local BRANCH=local TAG=local ./tasks/getSFMeta.sh",
         "check-updates": "ncu --target minor --dep prod,dev",
-        "cloc": "cloc src"
+        "cloc": "cloc src",
+        "example:deploy-to-goldsky": "GOLDSKY_API_KEY=${YOUR_API_KEY} bash ./tasks/deploy.sh -o goldsky -n ${NETWORK} -r ${TAG} -v ${VERSION}"
     }
 }

@@ -988,12 +988,15 @@ function updateATSBalanceAndUpdatedAt(
         // The reason they are "unpredictable" is that it would be unscalable to perfectly keep track of them with subgraph.
         // What makes it unscalable is that the distribution events happen on the side of the distributor, not the receiver.
         // We can't iterate all the receivers when a distribution is made.
-        const isAccountWithOnlyPredictableBalanceSources = !accountTokenSnapshot.isLiquidationEstimateOptimistic;
+        const isAccountWithOnlyVeryPredictableBalanceSources = 
+            !accountTokenSnapshot.isLiquidationEstimateOptimistic // Covers GDA and IDA
+            && accountTokenSnapshot.activeIncomingStreamCount === 0 
+            && accountTokenSnapshot.activeCFAOutgoingStreamCount === 0;
 
         // If the balance has been updated in this block without an RPC, it's better to be safe than sorry and just get the final accurate state from the RPC.
         const hasBalanceBeenUpdatedInThisBlock = accountTokenSnapshot.updatedAtBlockNumber === block.number;
 
-        if (balanceDelta && isAccountWithOnlyPredictableBalanceSources && !hasBalanceBeenUpdatedInThisBlock) {
+        if (balanceDelta && isAccountWithOnlyVeryPredictableBalanceSources && !hasBalanceBeenUpdatedInThisBlock) {
             accountTokenSnapshot.balanceUntilUpdatedAt =
                 accountTokenSnapshot.balanceUntilUpdatedAt.plus(
                     balanceDelta as BigInt

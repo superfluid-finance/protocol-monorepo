@@ -997,10 +997,7 @@ function updateATSBalanceAndUpdatedAt(
         const hasBalanceBeenUpdatedInThisBlock = accountTokenSnapshot.updatedAtBlockNumber === block.number;
 
         if (balanceDelta && isAccountWithOnlyVeryPredictableBalanceSources && !hasBalanceBeenUpdatedInThisBlock) {
-            accountTokenSnapshot.balanceUntilUpdatedAt =
-                accountTokenSnapshot.balanceUntilUpdatedAt.plus(
-                    balanceDelta as BigInt
-                );
+            accountTokenSnapshot.balanceUntilUpdatedAt = accountTokenSnapshot.balanceUntilUpdatedAt.plus(balanceDelta);
         } else {
             // if the account has any subscriptions with units we assume that
             // the balance data requires a RPC call for balance because we did not
@@ -1010,14 +1007,37 @@ function updateATSBalanceAndUpdatedAt(
                 Address.fromString(accountTokenSnapshot.account),
                 block.timestamp
             );
+
+            let balanceFromRpc = accountTokenSnapshot.balanceUntilUpdatedAt;
             if (!newBalanceResult.reverted) {
-                accountTokenSnapshot.balanceUntilUpdatedAt =
-                    newBalanceResult.value.value0;
+                balanceFromRpc = newBalanceResult.value.value0;
+            }
+            
+            if (balanceDelta) {
+                const balanceFromDelta = accountTokenSnapshot.balanceUntilUpdatedAt.plus(balanceDelta);
+                if (balanceFromRpc !== balanceFromDelta) {
+                    log.debug(
+                        "Balance would have been different when using delta over RPC. Block: {}, Timestamp: {}, Account: {}, Token: {}, Balance from RPC: {}, Balance from delta: {}, Balance delta: {}, Outgoing stream count: {}, Incoming stream count: {}", 
+                        [
+                            block.number.toString(), 
+                            block.timestamp.toString(),
+                            accountTokenSnapshot.account.toString(),
+                            accountTokenSnapshot.token.toString(),
+                            balanceFromRpc.toString(),
+                            balanceFromDelta.toString(),
+                            balanceDelta.toString(),
+                            accountTokenSnapshot.activeOutgoingStreamCount.toString(),
+                            accountTokenSnapshot.activeIncomingStreamCount.toString()
+                        ]
+                    );
+                }
+            }
+
+            if (!newBalanceResult.reverted) {
+                log.warning("Fetching balance from RPC failed.", []);
             } else {
                 accountTokenSnapshot.balanceLastUpdatedFromRpcBlocknumber = block.number;
             }
-
-            // TODO: console.log here if update from delta would differ from the RPC
         }
     }
 

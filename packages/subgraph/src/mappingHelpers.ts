@@ -513,6 +513,9 @@ export function updatePoolTotalAmountFlowedAndDistributed(
         pool.totalAmountDistributedUntilUpdatedAt.plus(
             amountFlowedSinceLastUpdate
         );
+    
+    pool.updatedAtTimestamp = event.block.timestamp;
+    pool.updatedAtBlockNumber = event.block.number;
 
     pool.save();
 

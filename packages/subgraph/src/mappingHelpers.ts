@@ -1016,6 +1016,8 @@ function updateATSBalanceAndUpdatedAt(
             } else {
                 accountTokenSnapshot.balanceLastUpdatedFromRpcBlocknumber = block.number;
             }
+
+            // TODO: console.log here if update from delta would differ from the RPC
         }
     }
 

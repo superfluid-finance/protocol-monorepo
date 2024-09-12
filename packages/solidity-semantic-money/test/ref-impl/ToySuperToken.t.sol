@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.23;
+pragma solidity ^0.8.23;
 
 // solhint-disable not-rely-on-time
 
@@ -62,17 +62,17 @@ contract ToySuperTokenTest is Test {
         vm.stopPrank();
     }
 
-    function assertEq(FlowRate a, FlowRate b, string memory e) internal {
+    function assertEq(FlowRate a, FlowRate b, string memory e) internal pure {
         assertEq(FlowRate.unwrap(a), FlowRate.unwrap(b), e);
     }
-    function assertEq(Unit a, Unit b, string memory e) internal {
+    function assertEq(Unit a, Unit b, string memory e) internal pure {
         assertEq(Unit.unwrap(a), Unit.unwrap(b), e);
     }
-    function assertEq(Value a, Value b, string memory e) internal {
+    function assertEq(Value a, Value b, string memory e) internal pure {
         assertEq(Value.unwrap(a), Value.unwrap(b), e);
     }
     function getAdjustmentFlowRate(ToySuperfluidPool pool, address expectedRecipient)
-        internal returns (FlowRate)
+        internal view returns (FlowRate)
     {
         (address recipient, ,FlowRate r) = token.getPoolAdjustmentFlowInfo(pool);
         assertEq(recipient, expectedRecipient, "expectedRecipient fail");

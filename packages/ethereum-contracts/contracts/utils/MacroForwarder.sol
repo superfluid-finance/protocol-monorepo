@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.23;
+pragma solidity ^0.8.23;
 
 import { IUserDefinedMacro } from "../interfaces/utils/IUserDefinedMacro.sol";
 import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
@@ -33,6 +33,8 @@ contract MacroForwarder is ForwarderBase {
     function runMacro(IUserDefinedMacro m, bytes calldata params) external returns (bool)
     {
         ISuperfluid.Operation[] memory operations = buildBatchOperations(m, params);
-        return _forwardBatchCall(operations);
+        bool retVal = _forwardBatchCall(operations);
+        m.postCheck(_host, params, msg.sender);
+        return retVal;
     }
 }

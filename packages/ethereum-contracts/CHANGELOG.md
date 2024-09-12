@@ -3,6 +3,58 @@ All notable changes to the ethereum-contracts will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+* `IUserDefinedMacro`: added a method `postCheck()` which allows to verify state changes after running the macro.
+
+### Fixed
+
+* GDA Pools are not multi-tokens ready, added a permission check (#2010).
+
+## [v1.11.0]
+
+### Breaking
+
+- FlowNFTs are being deprecated. The hooks aren't invoked anymore by CFA and GDA.
+
+## [v1.10.0]
+
+### Breaking
+
+- ISuperfuidPool self-transfer is not allowed.
+- FoundrySuperfluidTester is test with forge-std@v1.9.1, which may break with 1.7.x and prio forge-std lib.
+- Removing SafeGasLibrary, in favor of CallbackUtils.
+
+### Added
+
+- `batchCall` now supports 4 additional operation types:
+  - `OPERATION_TYPE_SUPERTOKEN_UPGRADE_TO`
+  - `OPERATION_TYPE_SUPERTOKEN_DOWNGRADE_TO`
+  - `OPERATION_TYPE_SIMPLE_FORWARD_CALL`
+  - `OPERATION_TYPE_ERC2771_FORWARD_CALL`
+  The latter 2 allow to add arbitrary contract calls to batch call.
+- Solidity library CallbackUtils for dealing with EIP-150 1/64-rule for callbacks.
+
+### Changed
+
+- increase SuperApp callback gas limit on some chains, to be queried with `host.CALLBACK_GAS_LIMIT()`
+- Remove try/catch in PoolNFT callbacks.
+- upgrade flake locked foundry: 0.2.0 (20b3da1 2024-07-02T00:18:52.435480726Z).
+- relax pragram solidity with "^0.8.23".
+- bump solc to 0.8.26.
+- Faster SuperAppMockAux._burnGas implementation.
+- foundry test reorg:
+  - rename '.prop.sol' to '.prop.t.sol';
+  - mark mock-contract files with 't.sol' to be skipped by foundry build automatically;
+  - move some mock contracts to test/foundry if they are only used for foundry tests.
+
+## Fixes
+
+- Fix a few types and build warnings.
+- Make testTokenURIIsExpected work with non via-ir pipeline.
+
 ## [v1.9.1] - 2024-03-19
 
 ### Breaking

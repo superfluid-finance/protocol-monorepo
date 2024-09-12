@@ -3,6 +3,33 @@ All notable changes to the metadata will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.5.0]
+### Added
+- MacroForwarder addresses
+
+### Changed
+- Updated BatchLiquidator addresses
+
+## [v1.4.1]
+### Changed
+- New & updated contracts on eth-mainnet
+
+## [v1.4.0]
+### Changed
+- Removed FlowNFTs
+
+## [v1.3.0]
+### Added
+- VestingScheduler v2
+
+## [v1.2.6]
+### Changed
+- Added native token wrapper address for base-sepolia
+
+## [v1.2.5]
+### Changed
+- Use superfluid public subgraph endpoints
+
 ## [v1.2.3]
 ### Changed
 - Use Goldsky automation subgraphs over The Graph's hosted service ones

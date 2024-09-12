@@ -22,7 +22,7 @@ jobs:
     permissions: write-all
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Use Node.js 18.x
         uses: actions/setup-node@v3
@@ -52,7 +52,7 @@ jobs:
     permissions: write-all
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Use Node.js 18.x
         uses: actions/setup-node@v3
@@ -92,7 +92,7 @@ jobs:
     permissions: write-all
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Use Node.js 18.x
         uses: actions/setup-node@v3
@@ -130,9 +130,10 @@ jobs:
 
     outputs:
       publish_sdk_core: ${{ env.SHOULD_PUBLISH_SDK_CORE }}
+      sdk_core_new_version: ${{ env.SDK_CORE_NEW_VERSION }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Check package versions
         run: ./tasks/check-package-version.sh sdk-core SHOULD_PUBLISH_SDK_CORE SDK_CORE_NEW_VERSION >> "$GITHUB_ENV"
@@ -168,7 +169,7 @@ jobs:
     permissions: write-all
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Use Node.js 18.x
         uses: actions/setup-node@v3
@@ -182,8 +183,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
         with:
-          tag_name: sdk-core@v${{ env.SDK_CORE_NEW_VERSION }}
-          release_name: sdk-core@v${{ env.SDK_CORE_NEW_VERSION }}
+          tag_name: sdk-core@v${{ needs.check-sdk-core-version.outputs.sdk_core_new_version }}
+          release_name: sdk-core@v${{ needs.check-sdk-core-version.outputs.sdk_core_new_version }}
           body_path: .github/RELEASE_TEMPLATE/release-notes.md
           draft: true
 
@@ -195,7 +196,7 @@ jobs:
     permissions: write-all
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Use Node.js 18.x
         uses: actions/setup-node@v3

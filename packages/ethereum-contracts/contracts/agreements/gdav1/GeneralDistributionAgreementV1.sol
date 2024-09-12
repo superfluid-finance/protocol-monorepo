@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPLv3
 // solhint-disable not-rely-on-time
-pragma solidity 0.8.23;
+pragma solidity ^0.8.23;
 
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
@@ -22,13 +22,11 @@ import {
 } from "../../interfaces/agreements/gdav1/IGeneralDistributionAgreementV1.sol";
 import { SuperfluidUpgradeableBeacon } from "../../upgradability/SuperfluidUpgradeableBeacon.sol";
 import { ISuperfluidToken } from "../../interfaces/superfluid/ISuperfluidToken.sol";
-import { IConstantOutflowNFT } from "../../interfaces/superfluid/IConstantOutflowNFT.sol";
 import { ISuperToken } from "../../interfaces/superfluid/ISuperToken.sol";
 import { IPoolAdminNFT } from "../../interfaces/agreements/gdav1/IPoolAdminNFT.sol";
 import { ISuperfluidPool } from "../../interfaces/agreements/gdav1/ISuperfluidPool.sol";
 import { SlotsBitmapLibrary } from "../../libs/SlotsBitmapLibrary.sol";
 import { SolvencyHelperLibrary } from "../../libs/SolvencyHelperLibrary.sol";
-import { SafeGasLibrary } from "../../libs/SafeGasLibrary.sol";
 import { AgreementBase } from "../AgreementBase.sol";
 import { AgreementLibrary } from "../AgreementLibrary.sol";
 
@@ -288,12 +286,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         IPoolAdminNFT poolAdminNFT = IPoolAdminNFT(_getPoolAdminNFTAddress(token));
 
         if (address(poolAdminNFT) != address(0)) {
-            uint256 gasLeftBefore = gasleft();
-            // solhint-disable-next-line no-empty-blocks
-            try poolAdminNFT.mint(address(pool)) { }
-            catch {
-                SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
-            }
+            poolAdminNFT.mint(address(pool));
         }
 
         emit PoolCreated(token, admin, pool);
@@ -428,7 +421,9 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
 
         newCtx = ctx;
 
-        if (_isPool(token, address(pool)) == false) {
+        if (_isPool(token, address(pool)) == false ||
+            // Note: we do not support multi-tokens pools
+            pool.superToken() != token) {
             revert GDA_ONLY_SUPER_TOKEN_POOL();
         }
 
@@ -492,7 +487,9 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         int96 requestedFlowRate,
         bytes calldata ctx
     ) external override returns (bytes memory newCtx) {
-        if (_isPool(token, address(pool)) == false) {
+        if (_isPool(token, address(pool)) == false ||
+            // Note: we do not support multi-tokens pools
+            pool.superToken() != token) {
             revert GDA_ONLY_SUPER_TOKEN_POOL();
         }
         if (requestedFlowRate < 0) {
@@ -571,31 +568,6 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
             }
         }
 
-        // handleFlowNFT() - mint/burn FlowNFT to flow distributor
-        {
-            address constantOutflowNFTAddress = _getConstantOutflowNFTAddress(token);
-
-            if (constantOutflowNFTAddress != address(0)) {
-                // create flow (mint)
-                if (requestedFlowRate > 0 && FlowRate.unwrap(flowVars.oldFlowRate) == 0) {
-                    // solhint-disable-next-line no-empty-blocks
-                    IConstantOutflowNFT(constantOutflowNFTAddress).onCreate(token, from, address(pool));
-                }
-
-                // update flow (update metadata)
-                if (requestedFlowRate > 0 && FlowRate.unwrap(flowVars.oldFlowRate) > 0) {
-                    // solhint-disable-next-line no-empty-blocks
-                    IConstantOutflowNFT(constantOutflowNFTAddress).onUpdate(token, from, address(pool));
-                }
-
-                // delete flow (burn)
-                if (requestedFlowRate == 0) {
-                    // solhint-disable-next-line no-empty-blocks
-                    IConstantOutflowNFT(constantOutflowNFTAddress).onDelete(token, from, address(pool));
-                }
-            }
-        }
-
         {
             (address adjustmentFlowRecipient,, int96 adjustmentFlowRate) =
                 _getPoolAdjustmentFlowInfo(abi.encode(token), address(pool));
@@ -612,31 +584,6 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
                 adjustmentFlowRate,
                 flowVars.currentContext.userData
             );
-        }
-    }
-
-    /**
-     * @notice Checks whether or not the NFT hook can be called.
-     * @dev A staticcall, so `CONSTANT_OUTFLOW_NFT` must be a view otherwise the assumption is that it reverts
-     * @param token the super token that is being streamed
-     * @return constantOutflowNFTAddress the address returned by low level call
-     */
-    function _getConstantOutflowNFTAddress(ISuperfluidToken token)
-        internal
-        view
-        returns (address constantOutflowNFTAddress)
-    {
-        // solhint-disable-next-line avoid-low-level-calls
-        (bool success, bytes memory data) =
-            address(token).staticcall(abi.encodeWithSelector(ISuperToken.CONSTANT_OUTFLOW_NFT.selector));
-
-        if (success) {
-            // @note We are aware this may revert if a Custom SuperToken's
-            // CONSTANT_OUTFLOW_NFT does not return data that can be
-            // decoded to an address. This would mean it was intentionally
-            // done by the creator of the Custom SuperToken logic and is
-            // fully expected to revert in that case as the author desired.
-            constantOutflowNFTAddress = abi.decode(data, (address));
         }
     }
 

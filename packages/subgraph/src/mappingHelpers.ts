@@ -1,4 +1,4 @@
-import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
+import { Address, BigInt, ethereum, log } from "@graphprotocol/graph-ts";
 import { FlowUpdated } from "../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
 import { ISuperfluid as Superfluid } from "../generated/Host/ISuperfluid";
 import {
@@ -43,7 +43,8 @@ import {
     getStreamID,
     getStreamRevisionID,
     getSubscriptionID,
-    handleTokenRPCCalls
+    handleTokenRPCCalls,
+    getTokenInfoAndReturn,
 } from "./utils";
 
 /**************************************************************************
@@ -101,6 +102,7 @@ export function getOrInitSuperToken(
     const resolverAddress = getResolverAddress();
 
     if (token == null) {
+        log.info("Init SuperToken {} triggered by event {}", [tokenAddress.toHexString(), triggeredByEventName]);
         // Note: this is necessary otherwise we will not be able to capture
         // template data source events.
         SuperTokenTemplate.create(tokenAddress);
@@ -145,16 +147,13 @@ export function getOrInitSuperToken(
             let address = Address.fromString(underlyingAddress.toHexString());
             getOrInitToken(address, block, resolverAddress);
         }
-        return token as Token;
+    } else if (token.name.length == 0 && token.symbol.length == 0) {
+        // custom SuperTokens may emit the factory event before the token is initialized, resulting in empty name and symbol.
+        // In such cases, this branch allows is to be updated once set.
+        log.info("Trying to update SuperToken {} with empty name or symbol", [tokenId]);
+        token = getTokenInfoAndReturn(token);
+        token.save();
     }
-
-    if (token.symbol == "") {
-        const tokenContract = SuperToken.bind(tokenAddress);
-        const symbolResult = tokenContract.try_symbol();
-        token.symbol = symbolResult.reverted ? "" : symbolResult.value;
-    }
-
-    token.save();
 
     return token as Token;
 }
@@ -532,7 +531,7 @@ export function getOrInitOrUpdatePoolMember(
         poolMember = new PoolMember(poolMemberID);
         poolMember.createdAtTimestamp = event.block.timestamp;
         poolMember.createdAtBlockNumber = event.block.number;
-        
+
         poolMember.units = BIG_INT_ZERO;
         poolMember.isConnected = false;
         poolMember.totalAmountClaimed = BIG_INT_ZERO;
@@ -547,10 +546,10 @@ export function getOrInitOrUpdatePoolMember(
     }
     poolMember.updatedAtTimestamp = event.block.timestamp;
     poolMember.updatedAtBlockNumber = event.block.number;
-    
+
     poolMember.updatedAtTimestamp = event.block.timestamp;
     poolMember.updatedAtBlockNumber = event.block.number;
-    
+
     return poolMember;
 }
 

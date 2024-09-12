@@ -68,8 +68,6 @@ export type OtherEvents =
     | DistributionClaimedEvent
     | MemberUnitsUpdatedEvent
     | ApprovalEvent
-    | ApprovalForAllEvent
-    | MetadataUpdateEvent
     | UnknownEvent;
 
 export type AllEvents = AccountEvents | OtherEvents;
@@ -183,7 +181,6 @@ export interface TransferEvent extends EventBase {
     to: string;
     value: string;
     token: string;
-    isNFTTransfer: boolean;
 }
 
 export interface AgreementClassRegisteredEvent extends EventBase {
@@ -469,13 +466,6 @@ export interface MemberUnitsUpdatedEvent extends EventBase {
 }
 export interface ApprovalEvent extends EventBase {
     name: "ApprovalEvent";
-    isNFTApproval: boolean;
-}
-export interface ApprovalForAllEvent extends EventBase {
-    name: "ApprovalForAllEvent";
-}
-export interface MetadataUpdateEvent extends EventBase {
-    name: "MetadataUpdateEvent";
 }
 
 export interface UnknownEvent extends EventBase {

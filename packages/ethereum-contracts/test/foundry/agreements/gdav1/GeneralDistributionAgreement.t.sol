@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.23;
+pragma solidity ^0.8.23;
 
 import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
@@ -14,13 +14,10 @@ import { SuperfluidUpgradeableBeacon } from "../../../../contracts/upgradability
 import { ISuperToken, SuperToken } from "../../../../contracts/superfluid/SuperToken.sol";
 import { ISuperfluidToken } from "../../../../contracts/interfaces/superfluid/ISuperfluidToken.sol";
 import { ISuperfluidPool, SuperfluidPool } from "../../../../contracts/agreements/gdav1/SuperfluidPool.sol";
-import { SuperfluidPoolStorageLayoutMock } from "../../../../contracts/mocks/SuperfluidPoolUpgradabilityMock.sol";
 import { IPoolNFTBase } from "../../../../contracts/interfaces/agreements/gdav1/IPoolNFTBase.sol";
 import { IPoolAdminNFT } from "../../../../contracts/interfaces/agreements/gdav1/IPoolAdminNFT.sol";
 import { IPoolMemberNFT } from "../../../../contracts/interfaces/agreements/gdav1/IPoolMemberNFT.sol";
-import { IFlowNFTBase } from "../../../../contracts/interfaces/superfluid/IFlowNFTBase.sol";
-import { IConstantOutflowNFT } from "../../../../contracts/interfaces/superfluid/IConstantOutflowNFT.sol";
-import { IConstantInflowNFT } from "../../../../contracts/interfaces/superfluid/IConstantInflowNFT.sol";
+import { SuperfluidPoolStorageLayoutMock } from "./SuperfluidPoolUpgradabilityMock.t.sol";
 
 /// @title GeneralDistributionAgreementV1 Integration Tests
 /// @author Superfluid
@@ -93,7 +90,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         );
     }
 
-    function testPositiveBalanceIsPatricianPeriodNow(address account) public {
+    function testPositiveBalanceIsPatricianPeriodNow(address account) public view {
         (bool isPatricianPeriod,) = sf.gda.isPatricianPeriodNow(superToken, account);
         assertEq(isPatricianPeriod, true);
     }
@@ -207,6 +204,16 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         vm.stopPrank();
     }
 
+    function testRevertDistributeFlowToPoolOfWrongToken(int96 requestedFlowRate) public {
+        vm.assume(requestedFlowRate >= 0);
+        vm.assume(requestedFlowRate < int96(type(int64).max));
+        ISuperToken badToken = sfDeployer.deployNativeAssetSuperToken("Super Bad", "BADx");
+        vm.startPrank(alice);
+        vm.expectRevert(IGeneralDistributionAgreementV1.GDA_ONLY_SUPER_TOKEN_POOL.selector);
+        badToken.distributeFlow(alice, ISuperfluidPool(bob), requestedFlowRate);
+        vm.stopPrank();
+    }
+
     function testRevertDistributeFromAnyAddressWhenNotAllowed(bool useForwarder) public {
         PoolConfig memory config = PoolConfig({ transferabilityForUnitsOwner: true, distributionFromAnyAddress: false });
         ISuperfluidPool pool = _helperCreatePool(superToken, alice, alice, useForwarder, config);
@@ -258,6 +265,15 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         vm.startPrank(alice);
         vm.expectRevert(IGeneralDistributionAgreementV1.GDA_ONLY_SUPER_TOKEN_POOL.selector);
         superToken.distributeToPool(alice, ISuperfluidPool(bob), requestedAmount);
+        vm.stopPrank();
+    }
+
+    function testRevertDistributeToPoolOfWrongToken(uint256 requestedAmount) public {
+        vm.assume(requestedAmount < uint256(type(uint128).max));
+        ISuperToken badToken = sfDeployer.deployNativeAssetSuperToken("Super Bad", "BADx");
+        vm.startPrank(alice);
+        vm.expectRevert(IGeneralDistributionAgreementV1.GDA_ONLY_SUPER_TOKEN_POOL.selector);
+        badToken.distributeToPool(alice, ISuperfluidPool(bob), requestedAmount);
         vm.stopPrank();
     }
 
@@ -559,9 +575,9 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         for (uint256 i = 0; i < members.length; ++i) {
             if (sf.gda.isPool(superToken, members[i]) || members[i] == address(0)) continue;
 
-            uint128 memberUnits = pool.getUnits(members[i]);
+            uint128 memberIUnits = pool.getUnits(members[i]);
 
-            assertEq(perUnitDistributionAmount * memberUnits, pool.getTotalAmountReceivedByMember(members[i]));
+            assertEq(perUnitDistributionAmount * memberIUnits, pool.getTotalAmountReceivedByMember(members[i]));
         }
     }
 
@@ -594,9 +610,9 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         for (uint256 i = 0; i < members.length; ++i) {
             if (sf.gda.isPool(superToken, members[i]) || members[i] == address(0)) continue;
 
-            uint128 memberUnits = pool.getUnits(members[i]);
+            uint128 memberIUnits = pool.getUnits(members[i]);
 
-            assertEq(perUnitDistributionAmount * memberUnits, pool.getTotalAmountReceivedByMember(members[i]));
+            assertEq(perUnitDistributionAmount * memberIUnits, pool.getTotalAmountReceivedByMember(members[i]));
         }
     }
 
@@ -742,15 +758,13 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         _helperSuperfluidPoolDecreaseAllowance(pool, owner, spender, subtractedValue);
     }
 
-    function testRevertIfUnitsTransferReceiverIsPool(address from, address to, int96 unitsAmount, int128 transferAmount)
+    function testRevertIfUnitsTransferReceiverIsPool(address from, int96 unitsAmount, int128 transferAmount)
         public
     {
         // @note we use int96 because overflow will happen otherwise
         vm.assume(unitsAmount >= 0);
         vm.assume(transferAmount > 0);
         vm.assume(from != address(0));
-        vm.assume(to != address(0));
-        vm.assume(from != to);
         vm.assume(transferAmount <= unitsAmount);
         _helperUpdateMemberUnits(freePool, alice, from, uint128(int128(unitsAmount)));
 
@@ -789,22 +803,32 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
     }
 
     function testBasicTransfer(
-        address from,
-        address to,
-        int96 unitsAmount,
-        int128 transferAmount,
-        FoundrySuperfluidTester._StackVars_UseBools memory useBools_
+        FoundrySuperfluidTester._StackVars_UseBools memory useBools_,
+        uint8 a, uint8 b, // One must use small sized data type to find equality cases
+        uint128 unitsAmount,
+        uint128 transferAmount
     ) public {
-        // @note we use int96 because overflow will happen otherwise
-        vm.assume(unitsAmount >= 0);
-        vm.assume(transferAmount > 0);
-        vm.assume(from != address(0));
-        vm.assume(to != address(0));
-        vm.assume(from != to);
-        vm.assume(transferAmount <= unitsAmount);
-        _helperUpdateMemberUnits(freePool, alice, from, uint128(int128(unitsAmount)), useBools_);
+        address from = address(uint160(a));
+        address to = address(uint160(b));
 
-        _helperSuperfluidPoolUnitsTransfer(freePool, from, to, uint256(uint128(transferAmount)));
+        transferAmount = uint96(bound(transferAmount, 0, unitsAmount));
+
+        vm.assume(from != address(0));
+        _helperUpdateMemberUnits(freePool, alice, from, unitsAmount, useBools_);
+
+        if (from == to) {
+            vm.startPrank(from);
+            vm.expectRevert(ISuperfluidPool.SUPERFLUID_POOL_SELF_TRANSFER_NOT_ALLOWED.selector);
+            freePool.transfer(to, transferAmount);
+            vm.stopPrank();
+        } else if (to == address(0)) {
+            vm.startPrank(from);
+            vm.expectRevert(ISuperfluidPool.SUPERFLUID_POOL_NO_ZERO_ADDRESS.selector);
+            freePool.transfer(to, transferAmount);
+            vm.stopPrank();
+        } else {
+            _helperSuperfluidPoolUnitsTransfer(freePool, from, to, uint256(uint128(transferAmount)));
+        }
     }
 
     function testApproveAndTransferFrom(

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.23;
+pragma solidity ^0.8.23;
 
 import "forge-std/Test.sol";
 import "forge-std/console.sol";
@@ -16,11 +16,11 @@ abstract contract SuperAppInvariants is Test {
     ISuperApp public superApp;
     Handler public handler; // Focus test to a set of operations
 
-    function invariant_AppNeverJailed() public InitializeTests {
+    function invariant_AppNeverJailed() external view InitializeTests {
         assertTrue(!host.isAppJailed(superApp));
     }
 
-    function invariant_AppRegistered() external InitializeTests {
+    function invariant_AppRegistered() external view InitializeTests {
         assertTrue(host.isApp(superApp));
     }
 

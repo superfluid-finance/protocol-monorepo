@@ -93,7 +93,7 @@ function createNetworkConfig(
 
 const config: HardhatUserConfig = {
     solidity: {
-        version: "0.8.23",
+        version: "0.8.26",
         settings: {
             optimizer: {
                 enabled: true,
@@ -151,9 +151,8 @@ const config: HardhatUserConfig = {
             url: process.env.SCROLL_MAINNET_PROVIDER_URL || "",
         },
         hardhat: {
-            // Fixing an issue that parallel coverage test is not working for unkown reason.
-            // Ref: https://github.com/NomicFoundation/hardhat/issues/4310
-            allowUnlimitedContractSize: process.env.IS_COVERAGE_TEST ? true : undefined,
+            // We defer the contract size limit test to foundry.
+            allowUnlimitedContractSize: true,
         },
     },
     mocha: {

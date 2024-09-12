@@ -26,7 +26,7 @@ contract FlowSchedulerResolverTest is FoundrySuperfluidTester {
 
     function setUp() override public virtual {
         super.setUp();
-        flowScheduler = new FlowScheduler(sf.host, "");
+        flowScheduler = new FlowScheduler(sf.host);
         flowSchedulerResolver = new FlowSchedulerResolver(address(flowScheduler));
         createPayload = abi.encodeCall( FlowScheduler.executeCreateFlow,
             (

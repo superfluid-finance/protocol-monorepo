@@ -10,6 +10,18 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Changed
 ### Fixed
 
+## [0.8.0] - 2024-08-01
+
+### Breaking
+
+-   Removed all FlowNFT related functionality, because deprecated from the protocol
+
+## [0.7.1] - 2024-06-19
+
+### Updated
+
+-   Metadata changes for recently added networks
+
 ## [0.7.0] - 2023-05-01
 
 ### Added

@@ -10,7 +10,6 @@ import {SuperTokenV1Library} from "@superfluid-finance/ethereum-contracts/contra
 import "forge-std/console.sol";
 
 /// @title VestingSchedulerTests
-/// @notice Look at me , I am the captain now - Elvijs
 contract VestingSchedulerV2StatefulFuzzTests is FoundrySuperfluidTester {
     using SuperTokenV1Library for ISuperToken;
 
@@ -30,6 +29,7 @@ contract VestingSchedulerV2StatefulFuzzTests is FoundrySuperfluidTester {
 
     /// SETUP AND HELPERS
     function setUp() public virtual override {
+        vm.setEnv(TOKEN_TYPE_ENV_KEY, "WRAPPER_SUPER_TOKEN");
         super.setUp();
     }
 

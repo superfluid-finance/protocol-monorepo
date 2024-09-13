@@ -1013,7 +1013,7 @@ function updateATSBalanceAndUpdatedAt(
                 balanceFromRpc = newBalanceResult.value.value0;
             }
             
-            if (balanceDelta) {
+            if (balanceDelta && !accountTokenSnapshot.isLiquidationEstimateOptimistic) {
                 const balanceFromDelta = accountTokenSnapshot.balanceUntilUpdatedAt.plus(balanceDelta);
                 if (balanceFromRpc !== balanceFromDelta) {
                     log.debug(

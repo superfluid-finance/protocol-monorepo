@@ -994,7 +994,9 @@ function updateATSBalanceAndUpdatedAt(
         // We can't iterate all the receivers when a distribution is made.
         const isAccountWithOnlyVeryPredictableBalanceSources = 
             !accountTokenSnapshot.isLiquidationEstimateOptimistic // Covers GDA and IDA
-            && accountTokenSnapshot.totalCFANetFlowRate === BIG_INT_ZERO;
+            && accountTokenSnapshot.activeGDAOutgoingStreamCount === 0
+            && accountTokenSnapshot.totalInflowRate === BIG_INT_ZERO
+            && accountTokenSnapshot.totalOutflowRate === BIG_INT_ZERO;
 
         // If the balance has been updated in this block without an RPC, it's better to be safe than sorry and just get the final accurate state from the RPC.
         const hasBalanceBeenUpdatedInThisBlock = accountTokenSnapshot.updatedAtBlockNumber === block.number;

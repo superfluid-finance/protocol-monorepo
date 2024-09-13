@@ -2338,6 +2338,11 @@ type AccountTokenSnapshot @entity {
     totalConnectedMemberships: Int!
 
     """
+    Counts how many pools the account is an admin of. In other words, counts how many pools this account has created.
+    """
+    totalPoolAdmins: Int!
+
+    """
     Balance of `account` as of `updatedAtTimestamp`/`updatedAtBlock`.
     """
     balanceUntilUpdatedAt: BigInt!

@@ -648,6 +648,7 @@ if (accountTokenSnapshot == null) {
         accountTokenSnapshot.totalApprovedSubscriptions = 0;
         accountTokenSnapshot.totalMembershipsWithUnits = 0;
         accountTokenSnapshot.totalConnectedMemberships = 0;
+        accountTokenSnapshot.totalPoolAdmins = 0;
         accountTokenSnapshot.balanceUntilUpdatedAt = BIG_INT_ZERO;
         accountTokenSnapshot.totalNetFlowRate = BIG_INT_ZERO;
         accountTokenSnapshot.totalCFANetFlowRate = BIG_INT_ZERO;
@@ -934,10 +935,11 @@ export function updateAggregateDistributionAgreementData(
             totalApprovedSubscriptionsDelta;
     }
 
-    // TODO: Also consider adjustment flow rate here
     accountTokenSnapshot.isLiquidationEstimateOptimistic =
         accountTokenSnapshot.totalSubscriptionsWithUnits > 0 ||
-        accountTokenSnapshot.totalMembershipsWithUnits > 0;
+        accountTokenSnapshot.totalMembershipsWithUnits > 0 ||
+        accountTokenSnapshot.totalPoolAdmins > 0;
+
     accountTokenSnapshot.updatedAtTimestamp = block.timestamp;
     accountTokenSnapshot.updatedAtBlockNumber = block.number;
     accountTokenSnapshot.save();
@@ -990,8 +992,7 @@ function updateATSBalanceAndUpdatedAt(
         // We can't iterate all the receivers when a distribution is made.
         const isAccountWithOnlyVeryPredictableBalanceSources = 
             !accountTokenSnapshot.isLiquidationEstimateOptimistic // Covers GDA and IDA
-            && accountTokenSnapshot.activeIncomingStreamCount === 0 
-            && accountTokenSnapshot.activeCFAOutgoingStreamCount === 0;
+            && accountTokenSnapshot.totalCFANetFlowRate === BIG_INT_ZERO;
 
         // If the balance has been updated in this block without an RPC, it's better to be safe than sorry and just get the final accurate state from the RPC.
         const hasBalanceBeenUpdatedInThisBlock = accountTokenSnapshot.updatedAtBlockNumber === block.number;

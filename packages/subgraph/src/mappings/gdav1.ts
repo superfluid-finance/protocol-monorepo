@@ -30,6 +30,7 @@ import {
     updateSenderATSStreamData,
     updateTokenStatisticStreamData,
     updateTokenStatsStreamedUntilUpdatedAt,
+    getOrInitAccountTokenSnapshot,
 } from "../mappingHelpers";
 import {
     BIG_INT_ZERO,
@@ -60,7 +61,6 @@ export function handlePoolCreated(event: PoolCreated): void {
         event.block
     );
     tokenStatistic.totalNumberOfPools = tokenStatistic.totalNumberOfPools + 1;
-
     tokenStatistic.save();
 
     updateATSStreamedAndBalanceUntilUpdatedAt(
@@ -69,6 +69,14 @@ export function handlePoolCreated(event: PoolCreated): void {
         event.block,
         BigInt.fromI32(0)
     );
+
+    const accountTokenSnapshot = getOrInitAccountTokenSnapshot(
+        event.params.admin,
+        event.params.token,
+        event.block,
+    );
+    accountTokenSnapshot.totalPoolAdmins = accountTokenSnapshot.totalPoolAdmins + 1;
+    accountTokenSnapshot.save();
 
     _createAccountTokenSnapshotLogEntity(
         event,

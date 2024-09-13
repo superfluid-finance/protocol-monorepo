@@ -9,6 +9,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 * `IUserDefinedMacro`: added a method `postCheck()` which allows to verify state changes after running the macro.
 
+### Fixed
+
+* GDA Pools are not multi-tokens ready, added a permission check (#2010).
+
 ## [v1.11.0]
 
 ### Breaking

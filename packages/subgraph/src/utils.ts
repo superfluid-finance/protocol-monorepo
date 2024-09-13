@@ -148,6 +148,8 @@ export function getTokenInfoAndReturn(token: Token): Token {
     token.symbol = symbolResult.reverted ? "" : symbolResult.value;
     token.decimals = decimalsResult.reverted ? 0 : decimalsResult.value;
 
+    log.info("Got token info: underlying {}, name {}, symbol {}, decimals {}", [token.underlyingAddress.toHexString(), token.name, token.symbol, token.decimals.toString()]);
+
     return token;
 }
 

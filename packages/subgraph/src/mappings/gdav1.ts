@@ -22,11 +22,10 @@ import {
     getOrInitOrUpdatePoolMember,
     getOrInitTokenStatistic,
     settlePDPoolMemberMU,
-    settlePoolParticle,
     updateATSStreamedAndBalanceUntilUpdatedAt,
     updateAggregateDistributionAgreementData,
     updatePoolDistributorTotalAmountFlowedAndDistributed,
-    updatePoolTotalAmountFlowedAndDistributed,
+    updatePoolParticleAndTotalAmountFlowedAndDistributed,
     updateSenderATSStreamData,
     updateTokenStatisticStreamData,
     updateTokenStatsStreamedUntilUpdatedAt,
@@ -109,7 +108,7 @@ export function handlePoolConnectionUpdated(
     // Update Pool Entity
     let pool = getOrInitPool(event, event.params.pool.toHex());
     // @note we modify pool and poolMember here in memory, but do not save
-    pool = updatePoolTotalAmountFlowedAndDistributed(event, pool);
+    pool = updatePoolParticleAndTotalAmountFlowedAndDistributed(event, pool);
     settlePDPoolMemberMU(pool, poolMember, event.block);
     if (poolMember.units.gt(BIG_INT_ZERO)) {
         if (memberConnectedStatusUpdated) {
@@ -202,7 +201,7 @@ export function handleBufferAdjusted(event: BufferAdjusted): void {
 
     // Update Pool
     let pool = getOrInitPool(event, event.params.pool.toHex());
-    pool = updatePoolTotalAmountFlowedAndDistributed(event, pool);
+    pool = updatePoolParticleAndTotalAmountFlowedAndDistributed(event, pool);
     pool.totalBuffer = pool.totalBuffer.plus(event.params.bufferDelta);
     pool.save();
 
@@ -241,8 +240,7 @@ export function handleFlowDistributionUpdated(
 
     // @note that we are duplicating update of updatedAtTimestamp/BlockNumber here
     // in the two functions
-    pool = updatePoolTotalAmountFlowedAndDistributed(event, pool);
-    pool = settlePoolParticle(pool, event.block);
+    pool = updatePoolParticleAndTotalAmountFlowedAndDistributed(event, pool);
     pool.perUnitFlowRate = divideOrZero(event.params.newDistributorToPoolFlowRate, pool.totalUnits);
     pool.flowRate = event.params.newTotalDistributionFlowRate;
     pool.adjustmentFlowRate = event.params.adjustmentFlowRate;
@@ -330,8 +328,7 @@ export function handleInstantDistributionUpdated(
 
     // @note that we are duplicating update of updatedAtTimestamp/BlockNumber here
     // in the two functions
-    pool = updatePoolTotalAmountFlowedAndDistributed(event, pool);
-    pool = settlePoolParticle(pool, event.block);
+    pool = updatePoolParticleAndTotalAmountFlowedAndDistributed(event, pool);
     // @note a speculations on what needs to be done
     pool.perUnitSettledValue = pool.perUnitSettledValue.plus(divideOrZero(event.params.actualAmount, pool.totalUnits));
     const previousTotalAmountDistributed =

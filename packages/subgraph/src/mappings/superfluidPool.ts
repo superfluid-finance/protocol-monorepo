@@ -12,7 +12,7 @@ import {
     settlePDPoolMemberMU,
     updateATSStreamedAndBalanceUntilUpdatedAt,
     updateAggregateDistributionAgreementData,
-    updatePoolTotalAmountFlowedAndDistributed,
+    updatePoolParticleAndTotalAmountFlowedAndDistributed,
     updateTokenStatsStreamedUntilUpdatedAt,
 } from "../mappingHelpers";
 import { BIG_INT_ZERO, createEventID, initializeEventEntity, membershipWithUnitsExists } from "../utils";
@@ -28,7 +28,7 @@ export function handleDistributionClaimed(event: DistributionClaimed): void {
     poolMember.totalAmountClaimed = event.params.totalClaimed;
 
     // settle pool and pool member
-    pool = updatePoolTotalAmountFlowedAndDistributed(event, pool);
+    pool = updatePoolParticleAndTotalAmountFlowedAndDistributed(event, pool);
     settlePDPoolMemberMU(pool, poolMember, event.block);
 
     // Update PoolMember
@@ -58,7 +58,7 @@ export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
     const unitsDelta = event.params.newUnits.minus(previousUnits);
     const newTotalUnits = pool.totalUnits.plus(unitsDelta);
 
-    pool = updatePoolTotalAmountFlowedAndDistributed(event, pool);
+    pool = updatePoolParticleAndTotalAmountFlowedAndDistributed(event, pool);
     settlePDPoolMemberMU(pool, poolMember, event.block);
 
     const existingPoolFlowRate = pool.perUnitFlowRate.times(pool.totalUnits);

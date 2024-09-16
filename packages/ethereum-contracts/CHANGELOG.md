@@ -8,6 +8,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Changed
 
 * `IUserDefinedMacro`: added a method `postCheck()` which allows to verify state changes after running the macro.
+* `SuperfluidFrameworkDeployer` now also deploys and `MacroForwarder` and enables it as trusted forwarder.
 
 ### Fixed
 

@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import { ISuperToken } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperToken.sol";
-import { FlowOperatorDefinitions } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
+import { FlowOperatorDefinitions, ISuperfluid, BatchOperation } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
 import { IVestingSchedulerV2 } from "./../contracts/interface/IVestingSchedulerV2.sol";
 import { VestingSchedulerV2 } from "./../contracts/VestingSchedulerV2.sol";
 import { FoundrySuperfluidTester } from "@superfluid-finance/ethereum-contracts/test/foundry/FoundrySuperfluidTester.sol";
@@ -91,6 +91,7 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
     uint32 immutable CLAIM_VALIDITY_DATE = uint32(BLOCK_TIMESTAMP + 15 days);
     uint32 immutable END_DATE = uint32(BLOCK_TIMESTAMP + 20 days);
     bytes constant EMPTY_CTX = "";
+    bytes constant NON_EMPTY_CTX = abi.encode(alice);
     uint256 internal _expectedTotalSupply = 0;
 
     constructor() FoundrySuperfluidTester(3) {
@@ -2371,5 +2372,63 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
         assertEq(flowRateAllowance, 0, "No flow rate allowance should be left");
 
         testAssertScheduleDoesNotExist(address(superToken), alice, bob);
+    }
+
+    function test_getSender_throws_when_invalid_host() public {
+        vm.expectRevert(IVestingSchedulerV2.HostInvalid.selector);
+
+        vm.startPrank(alice);
+        vestingScheduler.createVestingSchedule(
+            superToken,
+            bob,
+            START_DATE,
+            CLIFF_DATE,
+            FLOW_RATE,
+            CLIFF_TRANSFER_AMOUNT,
+            END_DATE,
+            0,
+            NON_EMPTY_CTX
+        );
+        vm.stopPrank();
+    }
+
+    function test_getSender_works_in_a_batch_call() public {
+        // Create a vesting schedule to update with a batch call that uses the context
+        vm.startPrank(alice);
+        vestingScheduler.createVestingSchedule(
+            superToken,
+            bob,
+            START_DATE,
+            CLIFF_DATE,
+            FLOW_RATE,
+            CLIFF_TRANSFER_AMOUNT,
+            END_DATE,
+            0,
+            EMPTY_CTX
+        );
+        _arrangeAllowances(alice, FLOW_RATE); 
+        vm.stopPrank();
+
+        vm.warp(CLIFF_DATE != 0 ? CLIFF_DATE : START_DATE);
+        vestingScheduler.executeCliffAndFlow(superToken, alice, bob);
+
+        uint32 newEndDate = type(uint32).max - 1234;
+
+        // Setting up a batch call. Superfluid Protocol will replace the emtpy context with data about the sender. That's where the sender is retrieved from.
+        ISuperfluid.Operation[] memory ops = new ISuperfluid.Operation[](1);
+        ops[0] = ISuperfluid.Operation({
+            operationType: BatchOperation.OPERATION_TYPE_SUPERFLUID_CALL_APP_ACTION,
+            target: address(vestingScheduler),
+            data: abi.encodeCall(vestingScheduler.updateVestingSchedule, (superToken, bob, newEndDate, EMPTY_CTX))
+        });
+
+        // Act
+        vm.prank(alice);
+        sf.host.batchCall(ops);
+        vm.stopPrank();
+
+        // Assert
+        IVestingSchedulerV2.VestingSchedule memory schedule = vestingScheduler.getVestingSchedule(address(superToken), alice, bob);
+        assertEq(schedule.endDate, newEndDate);
     }
 }

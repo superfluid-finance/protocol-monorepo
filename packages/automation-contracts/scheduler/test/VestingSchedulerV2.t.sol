@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import { ISuperToken } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperToken.sol";
-import { FlowOperatorDefinitions, ISuperfluid, BatchOperation } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
+import { FlowOperatorDefinitions, ISuperfluid, BatchOperation, ISuperApp } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
 import { IVestingSchedulerV2 } from "./../contracts/interface/IVestingSchedulerV2.sol";
 import { VestingSchedulerV2 } from "./../contracts/VestingSchedulerV2.sol";
 import { FoundrySuperfluidTester } from "@superfluid-finance/ethereum-contracts/test/foundry/FoundrySuperfluidTester.sol";
@@ -276,6 +276,10 @@ contract VestingSchedulerV2Tests is FoundrySuperfluidTester {
     }
 
     /// TESTS
+
+    function test_vesting_scheduler_is_superapp() public {
+        assertTrue(sf.host.isApp(ISuperApp(address(new VestingSchedulerV2(sf.host)))));
+    }
 
     function testCreateVestingSchedule() public {
         vm.expectEmit(true, true, true, true);

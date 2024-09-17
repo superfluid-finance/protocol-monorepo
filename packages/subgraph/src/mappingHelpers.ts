@@ -1013,13 +1013,18 @@ function updateATSBalanceAndUpdatedAt(
                 block.timestamp
             );
 
-            let balanceFromRpc = accountTokenSnapshot.balanceUntilUpdatedAt;
+            const balanceBeforeUpdate = accountTokenSnapshot.balanceUntilUpdatedAt;
+            let balanceFromRpc = balanceBeforeUpdate;
             if (!newBalanceResult.reverted) {
                 balanceFromRpc = newBalanceResult.value.value0;
+                accountTokenSnapshot.balanceUntilUpdatedAt = balanceFromRpc;
+                accountTokenSnapshot.balanceLastUpdatedFromRpcBlocknumber = block.number;
+            } else {
+                log.warning("Fetching balance from RPC failed.", []);
             }
             
             if (balanceDelta && !accountTokenSnapshot.isLiquidationEstimateOptimistic) {
-                const balanceFromDelta = accountTokenSnapshot.balanceUntilUpdatedAt.plus(balanceDelta);
+                const balanceFromDelta = balanceBeforeUpdate.plus(balanceDelta);
                 if (balanceFromRpc !== balanceFromDelta) {
                     log.debug(
                         "Balance would have been different when using delta over RPC. Block: {}, Timestamp: {}, Account: {}, Token: {}, Balance from RPC: {}, Balance from delta: {}, Balance delta: {}, Outgoing stream count: {}, Incoming stream count: {}", 
@@ -1036,12 +1041,6 @@ function updateATSBalanceAndUpdatedAt(
                         ]
                     );
                 }
-            }
-
-            if (!newBalanceResult.reverted) {
-                log.warning("Fetching balance from RPC failed.", []);
-            } else {
-                accountTokenSnapshot.balanceLastUpdatedFromRpcBlocknumber = block.number;
             }
         }
     }

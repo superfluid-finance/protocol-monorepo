@@ -7,7 +7,7 @@ import {IVestingSchedulerV2} from "./../contracts/interface/IVestingSchedulerV2.
 import {VestingSchedulerV2} from "./../contracts/VestingSchedulerV2.sol";
 import {FoundrySuperfluidTester} from "@superfluid-finance/ethereum-contracts/test/foundry/FoundrySuperfluidTester.sol";
 import {SuperTokenV1Library} from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperTokenV1Library.sol";
-import "forge-std/console.sol";
+import "forge-std/console2.sol";
 
 /// @title VestingSchedulerTests
 contract VestingSchedulerV2StatefulFuzzTests is FoundrySuperfluidTester {
@@ -17,13 +17,15 @@ contract VestingSchedulerV2StatefulFuzzTests is FoundrySuperfluidTester {
     VestingSchedulerV2 public vestingScheduler;
 
     /// @dev Constants for Testing
-    uint256 constant MIN_CLIFF_AMOUNT = 1;
+    uint256 constant MIN_CLIFF_AMOUNT = 2;
     uint256 constant MAX_CLIFF_AMOUNT = 1_000e18;
     int96 constant MIN_FLOW_RATE = 1;
     int96 constant MAX_FLOW_RATE = 1_000e18;
     bytes constant EMPTY_CTX = "";
 
-    constructor() FoundrySuperfluidTester(0) {
+    uint8 constant numOfTesters = 5;
+
+    constructor() FoundrySuperfluidTester(numOfTesters) {
         vestingScheduler = new VestingSchedulerV2(sf.host);
     }
 
@@ -44,7 +46,7 @@ contract VestingSchedulerV2StatefulFuzzTests is FoundrySuperfluidTester {
 
     struct Actions {
         uint8 actionCode;
-        address sender;
+        uint256 testerId;
         address receiver;
         uint32 startDate;
         uint32 cliffDate;
@@ -61,24 +63,22 @@ contract VestingSchedulerV2StatefulFuzzTests is FoundrySuperfluidTester {
         return TestActionType(actionCode % maxAction);
     }
 
-    function test_StatefulFuzz(Actions[10] calldata actions) public {
+    function test_StatefulFuzz(Actions[10] calldata actions) external {
         for (uint256 i = 0; i < actions.length; i++) {
+            console2.log("ITERATION ID : %d", i);
             Actions memory a = actions[i];
             TestActionType t = toActionType(a.actionCode, 5);
+
+            a.testerId = bound(a.testerId, 0, 4);
+            address sender = TEST_ACCOUNTS[a.testerId];
+
             vm.assume(
                 vestingScheduler
-                    .getVestingSchedule(
-                        address(superToken),
-                        a.sender,
-                        a.receiver
-                    )
+                    .getVestingSchedule(address(superToken), sender, a.receiver)
                     .flowRate == 0
             );
-            vm.assume(
-                a.sender != address(0) &&
-                    a.receiver != address(0) &&
-                    a.sender != a.receiver
-            );
+
+            vm.assume(a.receiver != address(0) && sender != a.receiver);
             a.flowRate = int96(bound(a.flowRate, 1, 1000e18));
             a.startDate = uint32(
                 bound(
@@ -118,7 +118,7 @@ contract VestingSchedulerV2StatefulFuzzTests is FoundrySuperfluidTester {
 
             if (t == TestActionType.TA_CREATE_SCHEDULE) {
                 _test_createVestingSchedule(
-                    a.sender,
+                    sender,
                     a.receiver,
                     a.startDate,
                     a.cliffDate,
@@ -128,7 +128,7 @@ contract VestingSchedulerV2StatefulFuzzTests is FoundrySuperfluidTester {
                 );
             } else if (t == TestActionType.TA_UPDATE_SCHEDULE) {
                 _test_updateVestingSchedule(
-                    a.sender,
+                    sender,
                     a.receiver,
                     a.startDate,
                     a.cliffDate,
@@ -139,7 +139,7 @@ contract VestingSchedulerV2StatefulFuzzTests is FoundrySuperfluidTester {
                 );
             } else if (t == TestActionType.TA_DELETE_SCHEDULE) {
                 _test_deleteVestingSchedule(
-                    a.sender,
+                    sender,
                     a.receiver,
                     a.startDate,
                     a.cliffDate,
@@ -149,7 +149,7 @@ contract VestingSchedulerV2StatefulFuzzTests is FoundrySuperfluidTester {
                 );
             } else if (t == TestActionType.TA_EXECUTE_SCHEDULE) {
                 _test_executeCliffAndFlow(
-                    a.sender,
+                    sender,
                     a.receiver,
                     a.startDate,
                     a.cliffDate,
@@ -159,7 +159,7 @@ contract VestingSchedulerV2StatefulFuzzTests is FoundrySuperfluidTester {
                 );
             } else if (t == TestActionType.TA_TERMINATE_SCHEDULE) {
                 _test_executeEndVesting(
-                    a.sender,
+                    sender,
                     a.receiver,
                     a.startDate,
                     a.cliffDate,

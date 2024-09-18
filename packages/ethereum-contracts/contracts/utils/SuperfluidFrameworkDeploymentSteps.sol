@@ -33,6 +33,7 @@ import { CFAv1Library } from "../apps/CFAv1Library.sol";
 import { IDAv1Library } from "../apps/IDAv1Library.sol";
 import { IResolver } from "../interfaces/utils/IResolver.sol";
 import { DMZForwarder } from "../utils/DMZForwarder.sol";
+import { MacroForwarder } from "../utils/MacroForwarder.sol";
 
 /// @title Superfluid Framework Deployment Steps
 /// @author Superfluid
@@ -66,6 +67,7 @@ contract SuperfluidFrameworkDeploymentSteps {
         CFAv1Forwarder cfaV1Forwarder;
         IDAv1Forwarder idaV1Forwarder;
         GDAv1Forwarder gdaV1Forwarder;
+        MacroForwarder macroForwarder;
         BatchLiquidator batchLiquidator;
         TOGA toga;
     }
@@ -92,6 +94,7 @@ contract SuperfluidFrameworkDeploymentSteps {
     CFAv1Forwarder internal cfaV1Forwarder;
     IDAv1Forwarder internal idaV1Forwarder;
     GDAv1Forwarder internal gdaV1Forwarder;
+    MacroForwarder internal macroForwarder;
 
     // Other Peripheral Contracts
     TestResolver internal testResolver;
@@ -121,6 +124,7 @@ contract SuperfluidFrameworkDeploymentSteps {
             cfaV1Forwarder: cfaV1Forwarder,
             idaV1Forwarder: idaV1Forwarder,
             gdaV1Forwarder: gdaV1Forwarder,
+            macroForwarder: macroForwarder,
             batchLiquidator: batchLiquidator,
             toga: toga
         });
@@ -224,6 +228,10 @@ contract SuperfluidFrameworkDeploymentSteps {
             // Deploy GDAv1Forwarder
             gdaV1Forwarder = GDAv1ForwarderDeployerLibrary.deploy(host);
             testGovernance.enableTrustedForwarder(host, ISuperfluidToken(address(0)), address(gdaV1Forwarder));
+
+            // Deploy MacroForwarder
+            macroForwarder = new MacroForwarder(host);
+            testGovernance.enableTrustedForwarder(host, ISuperfluidToken(address(0)), address(macroForwarder));
         } else if (step == 5) {// PERIPHERAL CONTRACTS: SuperToken Logic and SuperTokenFactory Logic
             // Deploy canonical SuperToken logic contract
             superTokenLogic = SuperToken(SuperTokenDeployerLibrary.deploy(

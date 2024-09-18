@@ -1025,9 +1025,9 @@ function updateATSBalanceAndUpdatedAt(
             
             if (balanceDelta && !accountTokenSnapshot.isLiquidationEstimateOptimistic) {
                 const balanceFromDelta = balanceBeforeUpdate.plus(balanceDelta);
-                if (balanceFromRpc !== balanceFromDelta) {
+                if (!balanceFromRpc.equals(balanceFromDelta)) {
                     log.debug(
-                        "Balance would have been different when using delta over RPC. Block: {}, Timestamp: {}, Account: {}, Token: {}, Balance from RPC: {}, Balance from delta: {}, Balance delta: {}, Outgoing stream count: {}, Incoming stream count: {}", 
+                        "Balance would have been different if we used balance delta over an RPC call. Block: {}, Timestamp: {}, Account: {}, Token: {}, Balance from RPC: {}, Balance from delta: {}, Balance delta: {}, Outgoing stream count: {}, Incoming stream count: {}", 
                         [
                             block.number.toString(), 
                             block.timestamp.toString(),

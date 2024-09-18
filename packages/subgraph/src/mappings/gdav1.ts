@@ -506,7 +506,6 @@ function _createFlowDistributionUpdatedEntity(
     ev.poolDistributor = poolDistributorId;
     ev.totalUnits = totalUnits;
     ev.userData = event.params.userData;
-    // TODO: Why not have data about buffer here?
 
     ev.save();
 

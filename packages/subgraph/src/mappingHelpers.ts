@@ -650,7 +650,7 @@ if (accountTokenSnapshot == null) {
         accountTokenSnapshot.totalApprovedSubscriptions = 0;
         accountTokenSnapshot.totalMembershipsWithUnits = 0;
         accountTokenSnapshot.totalConnectedMemberships = 0;
-        accountTokenSnapshot.totalPoolAdmins = 0;
+        accountTokenSnapshot.adminOfPoolCount = 0;
         accountTokenSnapshot.balanceUntilUpdatedAt = BIG_INT_ZERO;
         accountTokenSnapshot.totalNetFlowRate = BIG_INT_ZERO;
         accountTokenSnapshot.totalCFANetFlowRate = BIG_INT_ZERO;
@@ -940,7 +940,7 @@ export function updateAggregateDistributionAgreementData(
     accountTokenSnapshot.isLiquidationEstimateOptimistic =
         accountTokenSnapshot.totalSubscriptionsWithUnits > 0 ||
         accountTokenSnapshot.totalMembershipsWithUnits > 0 ||
-        accountTokenSnapshot.totalPoolAdmins > 0;
+        accountTokenSnapshot.adminOfPoolCount > 0;
 
     accountTokenSnapshot.updatedAtTimestamp = block.timestamp;
     accountTokenSnapshot.updatedAtBlockNumber = block.number;

@@ -44,7 +44,7 @@ describe("GeneralDistributionAgreementV1 Event Entity Unit Tests", () => {
         assert.fieldEquals("PoolCreatedEvent", id, "admin", admin);
         assert.fieldEquals("PoolCreatedEvent", id, "pool", superfluidPool);
 
-        assert.fieldEquals("AccountTokenSnapshot", accountTokenSnapshotId, "totalPoolAdmins", BigInt.fromI32(1).toString());
+        assert.fieldEquals("AccountTokenSnapshot", accountTokenSnapshotId, "adminOfPoolCount", BigInt.fromI32(1).toString());
     });
 
     test("handlePoolConnectionUpdated() - Should create a new handlePoolConnectionUpdatedEvent entity (connected)", () => {

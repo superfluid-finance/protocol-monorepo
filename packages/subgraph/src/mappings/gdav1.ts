@@ -74,7 +74,7 @@ export function handlePoolCreated(event: PoolCreated): void {
         event.params.token,
         event.block,
     );
-    accountTokenSnapshot.totalPoolAdmins = accountTokenSnapshot.totalPoolAdmins + 1;
+    accountTokenSnapshot.adminOfPoolCount = accountTokenSnapshot.adminOfPoolCount + 1;
     accountTokenSnapshot.save();
 
     _createAccountTokenSnapshotLogEntity(

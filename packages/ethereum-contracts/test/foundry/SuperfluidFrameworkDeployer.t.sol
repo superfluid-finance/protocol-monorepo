@@ -21,6 +21,7 @@ contract SuperfluidFrameworkDeployerTest is FoundrySuperfluidTester {
         assertTrue(address(sf.cfaV1Forwarder) != address(0), "SFDeployer: cfaV1Forwarder not deployed");
         assertTrue(address(sf.idaV1Forwarder) != address(0), "SFDeployer: idaV1Forwarder not deployed");
         assertTrue(address(sf.gdaV1Forwarder) != address(0), "SFDeployer: gdaV1Forwarder not deployed");
+        assertTrue(address(sf.macroForwarder) != address(0), "SFDeployer: macroForwarder not deployed");
         assertTrue(address(sf.batchLiquidator) != address(0), "SFDeployer: batchLiquidator not deployed");
     }
 

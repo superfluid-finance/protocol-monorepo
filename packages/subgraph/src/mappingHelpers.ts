@@ -650,6 +650,7 @@ if (accountTokenSnapshot == null) {
         accountTokenSnapshot.totalApprovedSubscriptions = 0;
         accountTokenSnapshot.totalMembershipsWithUnits = 0;
         accountTokenSnapshot.totalConnectedMemberships = 0;
+        accountTokenSnapshot.adminOfPoolCount = 0;
         accountTokenSnapshot.balanceUntilUpdatedAt = BIG_INT_ZERO;
         accountTokenSnapshot.totalNetFlowRate = BIG_INT_ZERO;
         accountTokenSnapshot.totalCFANetFlowRate = BIG_INT_ZERO;
@@ -938,7 +939,9 @@ export function updateAggregateDistributionAgreementData(
 
     accountTokenSnapshot.isLiquidationEstimateOptimistic =
         accountTokenSnapshot.totalSubscriptionsWithUnits > 0 ||
-        accountTokenSnapshot.totalMembershipsWithUnits > 0;
+        accountTokenSnapshot.totalMembershipsWithUnits > 0 ||
+        accountTokenSnapshot.adminOfPoolCount > 0;
+
     accountTokenSnapshot.updatedAtTimestamp = block.timestamp;
     accountTokenSnapshot.updatedAtBlockNumber = block.number;
     accountTokenSnapshot.save();
@@ -981,23 +984,64 @@ function updateATSBalanceAndUpdatedAt(
         Address.fromString(accountTokenSnapshot.token)
     );
 
-    if (balanceDelta && accountTokenSnapshot.totalSubscriptionsWithUnits == 0) {
-        accountTokenSnapshot.balanceUntilUpdatedAt =
-            accountTokenSnapshot.balanceUntilUpdatedAt.plus(
-                balanceDelta as BigInt
+    // If the balance has been updated from RPC in this block then no need to update it again.
+    // The RPC call gets the final balance from that block.
+    if (accountTokenSnapshot.balanceLastUpdatedFromRpcBlocknumber !== block.number) {
+
+        // "Unpredictable" would mean an account receiving GDA distributions, IDA distributions or GDA adjustment flow.
+        // The reason they are "unpredictable" is that it would be unscalable to perfectly keep track of them with subgraph.
+        // What makes it unscalable is that the distribution events happen on the side of the distributor, not the receiver.
+        // We can't iterate all the receivers when a distribution is made.
+        const isAccountWithOnlyVeryPredictableBalanceSources = 
+            !accountTokenSnapshot.isLiquidationEstimateOptimistic // Covers GDA and IDA
+            && accountTokenSnapshot.activeGDAOutgoingStreamCount === 0
+            && accountTokenSnapshot.totalInflowRate === BIG_INT_ZERO
+            && accountTokenSnapshot.totalOutflowRate === BIG_INT_ZERO;
+
+        // If the balance has been updated in this block without an RPC, it's better to be safe than sorry and just get the final accurate state from the RPC.
+        const hasBalanceBeenUpdatedInThisBlock = accountTokenSnapshot.updatedAtBlockNumber === block.number;
+
+        if (balanceDelta && isAccountWithOnlyVeryPredictableBalanceSources && !hasBalanceBeenUpdatedInThisBlock) {
+            accountTokenSnapshot.balanceUntilUpdatedAt = accountTokenSnapshot.balanceUntilUpdatedAt.plus(balanceDelta);
+        } else {
+            // if the account has any subscriptions with units we assume that
+            // the balance data requires a RPC call for balance because we did not
+            // have claim events there and we do not count distributions
+            // for subscribers
+            const newBalanceResult = superTokenContract.try_realtimeBalanceOf(
+                Address.fromString(accountTokenSnapshot.account),
+                block.timestamp
             );
-    } else {
-        // if the account has any subscriptions with units we assume that
-        // the balance data requires a RPC call for balance because we did not
-        // have claim events there and we do not count distributions
-        // for subscribers
-        const newBalanceResult = superTokenContract.try_realtimeBalanceOf(
-            Address.fromString(accountTokenSnapshot.account),
-            block.timestamp
-        );
-        if (!newBalanceResult.reverted) {
-            accountTokenSnapshot.balanceUntilUpdatedAt =
-                newBalanceResult.value.value0;
+
+            const balanceBeforeUpdate = accountTokenSnapshot.balanceUntilUpdatedAt;
+            let balanceFromRpc = balanceBeforeUpdate;
+            if (!newBalanceResult.reverted) {
+                balanceFromRpc = newBalanceResult.value.value0;
+                accountTokenSnapshot.balanceUntilUpdatedAt = balanceFromRpc;
+                accountTokenSnapshot.balanceLastUpdatedFromRpcBlocknumber = block.number;
+            } else {
+                log.warning("Fetching balance from RPC failed.", []);
+            }
+            
+            if (balanceDelta && !accountTokenSnapshot.isLiquidationEstimateOptimistic) {
+                const balanceFromDelta = balanceBeforeUpdate.plus(balanceDelta);
+                if (!balanceFromRpc.equals(balanceFromDelta)) {
+                    log.debug(
+                        "Balance would have been different if we used balance delta over an RPC call. Block: {}, Timestamp: {}, Account: {}, Token: {}, Balance from RPC: {}, Balance from delta: {}, Balance delta: {}, Outgoing stream count: {}, Incoming stream count: {}", 
+                        [
+                            block.number.toString(), 
+                            block.timestamp.toString(),
+                            accountTokenSnapshot.account.toString(),
+                            accountTokenSnapshot.token.toString(),
+                            balanceFromRpc.toString(),
+                            balanceFromDelta.toString(),
+                            balanceDelta.toString(),
+                            accountTokenSnapshot.activeOutgoingStreamCount.toString(),
+                            accountTokenSnapshot.activeIncomingStreamCount.toString()
+                        ]
+                    );
+                }
+            }
         }
     }
 
@@ -1026,10 +1070,6 @@ export function updateATSStreamedAndBalanceUntilUpdatedAt(
     accountAddress: Address,
     tokenAddress: Address,
     block: ethereum.Block,
-
-    // TODO: we are currently always passing null here
-    // remove null one at a time and use validation script
-    // to compare v1 to feature
     balanceDelta: BigInt | null
 ): void {
     let accountTokenSnapshot = getOrInitAccountTokenSnapshot(

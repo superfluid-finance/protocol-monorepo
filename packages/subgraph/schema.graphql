@@ -2328,19 +2328,29 @@ type AccountTokenSnapshot @entity {
     totalApprovedSubscriptions: Int!
 
     """
-    The current (as of updatedAt) number of membership with units allocated to them tied to this `account`.
+    The current (as of updatedAt) number of membership with units allocated to them tied to this `account`. (both IDA and GDA)
     """
     totalMembershipsWithUnits: Int!
 
     """
-    Counts all currently (as of updatedAt) approved membership whether or not they have units.
+    Counts all currently (as of updatedAt) approved membership whether or not they have units. (both IDA and GDA)
     """
     totalConnectedMemberships: Int!
+
+    """
+    Counts how many pools the account is a pool admin of. The pool admin can be set arbitrarily when creating a GDA pool. The pool admin might receive an "adjustment flow" if the pool has a flow distribution.
+    """
+    adminOfPoolCount: Int!
 
     """
     Balance of `account` as of `updatedAtTimestamp`/`updatedAtBlock`.
     """
     balanceUntilUpdatedAt: BigInt!
+
+    """
+    The last block the balance was queried from an RPC (the most accurate source for balance data).
+    """
+    balanceLastUpdatedFromRpcBlocknumber: BigInt
 
     """
     The total deposit this account has held by all flow agreements for `account` active streams.

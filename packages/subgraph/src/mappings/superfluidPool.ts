@@ -43,7 +43,7 @@ export function handleDistributionClaimed(event: DistributionClaimed): void {
     _createTokenStatisticLogEntity(event, token, eventName);
 
     // Update ATS
-    updateATSStreamedAndBalanceUntilUpdatedAt(event.params.member, token, event.block, null);
+    updateATSStreamedAndBalanceUntilUpdatedAt(event.params.member, token, event.block, event.params.claimedAmount);
     _createAccountTokenSnapshotLogEntity(event, event.params.member, token, eventName);
 
     // Create Event Entity
@@ -147,7 +147,7 @@ export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
     updateTokenStatsStreamedUntilUpdatedAt(event.params.token, event.block);
     _createTokenStatisticLogEntity(event, event.params.token, eventName);
 
-    updateATSStreamedAndBalanceUntilUpdatedAt(event.params.member, event.params.token, event.block, null);
+    updateATSStreamedAndBalanceUntilUpdatedAt(event.params.member, event.params.token, event.block, BigInt.fromI32(0));
     _createAccountTokenSnapshotLogEntity(event, event.params.member, event.params.token, eventName);
 }
 

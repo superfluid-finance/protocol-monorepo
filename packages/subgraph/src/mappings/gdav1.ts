@@ -29,6 +29,7 @@ import {
     updateSenderATSStreamData,
     updateTokenStatisticStreamData,
     updateTokenStatsStreamedUntilUpdatedAt,
+    getOrInitAccountTokenSnapshot,
 } from "../mappingHelpers";
 import {
     BIG_INT_ZERO,
@@ -59,15 +60,22 @@ export function handlePoolCreated(event: PoolCreated): void {
         event.block
     );
     tokenStatistic.totalNumberOfPools = tokenStatistic.totalNumberOfPools + 1;
-
     tokenStatistic.save();
 
     updateATSStreamedAndBalanceUntilUpdatedAt(
         event.params.admin,
         event.params.token,
         event.block,
-        null
+        BigInt.fromI32(0)
     );
+
+    const accountTokenSnapshot = getOrInitAccountTokenSnapshot(
+        event.params.admin,
+        event.params.token,
+        event.block,
+    );
+    accountTokenSnapshot.adminOfPoolCount = accountTokenSnapshot.adminOfPoolCount + 1;
+    accountTokenSnapshot.save();
 
     _createAccountTokenSnapshotLogEntity(
         event,
@@ -130,9 +138,6 @@ export function handlePoolConnectionUpdated(
         }
     }
     
-    pool.save();
-    poolMember.save();
-
     // Update Token Stats Streamed Until Updated At
     updateTokenStatsStreamedUntilUpdatedAt(event.params.token, event.block);
     // Update ATS Balance and Streamed Until Updated At
@@ -140,9 +145,12 @@ export function handlePoolConnectionUpdated(
         event.params.account,
         event.params.token,
         event.block,
-        null
+        BigInt.fromI32(0)
     );
 
+    pool.save();
+    poolMember.save();
+    
     const isConnecting = event.params.connected;
 
     // there is no concept of revoking in GDA, but in the subgraph
@@ -262,18 +270,6 @@ export function handleFlowDistributionUpdated(
     );
     _createTokenStatisticLogEntity(event, event.params.token, eventName);
 
-    // Update ATS
-    updateSenderATSStreamData(
-        event.params.distributor,
-        event.params.token,
-        event.params.newDistributorToPoolFlowRate,
-        flowRateDelta,
-        BIG_INT_ZERO,
-        isCreate,
-        isDelete,
-        false,
-        event.block
-    );
     updateATSStreamedAndBalanceUntilUpdatedAt(
         event.params.distributor,
         event.params.token,
@@ -285,6 +281,19 @@ export function handleFlowDistributionUpdated(
         event.params.distributor,
         event.params.token,
         eventName
+    );
+
+    // Update ATS
+    updateSenderATSStreamData(
+        event.params.distributor,
+        event.params.token,
+        event.params.newDistributorToPoolFlowRate,
+        flowRateDelta,
+        BIG_INT_ZERO,
+        isCreate,
+        isDelete,
+        false,
+        event.block
     );
 
     // Create Event Entity

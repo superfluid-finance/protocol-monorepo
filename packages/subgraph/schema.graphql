@@ -2938,6 +2938,39 @@ type TokenStatisticLog @entity {
     tokenStatistic: TokenStatistic!
 }
 
+interface AccountInteraction {
+    id: ID!
+    token: Token!
+    addresses: [String!]!
+    
+    createdAtTimestamp: BigInt!
+    createdAtBlockNumber: BigInt!
+}
+
+type AccountAndAccountInteraction implements AccountInteraction @entity(immutable: true) {
+    id: ID!
+    token: Token!
+    addresses: [String!]!
+
+    createdAtTimestamp: BigInt!
+    createdAtBlockNumber: BigInt!
+
+    account0: Account!
+    account1: Account!
+}
+
+type AccountAndPoolInteraction implements AccountInteraction @entity(immutable: true) {
+    id: ID!
+    token: Token!
+    addresses: [String!]!
+
+    createdAtTimestamp: BigInt!
+    createdAtBlockNumber: BigInt!
+
+    account: Account!
+    pool: Pool!
+}
+
 ####################
 #  Internal Entity #
 ####################

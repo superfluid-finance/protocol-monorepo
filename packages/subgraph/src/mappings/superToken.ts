@@ -32,6 +32,7 @@ import {
 import {
     _createAccountTokenSnapshotLogEntity,
     _createTokenStatisticLogEntity,
+    ensureAccountAndAccountInteractionExists,
     getOrInitAccount,
     getOrInitFlowOperator,
     getOrInitSuperToken,
@@ -193,6 +194,8 @@ export function handleTransfer(event: Transfer): void {
         "Transfer"
     );
     _createTokenStatisticLogEntity(event, event.address, "Transfer");
+
+    ensureAccountAndAccountInteractionExists(event.address.toHexString(), event.params.from.toHexString(), event.params.to.toHexString(), event.block);
 }
 
 export function handleSent(event: Sent): void {
@@ -203,6 +206,8 @@ export function handleSent(event: Sent): void {
     }
 
     _createSentEventEntity(event);
+    ensureAccountAndAccountInteractionExists(event.address.toHexString(), event.params.from.toHexString(), event.params.to.toHexString(), event.block);
+    
 }
 
 /**

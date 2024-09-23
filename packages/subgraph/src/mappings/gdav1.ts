@@ -29,7 +29,8 @@ import {
     updateSenderATSStreamData,
     updateTokenStatisticStreamData,
     updateTokenStatsStreamedUntilUpdatedAt,
-    getOrInitAccountTokenSnapshot,
+    ensureAccountAndPoolInteractionExists,
+    getOrInitAccountTokenSnapshot
 } from "../mappingHelpers";
 import {
     BIG_INT_ZERO,
@@ -235,8 +236,12 @@ export function handleFlowDistributionUpdated(
     poolDistributor.flowRate = event.params.newDistributorToPoolFlowRate;
     poolDistributor.save();
 
+    
     // Update Pool
     let pool = getOrInitPool(event, event.params.pool.toHex());
+    
+    ensureAccountAndPoolInteractionExists(pool.token, poolDistributor.account, pool.id, event.block);
+    ensureAccountAndPoolInteractionExists(pool.token, pool.admin, pool.id, event.block);
 
     // @note that we are duplicating update of updatedAtTimestamp/BlockNumber here
     // in the two functions
@@ -325,6 +330,9 @@ export function handleInstantDistributionUpdated(
 
     // Update Pool
     let pool = getOrInitPool(event, event.params.pool.toHex());
+
+    ensureAccountAndPoolInteractionExists(pool.token, poolDistributor.account, pool.id, event.block);
+    ensureAccountAndPoolInteractionExists(pool.token, pool.admin, pool.id, event.block);
 
     // @note that we are duplicating update of updatedAtTimestamp/BlockNumber here
     // in the two functions

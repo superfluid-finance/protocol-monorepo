@@ -3,6 +3,8 @@ import { FlowUpdated } from "../generated/ConstantFlowAgreementV1/IConstantFlowA
 import { ISuperfluid as Superfluid } from "../generated/Host/ISuperfluid";
 import {
     Account,
+    AccountAndAccountInteraction,
+    AccountAndPoolInteraction,
     AccountTokenSnapshot,
     AccountTokenSnapshotLog,
     FlowOperator,
@@ -1579,4 +1581,50 @@ export function syncPoolMemberParticle(pool: Pool, poolMember: PoolMember): Pool
 export function settlePDPoolMemberMU(pool: Pool, poolMember: PoolMember, block: ethereum.Block): void {
     poolMember.totalAmountReceivedUntilUpdatedAt = monetaryUnitPoolMemberRTB(pool, poolMember, block.timestamp);
     poolMember = syncPoolMemberParticle(pool, poolMember);
+}
+
+export function ensureAccountAndAccountInteractionExists(tokenId: string, accountId: string, otherAccountId: string, block: ethereum.Block): void {
+    let account0: string;
+    let account1: string;
+    if (accountId < otherAccountId) {
+        account0 = accountId;
+        account1 = otherAccountId;
+    } else {
+        account0 = otherAccountId;
+        account1 = accountId;
+    }
+
+    const accountToAccountId = tokenId.concat("-").concat(account0).concat("-").concat(account1);
+
+    let interaction = AccountAndAccountInteraction.load(accountToAccountId);
+    if (interaction == null) {
+        interaction = new AccountAndAccountInteraction(accountToAccountId);
+        interaction.token = tokenId;
+        interaction.createdAtTimestamp = block.timestamp;
+        interaction.createdAtBlockNumber = block.number;
+
+        interaction.account0 = account0;
+        interaction.account1 = account1;
+        interaction.addresses = [account0, account1];
+
+        interaction.save();
+    }
+}
+
+export function ensureAccountAndPoolInteractionExists(tokenId: string, accountId: string, poolId: string, block: ethereum.Block): void {
+    const accountAndPoolId = tokenId.concat("-").concat(accountId).concat("-").concat(poolId).concat("-pool");
+
+    let interaction = AccountAndPoolInteraction.load(accountAndPoolId);
+    if (interaction == null) {
+        interaction = new AccountAndPoolInteraction(accountAndPoolId);
+        interaction.token = tokenId;
+        interaction.createdAtTimestamp = block.timestamp;
+        interaction.createdAtBlockNumber = block.number;
+
+        interaction.account = accountId;
+        interaction.pool = poolId;
+        interaction.addresses = [accountId, poolId];
+
+        interaction.save();
+    }
 }

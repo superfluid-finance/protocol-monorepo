@@ -34,6 +34,7 @@ import {
 import {
     _createAccountTokenSnapshotLogEntity,
     _createTokenStatisticLogEntity,
+    ensureAccountAndAccountInteractionExists,
     getOrInitIndex,
     getOrInitSubscription,
     getOrInitTokenStatistic,
@@ -202,6 +203,9 @@ export function handleIndexUnitsUpdated(event: IndexUnitsUpdated): void {
         event.params.indexId,
         eventName
     );
+
+    ensureAccountAndAccountInteractionExists(event.params.token.toHex(), event.params.subscriber.toHex(), event.params.publisher.toHex(), event.block);
+
     _createIndexUnitsUpdatedEventEntity(
         event,
         eventName,

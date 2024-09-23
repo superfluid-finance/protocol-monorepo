@@ -14,6 +14,7 @@ import {
     updateAggregateDistributionAgreementData,
     updatePoolParticleAndTotalAmountFlowedAndDistributed,
     updateTokenStatsStreamedUntilUpdatedAt,
+    ensureAccountAndPoolInteractionExists,
 } from "../mappingHelpers";
 import { BIG_INT_ZERO, createEventID, initializeEventEntity, membershipWithUnitsExists } from "../utils";
 
@@ -60,6 +61,8 @@ export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
 
     pool = updatePoolParticleAndTotalAmountFlowedAndDistributed(event, pool);
     settlePDPoolMemberMU(pool, poolMember, event.block);
+
+    ensureAccountAndPoolInteractionExists(pool.token, poolMember.account, pool.id, event.block);
 
     const existingPoolFlowRate = pool.perUnitFlowRate.times(pool.totalUnits);
     let newPerUnitFlowRate: BigInt;

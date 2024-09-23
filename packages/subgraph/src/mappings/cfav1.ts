@@ -34,6 +34,7 @@ import {
     updateATSStreamedAndBalanceUntilUpdatedAt,
     updateTokenStatisticStreamData,
     updateTokenStatsStreamedUntilUpdatedAt,
+    ensureAccountAndAccountInteractionExists,
 } from "../mappingHelpers";
 import { getHostAddress } from "../addresses";
 
@@ -101,6 +102,10 @@ export function handleFlowUpdated(event: FlowUpdated): void {
     const flowRateDelta = flowRate.minus(oldFlowRate);
     const isCreate = oldFlowRate.equals(BIG_INT_ZERO);
     const isDelete = flowRate.equals(BIG_INT_ZERO);
+
+    if (isCreate) {
+        ensureAccountAndAccountInteractionExists(tokenAddress.toHexString(), senderAddress.toHexString(), receiverAddress.toHexString(), event.block);
+    }
 
     if (isDelete) {
         const streamRevision = getOrInitStreamRevision(

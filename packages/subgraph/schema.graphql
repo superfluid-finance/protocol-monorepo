@@ -787,6 +787,11 @@ type DistributionClaimedEvent implements Event @entity(immutable: true) {
     claimedAmount: BigInt!
     totalClaimed: BigInt!
 
+    """
+    The total amount received from the pool. (Same as `totalAmountReceivedUntilUpdatedAt` on PoolMember entity.)
+    """
+    totalAmountReceivedFromPool: BigInt!
+
     pool: Pool!
     poolMember: PoolMember!
 }
@@ -814,6 +819,11 @@ type MemberUnitsUpdatedEvent implements Event @entity(immutable: true) {
     oldUnits: BigInt!
     units: BigInt!
     totalUnits: BigInt!
+
+    """
+    The total amount received from the pool. (Same as `totalAmountReceivedUntilUpdatedAt` on PoolMember entity.)
+    """
+    totalAmountReceivedFromPool: BigInt!
 
     pool: Pool!
     poolMember: PoolMember!

@@ -48,7 +48,7 @@ export function handleDistributionClaimed(event: DistributionClaimed): void {
     _createAccountTokenSnapshotLogEntity(event, event.params.member, token, eventName);
 
     // Create Event Entity
-    _createDistributionClaimedEntity(event, poolMember.id);
+    _createDistributionClaimedEntity(event, poolMember.id, poolMember.totalAmountReceivedUntilUpdatedAt);
 }
 
 export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
@@ -143,7 +143,7 @@ export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
     pool.save();
 
     // Create Event Entity
-    _createMemberUnitsUpdatedEntity(event, poolMember.id, pool.totalUnits);
+    _createMemberUnitsUpdatedEntity(event, poolMember.id, pool.totalUnits, poolMember.totalAmountReceivedUntilUpdatedAt);
 
     // Other entity updates
     const eventName = "MemberUnitsUpdated";
@@ -154,7 +154,7 @@ export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
     _createAccountTokenSnapshotLogEntity(event, event.params.member, event.params.token, eventName);
 }
 
-function _createDistributionClaimedEntity(event: DistributionClaimed, poolMemberId: string): DistributionClaimedEvent {
+function _createDistributionClaimedEntity(event: DistributionClaimed, poolMemberId: string, totalAmountReceivedFromPool: BigInt): DistributionClaimedEvent {
     const ev = new DistributionClaimedEvent(createEventID("DistributionClaimed", event));
     initializeEventEntity(ev, event, [event.params.token, event.address, event.params.member]);
 
@@ -163,6 +163,7 @@ function _createDistributionClaimedEntity(event: DistributionClaimed, poolMember
     ev.totalClaimed = event.params.totalClaimed;
     ev.pool = event.address.toHex();
     ev.poolMember = poolMemberId;
+    ev.totalAmountReceivedFromPool = totalAmountReceivedFromPool;
     ev.save();
 
     return ev;
@@ -171,7 +172,8 @@ function _createDistributionClaimedEntity(event: DistributionClaimed, poolMember
 function _createMemberUnitsUpdatedEntity(
     event: MemberUnitsUpdated,
     poolMemberId: string,
-    totalUnits: BigInt
+    totalUnits: BigInt,
+    totalAmountReceivedFromPool: BigInt
 ): MemberUnitsUpdatedEvent {
     const ev = new MemberUnitsUpdatedEvent(createEventID("MemberUnitsUpdated", event));
     initializeEventEntity(ev, event, [event.params.token, event.address, event.params.member]);
@@ -182,6 +184,7 @@ function _createMemberUnitsUpdatedEntity(
     ev.totalUnits = totalUnits;
     ev.pool = event.address.toHex();
     ev.poolMember = poolMemberId;
+    ev.totalAmountReceivedFromPool = totalAmountReceivedFromPool;
     ev.save();
 
     return ev;

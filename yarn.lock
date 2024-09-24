@@ -1009,10 +1009,10 @@
   dependencies:
     "@jridgewell/trace-mapping" "0.3.9"
 
-"@d10r/truffle-plugin-verify@^0.6.10":
-  version "0.6.10"
-  resolved "https://registry.yarnpkg.com/@d10r/truffle-plugin-verify/-/truffle-plugin-verify-0.6.10.tgz#f37d0b50ea3ec3e9ce5e8beed4bdb6df59404fd6"
-  integrity sha512-aCqotcE3usTImVRM9DW9z1nyR6LA+0t5GSlgivTnHYonWpBChkz5rFHAoHwyKsZU9BeJbPwLYwpB9K2ldWojdg==
+"@d10r/truffle-plugin-verify@^0.6.11":
+  version "0.6.11"
+  resolved "https://registry.yarnpkg.com/@d10r/truffle-plugin-verify/-/truffle-plugin-verify-0.6.11.tgz#d10d1923b1344f14b513c0d7ce831c5cfa1407ba"
+  integrity sha512-jWn2WpiA2fas05XqjJtTLXcOJ4XRL+etf2A/in86AtqN88tImYbcoPIg+S8TpDp/Qum+PGr9edDof/ui1Q/jCw==
   dependencies:
     "@truffle/resolver" "^9.0.35"
     axios "^0.26.1"

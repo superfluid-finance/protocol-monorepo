@@ -665,6 +665,9 @@ type PoolConnectionUpdatedEvent implements Event @entity(immutable: true) {
     connected: Boolean!
     userData: Bytes!
 
+    totalAmountReceivedFromPool: BigInt!
+    amountDeltaReceivedSinceLastUpdate: BigInt!
+
     pool: Pool!
     poolMember: PoolMember!
 }
@@ -791,6 +794,7 @@ type DistributionClaimedEvent implements Event @entity(immutable: true) {
     The total amount received from the pool. (Same as `totalAmountReceivedUntilUpdatedAt` on PoolMember entity.)
     """
     totalAmountReceivedFromPool: BigInt!
+    amountDeltaReceivedSinceLastUpdate: BigInt!
 
     pool: Pool!
     poolMember: PoolMember!
@@ -824,6 +828,7 @@ type MemberUnitsUpdatedEvent implements Event @entity(immutable: true) {
     The total amount received from the pool. (Same as `totalAmountReceivedUntilUpdatedAt` on PoolMember entity.)
     """
     totalAmountReceivedFromPool: BigInt!
+    amountDeltaReceivedSinceLastUpdate: BigInt!
 
     pool: Pool!
     poolMember: PoolMember!

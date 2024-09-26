@@ -99,6 +99,8 @@ export function handlePoolConnectionUpdated(
         event.params.pool,
         event.params.account
     );
+    const totalAmountReceivedFromPoolBeforeUpdate = poolMember.totalAmountReceivedUntilUpdatedAt;
+
     const previousIsConnected = poolMember.isConnected;
     const memberConnectedStatusUpdated =
         previousIsConnected !== event.params.connected;
@@ -172,7 +174,8 @@ export function handlePoolConnectionUpdated(
     );
 
     // Create Event Entity
-    _createPoolConnectionUpdatedEntity(event, poolMember.id);
+    const amountDeltaReceivedSinceLastUpdate = poolMember.totalAmountReceivedUntilUpdatedAt.minus(totalAmountReceivedFromPoolBeforeUpdate);
+    _createPoolConnectionUpdatedEntity(event, poolMember.id, poolMember.totalAmountReceivedUntilUpdatedAt, amountDeltaReceivedSinceLastUpdate);
 
     // Create ATS and Token Statistic Log Entities
     const eventName = "PoolConnectionUpdated";
@@ -414,7 +417,9 @@ function _createPoolCreatedEntity(event: PoolCreated): PoolCreatedEvent {
 
 function _createPoolConnectionUpdatedEntity(
     event: PoolConnectionUpdated,
-    poolMemberId: string
+    poolMemberId: string,
+    totalAmountReceivedFromPool: BigInt,
+    amountDeltaReceivedSinceLastUpdate: BigInt,
 ): PoolConnectionUpdatedEvent {
     const ev = new PoolConnectionUpdatedEvent(
         createEventID("PoolConnectionUpdated", event)
@@ -430,6 +435,8 @@ function _createPoolConnectionUpdatedEntity(
     ev.pool = event.params.pool.toHex();
     ev.poolMember = poolMemberId;
     ev.userData = event.params.userData;
+    ev.totalAmountReceivedFromPool = totalAmountReceivedFromPool;
+    ev.amountDeltaReceivedSinceLastUpdate = amountDeltaReceivedSinceLastUpdate;
 
     ev.save();
 

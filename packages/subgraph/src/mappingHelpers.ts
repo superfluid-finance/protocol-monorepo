@@ -1526,7 +1526,7 @@ export function monetaryUnitPoolMemberRTB(pool: Pool, poolMember: PoolMember, cu
     );
     const poolMemberPerUnitRTB = particleRTB(
         poolMember.syncedPerUnitSettledValue,
-        poolMember.syncedPerUnitFlowRate,
+        BigInt.fromI32(0),
         currentTimestamp,
         poolMember.updatedAtTimestamp
     );

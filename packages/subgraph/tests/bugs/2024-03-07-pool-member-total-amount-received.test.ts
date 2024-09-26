@@ -6,7 +6,6 @@ import { handleFlowDistributionUpdated, handleInstantDistributionUpdated, handle
 import { createFlowDistributionUpdatedEvent, createInstantDistributionUpdatedEvent, createMemberUnitsUpdatedEvent, createPoolAndReturnPoolCreatedEvent } from "../gdav1/gdav1.helper";
 import { mockedAppManifestAndRealtimeBalanceOf } from "../mockedFunctions";
 import { handleMemberUnitsUpdated } from "../../src/mappings/superfluidPool";
-import { Pool } from "../../generated/schema";
 
 describe("PoolMember ending up with wrong `totalAmountReceivedUntilUpdatedAt`", () => {
     beforeEach(() => {
@@ -240,8 +239,6 @@ describe("PoolMember ending up with wrong `totalAmountReceivedUntilUpdatedAt`", 
 
         handlePoolCreated(poolCreatedEvent);
         
-        const pool = Pool.load(poolAddress.toHexString());
-
         // ## Arrange PoolMember 1
         const aliceAddress = Address.fromString(alice_);
         const aliceId = getPoolMemberID(poolAddress, aliceAddress);
@@ -277,11 +274,6 @@ describe("PoolMember ending up with wrong `totalAmountReceivedUntilUpdatedAt`", 
         handleFlowDistributionUpdated(firstFlowRateEvent);
 
         // # First flow rate
-        if (pool) {
-            pool.updatedAtTimestamp = firstFlowRateEvent.block.timestamp;
-        }
-
-        // TODO: This fails, how has this already flown???
         assert.fieldEquals(
             "Pool",
             poolAddress.toHexString(),
@@ -409,9 +401,6 @@ describe("PoolMember ending up with wrong `totalAmountReceivedUntilUpdatedAt`", 
         mockedAppManifestAndRealtimeBalanceOf(superTokenAddress, bobAddress.toHexString(), updateBobEvent.block.timestamp);
         handleMemberUnitsUpdated(updateBobEvent);
 
-        if (pool) {
-            pool.updatedAtTimestamp = updateBobEvent.block.timestamp;
-        }
         assert.fieldEquals(
             "Pool",
             poolAddress.toHexString(),
@@ -445,9 +434,6 @@ describe("PoolMember ending up with wrong `totalAmountReceivedUntilUpdatedAt`", 
         mockedAppManifestAndRealtimeBalanceOf(superTokenAddress, aliceAddress.toHexString(), updateAliceEvent.block.timestamp);
         handleMemberUnitsUpdated(updateAliceEvent);
 
-        if (pool) {
-            pool.updatedAtTimestamp = updateAliceEvent.block.timestamp;
-        }
         assert.fieldEquals(
             "PoolMember",
             aliceId,

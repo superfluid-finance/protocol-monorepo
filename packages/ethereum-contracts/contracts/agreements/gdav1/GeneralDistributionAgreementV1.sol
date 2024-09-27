@@ -556,7 +556,8 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         }
 
         {
-            _adjustBuffer(token, address(pool), from, flowVars.distributionFlowHash, actualFlowRate);
+            _adjustBuffer(token, address(pool), from, flowVars.distributionFlowHash,
+                          flowVars.oldFlowRate, actualFlowRate);
         }
 
         // ensure sender has enough balance to execute transaction
@@ -646,7 +647,14 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         }
     }
 
-    function _adjustBuffer(ISuperfluidToken token, address pool, address from, bytes32 flowHash, FlowRate newFlowRate)
+    function _adjustBuffer(
+        ISuperfluidToken token,
+        address pool,
+        address from,
+        bytes32 flowHash,
+        FlowRate oldFlowRate,
+        FlowRate newFlowRate
+    )
         internal
     {
         // not using oldFlowRate in this model
@@ -660,11 +668,19 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         (, FlowDistributionData memory flowDistributionData) =
             _getFlowDistributionData(ISuperfluidToken(token), flowHash);
 
+        // preliminary value for new buffer amount, without minimum deposit applied
         // @note downcasting from uint256 -> uint32 for liquidation period
         Value newBufferAmount = newFlowRate.mul(Time.wrap(uint32(liquidationPeriod)));
 
+        // application of minimum deposit
         if (Value.unwrap(newBufferAmount).toUint256() < minimumDeposit && FlowRate.unwrap(newFlowRate) > 0) {
-            newBufferAmount = Value.wrap(minimumDeposit.toInt256());
+            if (FlowRate.unwrap(newFlowRate) > FlowRate.unwrap(oldFlowRate)) {
+                // only apply if the flowrate increases
+                newBufferAmount = Value.wrap(minimumDeposit.toInt256());
+            } else {
+                // otherwise keep the old buffer amount
+                newBufferAmount = Value.wrap(flowDistributionData.buffer.toInt256());
+            }
         }
 
         Value bufferDelta = newBufferAmount - Value.wrap(uint256(flowDistributionData.buffer).toInt256());

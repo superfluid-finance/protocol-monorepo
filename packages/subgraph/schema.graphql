@@ -1812,7 +1812,6 @@ type PoolMember @entity {
     units: BigInt!
     isConnected: Boolean!
     totalAmountClaimed: BigInt!
-    poolTotalAmountDistributedUntilUpdatedAt: BigInt!
     totalAmountReceivedUntilUpdatedAt: BigInt!
 
     syncedPerUnitSettledValue: BigInt!

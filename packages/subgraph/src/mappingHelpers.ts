@@ -539,7 +539,6 @@ export function getOrInitOrUpdatePoolMember(
         poolMember.units = BIG_INT_ZERO;
         poolMember.isConnected = false;
         poolMember.totalAmountClaimed = BIG_INT_ZERO;
-        poolMember.poolTotalAmountDistributedUntilUpdatedAt = BIG_INT_ZERO;
         poolMember.totalAmountReceivedUntilUpdatedAt = BIG_INT_ZERO;
 
         poolMember.syncedPerUnitSettledValue = BIG_INT_ZERO;
@@ -1518,12 +1517,14 @@ export function particleRTB(
 }
 
 export function monetaryUnitPoolMemberRTB(pool: Pool, poolMember: PoolMember, currentTimestamp: BigInt): BigInt {
+
     const poolPerUnitRTB = particleRTB(
         pool.perUnitSettledValue,
         pool.perUnitFlowRate,
         currentTimestamp,
         pool.updatedAtTimestamp
     );
+
     const poolMemberPerUnitRTB = particleRTB(
         poolMember.syncedPerUnitSettledValue,
         BigInt.fromI32(0),
@@ -1554,19 +1555,6 @@ export function settlePoolParticle(pool: Pool, block: ethereum.Block): Pool {
     pool.updatedAtBlockNumber = block.number;
 
     return pool;
-}
-
-export function settlePoolMemberParticle(poolMember: PoolMember, block: ethereum.Block): PoolMember {
-    poolMember.syncedPerUnitSettledValue = particleRTB(
-        poolMember.syncedPerUnitSettledValue,
-        poolMember.syncedPerUnitFlowRate,
-        block.timestamp,
-        poolMember.updatedAtTimestamp
-    );
-    poolMember.updatedAtTimestamp = block.timestamp;
-    poolMember.updatedAtBlockNumber = block.number;
-
-    return poolMember;
 }
 
 export function syncPoolMemberParticle(pool: Pool, poolMember: PoolMember): PoolMember {

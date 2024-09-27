@@ -32,7 +32,6 @@ query poolMembers(
         isConnected
         totalAmountClaimed
         totalAmountReceivedUntilUpdatedAt
-        poolTotalAmountDistributedUntilUpdatedAt
         syncedPerUnitFlowRate
         syncedPerUnitSettledValue
     }

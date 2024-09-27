@@ -16,7 +16,7 @@ import {
     updateTokenStatsStreamedUntilUpdatedAt,
     ensureAccountAndPoolInteractionExists,
 } from "../mappingHelpers";
-import { BIG_INT_ZERO, createEventID, initializeEventEntity } from "../utils";
+import { BIG_INT_ZERO, createEventID, divideOrZero, initializeEventEntity } from "../utils";
 
 // @note use deltas where applicable
 
@@ -62,6 +62,8 @@ export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
 
     const previousUnits = poolMember.units;
     const unitsDelta = event.params.newUnits.minus(previousUnits);
+    const oldTotalUnits = pool.totalUnits;
+    const oldPerUnitFlowRate = pool.perUnitFlowRate;
     const newTotalUnits = pool.totalUnits.plus(unitsDelta);
 
     pool = updatePoolParticleAndTotalAmountFlowedAndDistributed(event, pool);
@@ -69,21 +71,16 @@ export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
 
     ensureAccountAndPoolInteractionExists(pool.token, poolMember.account, pool.id, event.block);
 
-    const existingPoolFlowRate = pool.perUnitFlowRate.times(pool.totalUnits);
-    let newPerUnitFlowRate: BigInt;
-    let remainderRate: BigInt;
-
-    if (!newTotalUnits.equals(BIG_INT_ZERO)) {
-        newPerUnitFlowRate = existingPoolFlowRate.div(newTotalUnits);
-        remainderRate = existingPoolFlowRate.minus(newPerUnitFlowRate.times(newTotalUnits));
-    } else {
-        remainderRate = existingPoolFlowRate;
-        newPerUnitFlowRate = BIG_INT_ZERO;
-    }
+    const oldEffectivePoolFlowRate = oldPerUnitFlowRate.times(oldTotalUnits);
+    
+    const newPerUnitFlowRate = divideOrZero(oldEffectivePoolFlowRate, newTotalUnits);
     pool.perUnitFlowRate = newPerUnitFlowRate;
-    pool.totalUnits = newTotalUnits;
 
-    poolMember.syncedPerUnitFlowRate = poolMember.syncedPerUnitFlowRate.plus(remainderRate);
+    const newEffectivePoolFlowRate = newPerUnitFlowRate.times(newTotalUnits); // This will either be equal or less than the previous one.
+    pool.adjustmentFlowRate = pool.flowRate.minus(newEffectivePoolFlowRate);
+    
+    pool.totalUnits = newTotalUnits;
+    poolMember.syncedPerUnitFlowRate = newPerUnitFlowRate;
     poolMember.units = event.params.newUnits;
 
     if (poolMember.isConnected) {

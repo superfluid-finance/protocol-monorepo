@@ -30,7 +30,6 @@ export interface PoolMember {
     totalAmountClaimed: BigNumber;
     token: Address;
     totalAmountReceivedUntilUpdatedAt: BigNumber;
-    poolTotalAmountDistributedUntilUpdatedAt: BigNumber;
     pool: Address;
     syncedPerUnitFlowRate: BigNumber;
     syncedPerUnitSettledValue: BigNumber;

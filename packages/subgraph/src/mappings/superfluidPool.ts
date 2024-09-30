@@ -3,7 +3,7 @@ import {
     DistributionClaimed,
     MemberUnitsUpdated,
 } from "../../generated/GeneralDistributionAgreementV1/ISuperfluidPool";
-import { DistributionClaimedEvent, MemberUnitsUpdatedEvent } from "../../generated/schema";
+import { DistributionClaimedEvent, MemberUnitsUpdatedEvent, Pool, PoolMember } from "../../generated/schema";
 import {
     _createAccountTokenSnapshotLogEntity,
     _createTokenStatisticLogEntity,
@@ -33,7 +33,6 @@ export function handleDistributionClaimed(event: DistributionClaimed): void {
     pool = updatePoolParticleAndTotalAmountFlowedAndDistributed(event, pool);
     settlePDPoolMemberMU(pool, poolMember, event.block);
     
-    
     // Update PoolMember
     poolMember.totalAmountClaimed = event.params.totalClaimed;
     
@@ -52,7 +51,7 @@ export function handleDistributionClaimed(event: DistributionClaimed): void {
     
     // Create Event Entity
     const amountDeltaReceivedSinceLastUpdate = poolMember.totalAmountReceivedUntilUpdatedAt.minus(totalAmountReceivedFromPoolBeforeUpdate);
-    _createDistributionClaimedEntity(event, poolMember.id, poolMember.totalAmountReceivedUntilUpdatedAt, amountDeltaReceivedSinceLastUpdate);
+    _createDistributionClaimedEntity(event, pool, poolMember);
 }
 
 export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
@@ -146,7 +145,7 @@ export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
 
     // Create Event Entity
     const amountDeltaReceivedSinceLastUpdate = poolMember.totalAmountReceivedUntilUpdatedAt.minus(totalAmountReceivedFromPoolBeforeUpdate);
-    _createMemberUnitsUpdatedEntity(event, poolMember.id, pool.totalUnits, poolMember.totalAmountReceivedUntilUpdatedAt, amountDeltaReceivedSinceLastUpdate);
+    _createMemberUnitsUpdatedEntity(event, pool, poolMember);
 
     // Other entity updates
     const eventName = "MemberUnitsUpdated";
@@ -158,10 +157,9 @@ export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
 }
 
 function _createDistributionClaimedEntity(
-    event: DistributionClaimed, 
-    poolMemberId: string, 
-    totalAmountReceivedFromPool: BigInt, 
-    amountDeltaReceivedSinceLastUpdate: BigInt
+    event: DistributionClaimed,
+    pool: Pool,
+    poolMember: PoolMember
 ): DistributionClaimedEvent 
 {
     const ev = new DistributionClaimedEvent(createEventID("DistributionClaimed", event));
@@ -171,9 +169,15 @@ function _createDistributionClaimedEntity(
     ev.claimedAmount = event.params.claimedAmount;
     ev.totalClaimed = event.params.totalClaimed;
     ev.pool = event.address.toHex();
-    ev.poolMember = poolMemberId;
-    ev.totalAmountReceivedFromPool = totalAmountReceivedFromPool;
-    ev.amountDeltaReceivedSinceLastUpdate = amountDeltaReceivedSinceLastUpdate;
+    ev.poolMember = poolMember.id;
+
+    ev.pool_perUnitSettledValue = pool.perUnitSettledValue;
+    ev.pool_perUnitFlowRate = pool.perUnitFlowRate;
+    ev.pool_adjustmentFlowRate = pool.adjustmentFlowRate;
+    ev.pool_totalUnits = pool.totalUnits;
+
+    ev.poolMember_units = poolMember.units;
+
     ev.save();
 
     return ev;
@@ -181,10 +185,8 @@ function _createDistributionClaimedEntity(
 
 function _createMemberUnitsUpdatedEntity(
     event: MemberUnitsUpdated,
-    poolMemberId: string,
-    totalUnits: BigInt,
-    totalAmountReceivedFromPool: BigInt,
-    amountDeltaReceivedSinceLastUpdate: BigInt
+    pool: Pool,
+    poolMember: PoolMember
 ): MemberUnitsUpdatedEvent {
     const ev = new MemberUnitsUpdatedEvent(createEventID("MemberUnitsUpdated", event));
     initializeEventEntity(ev, event, [event.params.token, event.address, event.params.member]);
@@ -192,11 +194,17 @@ function _createMemberUnitsUpdatedEntity(
     ev.token = event.params.token;
     ev.oldUnits = event.params.oldUnits;
     ev.units = event.params.newUnits;
-    ev.totalUnits = totalUnits;
+    ev.totalUnits = pool.totalUnits;
     ev.pool = event.address.toHex();
-    ev.poolMember = poolMemberId;
-    ev.totalAmountReceivedFromPool = totalAmountReceivedFromPool;
-    ev.amountDeltaReceivedSinceLastUpdate = amountDeltaReceivedSinceLastUpdate;
+    ev.poolMember = poolMember.id;
+
+    ev.pool_perUnitSettledValue = pool.perUnitSettledValue;
+    ev.pool_perUnitFlowRate = pool.perUnitFlowRate;
+    ev.pool_adjustmentFlowRate = pool.adjustmentFlowRate;
+    ev.pool_totalUnits = pool.totalUnits;
+
+    ev.poolMember_units = poolMember.units;
+
     ev.save();
 
     return ev;

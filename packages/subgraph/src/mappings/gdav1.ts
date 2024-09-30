@@ -10,8 +10,11 @@ import {
     BufferAdjustedEvent,
     FlowDistributionUpdatedEvent,
     InstantDistributionUpdatedEvent,
+    Pool,
     PoolConnectionUpdatedEvent,
     PoolCreatedEvent,
+    PoolDistributor,
+    PoolMember,
 } from "../../generated/schema";
 import { SuperfluidPool as SuperfluidPoolTemplate } from "../../generated/templates";
 import {
@@ -87,7 +90,7 @@ export function handlePoolCreated(event: PoolCreated): void {
 
     _createTokenStatisticLogEntity(event, event.params.token, eventName);
     // Create Event Entity
-    _createPoolCreatedEntity(event);
+    _createPoolCreatedEntity(event, pool);
 }
 
 export function handlePoolConnectionUpdated(
@@ -174,8 +177,7 @@ export function handlePoolConnectionUpdated(
     );
 
     // Create Event Entity
-    const amountDeltaReceivedSinceLastUpdate = poolMember.totalAmountReceivedUntilUpdatedAt.minus(totalAmountReceivedFromPoolBeforeUpdate);
-    _createPoolConnectionUpdatedEntity(event, poolMember.id, poolMember.totalAmountReceivedUntilUpdatedAt, amountDeltaReceivedSinceLastUpdate);
+    _createPoolConnectionUpdatedEntity(event, pool, poolMember);
 
     // Create ATS and Token Statistic Log Entities
     const eventName = "PoolConnectionUpdated";
@@ -220,7 +222,7 @@ export function handleBufferAdjusted(event: BufferAdjusted): void {
     tokenStatistic.save();
 
     // Create Event Entity
-    _createBufferAdjustedEntity(event, poolDistributor.id);
+    _createBufferAdjustedEntity(event, pool, poolDistributor);
 }
 
 export function handleFlowDistributionUpdated(
@@ -252,7 +254,9 @@ export function handleFlowDistributionUpdated(
 
     pool.flowRate = event.params.newTotalDistributionFlowRate;
     pool.perUnitFlowRate = divideOrZero(pool.flowRate, pool.totalUnits);
-    pool.adjustmentFlowRate = pool.flowRate.minus(pool.perUnitFlowRate.times(pool.totalUnits));
+
+    const newEffectivePoolFlowRate = pool.perUnitFlowRate.times(pool.totalUnits);
+    pool.adjustmentFlowRate = pool.flowRate.minus(newEffectivePoolFlowRate);
 
     pool.save();
 
@@ -307,7 +311,7 @@ export function handleFlowDistributionUpdated(
     );
 
     // Create Event Entity
-    _createFlowDistributionUpdatedEntity(event, poolDistributor.id, pool.totalUnits);
+    _createFlowDistributionUpdatedEntity(event, pool, poolDistributor);
 }
 
 export function handleInstantDistributionUpdated(
@@ -397,12 +401,15 @@ export function handleInstantDistributionUpdated(
     );
 
     // Create Event Entity
-    _createInstantDistributionUpdatedEntity(event, poolDistributor.id, pool.totalUnits);
+    _createInstantDistributionUpdatedEntity(event, pool, poolDistributor);
 }
 
 // Event Entity Creation Functions
 
-function _createPoolCreatedEntity(event: PoolCreated): PoolCreatedEvent {
+function _createPoolCreatedEntity(
+    event: PoolCreated,
+    pool: Pool
+): PoolCreatedEvent {
     const ev = new PoolCreatedEvent(createEventID("PoolCreated", event));
     initializeEventEntity(ev, event, [
         event.params.token,
@@ -416,6 +423,11 @@ function _createPoolCreatedEntity(event: PoolCreated): PoolCreatedEvent {
     ev.admin = event.params.admin;
     ev.pool = event.params.pool.toHex();
 
+    ev.pool_perUnitSettledValue = pool.perUnitSettledValue;
+    ev.pool_perUnitFlowRate = pool.perUnitFlowRate;
+    ev.pool_adjustmentFlowRate = pool.adjustmentFlowRate;
+    ev.pool_totalUnits = pool.totalUnits;
+
     ev.save();
 
     return ev;
@@ -423,9 +435,8 @@ function _createPoolCreatedEntity(event: PoolCreated): PoolCreatedEvent {
 
 function _createPoolConnectionUpdatedEntity(
     event: PoolConnectionUpdated,
-    poolMemberId: string,
-    totalAmountReceivedFromPool: BigInt,
-    amountDeltaReceivedSinceLastUpdate: BigInt,
+    pool: Pool,
+    poolMember: PoolMember
 ): PoolConnectionUpdatedEvent {
     const ev = new PoolConnectionUpdatedEvent(
         createEventID("PoolConnectionUpdated", event)
@@ -439,10 +450,15 @@ function _createPoolConnectionUpdatedEntity(
     ev.token = event.params.token;
     ev.connected = event.params.connected;
     ev.pool = event.params.pool.toHex();
-    ev.poolMember = poolMemberId;
+    ev.poolMember = poolMember.id;
     ev.userData = event.params.userData;
-    ev.totalAmountReceivedFromPool = totalAmountReceivedFromPool;
-    ev.amountDeltaReceivedSinceLastUpdate = amountDeltaReceivedSinceLastUpdate;
+
+    ev.pool_perUnitSettledValue = pool.perUnitSettledValue;
+    ev.pool_perUnitFlowRate = pool.perUnitFlowRate;
+    ev.pool_adjustmentFlowRate = pool.adjustmentFlowRate;
+    ev.pool_totalUnits = pool.totalUnits;
+
+    ev.poolMember_units = poolMember.units;
 
     ev.save();
 
@@ -451,7 +467,8 @@ function _createPoolConnectionUpdatedEntity(
 
 function _createBufferAdjustedEntity(
     event: BufferAdjusted,
-    poolDistributorId: string
+    pool: Pool,
+    poolDistributor: PoolDistributor
 ): BufferAdjustedEvent {
     const ev = new BufferAdjustedEvent(createEventID("BufferAdjusted", event));
     initializeEventEntity(ev, event, [
@@ -465,7 +482,12 @@ function _createBufferAdjustedEntity(
     ev.newBufferAmount = event.params.newBufferAmount;
     ev.totalBufferAmount = event.params.totalBufferAmount;
     ev.pool = event.params.pool.toHex();
-    ev.poolDistributor = poolDistributorId;
+    ev.poolDistributor = poolDistributor.id;
+
+    ev.pool_perUnitSettledValue = pool.perUnitSettledValue;
+    ev.pool_perUnitFlowRate = pool.perUnitFlowRate;
+    ev.pool_adjustmentFlowRate = pool.adjustmentFlowRate;
+    ev.pool_totalUnits = pool.totalUnits;
 
     ev.save();
 
@@ -474,8 +496,8 @@ function _createBufferAdjustedEntity(
 
 function _createInstantDistributionUpdatedEntity(
     event: InstantDistributionUpdated,
-    poolDistributorId: string,
-    totalUnits: BigInt
+    pool: Pool,
+    poolDistributor: PoolDistributor
 ): InstantDistributionUpdatedEvent {
     const ev = new InstantDistributionUpdatedEvent(
         createEventID("InstantDistributionUpdated", event)
@@ -492,9 +514,14 @@ function _createInstantDistributionUpdatedEntity(
     ev.requestedAmount = event.params.requestedAmount;
     ev.actualAmount = event.params.actualAmount;
     ev.pool = event.params.pool.toHex();
-    ev.poolDistributor = poolDistributorId;
-    ev.totalUnits = totalUnits;
+    ev.poolDistributor = poolDistributor.id;
+    ev.totalUnits = pool.totalUnits;
     ev.userData = event.params.userData;
+
+    ev.pool_perUnitSettledValue = pool.perUnitSettledValue;
+    ev.pool_perUnitFlowRate = pool.perUnitFlowRate;
+    ev.pool_adjustmentFlowRate = pool.adjustmentFlowRate;
+    ev.pool_totalUnits = pool.totalUnits;
 
     ev.save();
 
@@ -503,8 +530,8 @@ function _createInstantDistributionUpdatedEntity(
 
 function _createFlowDistributionUpdatedEntity(
     event: FlowDistributionUpdated,
-    poolDistributorId: string,
-    totalUnits: BigInt
+    pool: Pool,
+    poolDistributor: PoolDistributor
 ): FlowDistributionUpdatedEvent {
     const ev = new FlowDistributionUpdatedEvent(
         createEventID("FlowDistributionUpdated", event)
@@ -524,9 +551,14 @@ function _createFlowDistributionUpdatedEntity(
     ev.adjustmentFlowRecipient = event.params.adjustmentFlowRecipient;
     ev.adjustmentFlowRate = event.params.adjustmentFlowRate;
     ev.pool = event.params.pool.toHex();
-    ev.poolDistributor = poolDistributorId;
-    ev.totalUnits = totalUnits;
+    ev.poolDistributor = poolDistributor.id;
+    ev.totalUnits = pool.totalUnits;
     ev.userData = event.params.userData;
+
+    ev.pool_perUnitSettledValue = pool.perUnitSettledValue;
+    ev.pool_perUnitFlowRate = pool.perUnitFlowRate;
+    ev.pool_adjustmentFlowRate = pool.adjustmentFlowRate;
+    ev.pool_totalUnits = pool.totalUnits;
 
     ev.save();
 

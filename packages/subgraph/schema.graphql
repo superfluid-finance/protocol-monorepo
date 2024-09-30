@@ -615,7 +615,26 @@ type SubscriptionUnitsUpdatedEvent implements Event @entity(immutable: true) {
 
 #  GeneralDistributionAgreementV1 #
 
-type PoolCreatedEvent implements Event @entity(immutable: true) {
+interface PoolEvent implements Event {
+    pool: Pool!
+
+    pool_perUnitSettledValue: BigInt!
+    pool_perUnitFlowRate: BigInt!
+    pool_adjustmentFlowRate: BigInt!
+    pool_totalUnits: BigInt!
+}
+
+interface PoolMemberEvent implements PoolEvent {
+    poolMember: PoolMember!
+
+    poolMember_units: BigInt!
+}
+
+interface PoolDistributorEvent implements PoolEvent {
+    poolDistributor: PoolDistributor!
+}
+
+type PoolCreatedEvent implements Event & PoolEvent @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
@@ -639,10 +658,17 @@ type PoolCreatedEvent implements Event @entity(immutable: true) {
     caller: Bytes!
     admin: Bytes!
 
+    # Links
     pool: Pool!
+
+    # Snapshots
+    pool_perUnitSettledValue: BigInt!
+    pool_perUnitFlowRate: BigInt!
+    pool_adjustmentFlowRate: BigInt!
+    pool_totalUnits: BigInt!
 }
 
-type PoolConnectionUpdatedEvent implements Event @entity(immutable: true) {
+type PoolConnectionUpdatedEvent implements Event & PoolEvent & PoolMemberEvent @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
@@ -665,14 +691,19 @@ type PoolConnectionUpdatedEvent implements Event @entity(immutable: true) {
     connected: Boolean!
     userData: Bytes!
 
-    totalAmountReceivedFromPool: BigInt!
-    amountDeltaReceivedSinceLastUpdate: BigInt!
-
     pool: Pool!
     poolMember: PoolMember!
+
+    # Snapshots
+    pool_perUnitSettledValue: BigInt!
+    pool_perUnitFlowRate: BigInt!
+    pool_adjustmentFlowRate: BigInt!
+    pool_totalUnits: BigInt!
+
+    poolMember_units: BigInt!
 }
 
-type BufferAdjustedEvent implements Event @entity(immutable: true) {
+type BufferAdjustedEvent implements Event & PoolEvent @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
@@ -697,11 +728,18 @@ type BufferAdjustedEvent implements Event @entity(immutable: true) {
     newBufferAmount: BigInt!
     totalBufferAmount: BigInt!
 
+    # Links
     pool: Pool!
     poolDistributor: PoolDistributor!
+
+    # Snapshots
+    pool_perUnitSettledValue: BigInt!
+    pool_perUnitFlowRate: BigInt!
+    pool_adjustmentFlowRate: BigInt!
+    pool_totalUnits: BigInt!
 }
 
-type InstantDistributionUpdatedEvent implements Event @entity(immutable: true) {
+type InstantDistributionUpdatedEvent implements Event & PoolEvent & PoolDistributorEvent @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
@@ -728,11 +766,18 @@ type InstantDistributionUpdatedEvent implements Event @entity(immutable: true) {
     totalUnits: BigInt!
     userData: Bytes!
 
+    # Links
     pool: Pool!
     poolDistributor: PoolDistributor!
+
+    # Snapshots
+    pool_perUnitSettledValue: BigInt!
+    pool_perUnitFlowRate: BigInt!
+    pool_adjustmentFlowRate: BigInt!
+    pool_totalUnits: BigInt!
 }
 
-type FlowDistributionUpdatedEvent implements Event @entity(immutable: true) {
+type FlowDistributionUpdatedEvent implements Event & PoolEvent & PoolDistributorEvent @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
@@ -762,12 +807,19 @@ type FlowDistributionUpdatedEvent implements Event @entity(immutable: true) {
     totalUnits: BigInt!
     userData: Bytes!
 
+    # Links
     pool: Pool!
     poolDistributor: PoolDistributor!
+
+    # Snapshots
+    pool_perUnitSettledValue: BigInt!
+    pool_perUnitFlowRate: BigInt!
+    pool_adjustmentFlowRate: BigInt!
+    pool_totalUnits: BigInt!
 }
 
 #  SuperfluidPool #
-type DistributionClaimedEvent implements Event @entity(immutable: true) {
+type DistributionClaimedEvent implements Event & PoolEvent & PoolMemberEvent @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
@@ -790,17 +842,20 @@ type DistributionClaimedEvent implements Event @entity(immutable: true) {
     claimedAmount: BigInt!
     totalClaimed: BigInt!
 
-    """
-    The total amount received from the pool. (Same as `totalAmountReceivedUntilUpdatedAt` on PoolMember entity.)
-    """
-    totalAmountReceivedFromPool: BigInt!
-    amountDeltaReceivedSinceLastUpdate: BigInt!
-
+    # Links
     pool: Pool!
     poolMember: PoolMember!
+
+    # Snapshots
+    pool_perUnitSettledValue: BigInt!
+    pool_perUnitFlowRate: BigInt!
+    pool_adjustmentFlowRate: BigInt!
+    pool_totalUnits: BigInt!
+
+    poolMember_units: BigInt!
 }
 
-type MemberUnitsUpdatedEvent implements Event @entity(immutable: true) {
+type MemberUnitsUpdatedEvent implements Event & PoolEvent & PoolMemberEvent @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
@@ -824,14 +879,17 @@ type MemberUnitsUpdatedEvent implements Event @entity(immutable: true) {
     units: BigInt!
     totalUnits: BigInt!
 
-    """
-    The total amount received from the pool. (Same as `totalAmountReceivedUntilUpdatedAt` on PoolMember entity.)
-    """
-    totalAmountReceivedFromPool: BigInt!
-    amountDeltaReceivedSinceLastUpdate: BigInt!
-
+    # Links
     pool: Pool!
     poolMember: PoolMember!
+
+    # Snapshots
+    pool_perUnitSettledValue: BigInt!
+    pool_perUnitFlowRate: BigInt!
+    pool_adjustmentFlowRate: BigInt!
+    pool_totalUnits: BigInt!
+
+    poolMember_units: BigInt!
 }
 
 #     Host    #

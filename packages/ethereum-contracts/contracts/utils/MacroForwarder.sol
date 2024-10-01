@@ -29,11 +29,12 @@ contract MacroForwarder is ForwarderBase {
      * @dev Run the macro defined by the provided macro contract and params.
      * @param  m      Target macro.
      * @param  params Parameters to run the macro.
+     * If value (native coins) is provided, it is forwarded.
      */
-    function runMacro(IUserDefinedMacro m, bytes calldata params) external returns (bool)
+    function runMacro(IUserDefinedMacro m, bytes calldata params) external payable returns (bool)
     {
         ISuperfluid.Operation[] memory operations = buildBatchOperations(m, params);
-        bool retVal = _forwardBatchCall(operations);
+        bool retVal = _forwardBatchCall(operations, msg.value);
         m.postCheck(_host, params, msg.sender);
         return retVal;
     }

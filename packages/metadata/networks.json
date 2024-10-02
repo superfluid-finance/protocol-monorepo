@@ -26,7 +26,7 @@
                 "wrapStrategy": "0x1D65c6d3AD39d454Ea8F682c49aE7744706eA96d"
             },
             "existentialNFTCloneFactory": "0xF76529ddEE7AA7890323eCa40C212758DD93B888",
-            "macroForwarder": "0xfD01285b9435bc45C243E5e7F978E288B2912de6"
+            "macroForwarder": "0xFD0268E33111565dE546af2675351A4b1587F89F"
         },
         "startBlockV1": 3220000,
         "logsQueryRange": 50000,
@@ -69,7 +69,7 @@
             "superfluidLoader": "0x862F59081FC7907F940bE4227b9f485d700E6cdD",
             "batchLiquidator": "0x79aE8BF8EE9238d8E848F7dbBF74Ddb3365f6c11",
             "existentialNFTCloneFactory": "0x0D1F0d4629B722b4dFabd195c14F12f2095418d9",
-            "macroForwarder": "0xfD01285b9435bc45C243E5e7F978E288B2912de6"
+            "macroForwarder": "0xFD0268E33111565dE546af2675351A4b1587F89F"
         },
         "startBlockV1": 3322400,
         "logsQueryRange": 10000,
@@ -113,7 +113,7 @@
             },
             "superfluidLoader": "0x109412E3C84f0539b43d39dB691B08c90f58dC7c",
             "batchLiquidator": "0x9539B21cC67844417E80aE168bc28c831E7Ed271",
-            "macroForwarder": "0xfD01285b9435bc45C243E5e7F978E288B2912de6"
+            "macroForwarder": "0xFD0268E33111565dE546af2675351A4b1587F89F"
         },
         "startBlockV1": 6886559,
         "logsQueryRange": 50000,
@@ -162,7 +162,7 @@
             "superfluidLoader": "0xe25603df330027d91A0BAcc3e80a7f9e84930FC6",
             "batchLiquidator": "0x70bbB7a057A13070dF11d533e8f299357D778637",
             "superTokenFactory": "0x87560833d59Be057aFc63cFFa3fc531589Ba428F",
-            "macroForwarder": "0xfD01285b9435bc45C243E5e7F978E288B2912de6"
+            "macroForwarder": "0xFD0268E33111565dE546af2675351A4b1587F89F"
         },
         "startBlockV1": 2823800,
         "logsQueryRange": 50000,
@@ -196,7 +196,7 @@
             "superTokenFactory": "0x7447E94Dfe3d804a9f46Bf12838d467c912C8F6C",
             "superfluidLoader": "0x777Be25F9fdcA87e8a0E06Ad4be93d65429FCb9f",
             "batchLiquidator": "0x95043eC349476B413eF5c369c4d2454a1a65eaB9",
-            "macroForwarder": "0xfD01285b9435bc45C243E5e7F978E288B2912de6"
+            "macroForwarder": "0xFD0268E33111565dE546af2675351A4b1587F89F"
         },
         "startBlockV1": 10604500,
         "logsQueryRange": 50000,

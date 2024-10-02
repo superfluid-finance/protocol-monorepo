@@ -260,6 +260,8 @@ contract PaidCFAOpsMacro is IUserDefinedMacro {
     }
 
     // Don't allow native tokens in excess of the required fee
+    // Note: this is safe only as long as this contract can't receive native tokens through other means,
+    // e.g. by implementing a fallback or receive function.
     function postCheck(ISuperfluid /*host*/, bytes memory /*params*/, address /*msgSender*/) external view {
         if (address(this).balance != 0) revert FeeOverpaid();
     }

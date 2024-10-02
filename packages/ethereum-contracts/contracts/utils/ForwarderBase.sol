@@ -25,10 +25,13 @@ abstract contract ForwarderBase {
     }
 
     function _forwardBatchCall(ISuperfluid.Operation[] memory ops) internal returns (bool) {
-        return _forwardBatchCall(ops, 0);
+        return _forwardBatchCallWithValue(ops, 0);
     }
 
-    function _forwardBatchCall(ISuperfluid.Operation[] memory ops, uint256 valueToForward) internal returns (bool) {
+    function _forwardBatchCallWithValue(ISuperfluid.Operation[] memory ops, uint256 valueToForward)
+        internal
+        returns (bool)
+    {
         bytes memory fwBatchCallData = abi.encodeCall(_host.forwardBatchCall, (ops));
 
         // https://eips.ethereum.org/EIPS/eip-2771

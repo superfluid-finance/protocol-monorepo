@@ -695,6 +695,7 @@
             "batchLiquidator": "0x6b008BAc0e5846cB5d9Ca02ca0e801fCbF88B6f9",
             "flowScheduler": "0xC72CEd15204d02183c83fEbb918b183E400811Ee",
             "vestingScheduler": "0xDF92D0E6Bcb9385FDe99aD21Ff5e47Fb47E3c6b2",
+            "vestingSchedulerV2": "0x7b77A34b8B76B66E97a5Ae01aD052205d5cbe257",
             "autowrap": {
                 "manager": "0x5D0acD0864Ad07ba4E1E0474AE69Da87482e14A9",
                 "wrapStrategy": "0xB29005319B0caB24cF6D4d24e8420E54BB29Cb0d"

@@ -7,8 +7,8 @@ import { ForwarderBase } from "../utils/ForwarderBase.sol";
 
 
 /**
- * @dev This is a trusted forwarder with high degree of extensibility through permission-less and user-defined "macro
- * contracts". This is a vanilla version without EIP-712 support.
+ * @dev This is a minimal version of a trusted forwarder with high degree of extensibility
+ * through permissionless and user-defined "macro contracts".
  */
 contract MacroForwarder is ForwarderBase {
     constructor(ISuperfluid host) ForwarderBase(host) {}

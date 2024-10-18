@@ -6,8 +6,8 @@ import { ISuperfluidToken } from "../superfluid/ISuperfluidToken.sol";
 
 /**
  * @title [DEPRECATED] Instant Distribution Agreement interface
- * @author Superfluid
  * @custom:deprecated Use IGeneralDistributionAgreementV1 instead
+ * @author Superfluid
  *
  * @notice
  *   - A publisher can create as many as indices as possibly identifiable with `indexId`.

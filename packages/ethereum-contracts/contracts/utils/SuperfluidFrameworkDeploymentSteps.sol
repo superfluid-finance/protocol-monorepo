@@ -5,7 +5,6 @@ pragma solidity >=0.8.11;
 // solhint-disable max-states-count
 
 import { CFAv1Forwarder } from "./CFAv1Forwarder.sol";
-import { IDAv1Forwarder } from "./IDAv1Forwarder.sol";
 import { GDAv1Forwarder } from "./GDAv1Forwarder.sol";
 import { ISuperfluid, ISuperfluidToken, Superfluid } from "../superfluid/Superfluid.sol";
 import { TestGovernance } from "./TestGovernance.sol";
@@ -29,7 +28,6 @@ import { SuperfluidUpgradeableBeacon } from "../upgradability/SuperfluidUpgradea
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 import { BatchLiquidator } from "./BatchLiquidator.sol";
 import { TOGA } from "./TOGA.sol";
-import { CFAv1Library } from "../apps/CFAv1Library.sol";
 import { IResolver } from "../interfaces/utils/IResolver.sol";
 import { DMZForwarder } from "../utils/DMZForwarder.sol";
 import { MacroForwarder } from "../utils/MacroForwarder.sol";
@@ -55,7 +53,6 @@ contract SuperfluidFrameworkDeploymentSteps {
         TestGovernance governance;
         Superfluid host;
         ConstantFlowAgreementV1 cfa;
-        CFAv1Library.InitData cfaLib;
         InstantDistributionAgreementV1 ida;
         GeneralDistributionAgreementV1 gda;
         SuperTokenFactory superTokenFactory;
@@ -63,7 +60,6 @@ contract SuperfluidFrameworkDeploymentSteps {
         TestResolver resolver;
         SuperfluidLoader superfluidLoader;
         CFAv1Forwarder cfaV1Forwarder;
-        IDAv1Forwarder idaV1Forwarder;
         GDAv1Forwarder gdaV1Forwarder;
         MacroForwarder macroForwarder;
         BatchLiquidator batchLiquidator;
@@ -90,7 +86,6 @@ contract SuperfluidFrameworkDeploymentSteps {
 
     // Forwarders
     CFAv1Forwarder internal cfaV1Forwarder;
-    IDAv1Forwarder internal idaV1Forwarder;
     GDAv1Forwarder internal gdaV1Forwarder;
     MacroForwarder internal macroForwarder;
 
@@ -111,7 +106,6 @@ contract SuperfluidFrameworkDeploymentSteps {
             governance: testGovernance,
             host: host,
             cfa: cfaV1,
-            cfaLib: CFAv1Library.InitData(host, cfaV1),
             ida: idaV1,
             gda: gdaV1,
             superTokenFactory: superTokenFactory,
@@ -119,7 +113,6 @@ contract SuperfluidFrameworkDeploymentSteps {
             resolver: testResolver,
             superfluidLoader: superfluidLoader,
             cfaV1Forwarder: cfaV1Forwarder,
-            idaV1Forwarder: idaV1Forwarder,
             gdaV1Forwarder: gdaV1Forwarder,
             macroForwarder: macroForwarder,
             batchLiquidator: batchLiquidator,
@@ -218,10 +211,6 @@ contract SuperfluidFrameworkDeploymentSteps {
             cfaV1Forwarder = CFAv1ForwarderDeployerLibrary.deploy(host);
             testGovernance.enableTrustedForwarder(host, ISuperfluidToken(address(0)), address(cfaV1Forwarder));
 
-            // Deploy IDAv1Forwarder
-            idaV1Forwarder = IDAv1ForwarderDeployerLibrary.deploy(host);
-            testGovernance.enableTrustedForwarder(host, ISuperfluidToken(address(0)), address(idaV1Forwarder));
-
             // Deploy GDAv1Forwarder
             gdaV1Forwarder = GDAv1ForwarderDeployerLibrary.deploy(host);
             testGovernance.enableTrustedForwarder(host, ISuperfluidToken(address(0)), address(gdaV1Forwarder));
@@ -277,9 +266,6 @@ contract SuperfluidFrameworkDeploymentSteps {
 
             // Register CFAv1Forwarder with Resolver
             testResolver.set("CFAv1Forwarder", address(cfaV1Forwarder));
-
-            // Register IDAv1Forwarder with Resolver
-            testResolver.set("IDAv1Forwarder", address(idaV1Forwarder));
 
             // Register GDAv1Forwarder with Resolver
             testResolver.set("GDAv1Forwarder", address(gdaV1Forwarder));
@@ -374,12 +360,6 @@ library SuperfluidGDAv1DeployerLibrary {
 library CFAv1ForwarderDeployerLibrary {
     function deploy(ISuperfluid _host) external returns (CFAv1Forwarder) {
         return new CFAv1Forwarder(_host);
-    }
-}
-
-library IDAv1ForwarderDeployerLibrary {
-    function deploy(ISuperfluid _host) external returns (IDAv1Forwarder) {
-        return new IDAv1Forwarder(_host);
     }
 }
 

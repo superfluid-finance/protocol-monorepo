@@ -5,7 +5,7 @@ import {
     ISuperfluid, ISuperToken, SuperAppDefinitions, IConstantFlowAgreementV1
 } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
 import { SuperAppBase } from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperAppBase.sol";
-import { CFAv1Library } from "@superfluid-finance/ethereum-contracts/contracts/apps/CFAv1Library.sol";
+import { CFAv1Library } from "./utils/CFAv1Library.sol";
 import { IFlowScheduler } from "./interface/IFlowScheduler.sol";
 
 /**

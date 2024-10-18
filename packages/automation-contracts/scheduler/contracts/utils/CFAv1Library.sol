@@ -5,7 +5,7 @@ import {
     ISuperfluid,
     ISuperfluidToken,
     IConstantFlowAgreementV1
-} from "../interfaces/superfluid/ISuperfluid.sol";
+} from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
 
 /**
  * @title Constant flow agreement v1 library
@@ -817,3 +817,4 @@ library CFAv1Library {
         );
     }
 }
+

@@ -13,7 +13,6 @@ const SuperfluidPoolLogicDeployerLibraryArtifact = require("@superfluid-finance/
 const SuperfluidPoolNFTLogicDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/SuperfluidPoolNFTLogicDeployerLibrary.json");
 const ProxyDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/ProxyDeployerLibrary.json");
 const CFAv1ForwarderDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/CFAv1ForwarderDeployerLibrary.json");
-const IDAv1ForwarderDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/IDAv1ForwarderDeployerLibrary.json");
 const GDAv1ForwarderDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/GDAv1ForwarderDeployerLibrary.json");
 const SuperTokenFactoryDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/SuperTokenFactoryDeployerLibrary.json");
 const SuperfluidFrameworkDeployerArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/utils/SuperfluidFrameworkDeployer.sol/SuperfluidFrameworkDeployer.json");
@@ -209,12 +208,6 @@ const _deployTestFramework = async (provider, signer) => {
             CFAv1ForwarderDeployerLibraryArtifact,
             signer
         );
-    const IDAv1ForwarderDeployerLibrary =
-        await _getFactoryAndReturnDeployedContract(
-            "IDAv1ForwarderDeployerLibrary",
-            IDAv1ForwarderDeployerLibraryArtifact,
-            signer
-        );
     const GDAv1ForwarderDeployerLibrary =
         await _getFactoryAndReturnDeployedContract(
             "GDAv1ForwarderDeployerLibrary",
@@ -276,9 +269,6 @@ const _deployTestFramework = async (provider, signer) => {
                 CFAv1ForwarderDeployerLibrary: getContractAddress(
                     CFAv1ForwarderDeployerLibrary
                 ),
-                IDAv1ForwarderDeployerLibrary: getContractAddress(
-                    IDAv1ForwarderDeployerLibrary
-                ),
                 GDAv1ForwarderDeployerLibrary: getContractAddress(
                     GDAv1ForwarderDeployerLibrary
                 ),
@@ -309,7 +299,6 @@ const printProtocolFrameworkAddresses = (framework) => {
         Resolver: framework.resolver,
         SuperfluidLoader: framework.superfluidLoader,
         CFAv1Forwarder: framework.cfaV1Forwarder,
-        IDAv1Forwarder: framework.idaV1Forwarder,
     };
 
     console.log(JSON.stringify(output, null, 2));

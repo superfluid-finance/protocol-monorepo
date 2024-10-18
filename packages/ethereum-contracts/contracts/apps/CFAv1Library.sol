@@ -8,7 +8,8 @@ import {
 } from "../interfaces/superfluid/ISuperfluid.sol";
 
 /**
- * @title Constant flow agreement v1 library
+ * @title [DEPRECATED] Constant flow agreement v1 library
+ * @custom:deprecated Use SuperTokenV1Library instead
  * @author Superfluid
  * @dev for working with the constant flow agreement within solidity
  * @dev the first set of functions are each for callAgreement()

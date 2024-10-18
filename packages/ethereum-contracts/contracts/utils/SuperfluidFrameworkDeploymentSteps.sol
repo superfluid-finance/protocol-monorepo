@@ -30,7 +30,6 @@ import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 import { BatchLiquidator } from "./BatchLiquidator.sol";
 import { TOGA } from "./TOGA.sol";
 import { CFAv1Library } from "../apps/CFAv1Library.sol";
-import { IDAv1Library } from "../apps/IDAv1Library.sol";
 import { IResolver } from "../interfaces/utils/IResolver.sol";
 import { DMZForwarder } from "../utils/DMZForwarder.sol";
 import { MacroForwarder } from "../utils/MacroForwarder.sol";
@@ -59,7 +58,6 @@ contract SuperfluidFrameworkDeploymentSteps {
         CFAv1Library.InitData cfaLib;
         InstantDistributionAgreementV1 ida;
         GeneralDistributionAgreementV1 gda;
-        IDAv1Library.InitData idaLib;
         SuperTokenFactory superTokenFactory;
         ISuperToken superTokenLogic;
         TestResolver resolver;
@@ -115,7 +113,6 @@ contract SuperfluidFrameworkDeploymentSteps {
             cfa: cfaV1,
             cfaLib: CFAv1Library.InitData(host, cfaV1),
             ida: idaV1,
-            idaLib: IDAv1Library.InitData(host, idaV1),
             gda: gdaV1,
             superTokenFactory: superTokenFactory,
             superTokenLogic: superTokenLogic,

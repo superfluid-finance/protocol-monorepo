@@ -16,7 +16,6 @@ import {
     SuperfluidFrameworkDeployer
 } from "@superfluid-finance/ethereum-contracts/contracts/utils/SuperfluidFrameworkDeployer.sol";
 import "@superfluid-finance/ethereum-contracts/contracts/apps/CFAv1Library.sol";
-import "@superfluid-finance/ethereum-contracts/contracts/apps/IDAv1Library.sol";
 import {
     SuperTokenV1Library
 } from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperTokenV1Library.sol";

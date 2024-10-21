@@ -10,9 +10,6 @@ import {
     ConstantFlowAgreementV1
 } from "@superfluid-finance/ethereum-contracts/contracts/agreements/ConstantFlowAgreementV1.sol";
 import {
-    InstantDistributionAgreementV1
-} from "@superfluid-finance/ethereum-contracts/contracts/agreements/InstantDistributionAgreementV1.sol";
-import {
     SuperfluidFrameworkDeployer
 } from "@superfluid-finance/ethereum-contracts/contracts/utils/SuperfluidFrameworkDeployer.sol";
 import {
@@ -23,7 +20,6 @@ import {
     IERC20,
     ISuperToken,
     IConstantFlowAgreementV1,
-    IInstantDistributionAgreementV1,
     SuperfluidTester
 } from "./SuperfluidTester.sol";
 

@@ -121,39 +121,6 @@ contract SuperfluidTester {
         );
     }
 
-    // IDA functions
-    function createIndex(uint32 indexId) public {
-        superToken.createIndex(indexId);
-    }
-
-    function updateSubscriptionUnits(uint32 indexId, address subscriber, uint128 units) public {
-        superToken.updateSubscriptionUnits(indexId, subscriber, units);
-    }
-
-    function updateIndex(uint32 indexId, uint128 indexValue) public {
-        superToken.updateIndexValue(indexId, indexValue);
-    }
-
-    function distribute(uint32 indexId, uint256 amount) public {
-        superToken.distribute(indexId, amount);
-    }
-
-    function approveSubscription(address publisher, uint32 indexId) public {
-        superToken.approveSubscription(publisher, indexId);
-    }
-
-    function revokeSubscription(address publisher, uint32 indexId) public {
-        superToken.revokeSubscription(publisher, indexId);
-    }
-
-    function deleteSubscription(address publisher, uint32 indexId, address subscriber) public {
-        superToken.deleteSubscription(publisher, indexId, subscriber);
-    }
-
-    function claim(address publisher, uint32 indexId, address subscriber) public {
-        superToken.claim(publisher, indexId, subscriber);
-    }
-
     // GDA functions
     function createPool(address admin, PoolConfig memory config) public returns (ISuperfluidPool pool) {
         pool = superToken.createPool(admin, config);
@@ -167,8 +134,8 @@ contract SuperfluidTester {
         superToken.disconnectPool(pool);
     }
 
-    function distributeToPool(address from, ISuperfluidPool pool, uint256 requestedAmount) public {
-        superToken.distributeToPool(from, pool, requestedAmount);
+    function distribute(address from, ISuperfluidPool pool, uint256 requestedAmount) public {
+        superToken.distribute(from, pool, requestedAmount);
     }
 
     function distributeFlow(address from, ISuperfluidPool pool, int96 flowRate) public {

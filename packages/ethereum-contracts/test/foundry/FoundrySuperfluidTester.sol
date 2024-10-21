@@ -1395,7 +1395,7 @@ contract FoundrySuperfluidTester is Test {
             if (useForwarder) {
                 sf.gdaV1Forwarder.distribute(superToken_, from_, pool_, requestedAmount, new bytes(0));
             } else {
-                superToken_.distributeToPool(from_, pool_, requestedAmount);
+                superToken_.distribute(from_, pool_, requestedAmount);
             }
             vm.stopPrank();
         }

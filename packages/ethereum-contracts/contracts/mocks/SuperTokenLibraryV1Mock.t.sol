@@ -319,10 +319,10 @@ contract SuperTokenLibraryGDAMock {
         token.createPool(admin, config);
     }
 
-    function distributeToPoolTest(ISuperToken token, address from, ISuperfluidPool pool, uint256 requestedAmount)
+    function distributeTest(ISuperToken token, address from, ISuperfluidPool pool, uint256 requestedAmount)
         external
     {
-        token.distributeToPool(from, pool, requestedAmount);
+        token.distribute(from, pool, requestedAmount);
     }
 
     function distributeFlowTest(ISuperToken token, address from, ISuperfluidPool pool, int96 requestedFlowRate)

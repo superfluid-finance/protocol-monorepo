@@ -1211,7 +1211,7 @@ library SuperTokenV1Library {
      * @param requestedAmount The amount of tokens to distribute.
      * @return A boolean value indicating whether the distribution was successful.
      */
-    function distributeToPool(ISuperToken token, address from, ISuperfluidPool pool, uint256 requestedAmount)
+    function distribute(ISuperToken token, address from, ISuperfluidPool pool, uint256 requestedAmount)
         internal
         returns (bool)
     {

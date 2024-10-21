@@ -125,7 +125,7 @@ contract StreamRedirector is SuperAppBase {
         int96 currentFlowRate = _superToken.getFlowRate(address(this), receiver);
 
         if (currentFlowRate > 0) {
-            newCtx = _superToken.deleteFlowFromWithCtx(
+            newCtx = _superToken.deleteFlowWithCtx(
                 address(this),
                 receiver,
                 newCtx

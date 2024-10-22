@@ -1089,6 +1089,46 @@ library SuperTokenV1Library {
     }
 
     /**
+     * @dev Creates a new Superfluid Pool with default PoolConfig: units not transferrable, allow multi-distributors
+     * @param token The Super Token address.
+     * @param admin The pool admin address.
+     * @return pool The address of the deployed Superfluid Pool
+     */
+    function createPool(ISuperToken token, address admin)
+        internal
+        returns (ISuperfluidPool pool)
+    {
+        return createPool(token, admin, false, true);
+    }
+
+    /**
+     * @dev Creates a new Superfluid Pool with default PoolConfig and the caller set as admin
+     * @return pool The address of the deployed Superfluid Pool
+     */
+    function createPool(ISuperToken token) internal returns (ISuperfluidPool pool) {
+        // note: from the perspective of the lib, msg.sender is the contract using the lib.
+        // from the perspective of the GDA contract, that will be the msg.sender
+        return createPool(token, address(this));
+    }
+
+    function createPool(
+        ISuperToken token,
+        address admin,
+        bool transferabilityForUnitsOwner,
+        bool distributionFromAnyAddress
+    )
+        internal
+        returns (ISuperfluidPool pool)
+    {
+        (, IGeneralDistributionAgreementV1 gda) = _getAndCacheHostAndGDA(token);
+        return gda.createPool(
+            token,
+            admin,
+            PoolConfig(transferabilityForUnitsOwner, distributionFromAnyAddress)
+        );
+    }
+
+    /**
      * @dev Updates the units of a pool member.
      * @param token The Super Token address.
      * @param pool The Superfluid Pool to update.
@@ -1468,7 +1508,7 @@ library SuperTokenV1Library {
     error INVALID_FLOW_RATE();
 
     /**
-     * @notice Sets the given flowrate between msg.sender and a given receiver.
+     * @notice Sets the given flowrate between the caller and a given receiver.
      * If there's no pre-existing flow and `flowrate` non-zero, a new flow is created.
      * If there's an existing flow and `flowrate` non-zero, the flowrate of that flow is updated.
      * If there's an existing flow and `flowrate` zero, the flow is deleted.
@@ -1485,7 +1525,7 @@ library SuperTokenV1Library {
         address receiver,
         int96 flowrate
     ) internal returns (bool) {
-        // Note that "this" here refers to the contract using the lib.
+        // note: from the lib's perspective, the caller is "this", NOT "msg.sender"
         address sender = address(this);
         int96 prevFlowRate = getFlowRate(token, sender, receiver);
 
@@ -1537,6 +1577,65 @@ library SuperTokenV1Library {
             return true;
         } else {
             revert INVALID_FLOW_RATE();
+        }
+    }
+
+    /**
+     * @dev creates a flow to an account or to pool members.
+     * If the receiver is an account, it uses the CFA, if it's a pool it uses the GDA.
+     * @param token Super token address
+     * @param receiverOrPool The receiver (account) or pool
+     * @param flowRate the flowrate to be set.
+     * @return A boolean value indicating whether the operation was successful.
+     * Note that all the specifics of the underlying agreement used still apply.
+     * E.g. if the CFA is used, a buffer will be applied,
+     * if the GDA is used, the effective flowrate may differ from the selected one.
+     */
+    function flowX(
+        ISuperToken token,
+        address receiverOrPool,
+        int96 flowRate
+    ) internal returns(bool) {
+        address sender = address(this);
+
+        (, IGeneralDistributionAgreementV1 gda) = _getAndCacheHostAndGDA(token);
+        if (gda.isPool(token, receiverOrPool)) {
+            return distributeFlow(
+                token,
+                sender,
+                ISuperfluidPool(receiverOrPool),
+                flowRate
+            );
+        } else {
+            return setFlowrate(token, receiverOrPool, flowRate);
+        }
+    }
+
+    /**
+     * @dev transfers `amount` to an account or distributes it to pool members.
+     * @param token Super token address
+     * @param receiverOrPool The receiver (account) or pool
+     * @param amount the amount to be transferred/distributed
+     * @return A boolean value indicating whether the operation was successful.
+     * Note in case of distribution, the effective amount may be smaller than requested.
+     */
+    function transferX(
+        ISuperToken token,
+        address receiverOrPool,
+        uint256 amount
+    ) internal returns(bool) {
+        address sender = address(this);
+
+        (, IGeneralDistributionAgreementV1 gda) = _getAndCacheHostAndGDA(token);
+        if (gda.isPool(token, receiverOrPool)) {
+            return distribute(
+                token,
+                sender,
+                ISuperfluidPool(receiverOrPool),
+                amount
+            );
+        } else {
+            return token.transfer(receiverOrPool, amount);
         }
     }
 

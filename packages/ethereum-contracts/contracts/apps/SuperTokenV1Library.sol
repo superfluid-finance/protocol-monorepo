@@ -799,13 +799,13 @@ library SuperTokenV1Library {
     /** CFA VIEW FUNCTIONS ************************************* */
 
     /**
-     * @dev get flow rate between two accounts for given token
+     * @dev get CFA flow rate between two accounts for given token
      * @param token The token used in flow
      * @param sender The sender of the flow
      * @param receiver The receiver of the flow
      * @return flowRate The flow rate
      */
-    function getFlowRate(ISuperToken token, address sender, address receiver)
+    function getCFAFlowRate(ISuperToken token, address sender, address receiver)
         internal view returns(int96 flowRate)
     {
         (, IConstantFlowAgreementV1 cfa) = _getHostAndCFA(token);
@@ -813,7 +813,7 @@ library SuperTokenV1Library {
     }
 
     /**
-     * @dev get flow info between two accounts for given token
+     * @dev get CFA flow info between two accounts for given token
      * @param token The token used in flow
      * @param sender The sender of the flow
      * @param receiver The receiver of the flow
@@ -822,7 +822,7 @@ library SuperTokenV1Library {
      * @return deposit The amount of deposit the flow
      * @return owedDeposit The amount of owed deposit of the flow
      */
-    function getFlowInfo(ISuperToken token, address sender, address receiver)
+    function getCFAFlowInfo(ISuperToken token, address sender, address receiver)
         internal view
         returns(uint256 lastUpdated, int96 flowRate, uint256 deposit, uint256 owedDeposit)
     {
@@ -1517,7 +1517,7 @@ library SuperTokenV1Library {
     ) internal returns (bool) {
         // note: from the lib's perspective, the caller is "this", NOT "msg.sender"
         address sender = address(this);
-        int96 prevFlowRate = getFlowRate(token, sender, receiver);
+        int96 prevFlowRate = getCFAFlowRate(token, sender, receiver);
 
         if (flowrate > 0) {
             if (prevFlowRate == 0) {
@@ -1551,7 +1551,7 @@ library SuperTokenV1Library {
         address receiver,
         int96 flowrate
     ) internal returns (bool) {
-        int96 prevFlowRate = getFlowRate(token, sender, receiver);
+        int96 prevFlowRate = getCFAFlowRate(token, sender, receiver);
 
         if (flowrate > 0) {
             if (prevFlowRate == 0) {
@@ -1578,8 +1578,7 @@ library SuperTokenV1Library {
      * @param flowRate the flowrate to be set.
      * @return A boolean value indicating whether the operation was successful.
      * Note that all the specifics of the underlying agreement used still apply.
-     * E.g. if the CFA is used, a buffer will be applied,
-     * if the GDA is used, the effective flowrate may differ from the selected one.
+     * E.g. if the GDA is used, the effective flowrate may differ from the selected one.
      */
     function flowX(
         ISuperToken token,
@@ -1626,6 +1625,50 @@ library SuperTokenV1Library {
             );
         } else {
             return token.transfer(receiverOrPool, amount);
+        }
+    }
+
+    /**
+     * @dev get flow rate between two accounts for given token
+     * @param token The token used in flow
+     * @param sender The sender of the flow
+     * @param receiverOrPool The receiver or pool receiving or distributing the flow
+     * @return flowRate The flow rate
+     * Note: edge case: if a CFA stream is going to a pool, it will return 0.
+     */
+    function getFlowRate(ISuperToken token, address sender, address receiverOrPool)
+        internal view returns(int96 flowRate)
+    {
+        (, IGeneralDistributionAgreementV1 gda) = _getHostAndGDA(token);
+        if (gda.isPool(token, receiverOrPool)) {
+            (, flowRate,) = gda.getFlow(token, sender, ISuperfluidPool(receiverOrPool));
+        } else {
+            (, IConstantFlowAgreementV1 cfa) = _getHostAndCFA(token);
+            (, flowRate, , ) = cfa.getFlow(token, sender, receiverOrPool);
+        }
+    }
+
+    /**
+     * @dev get flow info between an account and another account or pool for given token
+     * @param token The token used in flow
+     * @param sender The sender of the flow
+     * @param receiverOrPool The receiver or pool receiving or distributing the flow
+     * @return lastUpdated Timestamp of flow creation or last flowrate change
+     * @return flowRate The flow rate
+     * @return deposit The amount of deposit the flow
+     * @return owedDeposit The amount of owed deposit of the flow
+     * Note: edge case: a CFA stream going to a pool will not be "seen".
+     */
+    function getFlowInfo(ISuperToken token, address sender, address receiverOrPool)
+        internal view
+        returns(uint256 lastUpdated, int96 flowRate, uint256 deposit, uint256 owedDeposit)
+    {
+        (, IGeneralDistributionAgreementV1 gda) = _getHostAndGDA(token);
+        if (gda.isPool(token, receiverOrPool)) {
+            (lastUpdated, flowRate, deposit) = gda.getFlow(token, sender, ISuperfluidPool(receiverOrPool));
+        } else {
+            (, IConstantFlowAgreementV1 cfa) = _getHostAndCFA(token);
+            (lastUpdated, flowRate, deposit, owedDeposit) = cfa.getFlow(token, sender, receiverOrPool);
         }
     }
 

@@ -503,7 +503,14 @@ contract SuperTokenLibraryGDASuperAppMock is SuperTokenLibraryGDAMock, SuperAppB
         ) = abi.decode(userData, (uint8, address, address, address, uint128, uint256, int96));
 
         if (functionIndex == uint8(FunctionIndex.UPDATE_MEMBER_UNITS)) {
+            /*
+            This used to be
             return token.updateMemberUnitsWithCtx(ISuperfluidPool(pool), member, units, ctx);
+            But updateMemberUnits doesn't need ctx, so we can move it to the pool interface
+            where it belongs.
+            */
+            ISuperfluidPool(pool).updateMemberUnits(member, units);
+            return ctx;
         } else if (functionIndex == uint8(FunctionIndex.CONNECT_POOL)) {
             return token.connectPoolWithCtx(ISuperfluidPool(pool), ctx);
         } else if (functionIndex == uint8(FunctionIndex.DISCONNECT_POOL)) {

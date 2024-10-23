@@ -1119,45 +1119,6 @@ library SuperTokenV1Library {
     }
 
     /**
-     * @dev Updates the units of a pool member.
-     * @param token The Super Token address.
-     * @param pool The Superfluid Pool to update.
-     * @param memberAddress The address of the member to update.
-     * @param newUnits The new units of the member.
-     * @return bool A boolean value indicating whether the pool was created successfully.
-     */
-    function updateMemberUnits(ISuperToken token, ISuperfluidPool pool, address memberAddress, uint128 newUnits)
-        internal
-        returns (bool)
-    {
-        return updateMemberUnits(token, pool, memberAddress, newUnits, new bytes(0));
-    }
-
-    /**
-     * @dev Updates the units of a pool member.
-     * @param token The Super Token address.
-     * @param pool The Superfluid Pool to update.
-     * @param memberAddress The address of the member to update.
-     * @param newUnits The new units of the member.
-     * @param userData User-specific data.
-     * @return A boolean value indicating whether the pool was created successfully.
-     */
-    function updateMemberUnits(
-        ISuperToken token,
-        ISuperfluidPool pool,
-        address memberAddress,
-        uint128 newUnits,
-        bytes memory userData
-    ) internal returns (bool) {
-        (ISuperfluid host, IGeneralDistributionAgreementV1 gda) = _getAndCacheHostAndGDA(token);
-        host.callAgreement(
-            gda, abi.encodeCall(gda.updateMemberUnits, (pool, memberAddress, newUnits, new bytes(0))), userData
-        );
-
-        return true;
-    }
-
-    /**
      * @dev Claims all tokens from the pool.
      * @param token The Super Token address.
      * @param pool The Superfluid Pool to claim from.
@@ -1311,39 +1272,6 @@ library SuperTokenV1Library {
     }
 
     /** GDA WITH CTX FUNCTIONS ************************************* */
-
-    /**
-     * @dev Updates the units of a pool member.
-     * @param token The Super Token address.
-     * @param pool The Superfluid Pool to update.
-     * @param memberAddress The address of the member to update.
-     * @param newUnits The new units of the member.
-     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
-     * @return newCtx The updated context after the execution of the agreement function
-     */
-    function updateMemberUnitsWithCtx(
-        ISuperToken token,
-        ISuperfluidPool pool,
-        address memberAddress,
-        uint128 newUnits,
-        bytes memory ctx
-    ) internal returns (bytes memory newCtx) {
-        (ISuperfluid host, IGeneralDistributionAgreementV1 gda) = _getAndCacheHostAndGDA(token);
-        (newCtx,) = host.callAgreementWithContext(
-            gda,
-            abi.encodeCall(
-                gda.updateMemberUnits,
-                (
-                    pool,
-                    memberAddress,
-                    newUnits,
-                    new bytes(0) // ctx placeholder
-                )
-            ),
-            "0x",
-            ctx
-        );
-    }
 
     /**
      * @dev Claims all tokens from the pool.

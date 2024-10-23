@@ -1154,7 +1154,7 @@ contract FoundrySuperfluidTester is Test {
             if (useBools_.useForwarder) {
                 sf.gdaV1Forwarder.updateMemberUnits(pool_, member_, newUnits_, new bytes(0));
             } else {
-                poolSuperToken.updateMemberUnits(pool_, member_, newUnits_);
+                pool_.updateMemberUnits(member_, newUnits_);
             }
         } else {
             pool_.updateMemberUnits(member_, newUnits_);

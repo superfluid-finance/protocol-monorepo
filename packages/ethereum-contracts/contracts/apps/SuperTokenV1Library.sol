@@ -1098,7 +1098,14 @@ library SuperTokenV1Library {
         internal
         returns (ISuperfluidPool pool)
     {
-        return createPool(token, admin, false, true);
+        return createPool(
+            token,
+            admin,
+            PoolConfig({
+                transferabilityForUnitsOwner: false,
+                distributionFromAnyAddress: true
+            })
+        );
     }
 
     /**
@@ -1109,23 +1116,6 @@ library SuperTokenV1Library {
         // note: from the perspective of the lib, msg.sender is the contract using the lib.
         // from the perspective of the GDA contract, that will be the msg.sender
         return createPool(token, address(this));
-    }
-
-    function createPool(
-        ISuperToken token,
-        address admin,
-        bool transferabilityForUnitsOwner,
-        bool distributionFromAnyAddress
-    )
-        internal
-        returns (ISuperfluidPool pool)
-    {
-        (, IGeneralDistributionAgreementV1 gda) = _getAndCacheHostAndGDA(token);
-        return gda.createPool(
-            token,
-            admin,
-            PoolConfig(transferabilityForUnitsOwner, distributionFromAnyAddress)
-        );
     }
 
     /**

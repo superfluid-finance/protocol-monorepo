@@ -383,6 +383,35 @@ contract FoundrySuperfluidTester is Test {
         assertTrue(_defintionAumGtEqSuperTokenTotalSupplyInvariant(), "Invariant: AUM > SuperToken Total Supply");
     }
 
+    /// @notice Asserts that the real time balances for all active test accounts are expected
+    /// @dev We also take a balance snapshot after each assertion
+    /// @param superToken_ The SuperToken to check
+    function _assertRealTimeBalances(ISuperToken superToken_) internal {
+        address[] memory accounts = _listAccounts();
+        for (uint i; i < accounts.length; ++i) {
+            address account = accounts[i];
+            RealtimeBalance memory balanceSnapshot = _balanceSnapshots[superToken_][account];
+            (int256 avb, uint256 deposit, uint256 owedDeposit, uint256 currentTime) =
+                superToken_.realtimeBalanceOfNow(account);
+            int96 cfaNetFlowRate = superToken_.getCFANetFlowRate(account);
+
+            // GDA Net Flow Rate is 0 for pools because this is not accounted for in the pools' RTB
+            // however it is the disconnected flow rate for that pool
+            int96 gdaNetFlowRate =
+                sf.gda.isPool(superToken_, account) ? int96(0) : superToken_.getGDANetFlowRate(account);
+            int96 netFlowRate = cfaNetFlowRate + gdaNetFlowRate;
+            int256 amountFlowedSinceSnapshot = (currentTime - balanceSnapshot.timestamp).toInt256() * netFlowRate;
+            int256 expectedAvb = balanceSnapshot.availableBalance + amountFlowedSinceSnapshot;
+
+            assertEq(balanceSnapshot.deposit, deposit, "Real Time Balances: deposit");
+            assertEq(balanceSnapshot.owedDeposit, owedDeposit, "Real Time Balances: owed deposit");
+            assertEq(avb, expectedAvb, "Real Time Balances: available balance");
+
+            _helperTakeBalanceSnapshot(superToken_, account);
+        }
+    }
+
+
     /// @notice Warps forwards 1 day and asserts balances of all testers and global invariants
     function _warpAndAssertAll(ISuperToken superToken_) internal virtual {
         vm.warp(block.timestamp + DEFAULT_WARP_TIME);
@@ -1041,457 +1070,6 @@ contract FoundrySuperfluidTester is Test {
         _assertGlobalInvariants();
     }
 
-    // Write Helpers - InstantDistributionAgreementV1
-
-    /// @notice Creates an index as a publisher with index id
-    /// @dev We assert:
-    ///     - the index was created and is empty
-    /// We also add the publisher id to the list of index id's belonging to the publisher
-    /// @param superToken_ The SuperToken to create the index for
-    /// @param publisher The publisher of the index
-    /// @param indexId The index id to create
-    function _helperCreateIndex(ISuperToken superToken_, address publisher, uint32 indexId) internal {
-        vm.startPrank(publisher);
-        superToken_.createIndex(indexId);
-        vm.stopPrank();
-
-        _helperAssertCreateIndex(superToken_, publisher, indexId);
-
-        _indexIDs[superToken_][publisher].add(_generatePublisherId(publisher, indexId));
-
-        // Assert Global Invariants
-        _assertGlobalInvariants();
-    }
-
-    function _helperAssertCreateIndex(ISuperToken superToken_, address publisher, uint32 indexId) internal view {
-        _assertIndexData(superToken_, publisher, indexId, true, 0, 0, 0);
-    }
-
-    /// @notice Updates the index value of an index which distributes tokens to subscribers
-    /// @dev We assert:
-    ///     - The index data has been updated as expected
-    ///     - the publisher's balance and deposit has been updated as expected
-    /// @param superToken_ The SuperToken to update the index value for
-    /// @param publisher The publisher of the index
-    /// @param indexId The indexId to update
-    /// @param newIndexValue The new index value to update to
-    function _helperUpdateIndexValue(ISuperToken superToken_, address publisher, uint32 indexId, uint128 newIndexValue)
-        internal
-    {
-        // Get Index Data and Publisher Balance Before
-        (, uint128 indexValueBefore, uint128 totalUnitsApprovedBefore, uint128 totalUnitsPendingBefore) =
-            superToken_.getIndex(publisher, indexId);
-
-        (int256 publisherAvbBefore, uint256 publisherDepositBefore,,) = superToken_.realtimeBalanceOfNow(publisher);
-
-        // Execute Update Index Value
-        vm.startPrank(publisher);
-        superToken_.updateIndexValue(indexId, newIndexValue);
-        vm.stopPrank();
-
-        // Update Test State
-        _helperTakeBalanceSnapshot(superToken, publisher);
-
-        // Assert Publisher AVB and Deposit
-        {
-            uint128 indexValueDelta = newIndexValue - indexValueBefore;
-            int256 distributionAmount =
-                uint256(indexValueDelta * (totalUnitsApprovedBefore + totalUnitsPendingBefore)).toInt256();
-            uint256 depositDelta = indexValueDelta * totalUnitsPendingBefore;
-            _assertIndexData(
-                superToken_, publisher, indexId, true, newIndexValue, totalUnitsApprovedBefore, totalUnitsPendingBefore
-            );
-            (int256 publisherAvbAfter, uint256 publisherDepositAfter,,) = superToken_.realtimeBalanceOfNow(publisher);
-            assertEq(publisherAvbAfter, publisherAvbBefore - distributionAmount, "Update Index: Publisher AVB");
-            assertEq(publisherDepositAfter, publisherDepositBefore + depositDelta, "Update Index: Publisher Deposit");
-        }
-        // TODO we could actually save all the subscribers of an index and loop over them down the line
-        // Assert that balance for subscriber has been updated (dependent on approval status)
-
-        // Assert Global Invariants
-        _assertGlobalInvariants();
-    }
-
-    /// @notice Executes an IDA distribution of tokens to subscribers
-    /// @dev We assert:
-    ///     - The index data has been updated as expected
-    ///     - the publisher's balance and deposit has been updated as expected
-    /// @param superToken_ The SuperToken to update the index value for
-    /// @param publisher The publisher of the index
-    /// @param indexId The indexId to update
-    /// @param amount The new index value to update to
-    function _helperDistributeViaIDA(ISuperToken superToken_, address publisher, uint32 indexId, uint256 amount)
-        internal
-    {
-        // Get Index Data and Publisher Balance Before
-        (, uint128 indexValueBefore, uint128 totalUnitsApprovedBefore, uint128 totalUnitsPendingBefore) =
-            superToken_.getIndex(publisher, indexId);
-
-        (int256 publisherAvbBefore, uint256 publisherDepositBefore,,) = superToken_.realtimeBalanceOfNow(publisher);
-
-        // Get Calculated Distribution and assert is expected
-        (uint256 actualAmount, uint128 newIndexValue) = superToken_.calculateDistribution(publisher, indexId, amount);
-
-        uint128 indexValueDelta = newIndexValue - indexValueBefore;
-        int256 distributionAmount =
-            uint256(indexValueDelta * (totalUnitsApprovedBefore + totalUnitsPendingBefore)).toInt256();
-
-        assertEq(actualAmount, distributionAmount.toUint256(), "Distribute: Distribution Amount");
-        uint256 depositDelta = indexValueDelta * totalUnitsPendingBefore;
-
-        // Execute Distribute
-        vm.startPrank(publisher);
-        superToken_.distribute(indexId, amount);
-        vm.stopPrank();
-
-        // Update Test State
-        _helperTakeBalanceSnapshot(superToken, publisher);
-
-        // Assert Index Data, Publisher AVB and Deposit
-        _assertIndexData(
-            superToken_, publisher, indexId, true, newIndexValue, totalUnitsApprovedBefore, totalUnitsPendingBefore
-        );
-        (int256 publisherAvbAfter, uint256 publisherDepositAfter,,) = superToken_.realtimeBalanceOfNow(publisher);
-        assertEq(publisherAvbAfter, publisherAvbBefore - distributionAmount, "Distribute: Publisher AVB");
-        assertEq(publisherDepositAfter, publisherDepositBefore + depositDelta, "Distribute: Publisher Deposit");
-
-        // TODO we could actually save all the subscribers of an index and loop over them down the line
-        // Assert that balance for subscriber has been updated (dependent on approval status)
-    }
-
-    /// @notice Updates subscription units for a subscriber
-    /// @dev We assert:
-    ///     - The index data has been updated as expected
-    ///     - The subscription data has been updated as expected
-    /// @param params The params for IDA subscription function
-    /// @param units The desired units
-    function _helperUpdateSubscriptionUnits(IDASubscriptionParams memory params, uint128 units) internal {
-        // Get Subscription Data Before
-        bytes32 subId =
-            _generateSubscriptionId(params.subscriber, _generatePublisherId(params.publisher, params.indexId));
-        (, uint128 indexValue, uint128 totalUnitsApprovedBefore, uint128 totalUnitsPendingBefore) =
-            params.superToken.getIndex(params.publisher, params.indexId);
-
-        (bool approved,,) = _helperTryGetSubscription(params.superToken, subId);
-
-        // Execute Update Subscription Units
-        vm.startPrank(params.publisher);
-        params.superToken.updateSubscriptionUnits(params.indexId, params.subscriber, units);
-        vm.stopPrank();
-
-        // Assert Index Data and Subscription Data
-        {
-            uint128 expectedTotalUnitsApproved = approved ? totalUnitsApprovedBefore + units : totalUnitsApprovedBefore;
-            uint128 expectedTotalUnitsPending = approved ? totalUnitsPendingBefore : totalUnitsPendingBefore + units;
-
-            _assertIndexData(
-                params.superToken,
-                params.publisher,
-                params.indexId,
-                true,
-                indexValue,
-                expectedTotalUnitsApproved,
-                expectedTotalUnitsPending
-            );
-
-            // subIndexValue here is equivalent because we update the subscriber
-            // without updating the indexValue here.
-            uint256 subIndexValue = indexValue;
-            _lastUpdatedSubIndexValues[params.superToken][subId] = indexValue;
-            uint256 pending = approved ? 0 : indexValue - subIndexValue * units;
-
-            _assertSubscriptionData(params.superToken, subId, approved, units, pending);
-
-            // Assert Global Invariants
-            _assertGlobalInvariants();
-        }
-    }
-
-    /// @notice Approves a subscription
-    /// @dev We assert:
-    ///     - The index data has been updated as expected
-    ///     - The subscription data has been updated as expected
-    ///     - The subscriber's balance has been updated as expected
-    ///     - The publisher's balance has been updated as expected
-    /// @param params The params for IDA subscription function
-    function _helperApproveSubscription(IDASubscriptionParams memory params) internal {
-        bytes32 subId =
-            _generateSubscriptionId(params.subscriber, _generatePublisherId(params.publisher, params.indexId));
-
-        // Get Balance Data Before
-        (int256 publisherAvbBefore, uint256 publisherDepositBefore,,) =
-            params.superToken.realtimeBalanceOfNow(params.publisher);
-        (int256 subscriberAvbBefore,,,) = params.superToken.realtimeBalanceOfNow(params.subscriber);
-
-        // Get Index/Subscription Data
-        (, uint128 indexValue, uint128 totalUnitsApprovedBefore, uint128 totalUnitsPendingBefore) =
-            params.superToken.getIndex(params.publisher, params.indexId);
-        (, uint128 unitsBefore,) = _helperTryGetSubscription(params.superToken, subId);
-
-        uint128 subIndexValueDelta = indexValue - _lastUpdatedSubIndexValues[params.superToken][subId];
-        int256 balanceDelta = uint256(subIndexValueDelta * unitsBefore).toInt256();
-
-        // Assert Subscription Data Before
-        _assertSubscriptionData(params.superToken, subId, false, unitsBefore, balanceDelta.toUint256());
-
-        // Execute Approve Subscription
-        {
-            vm.startPrank(params.subscriber);
-            params.superToken.approveSubscription(params.publisher, params.indexId);
-            vm.stopPrank();
-        }
-
-        // Take Balance Snapshot
-        {
-            _helperTakeBalanceSnapshot(superToken, params.publisher);
-            _helperTakeBalanceSnapshot(superToken, params.subscriber);
-        }
-
-        // Assert Publisher Balance Data
-        {
-            (int256 publisherAvbAfter, uint256 publisherDepositAfter,,) =
-                params.superToken.realtimeBalanceOfNow(params.publisher);
-            assertEq(publisherAvbAfter, publisherAvbBefore, "Approve: Publisher AVB");
-            assertEq(
-                publisherDepositAfter,
-                (publisherDepositBefore.toInt256() - balanceDelta).toUint256(),
-                "Approve: Publisher Deposit"
-            );
-        }
-
-        // Assert Subscription Balance Data
-        {
-            (int256 subscriberAvbAfter,,,) = params.superToken.realtimeBalanceOfNow(params.subscriber);
-            assertEq(subscriberAvbAfter, subscriberAvbBefore + balanceDelta, "Approve: Subscriber AVB");
-        }
-
-        // Assert Subscription and Index Data
-        {
-            _assertSubscriptionData(params.superToken, subId, true, unitsBefore, 0);
-            _assertIndexData(
-                params.superToken,
-                params.publisher,
-                params.indexId,
-                true,
-                indexValue,
-                totalUnitsApprovedBefore + unitsBefore,
-                totalUnitsPendingBefore - unitsBefore
-            );
-        }
-
-        _lastUpdatedSubIndexValues[params.superToken][subId] = indexValue;
-
-        // Assert Global Invariants
-        _assertGlobalInvariants();
-    }
-
-    /// @notice Revokes a subscription
-    /// @dev We assert:
-    ///     - The index data has been updated as expected
-    ///     - The subscription data has been updated as expected
-    ///     - The subscriber's balance has been updated as expected
-    ///     - The publisher's balance has been updated as expected
-    /// @param params The params for IDA subscription function
-    function _helperRevokeSubscription(IDASubscriptionParams memory params) internal {
-        bytes32 subId =
-            _generateSubscriptionId(params.subscriber, _generatePublisherId(params.publisher, params.indexId));
-
-        // Get Balance Data Before
-        (int256 publisherAvbBefore,,,) = params.superToken.realtimeBalanceOfNow(params.publisher);
-        (int256 subscriberAvbBefore,,,) = params.superToken.realtimeBalanceOfNow(params.subscriber);
-
-        // Get Index/Subscription Data
-        (, uint128 indexValue, uint128 totalUnitsApprovedBefore, uint128 totalUnitsPendingBefore) =
-            params.superToken.getIndex(params.publisher, params.indexId);
-        (, uint128 unitsBefore,) = _helperTryGetSubscription(params.superToken, subId);
-
-        uint128 subIndexValueDelta = indexValue - _lastUpdatedSubIndexValues[params.superToken][subId];
-        int256 balanceDelta = uint256(subIndexValueDelta * unitsBefore).toInt256();
-
-        // Assert Subscription Data Before
-        _assertSubscriptionData(params.superToken, subId, true, unitsBefore, 0);
-
-        // Execute Revoke Subscription
-        {
-            vm.startPrank(params.subscriber);
-            params.superToken.revokeSubscription(params.publisher, params.indexId);
-            vm.stopPrank();
-        }
-
-        // Take Balance Snapshot
-        {
-            _helperTakeBalanceSnapshot(superToken, params.publisher);
-            _helperTakeBalanceSnapshot(superToken, params.subscriber);
-        }
-
-        // Assert Publisher Balance Data
-        {
-            (int256 publisherAvbAfter,,,) = params.superToken.realtimeBalanceOfNow(params.publisher);
-            assertEq(publisherAvbAfter, publisherAvbBefore, "Revoke: Publisher AVB");
-        }
-
-        // Assert Subscription Balance Data
-        {
-            (int256 subscriberAvbAfter,,,) = params.superToken.realtimeBalanceOfNow(params.subscriber);
-            assertEq(subscriberAvbAfter, subscriberAvbBefore + balanceDelta, "Revoke: Subscriber AVB");
-        }
-
-        // Assert Subscription and Index Data
-        {
-            _assertSubscriptionData(params.superToken, subId, false, unitsBefore, 0);
-            _assertIndexData(
-                params.superToken,
-                params.publisher,
-                params.indexId,
-                true,
-                indexValue,
-                totalUnitsApprovedBefore - unitsBefore,
-                totalUnitsPendingBefore + unitsBefore
-            );
-        }
-
-        _lastUpdatedSubIndexValues[params.superToken][subId] = indexValue;
-
-        // Assert Global Invariants
-        _assertGlobalInvariants();
-    }
-
-    /// @notice Deletes a subscription
-    /// @dev We assert:
-    ///     - The index data has been updated as expected
-    ///     - The subscription data has been updated as expected
-    ///     - The subscriber's balance has been updated as expected
-    ///     - The publisher's balance has been updated as expected
-    /// @param params The params for IDA subscription function
-    function _helperDeleteSubscription(IDASubscriptionParams memory params) internal {
-        bytes32 subId =
-            _generateSubscriptionId(params.subscriber, _generatePublisherId(params.publisher, params.indexId));
-
-        // Get Balance Data Before
-        (int256 publisherAvbBefore, uint256 publisherDepositBefore,,) =
-            params.superToken.realtimeBalanceOfNow(params.publisher);
-        (int256 subscriberAvbBefore,,,) = params.superToken.realtimeBalanceOfNow(params.subscriber);
-
-        // Get Index/Subscription Data
-        (, uint128 indexValue, uint128 totalUnitsApprovedBefore, uint128 totalUnitsPendingBefore) =
-            params.superToken.getIndex(params.publisher, params.indexId);
-        (bool approvedBefore, uint128 unitsBefore,) = _helperTryGetSubscription(params.superToken, subId);
-
-        uint128 subIndexValueDelta = indexValue - _lastUpdatedSubIndexValues[params.superToken][subId];
-        int256 balanceDelta = uint256(subIndexValueDelta * unitsBefore).toInt256();
-
-        // Assert Subscription Data Before
-        _assertSubscriptionData(
-            params.superToken, subId, approvedBefore, unitsBefore, approvedBefore ? 0 : balanceDelta.toUint256()
-        );
-
-        // Execute Delete Subscription
-        {
-            vm.startPrank(params.publisher);
-            params.superToken.deleteSubscription(params.publisher, params.indexId, params.subscriber);
-            vm.stopPrank();
-        }
-
-        // Take Balance Snapshot
-        {
-            _helperTakeBalanceSnapshot(superToken, params.publisher);
-            _helperTakeBalanceSnapshot(superToken, params.subscriber);
-        }
-
-        // Assert Publisher Balance Data
-        {
-            (int256 publisherAvbAfter, uint256 publisherDeposit,,) =
-                params.superToken.realtimeBalanceOfNow(params.publisher);
-            assertEq(publisherAvbAfter, publisherAvbBefore, "Delete: Publisher AVB");
-            assertEq(publisherDeposit, publisherDepositBefore - balanceDelta.toUint256(), "Delete: Publisher Deposit");
-        }
-
-        // Assert Subscription Balance Data
-        {
-            (int256 subscriberAvbAfter,,,) = params.superToken.realtimeBalanceOfNow(params.subscriber);
-            assertEq(subscriberAvbAfter, subscriberAvbBefore + balanceDelta, "Delete: Subscriber AVB");
-        }
-
-        // Assert Subscription and Index Data
-        {
-            _assertSubscriptionData(params.superToken, subId, false, 0, 0);
-            _assertIndexData(
-                params.superToken,
-                params.publisher,
-                params.indexId,
-                true,
-                indexValue,
-                totalUnitsApprovedBefore - unitsBefore,
-                totalUnitsPendingBefore - unitsBefore
-            );
-        }
-
-        _lastUpdatedSubIndexValues[params.superToken][subId] = 0;
-
-        // Assert Global Invariants
-        _assertGlobalInvariants();
-    }
-
-    /// @notice Executes a claim for a subscription
-    /// @dev We assert:
-    ///     - The subscriber's balance has been updated as expected
-    ///     - The publisher's balance has been updated as expected
-    /// @param superToken_ The SuperToken to claim
-    /// @param caller The caller of the claim function
-    /// @param publisher The publisher of the subscription
-    /// @param indexId The index ID of the index
-    /// @param subscriber The subscriber of the subscription
-    function _helperClaimViaIDA(
-        ISuperToken superToken_,
-        address caller,
-        address publisher,
-        uint32 indexId,
-        address subscriber
-    ) internal {
-        bytes32 subId = _generateSubscriptionId(subscriber, _generatePublisherId(publisher, indexId));
-
-        // Get Balance Data Before
-        (, uint256 publisherDepositBefore,,) = superToken_.realtimeBalanceOfNow(publisher);
-        (int256 subscriberAvbBefore,,,) = superToken_.realtimeBalanceOfNow(subscriber);
-
-        // Get Index/Subscription Data
-        (, uint128 indexValue,,) = superToken_.getIndex(publisher, indexId);
-        (, uint128 unitsBefore,) = _helperTryGetSubscription(superToken_, subId);
-
-        uint128 subIndexValueDelta = indexValue - _lastUpdatedSubIndexValues[superToken_][subId];
-        int256 pendingDistribution = uint256(subIndexValueDelta * unitsBefore).toInt256();
-
-        // Execute Claim
-        vm.startPrank(caller);
-        superToken_.claim(publisher, indexId, subscriber);
-        vm.stopPrank();
-
-        // Take Balance Snapshot
-        {
-            _helperTakeBalanceSnapshot(superToken, publisher);
-            _helperTakeBalanceSnapshot(superToken, subscriber);
-        }
-
-        // Assert Publisher Balance Data
-        {
-            (, uint256 publisherDeposit,,) = superToken_.realtimeBalanceOfNow(publisher);
-            assertEq(
-                publisherDeposit, publisherDepositBefore - pendingDistribution.toUint256(), "Claim: Publisher Deposit"
-            );
-        }
-
-        // Assert Subscription Balance Data
-        {
-            (int256 subscriberAvbAfter,,,) = superToken_.realtimeBalanceOfNow(subscriber);
-            assertEq(subscriberAvbAfter, subscriberAvbBefore + pendingDistribution, "Claim: Subscriber AVB");
-        }
-
-        _lastUpdatedSubIndexValues[superToken_][subId] = indexValue;
-
-        // Assert Global Invariants
-        _assertGlobalInvariants();
-    }
-
     // Write Helpers - GeneralDistributionAgreementV1/SuperfluidPool
 
     function _helperCreatePool(
@@ -1565,7 +1143,7 @@ contract FoundrySuperfluidTester is Test {
 
     function _updateMemberUnits(
         ISuperfluidPool pool_,
-        ISuperToken poolSuperToken,
+        ISuperToken /*poolSuperToken*/,
         address caller_,
         address member_,
         uint128 newUnits_,
@@ -1576,7 +1154,7 @@ contract FoundrySuperfluidTester is Test {
             if (useBools_.useForwarder) {
                 sf.gdaV1Forwarder.updateMemberUnits(pool_, member_, newUnits_, new bytes(0));
             } else {
-                poolSuperToken.updateMemberUnits(pool_, member_, newUnits_);
+                pool_.updateMemberUnits(member_, newUnits_);
             }
         } else {
             pool_.updateMemberUnits(member_, newUnits_);
@@ -1817,7 +1395,7 @@ contract FoundrySuperfluidTester is Test {
             if (useForwarder) {
                 sf.gdaV1Forwarder.distribute(superToken_, from_, pool_, requestedAmount, new bytes(0));
             } else {
-                superToken_.distributeToPool(from_, pool_, requestedAmount);
+                superToken_.distribute(from_, pool_, requestedAmount);
             }
             vm.stopPrank();
         }
@@ -2178,81 +1756,6 @@ contract FoundrySuperfluidTester is Test {
         assertEq(deposit, expectedDeposit, "AccountFlowInfo: deposit");
         // TODO: we may need to pass expectedOwedDeposit at some point
         assertEq(owedDeposit, 0, "AccountFlowInfo: owed deposit");
-    }
-
-    // InstantDistributionAgreement Assertions
-
-    /// @dev Asserts that the index data has been updated as expected
-    /// @param superToken_ The SuperToken to check
-    /// @param publisher The publisher of the index
-    /// @param indexId The index ID of the index
-    /// @param expectedExist Whether the index should exist
-    /// @param expectedIndexValue The expected index value
-    /// @param expectedTotalUnitsApproved The expected total units approved
-    /// @param expectedTotalUnitsPending The expected total units pending
-    function _assertIndexData(
-        ISuperToken superToken_,
-        address publisher,
-        uint32 indexId,
-        bool expectedExist,
-        uint128 expectedIndexValue,
-        uint128 expectedTotalUnitsApproved,
-        uint128 expectedTotalUnitsPending
-    ) internal view {
-        (bool exist, uint128 indexValue, uint128 totalUnitsApproved, uint128 totalUnitsPending) =
-            superToken_.getIndex(publisher, indexId);
-
-        assertEq(exist, expectedExist, "IndexData: exist");
-        assertEq(indexValue, expectedIndexValue, "IndexData: index value");
-        assertEq(totalUnitsApproved, expectedTotalUnitsApproved, "IndexData: total units approved");
-        assertEq(totalUnitsPending, expectedTotalUnitsPending, "IndexData: total units pending");
-    }
-
-    /// @dev Asserts that the subscription data has been updated as expected
-    /// @param superToken_ The SuperToken to check
-    /// @param subscriptionId The subscription ID of the subscription
-    /// @param expectedApproved Whether the subscription should be approved
-    /// @param expectedUnits The expected units
-    /// @param expectedPending The expected pending
-    function _assertSubscriptionData(
-        ISuperToken superToken_,
-        bytes32 subscriptionId,
-        bool expectedApproved,
-        uint128 expectedUnits,
-        uint256 expectedPending
-    ) internal view {
-        (,, bool approved, uint128 units, uint256 pending) = superToken_.getSubscriptionByID(subscriptionId);
-        assertEq(approved, expectedApproved, "SubscriptionData: approved");
-        assertEq(units, expectedUnits, "SubscriptionData: units");
-        assertEq(pending, expectedPending, "SubscriptionData: pending");
-    }
-
-    /// @notice Asserts that the real time balances for all active test accounts are expected
-    /// @dev We also take a balance snapshot after each assertion
-    /// @param superToken_ The SuperToken to check
-    function _assertRealTimeBalances(ISuperToken superToken_) internal {
-        address[] memory accounts = _listAccounts();
-        for (uint i; i < accounts.length; ++i) {
-            address account = accounts[i];
-            RealtimeBalance memory balanceSnapshot = _balanceSnapshots[superToken_][account];
-            (int256 avb, uint256 deposit, uint256 owedDeposit, uint256 currentTime) =
-                superToken_.realtimeBalanceOfNow(account);
-            int96 cfaNetFlowRate = superToken_.getCFANetFlowRate(account);
-
-            // GDA Net Flow Rate is 0 for pools because this is not accounted for in the pools' RTB
-            // however it is the disconnected flow rate for that pool
-            int96 gdaNetFlowRate =
-                sf.gda.isPool(superToken_, account) ? int96(0) : superToken_.getGDANetFlowRate(account);
-            int96 netFlowRate = cfaNetFlowRate + gdaNetFlowRate;
-            int256 amountFlowedSinceSnapshot = (currentTime - balanceSnapshot.timestamp).toInt256() * netFlowRate;
-            int256 expectedAvb = balanceSnapshot.availableBalance + amountFlowedSinceSnapshot;
-
-            assertEq(balanceSnapshot.deposit, deposit, "Real Time Balances: deposit");
-            assertEq(balanceSnapshot.owedDeposit, owedDeposit, "Real Time Balances: owed deposit");
-            assertEq(avb, expectedAvb, "Real Time Balances: available balance");
-
-            _helperTakeBalanceSnapshot(superToken_, account);
-        }
     }
 
     // GeneralDistributionAgreement Assertions

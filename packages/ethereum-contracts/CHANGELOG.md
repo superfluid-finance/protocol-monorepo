@@ -3,6 +3,15 @@ All notable changes to the ethereum-contracts will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [UNRELEASED]
+
+### Added
+- Added functionality to `SuperTokenV1Library`.
+
+### Breaking
+- Removed `CFAv1Library`, superseded by `SuperTokenV1Library`.
+- Removed `IDAv1Library` and IDA functionality from `SuperTokenV1Library`. IDA shall not be used anymore, the GDA covers all its functionality.
+
 ## [v1.11.1]
 
 ### Changed

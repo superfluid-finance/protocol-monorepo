@@ -238,7 +238,11 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         ISuperfluidPool pool = _helperCreatePool(superToken, alice, alice, useForwarder, config);
         vm.startPrank(bob);
         vm.expectRevert(IGeneralDistributionAgreementV1.GDA_NOT_POOL_ADMIN.selector);
-        pool.updateMemberUnits(bob, 69);
+        sf.host.callAgreement(
+            sf.gda,
+            abi.encodeCall(sf.gda.updateMemberUnits, (pool, bob, 69, new bytes(0))),
+            new bytes(0)
+        );
         vm.stopPrank();
     }
 

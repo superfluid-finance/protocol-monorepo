@@ -1143,7 +1143,7 @@ contract FoundrySuperfluidTester is Test {
 
     function _updateMemberUnits(
         ISuperfluidPool pool_,
-        ISuperToken poolSuperToken,
+        ISuperToken /*poolSuperToken*/,
         address caller_,
         address member_,
         uint128 newUnits_,

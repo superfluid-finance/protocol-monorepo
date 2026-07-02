@@ -16,10 +16,10 @@
     "scripts": {
         "build": "./build.sh && echo '@superfluid-finance/metadata build successfully'",
         "bump-version-to": "./bump-version-to.sh $@",
-        "lint": "run-s lint:*",
+        "lint": "yarn run -T run-s \"lint:*\"",
         "lint:js-eslint": "eslint . --max-warnings=0 --report-unused-disable-directives && echo '✔  Your .js files look good.'",
         "lint:consistency": "./tasks/compare-committed-against-build.sh",
-        "fix": "run-s fix:*",
+        "fix": "yarn run -T run-s \"fix:*\"",
         "fix:eslint": "yarn lint:js-eslint --fix",
         "check-updates": "ncu --target minor"
     },

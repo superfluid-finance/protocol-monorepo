@@ -22,7 +22,7 @@ jobs:
 
       - name: Install and Build
         run: |
-          yarn install --frozen-lockfile
+          yarn install --immutable
           yarn build-for-contracts-dev
 
       - name: Disabled — legacy truffle ops removed in v1.16.0

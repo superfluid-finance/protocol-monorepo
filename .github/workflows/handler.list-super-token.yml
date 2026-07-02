@@ -44,7 +44,7 @@ jobs:
 
       - name: Build
         run: |
-          yarn install --frozen-lockfile
+          yarn install --immutable
           yarn build-for-contracts-dev
 
       - name: List super token

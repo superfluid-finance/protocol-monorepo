@@ -10,8 +10,8 @@ Before interacting with the Superfluid community, please read and understand our
 
 At minimum, you will need to have these available in your development environment:
 
-- Yarn, sufficiently recent version, the actual yarn version is locked in `.yarnrc`.
-- Node.js 18.x.
+- Yarn 4 via [Corepack](https://nodejs.org/api/corepack.html) (`packageManager` in root `package.json`; config in `.yarnrc.yml`, `nodeLinker: node-modules`).
+- Node.js 22+ (CI tests 22, 24, 26).
 
 Additionally recommended:
 - jq
@@ -43,11 +43,12 @@ To use them:
 
 ### Installing Dependencies
 
-Before you do anything, you should run `yarn install && yarn build` in the root directory of your local-copy of the protocol-monorepo to install and build the necessary dependencies.
+Before you do anything, enable Corepack (once per machine) and install dependencies:
 
 ```bash
 cd protocol-monorepo
-yarn install && yarn build
+corepack enable
+yarn install --immutable && yarn build
 ```
 
 You'll also want to upgrade your Superfluid App to the canary, so you have the most recent changes.

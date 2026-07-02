@@ -24,8 +24,8 @@
     "scripts": {
         "build": "make build-all",
         "test": "make test-all",
-        "lint": "run-s lint:*",
-        "lint:sol": "solhint -w 0 `find src test -name *.sol` && echo '✔  Your .sol files look good.'",
+        "lint": "yarn run -T run-s \"lint:*\"",
+        "lint:sol": "yarn run -T solhint -w 0 $(find src test -name '*.sol') && echo '✔  Your .sol files look good.'",
         "check-updates": "ncu --target minor"
     }
 }

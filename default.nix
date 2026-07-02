@@ -4,9 +4,9 @@
       # development tooling defined in nix
       ./flake.nix
       ./flake.lock
-      # managing the npm dependencies with yarna
+      # managing the npm dependencies with yarn
       ./package.json
-      ./.yarnrc
+      ./.yarnrc.yml
       ./yarn.lock
     ];
   };

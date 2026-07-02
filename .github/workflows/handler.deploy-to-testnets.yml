@@ -51,7 +51,7 @@ jobs:
       - name: Build
         if: env.DO_SKIP != 1
         run: |
-          yarn install --frozen-lockfile
+          yarn install --immutable
           yarn build-for-contracts-dev
 
       - name: Deploy to ${{ matrix.network }}

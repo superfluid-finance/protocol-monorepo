@@ -39,7 +39,7 @@ Truffle-backed workflows are **all manually triggered** (`workflow_dispatch`). N
 
 ### Local `tasks/*.sh` (not CI)
 
-`tasks/deploy-*-forwarder.sh`, `tasks/etherscan-verify-framework.sh` — still use truffle exec; migrate to `new-ops-scripts/` when next used.
+`tasks/deploy-*-forwarder.sh` and `tasks/etherscan-verify-framework.sh` were migrated to `new-ops-scripts/` in v1.16.0.
 
 **Implication:** removing Truffle does **not** block merging v1.16.0 CI if automated tests pass. Manual deploy workflows can be updated incrementally.
 

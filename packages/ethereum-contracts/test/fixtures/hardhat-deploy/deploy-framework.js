@@ -3,7 +3,7 @@ const fs = require("fs");
 const util = require("util");
 const {execSync} = require("child_process");
 const getConfig = require("../../../scripts/ops-libs/getConfig");
-const SuperfluidSDK = require("@superfluid-finance/js-sdk");
+const SuperfluidSDK = require("../../lib/superfluid-test-sdk");
 const {web3tx} = require("@decentral.ee/web3-helpers");
 const deployERC1820 = require("./deploy-erc1820");
 

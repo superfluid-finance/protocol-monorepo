@@ -31,11 +31,11 @@ import {
 } from "./types";
 
 const {web3tx, wad4human} = require("@decentral.ee/web3-helpers");
-const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 
 const deployFramework = require("./fixtures/hardhat-deploy/deploy-framework");
 const deploySuperToken = require("./fixtures/hardhat-deploy/deploy-super-token");
 const deployTestToken = require("./fixtures/hardhat-deploy/deploy-test-token");
+const SuperfluidSDK = require("./lib/superfluid-test-sdk");
 
 const SuperTokenMock = artifacts.require("SuperTokenMock");
 const TestToken = artifacts.require("TestToken");

@@ -22,7 +22,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - **Build:** `yarn build` no longer runs Truffle compile; Hardhat + Foundry only. `build/bundled-abi.json` is now sourced from `build/hardhat/` artifacts.
 - **Dependencies:** `@truffle/contract` removed from production dependencies; `@decentral.ee/web3-helpers` moved to devDependencies (test/ops-only usage).
 - **Framework upgrade:** `foundry-scripts/UpgradeFramework.s.sol` + `new-ops-scripts/upgrade-framework.sh` replace `deploy-framework.js` for mainnet upgrades.
-- **js-sdk:** `@superfluid-finance/js-sdk` is deprecated; sdk-core / `@sfpro/sdk` remain the supported app path. Still used by `TestEnvironment` until a follow-up refactor.
+- **js-sdk:** `@superfluid-finance/js-sdk` is deprecated; sdk-core / `@sfpro/sdk` remain the supported app path. Removed from ethereum-contracts `devDependencies`; tests use `test/lib/superfluid-test-sdk.js` (monorepo-internal harness).
 
 ## [v1.15.2]
 

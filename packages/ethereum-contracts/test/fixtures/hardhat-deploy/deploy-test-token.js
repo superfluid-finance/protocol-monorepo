@@ -1,5 +1,5 @@
 const {web3tx} = require("@decentral.ee/web3-helpers");
-const SuperfluidSDK = require("@superfluid-finance/js-sdk");
+const SuperfluidSDK = require("../../lib/superfluid-test-sdk");
 const getConfig = require("../../../scripts/ops-libs/getConfig");
 
 const {

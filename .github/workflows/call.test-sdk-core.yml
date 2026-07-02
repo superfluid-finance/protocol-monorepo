@@ -82,7 +82,7 @@ jobs:
       - name: Install dependencies
         if: steps.base.outputs.cache-hit != 'true'
         run: |
-          yarn install --frozen-lockfile
+          yarn install --immutable
           npx tsc --version
           npx hardhat --version
 

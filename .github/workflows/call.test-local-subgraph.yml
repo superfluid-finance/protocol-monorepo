@@ -32,7 +32,7 @@ jobs:
       - name: Install dependencies
         if: steps.base.outputs.cache-hit != 'true'
         run: |
-          yarn install --frozen-lockfile
+          yarn install --immutable
           npx tsc --version
           npx graph --version
 
@@ -70,7 +70,7 @@ jobs:
 
       - name: Install dependencies
         if: steps.base.outputs.cache-hit != 'true'
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
 
       - name: Build contracts
         if: steps.base.outputs.cache-hit != 'true'

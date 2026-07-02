@@ -22,7 +22,7 @@ jobs:
 
       - name: Install and Build
         run: |
-          yarn install --frozen-lockfile
+          yarn install --immutable
           yarn build-for-contracts-dev
 
       - name: Start hardhat node

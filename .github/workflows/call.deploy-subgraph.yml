@@ -100,7 +100,7 @@ jobs:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Install dependencies"
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
 
       - name: "Build contracts"
         run: yarn build

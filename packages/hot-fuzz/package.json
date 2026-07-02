@@ -2,9 +2,7 @@
     "name": "@superfluid-finance/hot-fuzz",
     "description": "A hot fuzz for testing Superfluid protocol and Super Apps",
     "version": "0.1.0",
-    "bin": {
-        "hot-fuzz": "./hot-fuzz"
-    },
+    "bin": "./hot-fuzz",
     "bugs": "https://github.com/superfluid-org/protocol-monorepo/issues",
     "devDependencies": {
         "@superfluid-finance/ethereum-contracts": "^1.15.2"
@@ -21,8 +19,8 @@
         "directory": "packages/hot-fuzz"
     },
     "scripts": {
-        "lint": "run-s lint:*",
-        "lint:sol": "solhint -w 0 contracts/*.sol contracts/*/*.sol && echo '✔  Your .sol files look good.'",
+        "lint": "yarn run -T run-s \"lint:*\"",
+        "lint:sol": "yarn run -T solhint -w 0 contracts/*.sol contracts/*/*.sol && echo '✔  Your .sol files look good.'",
         "check-updates": "ncu --target minor"
     }
 }

@@ -56,8 +56,7 @@
         commonDevInputs = with pkgs; [
           mk-cache-key-pkg
           gnumake
-          # nodejs
-          yarn
+          # nodejs (corepack provides yarn via packageManager field)
           nodemon
           # for shell script linting
           shellcheck
@@ -103,8 +102,7 @@
 
         # spec developing specification
         specInputs = with pkgs; [
-          # for nodejs ecosystem
-          yarn
+          # for nodejs ecosystem (corepack provides yarn via packageManager field)
           gnumake
           # for haskell spec
           cabal-install
@@ -140,6 +138,9 @@
               SOLC = pkgs.lib.getExe pkgs.${solcVer};
               FOUNDRY_OFFLINE = "true";
               FOUNDRY_SOLC_VERSION = pkgs.lib.getExe pkgs.${solcVer};
+              shellHook = ''
+                corepack enable
+              '';
             }
             // o
           );

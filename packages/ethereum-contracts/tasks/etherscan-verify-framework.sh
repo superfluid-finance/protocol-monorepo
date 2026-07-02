@@ -7,21 +7,22 @@
 # if proxy addresses are provided, verification against up-to-date logic contracts will only succeed
 # once they point to those (after gov upgrade execution)
 
-CONTRACTS_DIR=build/truffle
-
-SOURCIFY_ONLY_NETWORKS=("degenchain")
 
 TRUFFLE_NETWORK=$1
 ADDRESSES_VARS=$2
 
 shift 1
 
+hardhat_artifact_path() {
+    find build/hardhat -path "*/${1}.sol/${1}.json" ! -name "*.dbg.json" 2>/dev/null | head -1
+}
+
 if [ -z "$ADDRESSES_VARS" ]; then
     EXTRA_ARGS="$*"
     echo "EXTRA_ARGS: $EXTRA_ARGS"
     echo "no addresses provided, fetching myself..."
     ADDRESSES_VARS="/tmp/superfluid.$TRUFFLE_NETWORK.addrs"
-    npx truffle exec --network "$TRUFFLE_NETWORK" ops-scripts/info-print-contract-addresses.js : "$ADDRESSES_VARS" || exit 1
+    yarn run-hardhat run scripts/ops/run-info-print-contract-addresses.js --network "$TRUFFLE_NETWORK" -- : "$ADDRESSES_VARS" || exit 1
 else
     shift 1
 fi
@@ -31,32 +32,31 @@ EXTRA_ARGS="$*"
 # shellcheck disable=SC1090
 source "$ADDRESSES_VARS"
 
-if [[ " ${SOURCIFY_ONLY_NETWORKS[*]} " == *" $TRUFFLE_NETWORK "* ]]; then
-    VERIFIERS="sourcify"
-else
-    VERIFIERS="etherscan,sourcify"
-fi
-
 FAILED_VERIFICATIONS=()
 function try_verify() {
     echo # newline for better readability
-    cmd="npx truffle run --network $TRUFFLE_NETWORK --verifiers=$VERIFIERS verify $* ${EXTRA_ARGS:+$EXTRA_ARGS}"
+    cmd="npx hardhat verify --network $TRUFFLE_NETWORK $* ${EXTRA_ARGS:+$EXTRA_ARGS}"
     echo "> $cmd"
     $cmd || FAILED_VERIFICATIONS[${#FAILED_VERIFICATIONS[@]}]="$*"
-        # NOTE: append using length so that having spaces in the element is not a problem
-        # TODO: version 0.6.5 of the plugin seems to not reliably return non-zero if verification fails
 }
 
 function link_library() {
     local contract_name="$1"
     local library_name="$2"
     local library_address="$3"
+    local artifact_path
+    artifact_path=$(hardhat_artifact_path "$contract_name")
+
+    if [ -z "$artifact_path" ]; then
+        echo "artifact not found for $contract_name" >&2
+        return 1
+    fi
 
     echo "linking $contract_name to $library_name at $library_address"
 
-    cp -f "$CONTRACTS_DIR/${contract_name}.json" "$CONTRACTS_DIR/${contract_name}.json.bak"
+    cp -f "$artifact_path" "${artifact_path}.bak"
     jq -s '.[0] * .[1]' \
-        "$CONTRACTS_DIR/${contract_name}.json.bak" \
+        "${artifact_path}.bak" \
         <(cat <<EOF
 {
     "networks": {
@@ -68,7 +68,7 @@ function link_library() {
     }
 }
 EOF
-        ) > "$CONTRACTS_DIR/${contract_name}.json"
+        ) > "$artifact_path"
 }
 
 if [ -n "$RESOLVER" ]; then
@@ -83,12 +83,10 @@ if [ -n "$SIMPLE_FORWARDER" ]; then
 fi
 
 if [ -n "$SUPERFLUID_HOST_LOGIC" ]; then
-    # verify the logic contract. May or may not be already set as a proxy implementation
     try_verify Superfluid@"${SUPERFLUID_HOST_LOGIC}"
 fi
 if [ -n "$SUPERFLUID_HOST_PROXY" ]; then
-    # by verifying against the proxy address, the contracts are "linked" in the Explorer
-    try_verify Superfluid@"${SUPERFLUID_HOST_PROXY}" --custom-proxy UUPSProxy
+    try_verify Superfluid@"${SUPERFLUID_HOST_PROXY}" --contract contracts/superfluid/Superfluid.sol:Superfluid
 fi
 
 if [ -n "$SUPERFLUID_GOVERNANCE" ]; then
@@ -98,7 +96,7 @@ if [ -n "$SUPERFLUID_GOVERNANCE" ]; then
         if [ -n "$SUPERFLUID_GOVERNANCE_LOGIC" ]; then
             try_verify SuperfluidGovernanceII@"${SUPERFLUID_GOVERNANCE_LOGIC}"
         fi
-        try_verify SuperfluidGovernanceII@"${SUPERFLUID_GOVERNANCE}" --custom-proxy SuperfluidGovernanceIIProxy
+        try_verify SuperfluidGovernanceII@"${SUPERFLUID_GOVERNANCE}" --contract contracts/gov/SuperfluidGovernanceII.sol:SuperfluidGovernanceII
     fi
 fi
 
@@ -110,15 +108,15 @@ if [ -n "$SUPER_TOKEN_FACTORY_LOGIC" ]; then
     try_verify SuperTokenFactory@"${SUPER_TOKEN_FACTORY_LOGIC}"
 fi
 if [ -n "$SUPER_TOKEN_FACTORY_PROXY" ]; then
-    try_verify SuperTokenFactory@"${SUPER_TOKEN_FACTORY_PROXY}" --custom-proxy UUPSProxy
+    try_verify SuperTokenFactory@"${SUPER_TOKEN_FACTORY_PROXY}" --contract contracts/superfluid/SuperTokenFactory.sol:SuperTokenFactory
 fi
 
 if [ -n "$POOL_ADMIN_NFT_PROXY" ]; then
-    try_verify PoolAdminNFT@"${POOL_ADMIN_NFT_PROXY}" --custom-proxy UUPSProxy
+    try_verify PoolAdminNFT@"${POOL_ADMIN_NFT_PROXY}" --contract contracts/agreements/gdav1/PoolAdminNFT.sol:PoolAdminNFT
 fi
 
 if [ -n "$POOL_MEMBER_NFT_PROXY" ]; then
-    try_verify PoolMemberNFT@"${POOL_MEMBER_NFT_PROXY}" --custom-proxy UUPSProxy
+    try_verify PoolMemberNFT@"${POOL_MEMBER_NFT_PROXY}" --contract contracts/agreements/gdav1/PoolMemberNFT.sol:PoolMemberNFT
 fi
 
 if [ -n "$POOL_ADMIN_NFT_LOGIC" ]; then
@@ -137,7 +135,7 @@ if [ -n "$CFA_LOGIC" ]; then
     try_verify ConstantFlowAgreementV1@"${CFA_LOGIC}"
 fi
 if [ -n "$CFA_PROXY" ]; then
-    try_verify ConstantFlowAgreementV1@"${CFA_PROXY}" --custom-proxy UUPSProxy
+    try_verify ConstantFlowAgreementV1@"${CFA_PROXY}" --contract contracts/agreements/ConstantFlowAgreementV1.sol:ConstantFlowAgreementV1
 fi
 
 if [ -n "$SLOTS_BITMAP_LIBRARY" ]; then
@@ -149,9 +147,12 @@ if [ -n "$IDA_LOGIC" ]; then
     try_verify InstantDistributionAgreementV1@"${IDA_LOGIC}"
 fi
 if [ -n "$IDA_PROXY" ]; then
-    try_verify InstantDistributionAgreementV1@"${IDA_PROXY}" --custom-proxy UUPSProxy
+    try_verify InstantDistributionAgreementV1@"${IDA_PROXY}" --contract contracts/agreements/InstantDistributionAgreementV1.sol:InstantDistributionAgreementV1
 fi
-mv -f $CONTRACTS_DIR/InstantDistributionAgreementV1.json.bak $CONTRACTS_DIR/InstantDistributionAgreementV1.json
+ida_artifact=$(hardhat_artifact_path InstantDistributionAgreementV1)
+if [ -n "$ida_artifact" ] && [ -f "${ida_artifact}.bak" ]; then
+    mv -f "${ida_artifact}.bak" "$ida_artifact"
+fi
 
 if [ -n "$SUPERFLUID_POOL_DEPLOYER_LIBRARY" ]; then
     try_verify SuperfluidPoolDeployerLibrary@"${SUPERFLUID_POOL_DEPLOYER_LIBRARY}"
@@ -161,7 +162,6 @@ if [ -n "$DUMMY_BEACON_PROXY" ]; then
     try_verify BeaconProxy@"${DUMMY_BEACON_PROXY}"
 fi
 
-# this will fail with 'Library address is not prefixed with "0x"' if a library address is not set
 link_library "GeneralDistributionAgreementV1" "SlotsBitmapLibrary" "${SLOTS_BITMAP_LIBRARY}"
 link_library "GeneralDistributionAgreementV1" "SuperfluidPoolDeployerLibrary" "${SUPERFLUID_POOL_DEPLOYER_LIBRARY}"
 if [ -n "$GDA_LOGIC" ]; then
@@ -169,9 +169,12 @@ if [ -n "$GDA_LOGIC" ]; then
 fi
 
 if [ -n "$GDA_PROXY" ]; then
-    try_verify GeneralDistributionAgreementV1@"${GDA_PROXY}" --custom-proxy UUPSProxy
+    try_verify GeneralDistributionAgreementV1@"${GDA_PROXY}" --contract contracts/agreements/gdav1/GeneralDistributionAgreementV1.sol:GeneralDistributionAgreementV1
 fi
-mv -f $CONTRACTS_DIR/GeneralDistributionAgreementV1.json.bak $CONTRACTS_DIR/GeneralDistributionAgreementV1.json
+gda_artifact=$(hardhat_artifact_path GeneralDistributionAgreementV1)
+if [ -n "$gda_artifact" ] && [ -f "${gda_artifact}.bak" ]; then
+    mv -f "${gda_artifact}.bak" "$gda_artifact"
+fi
 
 if [ -n "$SUPERFLUID_POOL_BEACON" ]; then
     try_verify SuperfluidUpgradeableBeacon@"${SUPERFLUID_POOL_BEACON}"
@@ -181,21 +184,14 @@ if [ -n "$SUPERFLUID_POOL_LOGIC" ]; then
     try_verify SuperfluidPool@"${SUPERFLUID_POOL_LOGIC}"
 fi
 
-# super tokens
-
 if [ -n "$SUPER_TOKEN_NATIVE_COIN" ];then
-    # special case: verify only the proxy
-    # it is expected to point to a SuperToken logic contract which is already verified
-    try_verify SuperToken@"${SUPER_TOKEN_NATIVE_COIN}" --custom-proxy SETHProxy
+    try_verify SuperToken@"${SUPER_TOKEN_NATIVE_COIN}" --contract contracts/superfluid/SuperToken.sol:SuperToken
 fi
 
-# testnet tokens
 for var in "${!NON_SUPER_TOKEN_@}"; do
     addr=${!var}
     try_verify TestToken@"$addr"
 done
-
-# optional peripery contracts
 
 if [ -n "$CFAV1_FORWARDER" ];then
     try_verify CFAv1Forwarder@"${CFAV1_FORWARDER}"

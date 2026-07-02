@@ -25,29 +25,8 @@ jobs:
           yarn install --frozen-lockfile
           yarn build-for-contracts-dev
 
-      - name: Start hardhat node
+      - name: Disabled — legacy truffle ops removed in v1.16.0
         run: |
-          cd ${{ env.ethereum-contracts-working-directory }}
-          npx hardhat node --port 47545 --fork ${{ github.event.inputs.provider-url }} &
-          sleep 5
-
-      - name: Deploy framework
-        run: |
-          echo "${{ github.event.inputs.environments }}" | sed 's/;/\n/' > .env
-          npx truffle exec --network ${{ github.event.inputs.network }} ops-scripts/deploy-test-environment.js
-        working-directory: ${{ env.ethereum-contracts-working-directory }}
-
-      - name: Validate deployment before token upgrade
-        run: |
-          npx hardhat run ops-scripts/validate-deployment.ts --network ${{ github.event.inputs.network }}
-        working-directory: ${{ env.ethereum-contracts-working-directory }}
-
-      - name: Update Super Token Logic for all tokens
-        run: |
-          npx truffle exec --network ${{ github.event.inputs.network }} ops-scripts/gov-upgrade-super-token-logic.js : ALL
-        working-directory: ${{ env.ethereum-contracts-working-directory }}
-
-      - name: Validate deployment post token upgrade
-        run: |
-          npx hardhat run ops-scripts/validate-deployment.ts --network ${{ github.event.inputs.network }}
-        working-directory: ${{ env.ethereum-contracts-working-directory }}
+          echo "This workflow depended on ops-scripts/ (deploy-test-environment, gov-upgrade-super-token-logic)."
+          echo "See packages/ethereum-contracts/docs/ops-scripts-migration.md"
+          exit 1

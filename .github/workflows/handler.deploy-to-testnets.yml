@@ -57,16 +57,16 @@ jobs:
       - name: Deploy to ${{ matrix.network }}
         if: env.DO_SKIP != 1
         run: |
-          cd packages/ethereum-contracts
-          echo "${{ github.event.inputs.environments }}" | sed 's/;/\n/' > .env
-          npx truffle exec --network ${{ matrix.network }} ops-scripts/deploy-test-environment.js
+          echo "deploy-test-environment.js was removed with ops-scripts/ (v1.16.0)."
+          echo "See packages/ethereum-contracts/docs/ops-scripts-migration.md"
+          exit 1
 
       - name: Etherscan verification of ${{ matrix.network }} deployment
         if: env.DO_SKIP != 1
         run: |
           cd packages/ethereum-contracts
           echo "${{ github.event.inputs.environments }}" | sed 's/;/\n/' > .env
-          npx truffle exec --network ${{ matrix.network }} ops-scripts/info-print-contract-addresses.js : addresses.vars
+          yarn run-hardhat run scripts/ops/run-info-print-contract-addresses.js --network ${{ matrix.network }} -- : addresses.vars
           tasks/etherscan-verify-framework.sh ${{ matrix.network }} addresses.vars
         env:
           SKIP_IF_UNSUPPORTED: 1

@@ -1,10 +1,11 @@
+/* eslint-disable no-inner-declarations */
 const fs = require("fs");
 const util = require("util");
-const { execSync } = require('child_process');
-const getConfig = require("./libs/getConfig");
+const {execSync} = require("child_process");
+const getConfig = require("../../../scripts/ops-libs/getConfig");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const {web3tx} = require("@decentral.ee/web3-helpers");
-const deployERC1820 = require("../ops-scripts/deploy-erc1820");
+const deployERC1820 = require("./deploy-erc1820");
 
 const {
     getScriptRunnerFactory: S,
@@ -20,7 +21,7 @@ const {
     pseudoAddressToVersionString,
     getGasConfig,
     warnProductionUUPSProxyInitRisk,
-} = require("./libs/common");
+} = require("../../../scripts/ops-libs/common");
 
 let resetSuperfluidFramework;
 let resolver;
@@ -42,7 +43,11 @@ async function deployAndRegisterContractIf(
         console.log(`${contractName} needs new deployment.`);
         contractDeployed = await deployFunc();
         console.log(`${resolverKey} deployed to`, contractDeployed.address);
-        await setResolver(sfObjForGovAndResolver, resolverKey, contractDeployed.address);
+        await setResolver(
+            sfObjForGovAndResolver,
+            resolverKey,
+            contractDeployed.address
+        );
     } else {
         console.log(`${contractName} does not need new deployment.`);
         contractDeployed = await Contract.at(contractAddress);
@@ -81,7 +86,13 @@ async function deployContractIfCodeChanged(
         web3,
         Contract,
         async () =>
-            await codeChanged(web3, Contract, codeAddress, codeReplacements, debug),
+            await codeChanged(
+                web3,
+                Contract,
+                codeAddress,
+                codeReplacements,
+                debug
+            ),
         deployFunc
     );
 }
@@ -120,10 +131,7 @@ function ap(addr) {
  * Usage: npx truffle exec ops-scripts/deploy-framework.js
  */
 
-module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
-    args,
-    options = {}
-) {
+module.exports = S({skipArgv: true})(async function (args, options = {}) {
     console.log("======== Deploying superfluid framework ========");
     let {
         newTestResolver,
@@ -168,8 +176,11 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     }
     output += `NETWORK_ID=${networkId}\n`;
 
-    const gitRevision = execSync('git rev-parse HEAD').toString().slice(0,16).trim();
-    const packageVersion = require('../package.json').version;
+    const gitRevision = execSync("git rev-parse HEAD")
+        .toString()
+        .slice(0, 16)
+        .trim();
+    const packageVersion = require("../../../package.json").version;
     const versionString = `${packageVersion}-${gitRevision}`;
 
     const deployerInitialBalance = await web3.eth.getBalance(deployerAddr);
@@ -195,7 +206,8 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         appCallbackGasLimit ||
         config.appCallbackGasLimit ||
         !!process.env.APP_CALLBACK_GAS_LIMIT;
-    newSuperfluidLoader = newSuperfluidLoader || !!process.env.NEW_SUPERFLUID_LOADER;
+    newSuperfluidLoader =
+        newSuperfluidLoader || !!process.env.NEW_SUPERFLUID_LOADER;
 
     console.log("app whitelisting enabled:", appWhiteListing);
     if (newTestResolver) {
@@ -308,11 +320,11 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             IMultiSigWallet,
             ISafe,
             IAccessControlEnumerable,
-            SuperfluidGovernanceBase
+            SuperfluidGovernanceBase,
         },
         resolver: {
-            address: resolver.address
-        }
+            address: resolver.address,
+        },
     };
 
     const previousVersionString = pseudoAddressToVersionString(
@@ -327,7 +339,8 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     await deployAndRegisterContractIf(
         SuperfluidLoader,
         "SuperfluidLoader-v1",
-        async (contractAddress) => newSuperfluidLoader === true || contractAddress === ZERO_ADDRESS,
+        async (contractAddress) =>
+            newSuperfluidLoader === true || contractAddress === ZERO_ADDRESS,
         async () => {
             const c = await web3tx(
                 SuperfluidLoader.new,
@@ -343,10 +356,15 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     let testGovernanceInitRequired = false;
     let governance;
     if (!config.disableTestGovernance && !process.env.NO_NEW_GOVERNANCE) {
-        const prevGovAddr = await resolver.get.call(`TestGovernance.${protocolReleaseVersion}`);
-        if (resetSuperfluidFramework || await codeChanged(web3, TestGovernance, prevGovAddr)) {
-            console.log(`TestGovernance needs new deployment.`);
-            const c = await web3tx(TestGovernance.new,"TestGovernance.new")();
+        const prevGovAddr = await resolver.get.call(
+            `TestGovernance.${protocolReleaseVersion}`
+        );
+        if (
+            resetSuperfluidFramework ||
+            (await codeChanged(web3, TestGovernance, prevGovAddr))
+        ) {
+            console.log("TestGovernance needs new deployment.");
+            const c = await web3tx(TestGovernance.new, "TestGovernance.new")();
             governance = await TestGovernance.at(c.address);
             testGovernanceInitRequired = true;
             output += `SUPERFLUID_GOVERNANCE=${c.address}\n`;
@@ -364,11 +382,17 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         `Superfluid.${protocolReleaseVersion}`,
         async (contractAddress) => !(await hasCode(web3, contractAddress)),
         async () => {
-            const simpleForwarder = await web3tx(SimpleForwarder.new, "SimpleForwarder.new")();
+            const simpleForwarder = await web3tx(
+                SimpleForwarder.new,
+                "SimpleForwarder.new"
+            )();
             console.log("SimpleForwarder address:", simpleForwarder.address);
             output += `SIMPLE_FORWARDER=${simpleForwarder.address}\n`;
 
-            const erc2771Forwarder = await web3tx(ERC2771Forwarder.new, "ERC2771Forwarder.new")();
+            const erc2771Forwarder = await web3tx(
+                ERC2771Forwarder.new,
+                "ERC2771Forwarder.new"
+            )();
             console.log("ERC2771Forwarder address:", erc2771Forwarder.address);
             output += `ERC2771_FORWARDER=${erc2771Forwarder.address}\n`;
 
@@ -380,7 +404,14 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             const superfluidLogic = await web3tx(
                 SuperfluidLogic.new,
                 "SuperfluidLogic.new"
-            )(nonUpgradable, appWhiteListing, appCallbackGasLimit, simpleForwarder.address, erc2771Forwarder.address, simpleAcl.address);
+            )(
+                nonUpgradable,
+                appWhiteListing,
+                appCallbackGasLimit,
+                simpleForwarder.address,
+                erc2771Forwarder.address,
+                simpleAcl.address
+            );
             console.log(
                 `Superfluid new code address ${superfluidLogic.address}`
             );
@@ -456,11 +487,17 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         if (config.macroFwd) {
             trustedForwarders.push(config.macroFwd);
         }
-        console.log(`initializing TestGovernance with config: ${JSON.stringify({
-            liquidationPeriod: config.liquidationPeriod,
-            patricianPeriod: config.patricityPeriod,
-            trustedForwarders
-        }, null, 2)}`);
+        console.log(
+            `initializing TestGovernance with config: ${JSON.stringify(
+                {
+                    liquidationPeriod: config.liquidationPeriod,
+                    patricianPeriod: config.patricityPeriod,
+                    trustedForwarders,
+                },
+                null,
+                2
+            )}`
+        );
 
         await web3tx(governance.initialize, "governance.initialize")(
             superfluid.address,
@@ -542,7 +579,11 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             } else {
                 contract.link(externalLibraryName, externalLibrary.address);
             }
-            console.log(externalLibraryName, "address", externalLibrary.address);
+            console.log(
+                externalLibraryName,
+                "address",
+                externalLibrary.address
+            );
             return externalLibrary;
         } catch (err) {
             console.warn("Error: ", err);
@@ -642,7 +683,10 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                         GeneralDistributionAgreementV1.link(lib);
                     }
                 } catch (e) {
-                    console.warn("!!! Cannot link slotsBitmapLibrary", e.toString());
+                    console.warn(
+                        "!!! Cannot link slotsBitmapLibrary",
+                        e.toString()
+                    );
                     if (protocolReleaseVersion !== "test") {
                         throw e;
                     }
@@ -706,14 +750,17 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         */
 
         // ...and transfer ownership of the beacon
-        console.log("Transferring ownership of beacon contract to Superfluid Host...");
-        await superfluidPoolBeaconContract.transferOwnership(superfluid.address);
+        console.log(
+            "Transferring ownership of beacon contract to Superfluid Host..."
+        );
+        await superfluidPoolBeaconContract.transferOwnership(
+            superfluid.address
+        );
 
         // finally, register the GDA with a gov action.
         // its pending state changes don't affect the remaining actions
-        await sendGovernanceAction(
-            sfObjForGovAndResolver,
-            (gov) => gov.registerAgreementClass(superfluid.address, gda.address)
+        await sendGovernanceAction(sfObjForGovAndResolver, (gov) =>
+            gov.registerAgreementClass(superfluid.address, gda.address)
         );
 
         // assumption: testnets don't require async gov action execution, so can continue
@@ -722,7 +769,9 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             console.log("info for verification:");
             console.log(output);
             console.log("##### STEP1 of GDA DEPLOYMENT DONE #####");
-            console.log("Now go execute the gov action, then run this script again");
+            console.log(
+                "Now go execute the gov action, then run this script again"
+            );
             process.exit();
         }
     } else {
@@ -779,7 +828,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 output += `CFA_V1_FORWARDER=${forwarder.address}\n`;
                 await web3tx(
                     governance.enableTrustedForwarder,
-                    `Governance set CFAv1Forwarder`
+                    "Governance set CFAv1Forwarder"
                 )(superfluid.address, ZERO_ADDRESS, forwarder.address);
                 return forwarder;
             }
@@ -796,7 +845,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 output += `GDA_V1_FORWARDER=${forwarder.address}\n`;
                 await web3tx(
                     governance.enableTrustedForwarder,
-                    `Governance set GDAv1Forwarder`
+                    "Governance set GDAv1Forwarder"
                 )(superfluid.address, ZERO_ADDRESS, forwarder.address);
                 return forwarder;
             }
@@ -819,8 +868,10 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             getPrevAddrFn,
             outputKey
         ) {
-            let prevAddr = await getPrevAddrFn().catch(_err => {
-                console.error(`### Error getting ${ForwarderContract.contractName} address, likely not yet deployed`);
+            let prevAddr = await getPrevAddrFn().catch(() => {
+                console.error(
+                    `### Error getting ${ForwarderContract.contractName} address, likely not yet deployed`
+                );
                 return ZERO_ADDRESS;
             });
 
@@ -829,7 +880,10 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 ForwarderContract,
                 prevAddr,
                 async () => {
-                    const forwarder = await web3tx(ForwarderContract.new, `${ForwarderContract.contractName}.new`)();
+                    const forwarder = await web3tx(
+                        ForwarderContract.new,
+                        `${ForwarderContract.contractName}.new`
+                    )();
                     await web3tx(
                         forwarder.transferOwnership,
                         "forwarder.transferOwnership"
@@ -867,7 +921,9 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         if (prevCallbackGasLimit.toNumber() > appCallbackGasLimit) {
             throw new Error("Cannot decrease app callback gas limit");
         } else if (prevCallbackGasLimit.toNumber() !== appCallbackGasLimit) {
-            console.log(` !!! CHANGING APP CALLBACK GAS LIMIT FROM ${prevCallbackGasLimit} to ${appCallbackGasLimit} !!!`);
+            console.log(
+                ` !!! CHANGING APP CALLBACK GAS LIMIT FROM ${prevCallbackGasLimit} to ${appCallbackGasLimit} !!!`
+            );
         }
 
         // deploy new superfluid host logic
@@ -882,7 +938,14 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 const superfluidLogic = await web3tx(
                     SuperfluidLogic.new,
                     "SuperfluidLogic.new"
-                )(nonUpgradable, appWhiteListing, appCallbackGasLimit, simpleForwarderAddress, erc2771ForwarderAddress, simpleAclAddress);
+                )(
+                    nonUpgradable,
+                    appWhiteListing,
+                    appCallbackGasLimit,
+                    simpleForwarderAddress,
+                    erc2771ForwarderAddress,
+                    simpleAclAddress
+                );
                 output += `SUPERFLUID_HOST_LOGIC=${superfluidLogic.address}\n`;
                 return superfluidLogic.address;
             },
@@ -890,8 +953,8 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 ap(erc2771ForwarderAddress),
                 ap(simpleForwarderAddress),
                 ap(simpleAclAddress),
-                appCallbackGasLimit.toString(16).padStart(64, "0")
-            ],
+                appCallbackGasLimit.toString(16).padStart(64, "0"),
+            ]
         );
 
         // deploy new CFA logic
@@ -904,7 +967,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 )
             ).getCodeAddress(),
             async () => (await deployCFAv1()).address,
-            [ superfluidConstructorParam ]
+            [superfluidConstructorParam]
         );
         if (cfaNewLogicAddress !== ZERO_ADDRESS) {
             agreementsToUpdate.push(cfaNewLogicAddress);
@@ -919,14 +982,17 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 )
             ).getCodeAddress(),
             async () => (await deployIDAv1()).address,
-            [ superfluidConstructorParam ]
+            [superfluidConstructorParam]
         );
         if (idaNewLogicAddress !== ZERO_ADDRESS) {
             agreementsToUpdate.push(idaNewLogicAddress);
         }
         // deploy new GDA logic
-        const gdaProxyAddr = await superfluid.getAgreementClass.call(GDAv1_TYPE);
-        const gdaLogicAddr = await (await UUPSProxiable.at(gdaProxyAddr)).getCodeAddress();
+        const gdaProxyAddr =
+            await superfluid.getAgreementClass.call(GDAv1_TYPE);
+        const gdaLogicAddr = await (
+            await UUPSProxiable.at(gdaProxyAddr)
+        ).getCodeAddress();
         const superfluidPoolBeaconAddr = await (
             await GeneralDistributionAgreementV1.at(gdaProxyAddr)
         ).superfluidPoolBeacon.call();
@@ -935,10 +1001,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             GeneralDistributionAgreementV1,
             gdaLogicAddr,
             async () => (await deployGDAv1(superfluidPoolBeaconAddr)).address,
-            [
-                superfluidConstructorParam,
-                ap(superfluidPoolBeaconAddr)
-            ]
+            [superfluidConstructorParam, ap(superfluidPoolBeaconAddr)]
         );
         if (gdaNewLogicAddress !== ZERO_ADDRESS) {
             agreementsToUpdate.push(gdaNewLogicAddress);
@@ -947,26 +1010,66 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         // check/set ACL role admins
         const simpleAcl = await SimpleACL.at(simpleAclAddress);
 
-        const aclSuperappRegistrationRoleAdmin = web3.utils.sha3("ACL_SUPERAPP_REGISTRATION_ROLE_ADMIN");
-        const aclSuperappRegistrationRole = web3.utils.sha3("ACL_SUPERAPP_REGISTRATION_ROLE");
-        if (! await simpleAcl.hasRole(aclSuperappRegistrationRoleAdmin, deployerAddr)) {
-            await simpleAcl.setRoleAdmin(aclSuperappRegistrationRole, aclSuperappRegistrationRoleAdmin);
-            console.log("Set ACL_SUPERAPP_REGISTRATION_ROLE admin to ACL_SUPERAPP_REGISTRATION_ROLE_ADMIN");
-            await simpleAcl.grantRole(aclSuperappRegistrationRoleAdmin, deployerAddr);
-            console.log("Granted ACL_SUPERAPP_REGISTRATION_ROLE_ADMIN to deployerAddr");
+        const aclSuperappRegistrationRoleAdmin = web3.utils.sha3(
+            "ACL_SUPERAPP_REGISTRATION_ROLE_ADMIN"
+        );
+        const aclSuperappRegistrationRole = web3.utils.sha3(
+            "ACL_SUPERAPP_REGISTRATION_ROLE"
+        );
+        if (
+            !(await simpleAcl.hasRole(
+                aclSuperappRegistrationRoleAdmin,
+                deployerAddr
+            ))
+        ) {
+            await simpleAcl.setRoleAdmin(
+                aclSuperappRegistrationRole,
+                aclSuperappRegistrationRoleAdmin
+            );
+            console.log(
+                "Set ACL_SUPERAPP_REGISTRATION_ROLE admin to ACL_SUPERAPP_REGISTRATION_ROLE_ADMIN"
+            );
+            await simpleAcl.grantRole(
+                aclSuperappRegistrationRoleAdmin,
+                deployerAddr
+            );
+            console.log(
+                "Granted ACL_SUPERAPP_REGISTRATION_ROLE_ADMIN to deployerAddr"
+            );
         } else {
-            console.log("ACL_SUPERAPP_REGISTRATION_ROLE_ADMIN already granted to deployerAddr");
+            console.log(
+                "ACL_SUPERAPP_REGISTRATION_ROLE_ADMIN already granted to deployerAddr"
+            );
         }
 
-        const aclPoolConnectExclusiveRole = web3.utils.sha3("ACL_POOL_CONNECT_EXCLUSIVE_ROLE");
-        const aclPoolConnectExclusiveRoleAdmin = web3.utils.sha3("ACL_POOL_CONNECT_EXCLUSIVE_ROLE_ADMIN");
-        if (! await simpleAcl.hasRole(aclPoolConnectExclusiveRoleAdmin, gdaProxyAddr)) {
-            await simpleAcl.setRoleAdmin(aclPoolConnectExclusiveRole, aclPoolConnectExclusiveRoleAdmin);
-            console.log("Set ACL_POOL_CONNECT_EXCLUSIVE_ROLE admin to ACL_POOL_CONNECT_EXCLUSIVE_ROLE_ADMIN");
-            await simpleAcl.grantRole(aclPoolConnectExclusiveRoleAdmin, gdaProxyAddr);
+        const aclPoolConnectExclusiveRole = web3.utils.sha3(
+            "ACL_POOL_CONNECT_EXCLUSIVE_ROLE"
+        );
+        const aclPoolConnectExclusiveRoleAdmin = web3.utils.sha3(
+            "ACL_POOL_CONNECT_EXCLUSIVE_ROLE_ADMIN"
+        );
+        if (
+            !(await simpleAcl.hasRole(
+                aclPoolConnectExclusiveRoleAdmin,
+                gdaProxyAddr
+            ))
+        ) {
+            await simpleAcl.setRoleAdmin(
+                aclPoolConnectExclusiveRole,
+                aclPoolConnectExclusiveRoleAdmin
+            );
+            console.log(
+                "Set ACL_POOL_CONNECT_EXCLUSIVE_ROLE admin to ACL_POOL_CONNECT_EXCLUSIVE_ROLE_ADMIN"
+            );
+            await simpleAcl.grantRole(
+                aclPoolConnectExclusiveRoleAdmin,
+                gdaProxyAddr
+            );
             console.log("Granted ACL_POOL_CONNECT_EXCLUSIVE_ROLE to GDA");
         } else {
-            console.log("ACL_POOL_CONNECT_EXCLUSIVE_ROLE_ADMIN already granted to GDA");
+            console.log(
+                "ACL_POOL_CONNECT_EXCLUSIVE_ROLE_ADMIN already granted to GDA"
+            );
         }
     }
 
@@ -1003,28 +1106,36 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             if (factoryAddress === ZERO_ADDRESS) return true;
 
             const factory = await SuperTokenFactoryLogic.at(factoryAddress);
-            const superTokenLogicAddress = await factory.getSuperTokenLogic.call();
-            const superTokenLogic = await SuperTokenLogic.at(superTokenLogicAddress);
+            const superTokenLogicAddress =
+                await factory.getSuperTokenLogic.call();
+            const superTokenLogic = await SuperTokenLogic.at(
+                superTokenLogicAddress
+            );
 
-            const gdaPAddr = await superfluid.getAgreementClass.call(GDAv1_TYPE);
+            const gdaPAddr =
+                await superfluid.getAgreementClass.call(GDAv1_TYPE);
 
             // TODO: remove from try block once all networks have a PoolNFT aware supertoken logic deployed
             try {
-                const poolAdminNFTPAddr = await superTokenLogic.POOL_ADMIN_NFT();
-                const poolAdminNFTContract = await PoolAdminNFT.at(poolAdminNFTPAddr);
-                const poolAdminNFTLAddr = await poolAdminNFTContract.getCodeAddress();
+                const poolAdminNFTPAddr =
+                    await superTokenLogic.POOL_ADMIN_NFT();
+                const poolAdminNFTContract =
+                    await PoolAdminNFT.at(poolAdminNFTPAddr);
+                const poolAdminNFTLAddr =
+                    await poolAdminNFTContract.getCodeAddress();
 
-                const poolMemberNFTPAddr = await superTokenLogic.POOL_MEMBER_NFT();
+                const poolMemberNFTPAddr =
+                    await superTokenLogic.POOL_MEMBER_NFT();
                 let poolMemberNFTLAddr = ZERO_ADDRESS;
                 if (poolMemberNFTPAddr !== ZERO_ADDRESS) {
-                    const poolMemberNFTContract = await UUPSProxiable.at(poolMemberNFTPAddr);
-                    poolMemberNFTLAddr = await poolMemberNFTContract.getCodeAddress();
+                    const poolMemberNFTContract =
+                        await UUPSProxiable.at(poolMemberNFTPAddr);
+                    poolMemberNFTLAddr =
+                        await poolMemberNFTContract.getCodeAddress();
                 }
-
 
                 // TODO: check only if non-zero address
                 // don't do in try block, otherwise we may accidentally re-deploy the NFT proxies
-
 
                 poolAdminNFTLogicChanged = await codeChanged(
                     web3,
@@ -1032,16 +1143,26 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                     poolAdminNFTLAddr,
                     [superfluidConstructorParam, ap(gdaPAddr)]
                 );
-                console.log("   poolAdminNFTLogicChanged:", poolAdminNFTLogicChanged);
+                console.log(
+                    "   poolAdminNFTLogicChanged:",
+                    poolAdminNFTLogicChanged
+                );
 
                 const superTokenFactoryCodeChanged = await codeChanged(
                     web3,
                     SuperTokenFactoryLogic,
                     await superfluid.getSuperTokenFactoryLogic.call(),
-                    [superfluidConstructorParam, ap(superTokenLogicAddress),
-                    ap(poolAdminNFTLAddr), ap(poolMemberNFTLAddr)]
+                    [
+                        superfluidConstructorParam,
+                        ap(superTokenLogicAddress),
+                        ap(poolAdminNFTLAddr),
+                        ap(poolMemberNFTLAddr),
+                    ]
                 );
-                console.log("   superTokenFactoryCodeChanged:", superTokenFactoryCodeChanged);
+                console.log(
+                    "   superTokenFactoryCodeChanged:",
+                    superTokenFactoryCodeChanged
+                );
 
                 const superTokenLogicCodeChanged = await codeChanged(
                     web3,
@@ -1050,10 +1171,14 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                     // this replacement does not support SuperTokenMock
                     [
                         superfluidConstructorParam,
-                        ap(poolAdminNFTPAddr), ap(poolMemberNFTPAddr)
+                        ap(poolAdminNFTPAddr),
+                        ap(poolMemberNFTPAddr),
                     ]
                 );
-                console.log("   superTokenLogicCodeChanged:", superTokenLogicCodeChanged);
+                console.log(
+                    "   superTokenLogicCodeChanged:",
+                    superTokenLogicCodeChanged
+                );
                 return (
                     // check if super token factory logic has changed
                     // or super token logic has changed
@@ -1084,9 +1209,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
 
             // try to get NFT proxy addresses from canonical Super Token logic
             if (factoryAddress !== ZERO_ADDRESS) {
-                const factory = await SuperTokenFactoryLogic.at(
-                    factoryAddress
-                );
+                const factory = await SuperTokenFactoryLogic.at(factoryAddress);
                 console.log("   factory.getSuperTokenLogic.call()");
                 const superTokenLogicAddress =
                     await factory.getSuperTokenLogic.call();
@@ -1125,7 +1248,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 console.log("BOOTSTRAPPING: Deploying PoolAdminNFT proxy...");
                 const poolAdminNFTProxy = await web3tx(
                     UUPSProxy.new,
-                    `Create PoolAdminNFT proxy`
+                    "Create PoolAdminNFT proxy"
                 )();
                 console.log(
                     "PoolAdminNFT Proxy address",
@@ -1212,14 +1335,14 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         }
     );
 
-
     let superfluidPoolNewLogicAddress = ZERO_ADDRESS;
 
     // SuperfluidPool upgrade
     const gdaV1Contract = await GeneralDistributionAgreementV1.at(
         await superfluid.getAgreementClass.call(GDAv1_TYPE)
     );
-    const superfluidPoolBeaconAddress = await gdaV1Contract.superfluidPoolBeacon();
+    const superfluidPoolBeaconAddress =
+        await gdaV1Contract.superfluidPoolBeacon();
 
     superfluidPoolNewLogicAddress = await deployContractIfCodeChanged(
         web3,
@@ -1253,9 +1376,8 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         console.log(`Creting gov action: gov.updateContracts(${superfluid.address}, ${superfluidNewLogicAddress},
             [${agreementsToUpdate}], ${superTokenFactoryNewLogicAddress}, ${superfluidPoolNewLogicAddress})`);
 
-        await sendGovernanceAction(
-            sfObjForGovAndResolver,
-            (gov) => gov.updateContracts(
+        await sendGovernanceAction(sfObjForGovAndResolver, (gov) =>
+            gov.updateContracts(
                 superfluid.address,
                 superfluidNewLogicAddress,
                 agreementsToUpdate,
@@ -1265,13 +1387,17 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         );
     }
 
-
     // finally, set the version string in resolver
     // Note that if executed immediately, this may advance the version string
     // before the actual protocol upgrade takes place through gov multisig signing
     if (previousVersionString !== versionString) {
-        const encodedVersionString = versionStringToPseudoAddress(versionString);
-        await setResolver(sfObjForGovAndResolver, `versionString.${protocolReleaseVersion}`, encodedVersionString);
+        const encodedVersionString =
+            versionStringToPseudoAddress(versionString);
+        await setResolver(
+            sfObjForGovAndResolver,
+            `versionString.${protocolReleaseVersion}`,
+            encodedVersionString
+        );
     }
 
     console.log("======== Superfluid framework deployed ========");
@@ -1292,6 +1418,9 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
 
     const deployerFinalBalance = await web3.eth.getBalance(deployerAddr);
     const consumed = web3.utils.fromWei(
-        (new web3.utils.BN(deployerInitialBalance)).sub(new web3.utils.BN(deployerFinalBalance)));
+        new web3.utils.BN(deployerInitialBalance).sub(
+            new web3.utils.BN(deployerFinalBalance)
+        )
+    );
     console.log(`consumed native coins: ${consumed}`);
 });

@@ -1,12 +1,12 @@
 const {web3tx} = require("@decentral.ee/web3-helpers");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
-const getConfig = require("./libs/getConfig");
+const getConfig = require("../../../scripts/ops-libs/getConfig");
 
 const {
     getScriptRunnerFactory: S,
     extractWeb3Options,
     builtTruffleContractLoader,
-} = require("./libs/common");
+} = require("../../../scripts/ops-libs/common");
 const {ethers} = require("ethers");
 
 /**
@@ -19,10 +19,7 @@ const {ethers} = require("ethers");
  *
  * Usage: npx truffle exec ops-scripts/deploy-test-token.js : {TOKEN_DECIMALS} {TOKEN_SYMBOL}
  */
-module.exports = eval(`(${S.toString()})()`)(async function (
-    args,
-    options = {}
-) {
+module.exports = S()(async function (args, options = {}) {
     console.log("======== Deploying test token ========");
     let {resetToken} = options;
 

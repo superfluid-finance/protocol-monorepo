@@ -4,8 +4,11 @@ const assert = require("assert").strict;
 const Transaction = require("ethereumjs-tx").Transaction;
 const ethUtils = require("ethereumjs-util");
 // TODO: this is a weird dependency, should probably get this from elsewhere
-const ERC1820Registry = require("../dev-scripts/artifacts/ERC1820Registry.json");
-const {getScriptRunnerFactory: S, hasCode} = require("./libs/common");
+const ERC1820Registry = require("../../../dev-scripts/artifacts/ERC1820Registry.json");
+const {
+    getScriptRunnerFactory: S,
+    hasCode,
+} = require("../../../scripts/ops-libs/common");
 
 /**
  * @dev Deploy ERC1820 to the network.
@@ -14,10 +17,7 @@ const {getScriptRunnerFactory: S, hasCode} = require("./libs/common");
  *
  * Usage: npx truffle exec ops-scripts/deploy-erc1820.js
  */
-module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
-    args,
-    options = {}
-) {
+module.exports = S({skipArgv: true})(async function (args, options = {}) {
     web3 = web3 || options.web3;
 
     const rawTransaction = {

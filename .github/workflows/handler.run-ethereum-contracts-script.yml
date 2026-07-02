@@ -47,15 +47,12 @@ jobs:
           yarn install --frozen-lockfile
           yarn build-for-contracts-dev
 
-      - name: Execute truffle script
+      - name: Execute ops script
         run: |
-          cd packages/ethereum-contracts
-          echo "Admin type: ${{ github.event.inputs.admin_type }}"
-          echo "${{ github.event.inputs.environments }}" | sed 's/;/\n/' > .env
-          npx truffle exec \
-            --network ${{ github.event.inputs.network }} \
-            ${{ github.event.inputs.script_name }} \
-            ${{ github.event.inputs.script_args }}
+          echo "Legacy truffle exec ops-scripts/ was removed in v1.16.0."
+          echo "Use packages/ethereum-contracts/new-ops-scripts/ — see docs/ops-scripts-migration.md"
+          echo "Requested script: ${{ github.event.inputs.script_name }} ${{ github.event.inputs.script_args }}"
+          exit 1
         env:
           RELEASE_VERSION: ${{ github.event.inputs.release_version }}
           DEFAULT_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}

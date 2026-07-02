@@ -6,7 +6,7 @@ const {
     extractWeb3Options,
     builtTruffleContractLoader,
     sendGovernanceAction,
-} = require("./libs/common");
+} = require("../../../scripts/ops-libs/common");
 
 /**
  * @dev Deploy a listed super token (wrapper for ERC20 or native token) to the network.
@@ -29,10 +29,7 @@ const {
  *   for the super token address.
  * - The caller needs to have permission to set resolver entries.
  */
-module.exports = eval(`(${S.toString()})()`)(async function (
-    args,
-    options = {}
-) {
+module.exports = S()(async function (args, options = {}) {
     console.log("======== Deploying super token ========");
     let {resetToken, protocolReleaseVersion} = options;
 

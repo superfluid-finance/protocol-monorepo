@@ -33,11 +33,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/checkout@v4
-        with:
-          repository: superfluid-finance/build-scripts
-          path: build-scripts
-
       - uses: DeterminateSystems/nix-installer-action@v13
 
       - name: Build
@@ -49,18 +44,7 @@ jobs:
         run: |
           cd packages/ethereum-contracts
           echo "${{ github.event.inputs.environments }}" | sed 's/;/\n/' > .env
-          mkdir tmp
-          npx truffle exec --network ${{ github.event.inputs.network }} ops-scripts/deploy-framework.js
+          ./new-ops-scripts/upgrade-framework.sh ${{ github.event.inputs.network }}
         env:
           GOVERNANCE_ADMIN_TYPE: MULTISIG
-          OUTPUT_FILE: tmp/contract-addresses.txt
-
-      - name: Upload new contract addresses
-        uses: ./build-scripts/s3cloudfront-hosting/actions/sync
-        with:
-          local_build_dir: packages/ethereum-contracts/tmp
-          aws_region: eu-west-2
-          aws_access_key_id: ${{ secrets.SITE_DEPLOYER_AWS_ACCESS_KEY_ID }}
-          aws_secret_access_key: ${{ secrets.SITE_DEPLOYER_AWS_SECRET_ACCESS_KEY }}
-          s3_uri: ${{ format('{0}{1}-contract-addrs@{2}', secrets.SITE_DEPLOYER_AWS_S3_DOCS_URI, github.event.inputs.network, github.run_id) }}
-          cloudfront_distribution_id: E3JEO5R14CT8IH
+          ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}

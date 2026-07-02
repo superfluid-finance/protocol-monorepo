@@ -33,9 +33,9 @@ import {
 const {web3tx, wad4human} = require("@decentral.ee/web3-helpers");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 
-const deployFramework = require("../ops-scripts/deploy-framework");
-const deploySuperToken = require("../ops-scripts/deploy-super-token");
-const deployTestToken = require("../ops-scripts/deploy-test-token");
+const deployFramework = require("./fixtures/hardhat-deploy/deploy-framework");
+const deploySuperToken = require("./fixtures/hardhat-deploy/deploy-super-token");
+const deployTestToken = require("./fixtures/hardhat-deploy/deploy-test-token");
 
 const SuperTokenMock = artifacts.require("SuperTokenMock");
 const TestToken = artifacts.require("TestToken");
@@ -426,7 +426,8 @@ export default class TestEnvironment {
             "TestToken",
             testTokenAddress
         );
-        const superTokenKey = "supertokens.test." + tokenSymbol + "x";
+        const releaseVersion = process.env.RELEASE_VERSION || "test";
+        const superTokenKey = `supertokens.${releaseVersion}.${tokenSymbol}x`;
         const superTokenAddress =
             await this.contracts.resolver.get(superTokenKey);
 

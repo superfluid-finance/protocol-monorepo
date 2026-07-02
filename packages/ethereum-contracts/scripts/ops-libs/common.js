@@ -1,8 +1,8 @@
+const fs = require("fs");
 const path = require("path");
 const async = require("async");
 const {promisify} = require("util");
 const readline = require("readline");
-const truffleConfig = require("../../truffle-config");
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
@@ -37,17 +37,44 @@ function extractWeb3Options({isTruffle, web3, ethers, from}) {
     return {isTruffle, web3, ethers, from};
 }
 
-/// @dev Load contract from truffle built artifacts
+let _hardhatArtifactIndex;
+
+/// @dev Load contract artifact by contractName from build/hardhat (legacy name kept for js-sdk loaders)
 function builtTruffleContractLoader(name) {
-    try {
-        const directoryPath = path.join(__dirname, "../../build/truffle");
-        const builtContract = require(path.join(directoryPath, name + ".json"));
-        return builtContract;
-    } catch (e) {
+    if (!_hardhatArtifactIndex) {
+        _hardhatArtifactIndex = {};
+        const hardhatDir = path.join(__dirname, "../../build/hardhat");
+        const walk = (dir) => {
+            for (const ent of fs.readdirSync(dir, {withFileTypes: true})) {
+                const entryPath = path.join(dir, ent.name);
+                if (ent.isDirectory()) {
+                    walk(entryPath);
+                } else if (
+                    ent.name.endsWith(".json") &&
+                    !ent.name.endsWith(".dbg.json")
+                ) {
+                    // eslint-disable-next-line import/no-dynamic-require, global-require
+                    const artifact = require(entryPath);
+                    if (artifact.contractName) {
+                        _hardhatArtifactIndex[artifact.contractName] = artifact;
+                    }
+                }
+            }
+        };
+        if (!fs.existsSync(hardhatDir)) {
+            throw new Error(
+                `Cannot load built contract ${name}. Missing ${hardhatDir}. Have you built?`
+            );
+        }
+        walk(hardhatDir);
+    }
+    const builtContract = _hardhatArtifactIndex[name];
+    if (!builtContract) {
         throw new Error(
-            `Cannot load built truffle contract ${name}. Have you built?`
+            `Cannot load built hardhat contract ${name}. Have you built?`
         );
     }
+    return builtContract;
 }
 
 //
@@ -72,33 +99,8 @@ function detectTruffle() {
 //
 // NOTE: This implememtation only works for settings provided by a network specific config,
 // not for settings provided by a wildcard (network_id: "*") config.
-function getGasConfig(networkId) {
-    let gasConfig = {};
-
-    const networkConfig = Object.values(truffleConfig.networks)
-        .filter(e => e !== undefined)
-        .find(e => e.network_id === networkId);
-
-    if (networkConfig !== undefined) {
-        // gas limit
-        if (networkConfig.gas !== undefined) {
-            gasConfig.gas = networkConfig.gas;
-        }
-        // legacy gas price
-        if (networkConfig.gasPrice !== undefined) {
-            gasConfig.gasPrice = networkConfig.gasPrice;
-        }
-
-        // EIP-1559 gas price
-        if (networkConfig.maxPriorityFeePerGas !== undefined) {
-            gasConfig.maxPriorityFeePerGas = networkConfig.maxPriorityFeePerGas;
-        }
-        if (networkConfig.maxFeePerGas !== undefined) {
-            gasConfig.maxFeePerGas = networkConfig.maxFeePerGas;
-        }
-    }
-
-    return gasConfig;
+function getGasConfig(_networkId) {
+    return {};
 }
 
 /****************************************************************
@@ -137,7 +139,9 @@ async function codeChanged(
         binaryFromCompiler = binaryFromCompiler.slice(firstIndex);
     }
 
-    let code = (await web3.eth.getCode(address)).toLowerCase().replace(/^0x/, "");;
+    let code = (await web3.eth.getCode(address))
+        .toLowerCase()
+        .replace(/^0x/, "");
 
     // No code at the address indicates a change
     if (code.length <= 3) return true;
@@ -165,11 +169,13 @@ async function codeChanged(
 
     if (isSubset) {
         // Find where `codeReplaced` ends within `binaryFromCompiler`
-        const endIndex = binaryFromCompiler.indexOf(codeReplaced) + codeReplaced.length;
+        const endIndex =
+            binaryFromCompiler.indexOf(codeReplaced) + codeReplaced.length;
 
         // Verify that either `binaryFromCompiler` ends there or has "6080604052" following
-        const isMatch = endIndex === binaryFromCompiler.length ||
-                        binaryFromCompiler.slice(endIndex).startsWith("6080604052");
+        const isMatch =
+            endIndex === binaryFromCompiler.length ||
+            binaryFromCompiler.slice(endIndex).startsWith("6080604052");
 
         return !isMatch;
     }
@@ -177,7 +183,6 @@ async function codeChanged(
     // If not a subset, it's a mismatch
     return true;
 }
-
 
 /**
  * @dev Check if the address is a UUPS proxiable
@@ -218,15 +223,19 @@ async function setResolver(sf, key, value) {
         sf.resolver.address
     );
     const nrAdmins = (await ac.getRoleMemberCount(ADMIN_ROLE)).toNumber();
-    const resolverAdmin = nrAdmins > 0 ?
-        await ac.getRoleMember(ADMIN_ROLE, nrAdmins - 1):
-        await (async () => {
-            console.log(`!!! resolver.getRoleMemberCount() returned 0. Trying account[0] as resolver admin.`);
-            return (await web3.eth.getAccounts())[0];
-        })();
+    const resolverAdmin =
+        nrAdmins > 0
+            ? await ac.getRoleMember(ADMIN_ROLE, nrAdmins - 1)
+            : await (async () => {
+                console.log(
+                    "!!! resolver.getRoleMemberCount() returned 0. Trying account[0] as resolver admin."
+                );
+                return (await web3.eth.getAccounts())[0];
+            })();
 
-    const adminType = process.env.RESOLVER_ADMIN_TYPE
-        || await autodetectAdminType(sf, resolverAdmin);
+    const adminType =
+        process.env.RESOLVER_ADMIN_TYPE ||
+        (await autodetectAdminType(sf, resolverAdmin));
 
     switch (adminType) {
         case "MULTISIG": {
@@ -258,7 +267,9 @@ async function setResolver(sf, key, value) {
             break;
         }
         default: {
-            throw new Error("No known admin type specified and autodetect failed");
+            throw new Error(
+                "No known admin type specified and autodetect failed"
+            );
         }
     }
 }
@@ -282,15 +293,17 @@ async function setResolver(sf, key, value) {
 async function sendGovernanceAction(sf, actionFn) {
     const govAddr = await sf.host.getGovernance.call();
     console.log("Governance address:", govAddr);
-    const gov = sf.contracts.SuperfluidGovernanceII !== undefined ?
-        await sf.contracts.SuperfluidGovernanceII.at(govAddr) :
-        await sf.contracts.SuperfluidGovernanceBase.at(govAddr);
+    const gov =
+        sf.contracts.SuperfluidGovernanceII !== undefined
+            ? await sf.contracts.SuperfluidGovernanceII.at(govAddr)
+            : await sf.contracts.SuperfluidGovernanceBase.at(govAddr);
 
     const govOwner = await (await sf.contracts.Ownable.at(gov.address)).owner();
     console.log("Governance owner:", govOwner);
 
-    const adminType = process.env.GOVERNANCE_ADMIN_TYPE
-        || await autodetectAdminType(sf, govOwner);
+    const adminType =
+        process.env.GOVERNANCE_ADMIN_TYPE ||
+        (await autodetectAdminType(sf, govOwner));
 
     switch (adminType) {
         case "MULTISIG": {
@@ -324,7 +337,9 @@ async function sendGovernanceAction(sf, actionFn) {
             break;
         }
         default: {
-            throw new Error("No known admin type specified and autodetect failed");
+            throw new Error(
+                "No known admin type specified and autodetect failed"
+            );
         }
     }
 }
@@ -339,7 +354,7 @@ async function sendGovernanceAction(sf, actionFn) {
 // TODO: add support for detecting SAFE
 async function autodetectAdminType(sf, account) {
     console.debug("Auto detecting admin type of", account);
-    if (!await hasCode(web3, account)) {
+    if (!(await hasCode(web3, account))) {
         console.debug("Account has no code, assuming ownable contract.");
         return "OWNABLE";
     }
@@ -348,7 +363,7 @@ async function autodetectAdminType(sf, account) {
         const multis = await sf.contracts.IMultiSigWallet.at(account);
         await multis.required();
         return "MULTISIG";
-    } catch(e) {
+    } catch (e) {
         console.debug("Not detecting legacy multisig fingerprint.");
     }
 
@@ -357,7 +372,7 @@ async function autodetectAdminType(sf, account) {
         const safeVersion = await safe.VERSION();
         console.log("detected Safe version", safeVersion);
         return "SAFE";
-    } catch(e) {
+    } catch (e) {
         console.debug("Not detecting Safe fingerprint.");
     }
 
@@ -365,25 +380,32 @@ async function autodetectAdminType(sf, account) {
 }
 
 // safeTxData is the ABI encoded transaction data of the inner call to be made by the Safe
-async function executeSafeTransaction(safeAddr, targetContractAddr, safeTxData) {
-    const Web3Adapter = require('@safe-global/safe-web3-lib').default;
-    const Safe = require('@safe-global/safe-core-sdk').default;
-    const SafeApiKit = require('@safe-global/api-kit').default;
+async function executeSafeTransaction(
+    safeAddr,
+    targetContractAddr,
+    safeTxData
+) {
+    const Web3Adapter = require("@safe-global/safe-web3-lib").default;
+    const Safe = require("@safe-global/safe-core-sdk").default;
+    const SafeApiKit = require("@safe-global/api-kit").default;
 
     const safeOwner = (await web3.eth.getAccounts())[0]; // tx sender
     console.log("Safe signer being used:", safeOwner);
 
     const ethAdapterOwner1 = new Web3Adapter({
         web3,
-        signerAddress: safeOwner
+        signerAddress: safeOwner,
     });
 
-    const safeSdk = await Safe.create({ ethAdapter: ethAdapterOwner1, safeAddress: safeAddr });
+    const safeSdk = await Safe.create({
+        ethAdapter: ethAdapterOwner1,
+        safeAddress: safeAddr,
+    });
 
     const chainId = await web3.eth.getChainId();
     const apiKit = new SafeApiKit({
         chainId: BigInt(chainId),
-        apiKey: process.env.SAFE_API_KEY  // Required for auth/default service
+        apiKey: process.env.SAFE_API_KEY, // Required for auth/default service
     });
 
     const data = safeTxData;
@@ -393,7 +415,9 @@ async function executeSafeTransaction(safeAddr, targetContractAddr, safeTxData) 
         value: 0,
         data: data,
     };
-    const safeTransaction = await safeSdk.createTransaction({ safeTransactionData });
+    const safeTransaction = await safeSdk.createTransaction({
+        safeTransactionData,
+    });
     console.log("Safe tx:", safeTransaction);
 
     const safeTxHash = await safeSdk.getTransactionHash(safeTransaction);
@@ -410,16 +434,20 @@ async function executeSafeTransaction(safeAddr, targetContractAddr, safeTxData) 
         safeTxHash: safeTxHash,
         senderAddress: safeOwner,
         senderSignature: signature.data,
-        origin: "ops-scripts"
+        origin: "ops-scripts",
     });
     console.log("returned:", ret);
 
     const pendingTxsAfter = await apiKit.getPendingTransactions(safeAddr);
-    console.log(`pending txs before ${pendingTxsBefore.results.length}, after ${pendingTxsAfter.results.length}`);
+    console.log(
+        `pending txs before ${pendingTxsBefore.results.length}, after ${pendingTxsAfter.results.length}`
+    );
 
     // workaround for verifying that the proposal was added
     if (!pendingTxsAfter.results.length > pendingTxsBefore.results.length) {
-        throw new Error("Safe pending transactions count didn't increase, propose may have failed!");
+        throw new Error(
+            "Safe pending transactions count didn't increase, propose may have failed!"
+        );
     }
 }
 
@@ -494,8 +522,7 @@ async function getPastEvents({config, contract, eventName, filter, topics}) {
  */
 function getScriptRunnerFactory(runnerOpts = {}) {
     return (logicFn) => {
-        const {detectTruffle} = require("./libs/common");
-        return require("./libs/truffleScriptRunnerFactory")(
+        return require("./truffleScriptRunnerFactory")(
             () => ({
                 artifacts:
                     typeof artifacts !== "undefined" ? artifacts : undefined,
@@ -517,8 +544,10 @@ function getScriptRunnerFactory(runnerOpts = {}) {
 
 // takes an argument of the form [x]x.[y]y.[z]z-rrrrrrrr and returns a pseudo address
 function versionStringToPseudoAddress(versionString) {
-    const [versions, suffix] = versionString.split('-');
-    const [major, minor, patch] = versions.split('.').map(v => v.padStart(2, '0'));  // Pad with leading zeros
+    const [versions, suffix] = versionString.split("-");
+    const [major, minor, patch] = versions
+        .split(".")
+        .map((v) => v.padStart(2, "0")); // Pad with leading zeros
     return `0x000000000000000000${major}${minor}${patch}${suffix}`;
 }
 
@@ -567,7 +596,7 @@ function warnProductionUUPSProxyInitRisk(context) {
 
 // takes a pseudo address as argument and decodes it to a versionString
 function pseudoAddressToVersionString(pseudoAddress) {
-    const str = pseudoAddress.replace(/^0x/, '').toLowerCase(); // remove leading 0x
+    const str = pseudoAddress.replace(/^0x/, "").toLowerCase(); // remove leading 0x
     const major = parseInt(str.slice(18, 20), 10);
     const minor = parseInt(str.slice(20, 22), 10);
     const patch = parseInt(str.slice(22, 24), 10);
@@ -575,9 +604,13 @@ function pseudoAddressToVersionString(pseudoAddress) {
 
     if (
         !str.startsWith("000000000000000000") ||
-        isNaN(major) || isNaN(minor) || isNaN(patch)
+        isNaN(major) ||
+        isNaN(minor) ||
+        isNaN(patch)
     ) {
-        throw new Error("Provided address doesn't encode a valid versionString");
+        throw new Error(
+            "Provided address doesn't encode a valid versionString"
+        );
     }
 
     return `${major}.${minor}.${patch}-${revision}`;

@@ -329,7 +329,13 @@ Then prepare an `.env` file (see `.env.template`).
 The most important config items are RPC endpoint (`<X>_PROVIDER_URL`) and a sender account (`<X>_MNEMONIC`), _<X>_ being a network specific prefix - e.g. `OPTIMISM_MAINNET_PROVIDER_URL`.
 If you provide an actual mnemonic, the key derived at `m/44'/60'/0'/0/0` will be used. You can instead also set private keys (hex format) for `<X>_MNEMONIC`.
 
-In order to get an overview of available config items, look for instances of `process.env` in [truffle-config.js](truffle-config.js) and in files in the [scripts](scripts) folder.
+In order to get an overview of available config items for ops scripts, look for instances of `process.env` in [`new-ops-scripts/`](new-ops-scripts/) and [`scripts/`](scripts). See [docs/ops-scripts-migration.md](docs/ops-scripts-migration.md) for the legacy `ops-scripts/` removal matrix.
+
+### Tooling
+
+- **Build:** `yarn build` compiles with Hardhat and Foundry only (no Truffle compile).
+- **Ops:** use [`new-ops-scripts/`](new-ops-scripts/) and [`foundry-scripts/`](foundry-scripts/). Legacy `ops-scripts/` were removed in v1.16.0 — see [docs/ops-scripts-migration.md](docs/ops-scripts-migration.md).
+- **npm artifacts:** use `build/hardhat/**` or `build/bundled-abi.json`; flat `build/truffle/*.json` is no longer published.
 
 
 ### Testing
@@ -357,7 +363,6 @@ yarn run-hardhat test testsuites/superfluid-core.js
 
 The `pretest` script starts a local dev chain with deterministic accounts in the background, the `posttest` script stops it.
 When running tests with `yarn test`, those get executed automatically (see [npm docs](https://docs.npmjs.com/cli/v7/using-npm/scripts#pre--post-scripts)).
-> NOTE: You don't need to run the `pretest` and `posttest` scripts when running hardhat tests, but you do when running tests with truffle.
 
 ### TDD Session
 
@@ -398,7 +403,6 @@ On the other hand, you can run the development session with foundry with the com
 
 ```
 yarn run-hardhat # run hardhat
-yarn run-truffle # run truffle
 yarn run-foundry # run foundry forge
 yarn run-nodemon forge test # use nodemon to run foundry test
 ```
@@ -406,7 +410,7 @@ yarn run-nodemon forge test # use nodemon to run foundry test
 ### Troubleshooting
 
 Superfluid requires the [ERC-1820](https://eips.ethereum.org/EIPS/eip-1820) Registry contract to be deployed. That's because [ERC-777](https://eips.ethereum.org/EIPS/eip-777) - the basis for Super Tokens - depends on it.
-If you use the deployment scripts as described above, that will be done automatically. If not, you may want to manually deploy ERC-1820 yourself. You can use `ops-scripts/deploy-erc1820.js` to do so.
+If you use the deployment scripts as described above, that will be done automatically. For legacy ops-scripts, see [docs/ops-scripts-migration.md](docs/ops-scripts-migration.md).
 
 In the [scripts folder](/scripts) you can find several scripts for deploying/configuring/querying protocol contracts.
 

@@ -1,13 +1,13 @@
 const fs = require("fs");
 const util = require("util");
-const getConfig = require("./libs/getConfig");
+const getConfig = require("../ops-libs/getConfig");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const {
     getScriptRunnerFactory: S,
     getCodeAddress,
     extractWeb3Options,
     ZERO_ADDRESS,
-} = require("./libs/common");
+} = require("../ops-libs/common");
 
 /**
  * @dev Inspect accounts and their agreements
@@ -20,16 +20,10 @@ const {
  *
  * Usage: npx truffle exec ops-scripts/info-print-contract-addresses : {OUTPUT_FILE}
  */
-module.exports = eval(`(${S.toString()})()`)(async function (
-    args,
-    options = {}
-) {
+module.exports = S()(async function (args, options = {}) {
     let output = "";
 
-    let {
-        protocolReleaseVersion,
-        skipTokens
-    } = options;
+    let {protocolReleaseVersion, skipTokens} = options;
     skipTokens = skipTokens || process.env.SKIP_TOKENS;
 
     if (args.length !== 1) {
@@ -162,7 +156,9 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         ).getCodeAddress();
         output += `POOL_MEMBER_NFT_LOGIC=${poolMemberNFTLogicAddress}\n`;
     } catch (e) {
-        console.warn("POOL_ADMIN_NFT or POOL_MEMBER_NFT probably not deployed yet");
+        console.warn(
+            "POOL_ADMIN_NFT or POOL_MEMBER_NFT probably not deployed yet"
+        );
     }
 
     try {
@@ -171,19 +167,18 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         // not working - apparently we only get the ISuperfluid in sf.host
         const simpleForwarderAddr = await sf.host.SIMPLE_FORWARDER();
         output += `SIMPLE_FORWARDER=${simpleForwarderAddr}\n`;
-    } catch(e) {
+    } catch (e) {
         console.warn("[Simple|ERC2771]Forwarder probably not deployed yet");
     }
 
-    if (! skipTokens) {
+    if (!skipTokens) {
         await Promise.all(
             config.tokenList.map(async (tokenName) => {
                 output += `SUPER_TOKEN_${tokenName.toUpperCase()}=${
                     sf.tokens[tokenName].address
                 }\n`;
-                const underlyingTokenSymbol = await sf.tokens[
-                    tokenName
-                ].underlyingToken.symbol.call();
+                const underlyingTokenSymbol =
+                    await sf.tokens[tokenName].underlyingToken.symbol.call();
                 output += `NON_SUPER_TOKEN_${underlyingTokenSymbol.toUpperCase()}=${
                     sf.tokens[tokenName].underlyingToken.address
                 }\n`;

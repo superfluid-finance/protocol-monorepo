@@ -611,7 +611,7 @@
   dependencies:
     "@jridgewell/trace-mapping" "0.3.9"
 
-"@decentral.ee/web3-helpers@0.5.3":
+"@decentral.ee/web3-helpers@^0.5.3":
   version "0.5.3"
   resolved "https://registry.yarnpkg.com/@decentral.ee/web3-helpers/-/web3-helpers-0.5.3.tgz#710aa9e90b186c5f7267150c4c5f3894fb52a2b4"
   integrity sha512-6ZS2zpAUdWXhyZ8U7A4HzianIk3v5n051+QEezNdF3uOI7hJ7ty/MjNhxL3QqfiR+4cxKEz20UiAyZkU6/e2jA==
@@ -2873,7 +2873,7 @@
   resolved "https://registry.yarnpkg.com/@nomiclabs/hardhat-ethers/-/hardhat-ethers-2.2.3.tgz#b41053e360c31a32c2640c9a45ee981a7e603fe0"
   integrity sha512-YhzPdzb612X591FOe68q+qXVXGG2ANZRvDo0RRUtimev85rCrAlv/TLMEZw5c+kq9AbzocLTVX/h2jVIFPL9Xg==
 
-"@nomiclabs/hardhat-truffle5@2.1.2":
+"@nomiclabs/hardhat-truffle5@^2.1.2":
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/@nomiclabs/hardhat-truffle5/-/hardhat-truffle5-2.1.2.tgz#c161fafb53ff82c828d7b4fff31ca1cc5074d141"
   integrity sha512-y5I9S5/vl3izamwYvvDmhO2zrvHmuKlGqU3J/vWbnbzN83kX1bm8f/F/NG9QtEfVUa6dGfCJxg7YEo5xFCqSZg==
@@ -2884,7 +2884,7 @@
     ethereumjs-util "^7.1.4"
     fs-extra "^7.0.1"
 
-"@nomiclabs/hardhat-web3@2.1.2":
+"@nomiclabs/hardhat-web3@^2.1.2":
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/@nomiclabs/hardhat-web3/-/hardhat-web3-2.1.2.tgz#1e25ffe16b78dda36083d74cee13068d4199fa0a"
   integrity sha512-ChnUInQ5AES1iJSNXq00JfWfQZkVUIkkSt2dtrB/8r+CfW/XeBTkvE5G+OTJTVSMme7lgqk9aieOI7d6GU6v1g==

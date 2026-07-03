@@ -1,3 +1,5 @@
+> **Deprecated (v1.16.0):** Use [`@superfluid-finance/sdk-core`](https://github.com/superfluid-org/protocol-monorepo/tree/dev/packages/sdk-core) or [`@sfpro/sdk`](https://www.npmjs.com/package/@sfpro/sdk) for new integrations. This package remains published for existing consumers but is no longer built as part of the monorepo `build-essentials` pipeline.
+
 <h1 align="center">Welcome to @superfluid-finance/js-sdk 👋
 </h1>
 <div align="center">

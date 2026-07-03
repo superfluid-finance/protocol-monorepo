@@ -47,12 +47,8 @@ jobs:
           yarn install --frozen-lockfile
           yarn build-for-contracts-dev
 
-      - name: Execute truffle script
+      - name: List super token
         run: |
-          cd packages/ethereum-contracts
-          echo "Admin type: ${{ github.event.inputs.admin_type }}"
-          echo "${{ github.event.inputs.environments }}" | sed 's/;/\n/' > .env
-          npx truffle exec \
-            --network ${{ github.event.inputs.network }} \
-            ops-scripts/resolver-list-super-token.js \
-            : ${{ github.event.inputs.token_address }}
+          echo "resolver-list-super-token.js was removed with ops-scripts/ (v1.16.0)."
+          echo "See packages/ethereum-contracts/docs/ops-scripts-migration.md"
+          exit 1

@@ -5,12 +5,24 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [UNRELEASED]
 
+## [v1.16.0]
+
 ### Breaking
 
+- **npm package:** `build/truffle/*.json` flat artifacts are no longer published. Migrate to `build/hardhat/**` (nested Hardhat artifacts) or `build/bundled-abi.json` for ABI-only use cases.
+- **ops-scripts:** legacy `ops-scripts/` (Truffle `exec`) removed. Use `new-ops-scripts/` and `foundry-scripts/` — see [docs/ops-scripts-migration.md](docs/ops-scripts-migration.md) for replacements and accepted gaps.
+- **Truffle:** Truffle CLI compile and `truffle exec` are no longer supported in this package.
 - `SuperTokenFactory`: removed canonical wrapper APIs (`createCanonicalERC20Wrapper`, `computeCanonicalERC20WrapperAddress`, `getCanonicalERC20Wrapper`, `initializeCanonicalWrapperSuperTokens`).
   These were added in v1.4.3, but the necessary steps to make this feature available and useful were never taken.
   In order to not confuse devs (human or non), this part of the API is therefore removed.
   The reserved storage mapping is renamed to `_canonicalWrapperSuperTokensDeprecated` (slot preserved for UUPS upgrade safety).
+
+### Changed
+
+- **Build:** `yarn build` no longer runs Truffle compile; Hardhat + Foundry only. `build/bundled-abi.json` is now sourced from `build/hardhat/` artifacts.
+- **Dependencies:** `@truffle/contract` removed from production dependencies; `@decentral.ee/web3-helpers` moved to devDependencies (test/ops-only usage).
+- **Framework upgrade:** `foundry-scripts/UpgradeFramework.s.sol` + `new-ops-scripts/upgrade-framework.sh` replace `deploy-framework.js` for mainnet upgrades.
+- **js-sdk:** `@superfluid-finance/js-sdk` is deprecated; sdk-core / `@sfpro/sdk` remain the supported app path. Removed from ethereum-contracts `devDependencies`; tests use `test/lib/superfluid-test-sdk.js` (monorepo-internal harness).
 
 ## [v1.15.2]
 

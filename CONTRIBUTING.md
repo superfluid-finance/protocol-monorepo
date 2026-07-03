@@ -42,12 +42,11 @@ To use them:
 
 ### Installing Dependencies
 
-Before you do anything, enable Corepack (once per machine) and install dependencies:
+Before you do anything, install dependencies (Yarn is vendored in the repo — no Corepack step needed):
 
 ```bash
 cd protocol-monorepo
-corepack enable
-yarn install --immutable && yarn build
+yarn install --immutable && yarn git-submodule:init && yarn build
 ```
 
 You'll also want to upgrade your Superfluid App to the canary, so you have the most recent changes.

@@ -50,7 +50,7 @@
         "cross-fetch": "^4.0.0"
     },
     "scripts": {
-        "prepare": "husky && yarn git-submodule:init",
+        "prepare": "yarn git-submodule:init; husky || true",
         "postinstall": "ln -fs ../lib/openzeppelin-contracts node_modules/@openzeppelin-v5 && ln -fs ../lib/aave-v3 node_modules/aave-v3",
         "lint": "run-s -l \"lint:*\"",
         "lint:syncpack": "syncpack lint",

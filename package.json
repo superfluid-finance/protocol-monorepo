@@ -56,7 +56,7 @@
         "lint:syncpack": "syncpack lint",
         "lint:shellcheck": "tasks/shellcheck-all-tasks.sh",
         "lint:actionlint": "actionlint .github/workflows/*.yml",
-        "lint:workspaces": "yarn workspaces foreach -A run lint",
+        "lint:workspaces": "yarn workspaces foreach -A --exclude '@superfluid-org/protocol-monorepo' run lint",
         "build": "run-s -l \"build-essentials:*\"",
         "build-essentials": "run-s -l \"build-essentials:*\"",
         "build-essentials:metadata": "yarn workspace @superfluid-finance/metadata build",

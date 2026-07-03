@@ -139,7 +139,7 @@
               FOUNDRY_OFFLINE = "true";
               FOUNDRY_SOLC_VERSION = pkgs.lib.getExe pkgs.${solcVer};
               shellHook = ''
-                corepack enable
+                # Yarn is vendored via .yarnrc.yml yarnPath; avoid corepack enable in read-only nix store
               '';
             }
             // o

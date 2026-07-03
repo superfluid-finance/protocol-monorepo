@@ -47,7 +47,6 @@ runs:
     - name: Initialize nix dev shell
       if: steps.cache.outputs.cache-hit != 'true'
       run: |
-        corepack enable
         node --version
         yarn --version
       shell: nix develop .#${{ inputs.dev-shell-name }} -c bash -xe {0}

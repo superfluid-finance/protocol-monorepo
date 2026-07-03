@@ -10,8 +10,7 @@ Before interacting with the Superfluid community, please read and understand our
 
 At minimum, you will need to have these available in your development environment:
 
-- Yarn 4 via [Corepack](https://nodejs.org/api/corepack.html) (`packageManager` in root `package.json`; config in `.yarnrc.yml`, `nodeLinker: node-modules`).
-- Node.js 22+ (CI tests 22, 24, 26).
+- Yarn 4 (vendored in `.yarn/releases/` via `yarnPath` in `.yarnrc.yml`; `nodeLinker: node-modules`). Node.js 22+ only — no separate Yarn install needed.
 
 Additionally recommended:
 - jq

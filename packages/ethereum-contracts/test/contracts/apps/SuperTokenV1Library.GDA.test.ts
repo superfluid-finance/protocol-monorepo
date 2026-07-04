@@ -12,10 +12,9 @@ import {
     SuperTokenMock,
 } from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
+import {deploySuperTokenAndNFTContractsAndInitialize} from "../../lib/deploy-super-token-mock";
 import {web3} from "../../lib/web3-shim";
 import {toBN} from "../utils/helpers";
-
-import {deploySuperTokenAndNFTContractsAndInitialize} from "./SuperTokenV1Library.CFA.test";
 
 const mintAmount = "1000000000000000000000000000"; // a small loan of a billion dollars
 const flowRate = "1000000000000";

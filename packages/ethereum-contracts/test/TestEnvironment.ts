@@ -37,13 +37,24 @@ const {wad4human} = require("@decentral.ee/web3-helpers");
 const deployVariantFramework = require("./lib/deploy-variant-framework");
 
 let _singleton: TestEnvironment;
+let baselineSnapshotId: string | null = null;
+let baselineResolverAddress: string | undefined;
 const TOKEN_SYMBOL = "TEST";
+/** Hardhat deploys a fresh framework; ignore repo .env RELEASE_VERSION (often v1). */
+const HARDHAT_TEST_RELEASE_VERSION = "test";
 const DEFAULT_TEST_TRAVEL_TIME = toBN(3600 * 24);
 
 export type DeployFrameworkOptions = {
     useMocks?: boolean;
     nonUpgradable?: boolean;
     appWhiteListing?: boolean;
+};
+
+export type BeforeTestSuiteOptions = {
+    nAccounts: number;
+    tokens?: string[];
+    /** Revert global deploy baseline (default) or the current file/describe snapshot. */
+    fromSnapshot?: "baseline" | "file";
 };
 
 /** Hardhat test environment (ethers + typechain only). */
@@ -53,7 +64,10 @@ export default class TestEnvironment {
     benchmarkingData: BenchmarkingData[];
     data: TestEnvironmentData;
     plotData: TestEnvironmentPlotData;
-    _evmSnapshots: {id: string; resolverAddress?: string}[];
+    /** Snapshot to revert to in beforeEach (file setup or nested describe). */
+    _fileSnapshotId: string | null;
+    /** Previous _fileSnapshotId values from pushEvmSnapshot (nested describes). */
+    _describeSnapshotStack: string[];
     customErrorCode: CustomErrorCodeType;
     configs: TestEnvironmentConfigs;
     constants: TestEnvironmentConstants;
@@ -72,7 +86,8 @@ export default class TestEnvironment {
         this.plotData = {enabled: false, observedAccounts: [], tokens: {}};
         this.aliases = {};
         this.accounts = [];
-        this._evmSnapshots = [];
+        this._fileSnapshotId = null;
+        this._describeSnapshotStack = [];
         this.tokens = {} as any;
         this.sf = {} as any;
 
@@ -118,14 +133,53 @@ export default class TestEnvironment {
 
     async pushEvmSnapshot() {
         const evmSnapshotId = await this._takeEvmSnapshot();
-        this._evmSnapshots.push({
-            id: evmSnapshotId,
-            resolverAddress: process.env.RESOLVER_ADDRESS,
-        });
+        if (this._fileSnapshotId) {
+            this._describeSnapshotStack.push(this._fileSnapshotId);
+        }
+        this._fileSnapshotId = evmSnapshotId;
     }
 
     async popEvmSnapshot() {
-        this._evmSnapshots.pop();
+        const previous = this._describeSnapshotStack.pop();
+        if (previous !== undefined) {
+            this._fileSnapshotId = previous;
+        }
+    }
+
+    async _revertToFileSnapshot() {
+        if (!this._fileSnapshotId) {
+            throw new Error("No file snapshot to revert to");
+        }
+        await this._revertToEvmSnapShot(this._fileSnapshotId);
+        this._fileSnapshotId = await this._takeEvmSnapshot();
+    }
+
+    async _revertToBaselineOnly() {
+        if (!baselineSnapshotId) {
+            throw new Error("Baseline snapshot not initialized");
+        }
+        if (baselineResolverAddress) {
+            process.env.RESOLVER_ADDRESS = baselineResolverAddress;
+        }
+        await this._revertToEvmSnapShot(baselineSnapshotId);
+        this._describeSnapshotStack = [];
+        this._fileSnapshotId = null;
+        this.tokens = {} as any;
+    }
+
+    /** @deprecated Prefer _revertToBaselineOnly + _captureBaselineSnapshot after harness repair. */
+    async _revertToBaseline() {
+        await this._revertToBaselineOnly();
+        await this._captureBaselineSnapshot();
+    }
+
+    async _captureBaselineSnapshot() {
+        baselineSnapshotId = await this._takeEvmSnapshot();
+        baselineResolverAddress = process.env.RESOLVER_ADDRESS;
+    }
+
+    async _captureFileSnapshot() {
+        this._fileSnapshotId = await this._takeEvmSnapshot();
     }
 
     async _advanceTimeAndBlock(seconds: number) {
@@ -133,21 +187,9 @@ export default class TestEnvironment {
         await network.provider.send("evm_mine", []);
     }
 
+    /** @deprecated Use beforeEachTestCase snapshot reset instead. */
     async useLastEvmSnapshot() {
-        let oldEvmSnapshotId = "";
-        const popped = this._evmSnapshots.pop();
-        if (popped) {
-            ({
-                id: oldEvmSnapshotId,
-                resolverAddress: process.env.RESOLVER_ADDRESS,
-            } = popped);
-        }
-        await this._revertToEvmSnapShot(oldEvmSnapshotId);
-        const newEvmSnapshotId = await this._takeEvmSnapshot();
-        this._evmSnapshots.push({
-            id: newEvmSnapshotId,
-            resolverAddress: process.env.RESOLVER_ADDRESS,
-        });
+        await this._revertToFileSnapshot();
     }
 
     async timeTravelOnce(time = DEFAULT_TEST_TRAVEL_TIME) {
@@ -160,7 +202,10 @@ export default class TestEnvironment {
         console.log("new block time", block2.timestamp);
     }
 
-    async beforeTestSuite({nAccounts}: {nAccounts: number; tokens?: string[]}) {
+    async beforeTestSuite({
+        nAccounts,
+        fromSnapshot = "baseline",
+    }: BeforeTestSuiteOptions) {
         if (
             !(global as typeof globalThis & {web3?: {eth?: unknown}}).web3?.eth
         ) {
@@ -183,83 +228,129 @@ export default class TestEnvironment {
         const testAccounts = allAccounts.slice(0, nAccounts);
         this.setupDefaultAliases(testAccounts);
 
-        if (this._evmSnapshots.length === 0) {
+        let needsBaselineCapture = false;
+
+        if (baselineSnapshotId === null) {
+            needsBaselineCapture = true;
             if (!process.env.TESTENV_SNAPSHOT_VARS) {
                 console.log("Creating a new evm snapshot");
                 await this.deployFramework();
                 await this.deployNewToken("TEST", {
                     accounts: allAccounts.slice(0, MAX_TEST_ACCOUNTS),
                 });
-                await this.pushEvmSnapshot();
             } else {
                 console.log("Loading from externally saved snapshot");
                 require("dotenv").config({
                     path: process.env.TESTENV_SNAPSHOT_VARS,
                 });
-                this._evmSnapshots.push({
-                    id: process.env.TESTENV_EVM_SNAPSHOT_ID || "",
-                    resolverAddress: process.env.RESOLVER_ADDRESS,
-                });
-                await this.useLastEvmSnapshot();
+                baselineSnapshotId = process.env.TESTENV_EVM_SNAPSHOT_ID || "";
+                baselineResolverAddress = process.env.RESOLVER_ADDRESS;
+                await this._revertToEvmSnapShot(baselineSnapshotId);
+                needsBaselineCapture = true;
                 await this.mintTestTokensAndApprove(
                     "TEST",
                     allAccounts.slice(0, nAccounts)
                 );
-                await this.pushEvmSnapshot();
             }
+        } else if (fromSnapshot === "baseline") {
+            needsBaselineCapture = true;
+            await this._revertToBaselineOnly();
         } else {
-            await this.useLastEvmSnapshot();
+            await this._revertToFileSnapshot();
         }
 
         await this.loadContractsFromFramework();
+        await this.ensureGovernanceOwner();
+        await this.getAndSetTestTokenAndSuperTokenMock(TOKEN_SYMBOL);
+
+        if (needsBaselineCapture) {
+            await this._captureBaselineSnapshot();
+        }
+        await this._captureFileSnapshot();
+    }
+
+    async ensureGovernanceOwner() {
+        const sf = this.contracts.superfluid;
+        let gov = this.contracts.governance;
+        const govFromHost = await sf.getGovernance();
+        if (govFromHost.toLowerCase() !== gov.address.toLowerCase()) {
+            gov = await ethers.getContractAt("TestGovernance", govFromHost);
+            this.contracts.governance = gov;
+        }
+
+        const hostSlot = await ethers.provider.getStorageAt(gov.address, 2);
+        if (BigNumber.from(hostSlot).isZero()) {
+            const admin =
+                this.aliases.admin || (await ethers.getSigners())[0].address;
+            await loggedTx("initialize TestGovernance", async () => {
+                const owner = await gov.owner();
+                return gov
+                    .connect(await ethers.getSigner(owner))
+                    .initialize(
+                        sf.address,
+                        admin,
+                        this.configs.LIQUIDATION_PERIOD,
+                        this.configs.PATRICIAN_PERIOD,
+                        []
+                    );
+            });
+        }
+
+        const owner = await gov.owner();
+        const admin =
+            this.aliases.admin || (await ethers.getSigners())[0].address;
+        if (owner.toLowerCase() !== admin.toLowerCase()) {
+            await gov
+                .connect(await ethers.getSigner(owner))
+                .transferOwnership(admin);
+        }
     }
 
     async loadContractsFromFramework() {
-        const signer = await ethers.getSigner(this.accounts[0]);
-        if (!this.contracts.superfluid?.address) {
-            throw new Error("Framework host not loaded");
+        const resolverAddress =
+            process.env.RESOLVER_ADDRESS ||
+            this.contracts.resolver?.address ||
+            "";
+        if (!resolverAddress) {
+            throw new Error("Resolver address not set");
         }
+
+        const resolver = await ethers.getContractAt(
+            "Resolver",
+            resolverAddress
+        );
+        const loader = await ethers.getContractAt(
+            "SuperfluidLoader",
+            await resolver.get("SuperfluidLoader-v1")
+        );
+        const loaded = await loader.loadFramework(HARDHAT_TEST_RELEASE_VERSION);
+
+        const signer = await ethers.getSigner(
+            this.accounts[0] || (await ethers.getSigners())[0].address
+        );
+
+        this.contracts.resolver = resolver;
+        this.contracts.superfluid = await ethers.getContractAt(
+            "SuperfluidMock",
+            loaded.superfluid
+        );
+        this.contracts.cfa = await ethers.getContractAt(
+            "ConstantFlowAgreementV1",
+            loaded.agreementCFAv1
+        );
+        this.contracts.ida = await ethers.getContractAt(
+            "InstantDistributionAgreementV1",
+            loaded.agreementIDAv1
+        );
+        this.contracts.gda = await ethers.getContractAt(
+            "GeneralDistributionAgreementV1",
+            loaded.agreementGDAv1
+        );
 
         await Promise.all([
             (this.contracts.erc1820 = await ethers.getContractAt(
                 "IERC1820Registry",
                 "0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24"
-            )),
-            (this.contracts.cfa = await ethers.getContractAt(
-                "ConstantFlowAgreementV1",
-                this.contracts.cfa?.address ||
-                    (await this.contracts.superfluid.getAgreementClass(
-                        ethers.utils.solidityKeccak256(
-                            ["string"],
-                            [
-                                "org.superfluid-finance.agreements.ConstantFlowAgreement.v1",
-                            ]
-                        )
-                    ))
-            )),
-            (this.contracts.ida = await ethers.getContractAt(
-                "InstantDistributionAgreementV1",
-                this.contracts.ida?.address ||
-                    (await this.contracts.superfluid.getAgreementClass(
-                        ethers.utils.solidityKeccak256(
-                            ["string"],
-                            [
-                                "org.superfluid-finance.agreements.InstantDistributionAgreement.v1",
-                            ]
-                        )
-                    ))
-            )),
-            (this.contracts.gda = await ethers.getContractAt(
-                "GeneralDistributionAgreementV1",
-                this.contracts.gda?.address ||
-                    (await this.contracts.superfluid.getAgreementClass(
-                        ethers.utils.solidityKeccak256(
-                            ["string"],
-                            [
-                                "org.superfluid-finance.agreements.GeneralDistributionAgreement.v1",
-                            ]
-                        )
-                    ))
             )),
             (this.contracts.governance = await ethers.getContractAt(
                 "TestGovernance",
@@ -270,12 +361,6 @@ export default class TestEnvironment {
                 ISuperToken__factory.abi,
                 signer
             ) as TestEnvironmentContracts["ISuperToken"]),
-            (this.contracts.resolver = await ethers.getContractAt(
-                "Resolver",
-                this.contracts.resolver?.address ||
-                    process.env.RESOLVER_ADDRESS ||
-                    ""
-            )),
         ]);
 
         this.sf = await createEthersFramework(
@@ -287,7 +372,7 @@ export default class TestEnvironment {
     }
 
     async beforeEachTestCase() {
-        await this.useLastEvmSnapshot();
+        await this._revertToFileSnapshot();
         this.data = {moreAliases: {}, tokens: {}};
         this.plotData = {
             enabled: false,
@@ -297,7 +382,8 @@ export default class TestEnvironment {
 
         const gov = this.contracts.governance;
         const sf = this.contracts.superfluid;
-        const adminSigner = await ethers.getSigner(this.aliases.admin);
+        const govOwner = await gov.owner();
+        const adminSigner = await ethers.getSigner(govOwner);
         const govAdmin = gov.connect(adminSigner);
         await loggedTx("reset 3Ps config", () =>
             govAdmin.setPPPConfig(
@@ -311,7 +397,7 @@ export default class TestEnvironment {
             govAdmin.setRewardAddress(
                 sf.address,
                 this.constants.ZERO_ADDRESS,
-                this.aliases.admin
+                govOwner
             )
         );
         await loggedTx(
@@ -345,9 +431,10 @@ export default class TestEnvironment {
 
     async deployFramework(deployOpts: DeployFrameworkOptions = {}) {
         process.env.IS_HARDHAT = "true";
+        process.env.RELEASE_VERSION = HARDHAT_TEST_RELEASE_VERSION;
         await deployVariantFramework({
             newTestResolver: true,
-            protocolReleaseVersion: process.env.RELEASE_VERSION || "test",
+            protocolReleaseVersion: HARDHAT_TEST_RELEASE_VERSION,
             useMocks: true,
             ...deployOpts,
         });
@@ -359,9 +446,7 @@ export default class TestEnvironment {
             "SuperfluidLoader",
             await resolver.get("SuperfluidLoader-v1")
         );
-        const loaded = await loader.loadFramework(
-            process.env.RELEASE_VERSION || "test"
-        );
+        const loaded = await loader.loadFramework(HARDHAT_TEST_RELEASE_VERSION);
         this.contracts.resolver = resolver;
         this.contracts.superfluid = await ethers.getContractAt(
             "SuperfluidMock",
@@ -399,7 +484,7 @@ export default class TestEnvironment {
             "TestToken",
             testTokenAddress
         );
-        const releaseVersion = process.env.RELEASE_VERSION || "test";
+        const releaseVersion = HARDHAT_TEST_RELEASE_VERSION;
         const superTokenKey = `supertokens.${releaseVersion}.${tokenSymbol}x`;
         const superTokenAddress =
             await this.contracts.resolver.get(superTokenKey);

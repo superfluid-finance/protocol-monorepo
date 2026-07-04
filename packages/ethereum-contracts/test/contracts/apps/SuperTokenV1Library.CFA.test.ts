@@ -12,6 +12,7 @@ import {
     SuperTokenMock,
 } from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
+import {deployRawSuperTokenMock} from "../../lib/deploy-super-token-mock";
 import {web3} from "../../lib/web3-shim";
 import {toBN} from "../utils/helpers";
 
@@ -33,26 +34,6 @@ const callbackFunctionIndex = {
     UPDATE_FLOW_OPERATOR_PERMISSIONS: 6,
     AUTHORIZE_FLOW_OPERATOR_WITH_FULL_CONTROL: 7,
     REVOKE_FLOW_OPERATOR_WITH_FULL_CONTROL: 8,
-};
-
-// @note this function was added and is used to deploy a mock super token
-// and the associated cfa NFT contracts and attach them to the
-// super token. This was done because the tests which use this
-// are not using the super token from test environment and are not
-// reverting to snapshot and are therefore reliant on deploying a
-// new super token each time.
-export const deploySuperTokenAndNFTContractsAndInitialize = async (
-    t: TestEnvironment
-) => {
-    const {poolAdminNFTProxy} = await t.deployNFTContracts();
-    const superToken = await t.deployContract<SuperTokenMock>(
-        "SuperTokenMock",
-        t.contracts.superfluid.address,
-        "69",
-        poolAdminNFTProxy.address
-    );
-
-    return superToken;
 };
 
 // @note at this point, this file is mostly just for coverage
@@ -89,7 +70,7 @@ describe("SuperTokenV1 Library CFA testing", function () {
     });
 
     beforeEach(async function () {
-        superToken = await deploySuperTokenAndNFTContractsAndInitialize(t);
+        superToken = await deployRawSuperTokenMock(t);
 
         await superToken.mintInternal(alice, mintAmount, "0x", "0x");
         await superToken.mintInternal(bob, mintAmount, "0x", "0x");

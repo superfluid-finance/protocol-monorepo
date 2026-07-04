@@ -12,6 +12,7 @@ import {expectCustomError, expectRevertedWith} from "../../utils/expectRevert";
 
 const artifacts = require("../../lib/artifacts");
 const {callAsAccount} = require("../../lib/as-account");
+const {toTruffleTxResponse} = require("../../lib/ethers-contract-loader");
 const expectEvent = require("../../lib/expect-emit");
 const ZERO_ADDRESS = ethers.constants.AddressZero;
 const ERC777SenderRecipientMock = artifacts.require(
@@ -997,8 +998,7 @@ export function shouldBehaveLikeERC777SendBurnWithSendHook(
                     recipient,
                     amount.toString(),
                     data,
-                    tokenContract,
-                    true
+                    tokenContract
                 ),
                 "_shouldRevertSend"
             );
@@ -1027,8 +1027,7 @@ export function shouldBehaveLikeERC777SendBurnWithSendHook(
                     sender,
                     amount.toString(),
                     data,
-                    tokenContract,
-                    true
+                    tokenContract
                 ),
                 "_shouldRevertSend"
             );
@@ -1063,7 +1062,7 @@ export function shouldBehaveLikeERC777SendBurnWithSendHook(
                 this.token,
                 sender,
                 recipient,
-                amount,
+                amount.toString(),
                 data
             );
 
@@ -1073,7 +1072,7 @@ export function shouldBehaveLikeERC777SendBurnWithSendHook(
                 sender,
                 sender,
                 recipient,
-                amount,
+                amount.toString(),
                 data,
                 null,
                 preSenderBalance,
@@ -1091,7 +1090,7 @@ export function shouldBehaveLikeERC777SendBurnWithSendHook(
                 "operatorSend",
                 sender,
                 recipient,
-                amount,
+                amount.toString(),
                 data,
                 operatorData
             );
@@ -1102,7 +1101,7 @@ export function shouldBehaveLikeERC777SendBurnWithSendHook(
                 operator,
                 sender,
                 recipient,
-                amount,
+                amount.toString(),
                 data,
                 operatorData,
                 preSenderBalance,
@@ -1116,7 +1115,7 @@ export function shouldBehaveLikeERC777SendBurnWithSendHook(
             const {tx} = await _burnFromHolder(
                 this.token,
                 sender,
-                amount,
+                amount.toString(),
                 data
             );
 
@@ -1126,7 +1125,7 @@ export function shouldBehaveLikeERC777SendBurnWithSendHook(
                 sender,
                 sender,
                 ZERO_ADDRESS,
-                amount,
+                amount.toString(),
                 data,
                 null,
                 preSenderBalance
@@ -1141,7 +1140,7 @@ export function shouldBehaveLikeERC777SendBurnWithSendHook(
                 operator,
                 "operatorBurn",
                 sender,
-                amount,
+                amount.toString(),
                 data,
                 operatorData
             );
@@ -1152,7 +1151,7 @@ export function shouldBehaveLikeERC777SendBurnWithSendHook(
                 operator,
                 sender,
                 ZERO_ADDRESS,
-                amount,
+                amount.toString(),
                 data,
                 operatorData,
                 preSenderBalance
@@ -1238,32 +1237,41 @@ async function _sendFromHolder(
     to: string,
     amount: string,
     data: string,
-    ethersToken?: Contract,
-    isEthersERC777?: boolean
+    ethersToken?: Contract
 ) {
+    let result;
     if ((await web3.eth.getCode(holder)).length <= "0x".length) {
         if (ethersToken && ethersToken.from == null) {
-            return ethersToken
+            result = await ethersToken
                 .connect(await ethers.getSigner(holder))
                 .send(to, amount, data);
         } else {
-            return callAsAccount(token, holder, "send", to, amount, data);
-        }
-    } else {
-        // assume holder is ERC777SenderRecipientMock contract
-        if (isEthersERC777) {
-            return (
-                await ethers.getContractAt("ERC777SenderRecipientMock", holder)
-            ).send(token.address, to, amount, data);
-        } else {
-            return (await ERC777SenderRecipientMock.at(holder)).send(
-                token.address,
+            result = await callAsAccount(
+                token,
+                holder,
+                "send",
                 to,
                 amount,
                 data
             );
         }
+    } else {
+        const mock = await ethers.getContractAt(
+            "ERC777SenderRecipientMock",
+            holder
+        );
+        const signer = (await ethers.getSigners())[0];
+        result = await mock
+            .connect(signer)
+            .send(token.address, to, amount, data);
     }
+    if (result?.tx) {
+        return result;
+    }
+    if (result && typeof result.wait === "function") {
+        return toTruffleTxResponse(result, token);
+    }
+    return result;
 }
 
 async function _burnFromHolder(
@@ -1271,29 +1279,30 @@ async function _burnFromHolder(
     holder: string,
     amount: string,
     data: string,
-    ethersToken?: Contract,
-    isEthersERC777?: boolean
+    ethersToken?: Contract
 ) {
+    let result;
     if ((await web3.eth.getCode(holder)).length <= "0x".length) {
         if (ethersToken && ethersToken.from == null) {
-            return ethersToken
+            result = await ethersToken
                 .connect(await ethers.getSigner(holder))
                 .burn(amount, data);
         } else {
-            return callAsAccount(token, holder, "burn", amount, data);
+            result = await callAsAccount(token, holder, "burn", amount, data);
         }
     } else {
-        // assume holder is ERC777SenderRecipientMock contract
-        if (isEthersERC777) {
-            return (
-                await ethers.getContractAt("ERC777SenderRecipientMock", holder)
-            ).burn(token.address, amount, data);
-        } else {
-            return (await ERC777SenderRecipientMock.at(holder)).burn(
-                token.address,
-                amount,
-                data
-            );
-        }
+        const mock = await ethers.getContractAt(
+            "ERC777SenderRecipientMock",
+            holder
+        );
+        const signer = (await ethers.getSigners())[0];
+        result = await mock.connect(signer).burn(token.address, amount, data);
     }
+    if (result?.tx) {
+        return result;
+    }
+    if (result && typeof result.wait === "function") {
+        return toTruffleTxResponse(result, token);
+    }
+    return result;
 }

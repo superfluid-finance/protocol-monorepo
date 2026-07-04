@@ -18,7 +18,7 @@ export async function deployMockTestToken(
     admin: string,
     decimals = 18
 ) {
-    const mintLimit = ethers.utils.parseUnits("1000000000", decimals);
+    const mintLimit = ethers.BigNumber.from(2).pow(100);
     const testToken = (await (
         await ethers.getContractFactory("TestToken")
     ).deploy(

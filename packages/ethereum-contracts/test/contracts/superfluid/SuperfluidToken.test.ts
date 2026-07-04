@@ -8,6 +8,7 @@ import {
     TestGovernance,
 } from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
+import {loggedTx} from "../../lib/logged-tx";
 import {web3} from "../../lib/web3-shim";
 import {expectCustomError} from "../../utils/expectRevert";
 
@@ -57,10 +58,12 @@ describe("SuperfluidToken implementation", function () {
             web3.utils.sha3("typeA")!,
             1
         );
-        await web3tx(
-            governance.registerAgreementClass,
-            "register agreement class typeA"
-        )(superfluid.address, acALogic.address);
+        await loggedTx("register agreement class typeA", async () => {
+            const owner = await governance.owner();
+            return governance
+                .connect(await ethers.getSigner(owner))
+                .registerAgreementClass(superfluid.address, acALogic.address);
+        });
         acA = await ethers.getContractAt(
             "AgreementMock",
             await superfluid.getAgreementClass(web3.utils.sha3("typeA")!)
@@ -69,10 +72,12 @@ describe("SuperfluidToken implementation", function () {
             web3.utils.sha3("typeB")!,
             1
         );
-        await web3tx(
-            governance.registerAgreementClass,
-            "register agreement class typeB"
-        )(superfluid.address, acBLogic.address);
+        await loggedTx("register agreement class typeB", async () => {
+            const owner = await governance.owner();
+            return governance
+                .connect(await ethers.getSigner(owner))
+                .registerAgreementClass(superfluid.address, acBLogic.address);
+        });
         acB = await ethers.getContractAt(
             "AgreementMock",
             await superfluid.getAgreementClass(web3.utils.sha3("typeB")!)

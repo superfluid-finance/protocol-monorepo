@@ -15,6 +15,25 @@ const {web3tx, wad4human} = require("@decentral.ee/web3-helpers");
 
 const expectEvent = require("../../lib/expect-emit");
 
+async function normalizeLegacyTx(result: any) {
+    if (result?.tx) {
+        return result;
+    }
+    if (result && typeof result.wait === "function") {
+        const receipt = await result.wait();
+        return {tx: receipt.transactionHash, receipt};
+    }
+    if (result?.transactionHash) {
+        const receipt =
+            result.receipt ??
+            (await require("hardhat").ethers.provider.getTransactionReceipt(
+                result.transactionHash
+            ));
+        return {tx: result.transactionHash, receipt};
+    }
+    return result;
+}
+
 function _updateIndexData({
     testenv,
     superToken,
@@ -313,7 +332,7 @@ export async function shouldDistribute({
                 toBN(amount)
             )
         ).newIndexValue;
-        tx = await fn();
+        tx = await normalizeLegacyTx(await fn());
     } else if (indexValue) {
         tx = await web3tx(
             testenv.sf.ida.updateIndex,
@@ -709,7 +728,7 @@ export async function shouldUpdateSubscription({
               units,
               userData,
           })
-        : await fn();
+        : await normalizeLegacyTx(await fn());
 
     // update subscribers list
     _.merge(

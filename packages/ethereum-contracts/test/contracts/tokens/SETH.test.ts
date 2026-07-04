@@ -6,7 +6,7 @@ import TestEnvironment from "../../TestEnvironment";
 import {web3} from "../../lib/web3-shim";
 import {expectCustomError} from "../../utils/expectRevert";
 
-const {toBN, toWad} = require("@decentral.ee/web3-helpers");
+const {toWad} = require("@decentral.ee/web3-helpers");
 
 const artifacts = require("../../lib/artifacts");
 const {callAsAccount} = require("../../lib/as-account");
@@ -155,8 +155,8 @@ describe("Super ETH (SETH) Contract", function () {
             }
         );
         assert.equal(
-            toBN(aliceBalance2)
-                .sub(toBN(aliceBalance1))
+            ethers.BigNumber.from(aliceBalance2)
+                .sub(aliceBalance1)
                 .add(tx.txCost)
                 .toString(),
             ethValue(1).toString()

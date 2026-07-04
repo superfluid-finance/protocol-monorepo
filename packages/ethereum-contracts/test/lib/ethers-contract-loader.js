@@ -54,11 +54,19 @@ async function toTruffleTxResponse(result, contract) {
     normalizeTxResponse(result);
     if (result && typeof result.wait === "function") {
         const receipt = await result.wait();
+        const tx = await ethers.provider.getTransaction(
+            receipt.transactionHash
+        );
+        const txCost = receipt.gasUsed.mul(
+            tx?.gasPrice || ethers.constants.Zero
+        );
         return {
             ...result,
             receipt,
             logs: decodeReceiptLogs(receipt, contract),
             tx: receipt.transactionHash,
+            txCost,
+            gasPrice: tx?.gasPrice,
         };
     }
     return result;

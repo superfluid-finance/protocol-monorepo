@@ -2610,6 +2610,7 @@ describe("Superfluid Host Contract", function () {
                 isTruffle: true,
                 nAccounts: 3,
                 tokens: [],
+                fromSnapshot: "file",
             });
 
             ({admin, alice, bob} = t.aliases);
@@ -2618,6 +2619,7 @@ describe("Superfluid Host Contract", function () {
 
         after(async function () {
             await t.popEvmSnapshot();
+            await t.beforeTestSuite({nAccounts: 0, fromSnapshot: "baseline"});
         });
 
         describe("#30 non-upgradability", () => {
@@ -2717,6 +2719,7 @@ describe("Superfluid Host Contract", function () {
                 isTruffle: true,
                 nAccounts: 3,
                 tokens: [],
+                fromSnapshot: "file",
             });
 
             superAppMockWithRegistrationKeyFactory =
@@ -2730,6 +2733,7 @@ describe("Superfluid Host Contract", function () {
 
         after(async function () {
             await t.popEvmSnapshot();
+            await t.beforeTestSuite({nAccounts: 0, fromSnapshot: "baseline"});
         });
 
         context("#40.x register app with key", () => {

@@ -13,8 +13,7 @@ import {
 } from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
 import {deploySuperTokenAndNFTContractsAndInitialize} from "../../lib/deploy-super-token-mock";
-import {web3} from "../../lib/web3-shim";
-import {toBN} from "../utils/helpers";
+import {encodeAbiParameters, toBN} from "../utils/helpers";
 
 const mintAmount = "1000000000000000000000000000"; // a small loan of a billion dollars
 const flowRate = "1000000000000";
@@ -37,7 +36,7 @@ const userData = (
     requestedAmount = 0,
     requestedFlowRate = 0
 ) =>
-    web3.eth.abi.encodeParameters(
+    encodeAbiParameters(
         [
             "uint8",
             "address",
@@ -85,7 +84,6 @@ describe("SuperTokenV1Library.GDA", function () {
 
     before(async () => {
         await t.beforeTestSuite({
-            isTruffle: true,
             nAccounts: 5,
         });
         ({alice, bob} = t.aliases);

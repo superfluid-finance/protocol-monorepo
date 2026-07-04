@@ -16,9 +16,8 @@ import {
 } from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
 import {loggedTx} from "../../lib/logged-tx";
-import {web3} from "../../lib/web3-shim";
 import {expectCustomError, expectRevertedWith} from "../../utils/expectRevert";
-import {toBN, toDecimals, toWad} from "../utils/helpers";
+import {sha3, toBN, toDecimals, toWad} from "../utils/helpers";
 
 const artifacts = require("../../lib/artifacts");
 
@@ -40,7 +39,6 @@ describe("SuperToken's Non Standard Functions", function () {
 
     before(async () => {
         await t.beforeTestSuite({
-            isTruffle: true,
             nAccounts: 4,
         });
 
@@ -84,7 +82,7 @@ describe("SuperToken's Non Standard Functions", function () {
         it("#1.2 proxiable info", async () => {
             assert.equal(
                 await superToken.proxiableUUID(),
-                web3.utils.sha3(
+                sha3(
                     "org.superfluid-finance.contracts.SuperToken.implementation"
                 )
             );

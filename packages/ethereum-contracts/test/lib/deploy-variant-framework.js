@@ -161,6 +161,8 @@ module.exports = async function deployVariantFramework(options = {}) {
                     (await ethers.provider.getGasPrice());
                 return {...tx, gasPrice, transactionHash: tx.hash};
             },
+            getBlock: (tag) => ethers.provider.getBlock(tag),
+            getPastLogs: (filter) => ethers.provider.getLogs(filter),
         },
         utils: {
             ...ethers.utils,
@@ -176,6 +178,7 @@ module.exports = async function deployVariantFramework(options = {}) {
             },
         },
     };
+    global.web3 = web3;
     console.log("======== Deploying superfluid framework (variant) ========");
     let {
         newTestResolver,

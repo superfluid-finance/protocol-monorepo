@@ -1,21 +1,19 @@
 import {assert} from "chai";
-import {web3} from "../../lib/web3-shim";
 import {ethers} from "hardhat";
-import {expectCustomError, expectRevertedWith} from "../../utils/expectRevert";
-import TestEnvironment from "../../TestEnvironment";
-import {toWad} from "./helpers";
-import {loggedTx} from "../../lib/logged-tx";
-
 
 import {
     SuperToken,
     SuperUpgrader__factory,
     TestToken,
 } from "../../../typechain-types";
+import TestEnvironment from "../../TestEnvironment";
+import {loggedTx} from "../../lib/logged-tx";
+import {expectCustomError, expectRevertedWith} from "../../utils/expectRevert";
+import {soliditySha3, toWad} from "./helpers";
 
 const DEFAULT_ADMIN_ROLE =
     "0x0000000000000000000000000000000000000000000000000000000000000000";
-const BACKEND_ROLE = web3.utils.soliditySha3("BACKEND_ROLE")!;
+const BACKEND_ROLE = soliditySha3("BACKEND_ROLE")!;
 
 describe("Superfluid Super Upgrader Contract", function () {
     this.timeout(300e3);
@@ -37,7 +35,6 @@ describe("Superfluid Super Upgrader Contract", function () {
 
     before(async () => {
         await t.beforeTestSuite({
-            isTruffle: true,
             nAccounts: 6,
         });
         SuperUpgraderFactory = await ethers.getContractFactory("SuperUpgrader");

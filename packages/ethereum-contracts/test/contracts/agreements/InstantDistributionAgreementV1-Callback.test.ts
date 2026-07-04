@@ -8,9 +8,8 @@ import {
     SuperToken,
 } from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
-import {web3} from "../../lib/web3-shim";
 import {expectCustomError} from "../../utils/expectRevert";
-import {toWad} from "../utils/helpers";
+import {encodeAbiParameters, sha3, toWad} from "../utils/helpers";
 
 import {
     shouldApproveSubscription,
@@ -38,7 +37,6 @@ describe("IDAv1 | Callback Tests", function () {
 
     before(async function () {
         await t.beforeTestSuite({
-            isTruffle: true,
             nAccounts: 5,
         });
         ({alice} = t.aliases);
@@ -92,13 +90,9 @@ describe("IDAv1 | Callback Tests", function () {
             publisherName: "app",
             indexId: DEFAULT_INDEX_ID,
             subscriberName: "alice",
-            userData: web3.eth.abi.encodeParameters(
+            userData: encodeAbiParameters(
                 ["bytes32", "bytes4", "bytes"],
-                [
-                    web3.utils.sha3("created"),
-                    idaSelector("approveSubscription"),
-                    "0x",
-                ]
+                [sha3("created"), idaSelector("approveSubscription"), "0x"]
             ),
         });
         await expectEvent.notEmitted.inTransaction(
@@ -135,13 +129,9 @@ describe("IDAv1 | Callback Tests", function () {
             publisherName: "app",
             indexId: DEFAULT_INDEX_ID,
             subscriberName: "alice",
-            userData: web3.eth.abi.encodeParameters(
+            userData: encodeAbiParameters(
                 ["bytes32", "bytes4", "bytes"],
-                [
-                    web3.utils.sha3("updated"),
-                    idaSelector("approveSubscription"),
-                    "0x",
-                ]
+                [sha3("updated"), idaSelector("approveSubscription"), "0x"]
             ),
         });
         await expectEvent.inTransaction(tx.tx, app, "SubscriptionDataBefore", {
@@ -175,13 +165,9 @@ describe("IDAv1 | Callback Tests", function () {
             indexId: DEFAULT_INDEX_ID,
             subscriberName: "app",
             units,
-            userData: web3.eth.abi.encodeParameters(
+            userData: encodeAbiParameters(
                 ["bytes32", "bytes4", "bytes"],
-                [
-                    web3.utils.sha3("created"),
-                    idaSelector("updateSubscription"),
-                    "0x",
-                ]
+                [sha3("created"), idaSelector("updateSubscription"), "0x"]
             ),
         });
         await expectEvent.notEmitted.inTransaction(
@@ -214,13 +200,9 @@ describe("IDAv1 | Callback Tests", function () {
             indexId: DEFAULT_INDEX_ID,
             subscriberName: "app",
             units: units1,
-            userData: web3.eth.abi.encodeParameters(
+            userData: encodeAbiParameters(
                 ["bytes32", "bytes4", "bytes"],
-                [
-                    web3.utils.sha3("created"),
-                    idaSelector("updateSubscription"),
-                    "0x",
-                ]
+                [sha3("created"), idaSelector("updateSubscription"), "0x"]
             ),
         });
         const tx = await shouldUpdateSubscription({
@@ -230,13 +212,9 @@ describe("IDAv1 | Callback Tests", function () {
             indexId: DEFAULT_INDEX_ID,
             subscriberName: "app",
             units: units2,
-            userData: web3.eth.abi.encodeParameters(
+            userData: encodeAbiParameters(
                 ["bytes32", "bytes4", "bytes"],
-                [
-                    web3.utils.sha3("updated"),
-                    idaSelector("updateSubscription"),
-                    "0x",
-                ]
+                [sha3("updated"), idaSelector("updateSubscription"), "0x"]
             ),
         });
         await expectEvent.inTransaction(tx.tx, app, "SubscriptionDataBefore", {
@@ -270,13 +248,9 @@ describe("IDAv1 | Callback Tests", function () {
             indexId: DEFAULT_INDEX_ID,
             subscriberName: "app",
             units,
-            userData: web3.eth.abi.encodeParameters(
+            userData: encodeAbiParameters(
                 ["bytes32", "bytes4", "bytes"],
-                [
-                    web3.utils.sha3("created"),
-                    idaSelector("updateSubscription"),
-                    "0x",
-                ]
+                [sha3("created"), idaSelector("updateSubscription"), "0x"]
             ),
         });
         const tx = await shouldDeleteSubscription({
@@ -286,13 +260,9 @@ describe("IDAv1 | Callback Tests", function () {
             indexId: DEFAULT_INDEX_ID,
             subscriberName: "app",
             senderName: "alice",
-            userData: web3.eth.abi.encodeParameters(
+            userData: encodeAbiParameters(
                 ["bytes32", "bytes4", "bytes"],
-                [
-                    web3.utils.sha3("deleted"),
-                    idaSelector("deleteSubscription"),
-                    "0x",
-                ]
+                [sha3("deleted"), idaSelector("deleteSubscription"), "0x"]
             ),
         });
         await expectEvent.inTransaction(tx.tx, app, "SubscriptionDataBefore", {
@@ -345,9 +315,9 @@ describe("IDAv1 | Callback Tests", function () {
             indexId: DEFAULT_INDEX_ID,
             subscriberName: "alice",
             senderName: "dan",
-            userData: web3.eth.abi.encodeParameters(
+            userData: encodeAbiParameters(
                 ["bytes32", "bytes4", "bytes"],
-                [web3.utils.sha3("updated"), idaSelector("claim"), "0x"]
+                [sha3("updated"), idaSelector("claim"), "0x"]
             ),
         });
         await expectEvent.inTransaction(tx.tx, app, "SubscriptionDataBefore", {
@@ -375,13 +345,9 @@ describe("IDAv1 | Callback Tests", function () {
                     "approveSubscription",
                     [superToken.address, app.address, DEFAULT_INDEX_ID, "0x"]
                 ),
-                userData: web3.eth.abi.encodeParameters(
+                userData: encodeAbiParameters(
                     ["bytes32", "bytes4", "bytes"],
-                    [
-                        web3.utils.sha3("created"),
-                        idaSelector("approveSubscription"),
-                        "0x",
-                    ]
+                    [sha3("created"), idaSelector("approveSubscription"), "0x"]
                 ),
                 signer: aliceSigner,
             }),

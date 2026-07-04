@@ -4,9 +4,8 @@ import {ethers} from "hardhat";
 
 import {IERC1820Registry, SuperTokenMock} from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
-import {web3} from "../../lib/web3-shim";
 import {expectCustomError, expectRevertedWith} from "../../utils/expectRevert";
-import {toWad} from "../utils/helpers";
+import {sha3, soliditySha3, toWad} from "../utils/helpers";
 
 import {
     shouldBehaveLikeERC777DirectSendBurn,
@@ -31,8 +30,8 @@ describe("SuperToken's ERC777 implementation", function () {
 
     const {ZERO_ADDRESS} = t.constants;
     const initialSupply = ethers.BigNumber.from(toWad(50).toString());
-    const testData = web3.utils.sha3("OZ777TestData")!;
-    const operatorData = web3.utils.sha3("OZ777TestOperatorData")!;
+    const testData = sha3("OZ777TestData")!;
+    const operatorData = sha3("OZ777TestOperatorData")!;
 
     let holder: string,
         defaultOperatorA: string,
@@ -44,7 +43,6 @@ describe("SuperToken's ERC777 implementation", function () {
 
     before(async function () {
         await t.beforeTestSuite({
-            isTruffle: true,
             nAccounts: 6,
         });
 
@@ -134,7 +132,7 @@ describe("SuperToken's ERC777 implementation", function () {
                 expect(
                     await erc1820.getInterfaceImplementer(
                         this.token.address,
-                        web3.utils.soliditySha3("ERC777Token")!
+                        soliditySha3("ERC777Token")!
                     )
                 ).to.equal(this.token.address);
             });
@@ -143,7 +141,7 @@ describe("SuperToken's ERC777 implementation", function () {
                 expect(
                     await erc1820.getInterfaceImplementer(
                         this.token.address,
-                        web3.utils.soliditySha3("ERC20Token")!
+                        soliditySha3("ERC20Token")!
                     )
                 ).to.equal(this.token.address);
             });
@@ -631,9 +629,7 @@ describe("SuperToken's ERC777 implementation", function () {
                                 .connect(signer)
                                 .setInterfaceImplementer(
                                     recipient,
-                                    web3.utils.soliditySha3(
-                                        "ERC777TokensRecipient"
-                                    )!,
+                                    soliditySha3("ERC777TokensRecipient")!,
                                     this.tokensRecipientImplementer.address
                                 );
                         });
@@ -714,7 +710,7 @@ describe("SuperToken's ERC777 implementation", function () {
                             .connect(signer)
                             .setInterfaceImplementer(
                                 sender,
-                                web3.utils.soliditySha3("ERC777TokensSender")!,
+                                soliditySha3("ERC777TokensSender")!,
                                 this.tokensSenderImplementer.address
                             );
                     });

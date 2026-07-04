@@ -24,7 +24,6 @@ describe("SuperToken's ERC20 compliance", function () {
 
     before(async function () {
         await t.beforeTestSuite({
-            isTruffle: true,
             nAccounts: 4,
         });
 

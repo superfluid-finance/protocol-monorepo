@@ -41,7 +41,6 @@ describe("Superfluid scenarios", function () {
 
     before(async function () {
         await t.beforeTestSuite({
-            isTruffle: true,
             nAccounts: 5,
         });
         ({alice, bob, carol, dan} = t.aliases);

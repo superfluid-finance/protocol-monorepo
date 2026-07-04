@@ -9,9 +9,8 @@ import {
     SuperToken,
 } from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
-import {web3} from "../../lib/web3-shim";
 import {expectCustomError} from "../../utils/expectRevert";
-import {toBN, toWad, wad4human} from "../utils/helpers";
+import {encodeAbiParameters, toBN, toWad, wad4human} from "../utils/helpers";
 
 import {
     shouldApproveSubscription,
@@ -44,7 +43,6 @@ describe("IDAv1 | Non-Callback Tests", function () {
 
     before(async function () {
         await t.beforeTestSuite({
-            isTruffle: true,
             nAccounts: 5,
         });
         ({alice, bob, carol} = t.aliases);
@@ -1499,7 +1497,6 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     "TEST2",
                     {
                         doUpgrade: true,
-                        isTruffle: true,
                     }
                 );
 
@@ -1545,7 +1542,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
                             [
                                 superToken.address,
                                 DEFAULT_INDEX_ID,
-                                web3.eth.abi.encodeParameters(
+                                encodeAbiParameters(
                                     ["bytes", "bytes"],
                                     ["0xdeadbeef", "0x"]
                                 ),

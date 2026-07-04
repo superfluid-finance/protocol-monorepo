@@ -6,10 +6,9 @@ import {ethers} from "hardhat";
 import {SuperToken, SuperTokenMock} from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
 import {loggedTx} from "../../lib/logged-tx";
-import {web3} from "../../lib/web3-shim";
 import {expectCustomError} from "../../utils/expectRevert";
 import MFASupport, {MFAParams} from "../utils/MFASupport";
-import {toBN} from "../utils/helpers";
+import {encodeAbiParameters, toBN} from "../utils/helpers";
 
 import {
     AccountFlowInfo,
@@ -357,7 +356,7 @@ export async function _shouldChangeFlow({
                         expectedRewardAmount
                     )
                 );
-                const liquidationTypeData = web3.eth.abi.encodeParameters(
+                const liquidationTypeData = encodeAbiParameters(
                     ["uint256", "uint8"],
                     [1, isPatricianPeriod ? 0 : 1]
                 );
@@ -433,7 +432,7 @@ export async function _shouldChangeFlow({
                         expectedBailoutAmount
                     )
                 );
-                const liquidationTypeData = web3.eth.abi.encodeParameters(
+                const liquidationTypeData = encodeAbiParameters(
                     ["uint256", "uint8"],
                     [1, 2]
                 );

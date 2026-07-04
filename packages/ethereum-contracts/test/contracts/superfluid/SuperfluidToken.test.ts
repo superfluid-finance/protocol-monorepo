@@ -9,8 +9,8 @@ import {
 } from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
 import {loggedTx} from "../../lib/logged-tx";
-import {web3} from "../../lib/web3-shim";
 import {expectCustomError} from "../../utils/expectRevert";
+import {sha3} from "../utils/helpers";
 
 describe("SuperfluidToken implementation", function () {
     this.timeout(300e3);
@@ -40,7 +40,6 @@ describe("SuperfluidToken implementation", function () {
 
     before(async () => {
         await t.beforeTestSuite({
-            isTruffle: true,
             nAccounts: 3,
         });
 
@@ -52,10 +51,7 @@ describe("SuperfluidToken implementation", function () {
             superToken.address
         );
 
-        const acALogic = await createAgreementMock(
-            web3.utils.sha3("typeA")!,
-            1
-        );
+        const acALogic = await createAgreementMock(sha3("typeA")!, 1);
         await loggedTx("register agreement class typeA", async () => {
             const owner = await governance.owner();
             return governance
@@ -64,12 +60,9 @@ describe("SuperfluidToken implementation", function () {
         });
         acA = await ethers.getContractAt(
             "AgreementMock",
-            await superfluid.getAgreementClass(web3.utils.sha3("typeA")!)
+            await superfluid.getAgreementClass(sha3("typeA")!)
         );
-        const acBLogic = await createAgreementMock(
-            web3.utils.sha3("typeB")!,
-            1
-        );
+        const acBLogic = await createAgreementMock(sha3("typeB")!, 1);
         await loggedTx("register agreement class typeB", async () => {
             const owner = await governance.owner();
             return governance
@@ -78,7 +71,7 @@ describe("SuperfluidToken implementation", function () {
         });
         acB = await ethers.getContractAt(
             "AgreementMock",
-            await superfluid.getAgreementClass(web3.utils.sha3("typeB")!)
+            await superfluid.getAgreementClass(sha3("typeB")!)
         );
 
         await t.pushEvmSnapshot();
@@ -539,10 +532,7 @@ describe("SuperfluidToken implementation", function () {
 
         context("#3.c static balance", () => {
             it("#3.c.1 should only be called by listed agreement", async () => {
-                const acBad = await createAgreementMock(
-                    web3.utils.sha3("typeBad")!,
-                    1
-                );
+                const acBad = await createAgreementMock(sha3("typeBad")!, 1);
                 await expectCustomError(
                     acBad.settleBalanceFor(superToken.address, bob, "1"),
                     superToken,
@@ -573,10 +563,7 @@ describe("SuperfluidToken implementation", function () {
 
     describe("#4 liquidation rules", () => {
         it("#4.1 should only be called by listed agreement", async () => {
-            const acBad = await createAgreementMock(
-                web3.utils.sha3("typeBad")!,
-                1
-            );
+            const acBad = await createAgreementMock(sha3("typeBad")!, 1);
             await expectCustomError(
                 acBad.makeLiquidationPayoutsFor(
                     superToken.address,

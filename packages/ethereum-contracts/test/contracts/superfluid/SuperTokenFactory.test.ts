@@ -14,8 +14,8 @@ import {
     TestToken__factory,
 } from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
-import {web3} from "../../lib/web3-shim";
 import {expectCustomError, expectRevertedWith} from "../../utils/expectRevert";
+import {sha3} from "../utils/helpers";
 
 const expectEvent = require("../../lib/expect-emit");
 
@@ -33,7 +33,6 @@ describe("SuperTokenFactory Contract", function () {
 
     before(async () => {
         await t.beforeTestSuite({
-            isTruffle: true,
             nAccounts: 5,
         });
 
@@ -94,7 +93,7 @@ describe("SuperTokenFactory Contract", function () {
             );
             assert.equal(
                 await proxiable.proxiableUUID(),
-                web3.utils.sha3(
+                sha3(
                     "org.superfluid-finance.contracts.SuperTokenFactory.implementation"
                 )
             );

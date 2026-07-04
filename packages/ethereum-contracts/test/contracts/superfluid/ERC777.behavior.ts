@@ -5,7 +5,6 @@ import {BigNumber} from "ethers";
 import {ethers} from "hardhat";
 
 import {SuperTokenMock} from "../../../typechain-types";
-import {web3} from "../../lib/web3-shim";
 import {expectCustomError, expectRevertedWith} from "../../utils/expectRevert";
 
 // NOTE: copied and modified from https://github.com/OpenZeppelin/openzeppelin-contracts/
@@ -1240,7 +1239,7 @@ async function _sendFromHolder(
     ethersToken?: Contract
 ) {
     let result;
-    if ((await web3.eth.getCode(holder)).length <= "0x".length) {
+    if ((await ethers.provider.getCode(holder)).length <= "0x".length) {
         if (ethersToken && ethersToken.from == null) {
             result = await ethersToken
                 .connect(await ethers.getSigner(holder))
@@ -1282,7 +1281,7 @@ async function _burnFromHolder(
     ethersToken?: Contract
 ) {
     let result;
-    if ((await web3.eth.getCode(holder)).length <= "0x".length) {
+    if ((await ethers.provider.getCode(holder)).length <= "0x".length) {
         if (ethersToken && ethersToken.from == null) {
             result = await ethersToken
                 .connect(await ethers.getSigner(holder))

@@ -13,8 +13,7 @@ import {
 } from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
 import {deployRawSuperTokenMock} from "../../lib/deploy-super-token-mock";
-import {web3} from "../../lib/web3-shim";
-import {toBN} from "../utils/helpers";
+import {encodeAbiParameter, toBN} from "../utils/helpers";
 
 const abiCoder = ethers.utils.defaultAbiCoder;
 const defaultUserData = abiCoder.encode(["uint256"], [690420]);
@@ -58,7 +57,6 @@ describe("SuperTokenV1 Library CFA testing", function () {
 
     before(async () => {
         await t.beforeTestSuite({
-            isTruffle: true,
             nAccounts: 3,
         });
 
@@ -364,7 +362,7 @@ describe("SuperTokenV1 Library CFA testing", function () {
                             "0x",
                         ]
                     ),
-                    web3.eth.abi.encodeParameter(
+                    encodeAbiParameter(
                         "uint8",
                         callbackFunctionIndex.CREATE_FLOW
                     )
@@ -390,7 +388,7 @@ describe("SuperTokenV1 Library CFA testing", function () {
                 .callAgreement(
                     cfa.address,
                     createFlowCalldata,
-                    web3.eth.abi.encodeParameter(
+                    encodeAbiParameter(
                         "uint8",
                         callbackFunctionIndex.UPDATE_FLOW
                     )
@@ -416,7 +414,7 @@ describe("SuperTokenV1 Library CFA testing", function () {
                 .callAgreement(
                     cfa.address,
                     createFlowCalldata,
-                    web3.eth.abi.encodeParameter(
+                    encodeAbiParameter(
                         "uint8",
                         callbackFunctionIndex.DELETE_FLOW
                     )
@@ -767,7 +765,7 @@ describe("SuperTokenV1 Library CFA testing", function () {
                 .callAgreement(
                     cfa.address,
                     createFlowCalldata,
-                    web3.eth.abi.encodeParameter(
+                    encodeAbiParameter(
                         "uint8",
                         callbackFunctionIndex.CREATE_FLOW_BY_OPERATOR
                     )
@@ -813,7 +811,7 @@ describe("SuperTokenV1 Library CFA testing", function () {
                 .callAgreement(
                     cfa.address,
                     createFlowCalldata,
-                    web3.eth.abi.encodeParameter(
+                    encodeAbiParameter(
                         "uint8",
                         callbackFunctionIndex.UPDATE_FLOW_BY_OPERATOR
                     )
@@ -859,7 +857,7 @@ describe("SuperTokenV1 Library CFA testing", function () {
                 .callAgreement(
                     cfa.address,
                     createFlowCalldata,
-                    web3.eth.abi.encodeParameter(
+                    encodeAbiParameter(
                         "uint8",
                         callbackFunctionIndex.DELETE_FLOW_BY_OPERATOR
                     )
@@ -880,7 +878,7 @@ describe("SuperTokenV1 Library CFA testing", function () {
                 .callAgreement(
                     cfa.address,
                     createFlowCalldata,
-                    web3.eth.abi.encodeParameter(
+                    encodeAbiParameter(
                         "uint8",
                         callbackFunctionIndex.UPDATE_FLOW_OPERATOR_PERMISSIONS
                     )
@@ -905,7 +903,7 @@ describe("SuperTokenV1 Library CFA testing", function () {
                 .callAgreement(
                     cfa.address,
                     createFlowCalldata,
-                    web3.eth.abi.encodeParameter(
+                    encodeAbiParameter(
                         "uint8",
                         callbackFunctionIndex.AUTHORIZE_FLOW_OPERATOR_WITH_FULL_CONTROL
                     )
@@ -935,7 +933,7 @@ describe("SuperTokenV1 Library CFA testing", function () {
                 .callAgreement(
                     cfa.address,
                     createFlowCalldata,
-                    web3.eth.abi.encodeParameter(
+                    encodeAbiParameter(
                         "uint8",
                         callbackFunctionIndex.REVOKE_FLOW_OPERATOR_WITH_FULL_CONTROL
                     )

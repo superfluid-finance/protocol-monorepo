@@ -3,7 +3,6 @@ import {ethers} from "hardhat";
 
 import {ISETH, SuperToken__factory} from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
-import {web3} from "../../lib/web3-shim";
 import {expectCustomError} from "../../utils/expectRevert";
 import {toWad} from "../utils/helpers";
 
@@ -28,7 +27,6 @@ describe("Super ETH (SETH) Contract", function () {
 
     before(async () => {
         await t.beforeTestSuite({
-            isTruffle: true,
             nAccounts: 3,
         });
 
@@ -91,7 +89,7 @@ describe("Super ETH (SETH) Contract", function () {
             ethValue(1).toString()
         );
         assert.equal(
-            (await web3.eth.getBalance(seth.address)).toString(),
+            (await ethers.provider.getBalance(seth.address)).toString(),
             ethValue(1).toString()
         );
     });
@@ -116,7 +114,7 @@ describe("Super ETH (SETH) Contract", function () {
             ethValue(1).toString()
         );
         assert.equal(
-            (await web3.eth.getBalance(seth.address)).toString(),
+            (await ethers.provider.getBalance(seth.address)).toString(),
             ethValue(1).toString()
         );
     });
@@ -136,14 +134,14 @@ describe("Super ETH (SETH) Contract", function () {
             "SF_TOKEN_BURN_INSUFFICIENT_BALANCE"
         );
 
-        const aliceBalance1 = await web3.eth.getBalance(alice);
+        const aliceBalance1 = await ethers.provider.getBalance(alice);
         const tx = await callAsAccount(
             seth,
             alice,
             "downgradeToETH",
             ethValue(1)
         );
-        const aliceBalance2 = await web3.eth.getBalance(alice);
+        const aliceBalance2 = await ethers.provider.getBalance(alice);
         await expectEvent.inTransaction(
             tx.tx,
             t.sf.contracts.ISuperToken,
@@ -165,23 +163,21 @@ describe("Super ETH (SETH) Contract", function () {
             ethValue(0).toString()
         );
         assert.equal(
-            (await web3.eth.getBalance(seth.address)).toString(),
+            (await ethers.provider.getBalance(seth.address)).toString(),
             ethValue(0).toString()
         );
     });
 
     it("#1.5 - Direct send Ether", async () => {
-        await web3.eth.sendTransaction({
-            to: seth.address,
-            from: alice,
-            value: ethValue(1),
-        });
+        await (
+            await ethers.getSigner(alice)
+        ).sendTransaction({to: seth.address, value: ethValue(1)});
         assert.equal(
             (await seth.balanceOf(alice)).toString(),
             ethValue(1).toString()
         );
         assert.equal(
-            (await web3.eth.getBalance(seth.address)).toString(),
+            (await ethers.provider.getBalance(seth.address)).toString(),
             ethValue(1).toString()
         );
     });

@@ -12,9 +12,8 @@ import {
     TestToken,
 } from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
-import {web3} from "../../lib/web3-shim";
 import {expectCustomError} from "../../utils/expectRevert";
-import {max, toBN, toWad} from "../utils/helpers";
+import {encodeAbiParameters, max, toBN, toWad} from "../utils/helpers";
 
 import {
     CreateBailoutTestParams,
@@ -60,7 +59,6 @@ describe("CFAv1 | Non-Callback Tests", function () {
 
     before(async () => {
         await t.beforeTestSuite({
-            isTruffle: true,
             nAccounts: 5,
         });
         ({admin, alice, bob, dan} = t.aliases);
@@ -2296,7 +2294,7 @@ describe("CFAv1 | Non-Callback Tests", function () {
                             superToken.address,
                             alice,
                             FLOW_RATE1.toString(),
-                            web3.eth.abi.encodeParameters(
+                            encodeAbiParameters(
                                 ["bytes", "bytes"],
                                 ["0xdeadbeef", "0x"]
                             ),
@@ -3605,7 +3603,7 @@ describe("CFAv1 | Non-Callback Tests", function () {
         // redundant, but a sanity check nonetheless to ensure that we are calling
         // authorizeTokenAccess in our new agreement functions
         it("#1.12.28 Should revert when trying to pass in dirty context", async () => {
-            const dirtyBytes = web3.eth.abi.encodeParameters(
+            const dirtyBytes = encodeAbiParameters(
                 ["bytes", "bytes"],
                 ["0xdeadbeef", "0x"]
             );

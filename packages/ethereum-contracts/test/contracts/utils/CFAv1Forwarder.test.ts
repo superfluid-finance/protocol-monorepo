@@ -40,7 +40,6 @@ describe("Agreement Forwarder", function () {
 
     before(async () => {
         await t.beforeTestSuite({
-            isTruffle: true,
             nAccounts: 4,
         });
 

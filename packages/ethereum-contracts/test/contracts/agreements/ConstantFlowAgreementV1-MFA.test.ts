@@ -1,5 +1,6 @@
+import {assert} from "chai";
 import {BigNumberish} from "ethers";
-import {assert, ethers, web3} from "hardhat";
+import {ethers} from "hardhat";
 
 import {
     ConstantFlowAgreementV1,
@@ -8,6 +9,7 @@ import {
     SuperTokenMock,
 } from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
+import {web3} from "../../lib/web3-shim";
 import {expectCustomError} from "../../utils/expectRevert";
 import MFASupport from "../utils/MFASupport";
 import {toBN, toWad} from "../utils/helpers";

@@ -1,5 +1,7 @@
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
-import {assert, ethers, expect} from "hardhat";
+import {expect} from "chai";
+import {assert} from "chai";
+import {ethers} from "hardhat";
 
 import {
     ConstantFlowAgreementV1,

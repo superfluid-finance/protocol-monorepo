@@ -1,9 +1,10 @@
 import {HardhatUserConfig, subtask} from "hardhat/config";
 import "@typechain/hardhat";
-import "@nomiclabs/hardhat-web3";
-import "@nomiclabs/hardhat-truffle5";
 import "@nomicfoundation/hardhat-chai-matchers";
 import "@nomiclabs/hardhat-ethers";
+import "./test/lib/bootstrap-web3";
+import "./test/lib/hardhat-web3-shim";
+import "./test/lib/hardhat-expect-shim";
 import "@nomicfoundation/hardhat-verify";
 import {
     TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS,

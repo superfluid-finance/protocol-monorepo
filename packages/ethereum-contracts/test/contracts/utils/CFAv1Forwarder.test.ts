@@ -1,7 +1,8 @@
 import fs from "fs";
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 import {expect} from "chai";
-import {assert, ethers} from "hardhat";
+import {assert} from "chai";
+import {ethers} from "hardhat";
 
 import {
     CFAv1Forwarder,

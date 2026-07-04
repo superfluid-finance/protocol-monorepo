@@ -1,6 +1,8 @@
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
+import {expect} from "chai";
+import {assert} from "chai";
 import {BigNumberish} from "ethers";
-import {artifacts, assert, ethers, expect, web3} from "hardhat";
+import {ethers} from "hardhat";
 
 import {
     CustomSuperTokenMock,
@@ -13,10 +15,13 @@ import {
     TestToken,
 } from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
+import {web3} from "../../lib/web3-shim";
 import {expectCustomError, expectRevertedWith} from "../../utils/expectRevert";
 import {toBN, toWad} from "../utils/helpers";
 
 const {web3tx, toDecimals} = require("@decentral.ee/web3-helpers");
+
+const artifacts = require("../../lib/artifacts");
 
 const TestToken = artifacts.require("TestToken");
 

@@ -1,5 +1,6 @@
 import {assert} from "chai";
-import {ethers, web3} from "hardhat";
+import {web3} from "../../lib/web3-shim";
+import {ethers} from "hardhat";
 import {expectCustomError, expectRevertedWith} from "../../utils/expectRevert";
 import TestEnvironment from "../../TestEnvironment";
 import {toWad} from "./helpers";

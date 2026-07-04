@@ -1,5 +1,7 @@
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
-import {assert, ethers, expect, web3} from "hardhat";
+import {expect} from "chai";
+import {assert} from "chai";
+import {ethers} from "hardhat";
 
 import {
     // CFALibrarySuperAppMock,
@@ -10,6 +12,7 @@ import {
     SuperTokenMock,
 } from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
+import {web3} from "../../lib/web3-shim";
 import {toBN} from "../utils/helpers";
 
 const abiCoder = ethers.utils.defaultAbiCoder;

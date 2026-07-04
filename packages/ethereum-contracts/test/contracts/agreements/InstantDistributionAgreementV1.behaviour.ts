@@ -1,5 +1,5 @@
+import {expect} from "chai";
 import {BigNumber} from "ethers";
-import {expect} from "hardhat";
 import _ from "lodash";
 
 import {toBN} from "../utils/helpers";
@@ -12,7 +12,8 @@ import {
 } from "./Agreement.types";
 
 const {web3tx, wad4human} = require("@decentral.ee/web3-helpers");
-const {expectEvent} = require("@openzeppelin/test-helpers");
+
+const expectEvent = require("../../lib/expect-emit");
 
 function _updateIndexData({
     testenv,

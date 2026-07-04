@@ -1,5 +1,6 @@
 import {BigNumber} from "ethers";
-import {assert, web3} from "hardhat";
+import {assert} from "chai";
+import {web3} from "../../lib/web3-shim";
 import {SuperToken} from "../../../typechain-types";
 import {toBN} from "./helpers";
 import CFADataModel from "../agreements/ConstantFlowAgreementV1.data";

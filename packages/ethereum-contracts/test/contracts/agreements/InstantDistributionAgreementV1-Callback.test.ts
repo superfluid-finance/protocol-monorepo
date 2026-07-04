@@ -1,5 +1,6 @@
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
-import {artifacts, assert, ethers, web3} from "hardhat";
+import {assert} from "chai";
+import {ethers} from "hardhat";
 
 import {
     IDASuperAppTester,
@@ -7,6 +8,7 @@ import {
     SuperToken,
 } from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
+import {web3} from "../../lib/web3-shim";
 import {expectCustomError} from "../../utils/expectRevert";
 import {toWad} from "../utils/helpers";
 
@@ -19,7 +21,8 @@ import {
     shouldUpdateSubscription,
 } from "./InstantDistributionAgreementV1.behaviour";
 
-const {expectEvent} = require("@openzeppelin/test-helpers");
+const artifacts = require("../../lib/artifacts");
+const expectEvent = require("../../lib/expect-emit");
 const IDASuperAppTester = artifacts.require("IDASuperAppTester");
 
 const DEFAULT_INDEX_ID = "42";

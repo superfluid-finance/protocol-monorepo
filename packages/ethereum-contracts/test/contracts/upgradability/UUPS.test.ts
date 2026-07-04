@@ -1,11 +1,12 @@
-import {assert} from "chai";
-import {ethers, expect, web3} from "hardhat";
+import {assert, expect} from "chai";
+import {ethers} from "hardhat";
 
 import {
     UUPSProxiableMock__factory,
     UUPSProxy__factory,
 } from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
+import {web3} from "../../lib/web3-shim";
 import {expectRevertedWith} from "../../utils/expectRevert";
 
 describe("Miscellaneous for test coverages", () => {

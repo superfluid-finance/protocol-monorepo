@@ -1,7 +1,8 @@
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 import {expect} from "chai";
+import {assert} from "chai";
 import {Interface} from "ethers/lib/utils";
-import {artifacts, assert, ethers, web3} from "hardhat";
+import {ethers} from "hardhat";
 
 import {
     AgreementMock,
@@ -18,12 +19,15 @@ import {
     TestGovernance,
 } from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
+import {web3} from "../../lib/web3-shim";
 import {
     expectCustomError,
     expectReverted,
     expectRevertedWith,
 } from "../../utils/expectRevert";
 import {toBN, toWad} from "../utils/helpers";
+
+const artifacts = require("../../lib/artifacts");
 
 describe("Superfluid Host Contract", function () {
     this.timeout(300e3);

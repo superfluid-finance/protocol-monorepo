@@ -1,5 +1,7 @@
+import {expect} from "chai";
+import {assert} from "chai";
 import {BigNumber} from "ethers";
-import {assert, ethers, expect} from "hardhat";
+import {ethers} from "hardhat";
 
 import {SuperToken} from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";

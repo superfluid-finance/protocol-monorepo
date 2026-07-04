@@ -1,7 +1,10 @@
-import {artifacts, assert, ethers, expect, web3} from "hardhat";
+import {expect} from "chai";
+import {assert} from "chai";
+import {ethers} from "hardhat";
 
 import {IERC1820Registry, SuperTokenMock} from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
+import {web3} from "../../lib/web3-shim";
 import {expectCustomError, expectRevertedWith} from "../../utils/expectRevert";
 
 import {
@@ -12,8 +15,11 @@ import {
     shouldBehaveLikeERC777UnauthorizedOperatorSendBurn,
 } from "./ERC777.behavior";
 
-const {web3tx, toWad} = require("@decentral.ee/web3-helpers");
-const {expectEvent} = require("@openzeppelin/test-helpers");
+const {toWad} = require("@decentral.ee/web3-helpers");
+
+const artifacts = require("../../lib/artifacts");
+const {callAsAccount} = require("../../lib/as-account");
+const expectEvent = require("../../lib/expect-emit");
 
 const ERC777SenderRecipientMock = artifacts.require(
     "ERC777SenderRecipientMock"
@@ -25,7 +31,7 @@ describe("SuperToken's ERC777 implementation", function () {
     const t = TestEnvironment.getSingleton();
 
     const {ZERO_ADDRESS} = t.constants;
-    const initialSupply = toWad(50);
+    const initialSupply = ethers.BigNumber.from(toWad(50).toString());
     const testData = web3.utils.sha3("OZ777TestData")!;
     const operatorData = web3.utils.sha3("OZ777TestOperatorData")!;
 
@@ -54,12 +60,8 @@ describe("SuperToken's ERC777 implementation", function () {
         tokenContract = t.tokens.SuperToken;
         ({erc1820} = t.contracts);
 
-        await web3tx(
-            this.token.upgrade,
-            "Upgrade initialSupply amount of token for holder"
-        )(initialSupply, {
-            from: holder,
-        });
+        const holderSigner = await ethers.getSigner(holder);
+        await this.token.connect(holderSigner).upgrade(initialSupply);
         await t.pushEvmSnapshot();
         this.testenv = t;
     });
@@ -218,9 +220,12 @@ describe("SuperToken's ERC777 implementation", function () {
 
                     context("with new authorized operator", function () {
                         beforeEach(async function () {
-                            await this.token.authorizeOperator(newOperator, {
-                                from: holder,
-                            });
+                            await callAsAccount(
+                                this.token,
+                                holder,
+                                "authorizeOperator",
+                                newOperator
+                            );
                         });
 
                         shouldBehaveLikeERC777OperatorSendBurn(
@@ -235,9 +240,12 @@ describe("SuperToken's ERC777 implementation", function () {
 
                         context("with revoked operator", function () {
                             beforeEach(async function () {
-                                await this.token.revokeOperator(newOperator, {
-                                    from: holder,
-                                });
+                                await callAsAccount(
+                                    this.token,
+                                    holder,
+                                    "revokeOperator",
+                                    newOperator
+                                );
                             });
 
                             shouldBehaveLikeERC777UnauthorizedOperatorSendBurn(
@@ -285,9 +293,12 @@ describe("SuperToken's ERC777 implementation", function () {
                     await this.token.isOperatorFor(newOperator, holder)
                 ).to.equal(false);
 
-                const {logs} = await this.token.revokeOperator(newOperator, {
-                    from: holder,
-                });
+                const {logs} = await callAsAccount(
+                    this.token,
+                    holder,
+                    "revokeOperator",
+                    newOperator
+                );
                 expectEvent.inLogs(logs, "RevokedOperator", {
                     operator: newOperator,
                     tokenHolder: holder,
@@ -303,9 +314,12 @@ describe("SuperToken's ERC777 implementation", function () {
                     await this.token.isOperatorFor(newOperator, holder)
                 ).to.equal(false);
 
-                const {logs} = await this.token.authorizeOperator(newOperator, {
-                    from: holder,
-                });
+                const {logs} = await callAsAccount(
+                    this.token,
+                    holder,
+                    "authorizeOperator",
+                    newOperator
+                );
                 expectEvent.inLogs(logs, "AuthorizedOperator", {
                     operator: newOperator,
                     tokenHolder: holder,
@@ -318,9 +332,12 @@ describe("SuperToken's ERC777 implementation", function () {
 
             describe("new operators", function () {
                 beforeEach(async function () {
-                    await this.token.authorizeOperator(newOperator, {
-                        from: holder,
-                    });
+                    await callAsAccount(
+                        this.token,
+                        holder,
+                        "authorizeOperator",
+                        newOperator
+                    );
                 });
 
                 it("are not added to the default operators list", async function () {
@@ -330,11 +347,11 @@ describe("SuperToken's ERC777 implementation", function () {
                 });
 
                 it("can be re-authorized", async function () {
-                    const {logs} = await this.token.authorizeOperator(
-                        newOperator,
-                        {
-                            from: holder,
-                        }
+                    const {logs} = await callAsAccount(
+                        this.token,
+                        holder,
+                        "authorizeOperator",
+                        newOperator
                     );
                     expectEvent.inLogs(logs, "AuthorizedOperator", {
                         operator: newOperator,
@@ -347,11 +364,11 @@ describe("SuperToken's ERC777 implementation", function () {
                 });
 
                 it("can be revoked", async function () {
-                    const {logs} = await this.token.revokeOperator(
-                        newOperator,
-                        {
-                            from: holder,
-                        }
+                    const {logs} = await callAsAccount(
+                        this.token,
+                        holder,
+                        "revokeOperator",
+                        newOperator
                     );
                     expectEvent.inLogs(logs, "RevokedOperator", {
                         operator: newOperator,
@@ -366,11 +383,11 @@ describe("SuperToken's ERC777 implementation", function () {
 
             describe("default operators", function () {
                 it("can be re-authorized", async function () {
-                    const {logs} = await this.token.authorizeOperator(
-                        defaultOperatorA,
-                        {
-                            from: holder,
-                        }
+                    const {logs} = await callAsAccount(
+                        this.token,
+                        holder,
+                        "authorizeOperator",
+                        defaultOperatorA
                     );
                     expectEvent.inLogs(logs, "AuthorizedOperator", {
                         operator: defaultOperatorA,
@@ -383,11 +400,11 @@ describe("SuperToken's ERC777 implementation", function () {
                 });
 
                 it("can be revoked", async function () {
-                    const {logs} = await this.token.revokeOperator(
-                        defaultOperatorA,
-                        {
-                            from: holder,
-                        }
+                    const {logs} = await callAsAccount(
+                        this.token,
+                        holder,
+                        "revokeOperator",
+                        defaultOperatorA
                     );
                     expectEvent.inLogs(logs, "RevokedOperator", {
                         operator: defaultOperatorA,
@@ -410,9 +427,12 @@ describe("SuperToken's ERC777 implementation", function () {
 
                 context("with revoked default operator", function () {
                     beforeEach(async function () {
-                        await this.token.revokeOperator(defaultOperatorA, {
-                            from: holder,
-                        });
+                        await callAsAccount(
+                            this.token,
+                            holder,
+                            "revokeOperator",
+                            defaultOperatorA
+                        );
                     });
 
                     it("default operator is not revoked for other holders", async function () {
@@ -440,9 +460,11 @@ describe("SuperToken's ERC777 implementation", function () {
                     });
 
                     it("revoked default operator can be re-authorized", async function () {
-                        const {logs} = await this.token.authorizeOperator(
-                            defaultOperatorA,
-                            {from: holder}
+                        const {logs} = await callAsAccount(
+                            this.token,
+                            holder,
+                            "authorizeOperator",
+                            defaultOperatorA
                         );
                         expectEvent.inLogs(logs, "AuthorizedOperator", {
                             operator: defaultOperatorA,
@@ -548,33 +570,43 @@ describe("SuperToken's ERC777 implementation", function () {
                         });
 
                         it("(ERC20) transfer succeeds", async function () {
-                            await web3tx(
-                                this.token.upgrade,
-                                "SuperToken.upgrade 2 from holder"
-                            )(toWad(2), {
-                                from: holder,
-                            });
-                            await this.token.transfer(recipient, amount, {
-                                from: holder,
-                            });
+                            await callAsAccount(
+                                this.token,
+                                holder,
+                                "upgrade",
+                                toWad(2)
+                            );
+                            await callAsAccount(
+                                this.token,
+                                holder,
+                                "transfer",
+                                recipient,
+                                amount
+                            );
                         });
 
                         it("(ERC20) transferFrom succeeds", async function () {
-                            await web3tx(
-                                this.token.upgrade,
-                                "SuperToken.upgrade 2 from holder"
-                            )(toWad(2), {
-                                from: holder,
-                            });
+                            await callAsAccount(
+                                this.token,
+                                holder,
+                                "upgrade",
+                                toWad(2)
+                            );
                             const approved = anyone;
-                            await this.token.approve(approved, amount, {
-                                from: sender,
-                            });
-                            await this.token.transferFrom(
+                            await callAsAccount(
+                                this.token,
+                                sender,
+                                "approve",
+                                approved,
+                                amount
+                            );
+                            await callAsAccount(
+                                this.token,
+                                approved,
+                                "transferFrom",
                                 sender,
                                 recipient,
-                                amount,
-                                {from: approved}
+                                amount
                             );
                         });
                     });
@@ -709,9 +741,14 @@ describe("SuperToken's ERC777 implementation", function () {
                             this.tokensSenderImplementer.address
                         );
                         await this.senderContract.recipientFor(sender);
-                        await this.token.send(sender, amount, testData, {
-                            from: holder,
-                        });
+                        await callAsAccount(
+                            this.token,
+                            holder,
+                            "send",
+                            sender,
+                            amount,
+                            testData
+                        );
                     });
 
                     shouldBehaveLikeERC777SendBurnWithSendHook(
@@ -730,9 +767,14 @@ describe("SuperToken's ERC777 implementation", function () {
 
                         await this.tokensSenderImplementer.senderFor(sender);
                         await this.tokensSenderImplementer.recipientFor(sender);
-                        await this.token.send(sender, amount, testData, {
-                            from: holder,
-                        });
+                        await callAsAccount(
+                            this.token,
+                            holder,
+                            "send",
+                            sender,
+                            amount,
+                            testData
+                        );
                     });
 
                     shouldBehaveLikeERC777SendBurnWithSendHook(

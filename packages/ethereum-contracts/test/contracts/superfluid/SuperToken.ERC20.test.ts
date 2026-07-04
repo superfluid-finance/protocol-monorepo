@@ -1,6 +1,7 @@
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
+import {expect} from "chai";
 import {BigNumber} from "ethers";
-import {ethers, expect} from "hardhat";
+import {ethers} from "hardhat";
 
 import TestEnvironment from "../../TestEnvironment";
 import {expectCustomError} from "../../utils/expectRevert";

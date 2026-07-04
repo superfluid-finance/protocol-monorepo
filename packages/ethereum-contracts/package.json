@@ -13,7 +13,6 @@
     "devDependencies": {
         "@decentral.ee/web3-helpers": "^0.5.3",
         "@nomicfoundation/hardhat-verify": "^2.1.3",
-        "@nomiclabs/hardhat-truffle5": "^2.1.2",
         "@safe-global/safe-core-sdk": "^3.3.5",
         "@safe-global/safe-service-client": "^2.0.3",
         "@safe-global/safe-web3-lib": "^1.9.4",

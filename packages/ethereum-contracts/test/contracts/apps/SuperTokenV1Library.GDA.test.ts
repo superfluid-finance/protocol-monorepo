@@ -1,6 +1,7 @@
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
+import {expect} from "chai";
 import {ContractReceipt} from "ethers";
-import {ethers, expect, web3} from "hardhat";
+import {ethers} from "hardhat";
 
 import {
     ConstantFlowAgreementV1,
@@ -11,6 +12,7 @@ import {
     SuperTokenMock,
 } from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
+import {web3} from "../../lib/web3-shim";
 import {toBN} from "../utils/helpers";
 
 import {deploySuperTokenAndNFTContractsAndInitialize} from "./SuperTokenV1Library.CFA.test";

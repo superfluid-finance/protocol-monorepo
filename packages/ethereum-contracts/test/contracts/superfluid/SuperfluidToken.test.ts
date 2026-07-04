@@ -1,4 +1,5 @@
-import {assert, ethers, web3} from "hardhat";
+import {assert} from "chai";
+import {ethers} from "hardhat";
 
 import {
     AgreementMock,
@@ -7,6 +8,7 @@ import {
     TestGovernance,
 } from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
+import {web3} from "../../lib/web3-shim";
 import {expectCustomError} from "../../utils/expectRevert";
 
 const {web3tx} = require("@decentral.ee/web3-helpers");

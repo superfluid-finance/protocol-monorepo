@@ -1,13 +1,15 @@
-import {artifacts, assert, ethers} from "hardhat";
+import {assert} from "chai";
+import {ethers} from "hardhat";
 
 import {ISuperTokenFactory} from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
 import {expectRevertedWith} from "../../utils/expectRevert";
 import {toWad} from "../utils/helpers";
 
-const ISuperTokenFactory = artifacts.require("ISuperTokenFactory");
-
 const {web3tx} = require("@decentral.ee/web3-helpers");
+
+const artifacts = require("../../lib/artifacts");
+const ISuperTokenFactoryTruffle = artifacts.require("ISuperTokenFactory");
 
 describe("PureSuperToken Contract", function () {
     this.timeout(300e3);
@@ -18,12 +20,11 @@ describe("PureSuperToken Contract", function () {
 
     before(async () => {
         await t.beforeTestSuite({
-            isTruffle: true,
             nAccounts: 1,
         });
 
         ({admin} = t.aliases);
-        superTokenFactory = await ISuperTokenFactory.at(
+        superTokenFactory = await ISuperTokenFactoryTruffle.at(
             await t.contracts.superfluid.getSuperTokenFactory()
         );
     });

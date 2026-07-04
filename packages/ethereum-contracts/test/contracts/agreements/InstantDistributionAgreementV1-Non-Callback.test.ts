@@ -1,12 +1,15 @@
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
+import {expect} from "chai";
+import {assert} from "chai";
 import {BigNumber} from "ethers";
-import {assert, ethers, expect, web3} from "hardhat";
+import {ethers} from "hardhat";
 
 import {
     InstantDistributionAgreementV1,
     SuperToken,
 } from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
+import {web3} from "../../lib/web3-shim";
 import {expectCustomError} from "../../utils/expectRevert";
 import {toBN, toWad} from "../utils/helpers";
 

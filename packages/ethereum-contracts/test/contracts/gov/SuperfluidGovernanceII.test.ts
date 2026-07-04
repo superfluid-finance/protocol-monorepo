@@ -1,8 +1,10 @@
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
-import {assert, ethers, web3} from "hardhat";
+import {assert} from "chai";
+import {ethers} from "hardhat";
 
 import {SuperfluidGovernanceII, SuperfluidMock} from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
+import {web3} from "../../lib/web3-shim";
 import {expectCustomError, expectRevertedWith} from "../../utils/expectRevert";
 
 describe("Superfluid Ownable Governance Contract", function () {

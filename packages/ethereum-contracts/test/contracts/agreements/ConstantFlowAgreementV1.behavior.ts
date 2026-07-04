@@ -1,8 +1,11 @@
+import {expect} from "chai";
+import {assert} from "chai";
 import {BigNumber, BigNumberish} from "ethers";
-import {assert, ethers, expect, web3} from "hardhat";
+import {ethers} from "hardhat";
 
 import {SuperToken, SuperTokenMock} from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
+import {web3} from "../../lib/web3-shim";
 import {expectCustomError} from "../../utils/expectRevert";
 import MFASupport, {MFAParams} from "../utils/MFASupport";
 import {toBN} from "../utils/helpers";
@@ -18,7 +21,8 @@ import {
 import CFADataModel from "./ConstantFlowAgreementV1.data";
 
 const {web3tx} = require("@decentral.ee/web3-helpers");
-const expectEvent = require("@openzeppelin/test-helpers/src/expectEvent");
+
+const expectEvent = require("../../lib/expect-emit");
 
 //
 // test functions

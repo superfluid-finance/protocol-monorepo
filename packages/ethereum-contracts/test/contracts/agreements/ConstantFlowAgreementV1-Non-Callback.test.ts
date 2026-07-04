@@ -1,6 +1,8 @@
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
+import {expect} from "chai";
+import {assert} from "chai";
 import {BigNumberish} from "ethers";
-import {assert, ethers, expect, web3} from "hardhat";
+import {ethers} from "hardhat";
 
 import {
     ConstantFlowAgreementV1,
@@ -10,6 +12,7 @@ import {
     TestToken,
 } from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
+import {web3} from "../../lib/web3-shim";
 import {expectCustomError} from "../../utils/expectRevert";
 import {max, toBN, toWad} from "../utils/helpers";
 
@@ -38,7 +41,7 @@ import {
 } from "./ConstantFlowAgreementV1.behavior";
 import CFADataModel from "./ConstantFlowAgreementV1.data";
 
-const {expectEvent} = require("@openzeppelin/test-helpers");
+const expectEvent = require("../../lib/expect-emit");
 
 describe("CFAv1 | Non-Callback Tests", function () {
     this.timeout(300e3);

@@ -48,13 +48,14 @@ module.exports = S()(async function (args, options = {}) {
     });
     await sf.initialize();
 
-    const SuperToken = artifacts.require("SuperToken");
-    const UUPSProxiable = artifacts.require("UUPSProxiable");
-    const ISuperTokenFactory = artifacts.require("ISuperTokenFactory");
-    const GeneralDistributionAgreementV1 = artifacts.require(
+    const truffleArtifacts = require("../../test/lib/truffleArtifacts");
+    const SuperToken = truffleArtifacts.require("SuperToken");
+    const UUPSProxiable = truffleArtifacts.require("UUPSProxiable");
+    const ISuperTokenFactory = truffleArtifacts.require("ISuperTokenFactory");
+    const GeneralDistributionAgreementV1 = truffleArtifacts.require(
         "GeneralDistributionAgreementV1"
     );
-    const SuperfluidUpgradeableBeacon = artifacts.require(
+    const SuperfluidUpgradeableBeacon = truffleArtifacts.require(
         "SuperfluidUpgradeableBeacon"
     );
 

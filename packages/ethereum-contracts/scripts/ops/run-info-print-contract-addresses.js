@@ -1,11 +1,8 @@
-/**
- * Hardhat runner for legacy truffle-style ops scripts (colon argv via process.argv).
- */
-async function main() {
-    const script = require("./info-print-contract-addresses");
-    await new Promise((resolve, reject) => {
-        script((err) => (err ? reject(err) : resolve()));
-    });
-}
+const main = require("./info-print-contract-addresses");
 
-module.exports = main;
+main()
+    .then(() => process.exit(0))
+    .catch((err) => {
+        console.error(err);
+        process.exit(1);
+    });

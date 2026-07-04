@@ -132,6 +132,9 @@ async function codeChanged(
     debug = false
 ) {
     // Use .binary instead of .bytecode to include linked library addresses
+    if (!contract.binary) {
+        return true;
+    }
     let binaryFromCompiler = contract.binary.toLowerCase();
     // Trim `binaryFromCompiler` to start from the first occurrence of "6080604052"
     const firstIndex = binaryFromCompiler.indexOf("6080604052");
@@ -521,14 +524,22 @@ async function getPastEvents({config, contract, eventName, filter, topics}) {
  * Crazy stuff.
  */
 function getScriptRunnerFactory(runnerOpts = {}) {
+    const truffleArtifacts = require("../../test/lib/artifacts");
     return (logicFn) => {
         return require("./truffleScriptRunnerFactory")(
-            () => ({
-                artifacts:
-                    typeof artifacts !== "undefined" ? artifacts : undefined,
-                web3: typeof web3 !== "undefined" ? web3 : undefined,
-                truffleDetected: detectTruffle(),
-            }),
+            () => {
+                const nativeArtifacts =
+                    typeof artifacts !== "undefined" ? artifacts : undefined;
+                return {
+                    artifacts:
+                        nativeArtifacts &&
+                        typeof nativeArtifacts.require === "function"
+                            ? nativeArtifacts
+                            : truffleArtifacts,
+                    web3: typeof web3 !== "undefined" ? web3 : undefined,
+                    truffleDetected: detectTruffle(),
+                };
+            },
             logicFn,
             runnerOpts
         );

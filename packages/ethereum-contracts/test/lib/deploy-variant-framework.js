@@ -2,26 +2,22 @@
 const fs = require("fs");
 const util = require("util");
 const {execSync} = require("child_process");
-const getConfig = require("../../../scripts/ops-libs/getConfig");
-const SuperfluidSDK = require("../../lib/superfluid-test-sdk");
-const {web3tx} = require("@decentral.ee/web3-helpers");
-const deployERC1820 = require("./deploy-erc1820");
+const {ethers} = require("hardhat");
+const getConfig = require("../../scripts/ops-libs/getConfig");
+const {loadEthersContracts, loggedTx} = require("./ethers-contract-loader");
+const {deployERC1820} = require("../../dev-scripts/deploy-test-framework");
 
 const {
-    getScriptRunnerFactory: S,
     ZERO_ADDRESS,
     hasCode,
     codeChanged,
     isProxiable,
-    extractWeb3Options,
-    builtTruffleContractLoader,
     sendGovernanceAction,
     setResolver,
     versionStringToPseudoAddress,
     pseudoAddressToVersionString,
-    getGasConfig,
     warnProductionUUPSProxyInitRisk,
-} = require("../../../scripts/ops-libs/common");
+} = require("../../scripts/ops-libs/common");
 
 let resetSuperfluidFramework;
 let resolver;
@@ -37,7 +33,7 @@ async function deployAndRegisterContractIf(
 ) {
     let contractDeployed;
     const contractName = Contract.contractName;
-    const contractAddress = await resolver.get.call(resolverKey);
+    const contractAddress = await resolver.get(resolverKey);
     console.log(`${resolverKey} address`, contractAddress);
     if (resetSuperfluidFramework || (await cond(contractAddress))) {
         console.log(`${contractName} needs new deployment.`);
@@ -131,8 +127,59 @@ function ap(addr) {
  * Usage: npx truffle exec ops-scripts/deploy-framework.js
  */
 
-module.exports = S({skipArgv: true})(async function (args, options = {}) {
-    console.log("======== Deploying superfluid framework ========");
+module.exports = async function deployVariantFramework(options = {}) {
+    const web3 = {
+        eth: {
+            getAccounts: () => ethers.provider.send("eth_accounts", []),
+            getBalance: (a) =>
+                ethers.provider.getBalance(a).then((b) => b.toString()),
+            getCode: (a) => ethers.provider.getCode(a),
+            getChainId: () =>
+                ethers.provider.getNetwork().then((n) => n.chainId),
+            net: {
+                getId: () =>
+                    ethers.provider.getNetwork().then((n) => n.chainId),
+                getChainId: () =>
+                    ethers.provider.getNetwork().then((n) => n.chainId),
+                getNetworkType: async () => "private",
+            },
+            abi: {
+                encodeParameters: ethers.utils.defaultAbiCoder.encode.bind(
+                    ethers.utils.defaultAbiCoder
+                ),
+            },
+            getTransactionReceipt: (hash) =>
+                ethers.provider.getTransactionReceipt(hash),
+            getTransaction: async (hash) => {
+                const tx = await ethers.provider.getTransaction(hash);
+                if (!tx) {
+                    return tx;
+                }
+                const gasPrice =
+                    tx.gasPrice ??
+                    tx.maxFeePerGas ??
+                    (await ethers.provider.getGasPrice());
+                return {...tx, gasPrice, transactionHash: tx.hash};
+            },
+            getBlock: (tag) => ethers.provider.getBlock(tag),
+            getPastLogs: (filter) => ethers.provider.getLogs(filter),
+        },
+        utils: {
+            ...ethers.utils,
+            BN: (value) => ethers.BigNumber.from(value),
+            sha3: (input) => ethers.utils.id(input),
+            soliditySha3: (...args) => {
+                if (args.length === 1 && typeof args[0] === "string") {
+                    return ethers.utils.id(args[0]);
+                }
+                const types = args.filter((_, i) => i % 2 === 0);
+                const values = args.filter((_, i) => i % 2 === 1);
+                return ethers.utils.solidityKeccak256(types, values);
+            },
+        },
+    };
+    global.web3 = web3;
+    console.log("======== Deploying superfluid framework (variant) ========");
     let {
         newTestResolver,
         useMocks,
@@ -180,7 +227,7 @@ module.exports = S({skipArgv: true})(async function (args, options = {}) {
         .toString()
         .slice(0, 16)
         .trim();
-    const packageVersion = require("../../../package.json").version;
+    const packageVersion = require("../../package.json").version;
     const versionString = `${packageVersion}-${gitRevision}`;
 
     const deployerInitialBalance = await web3.eth.getBalance(deployerAddr);
@@ -223,9 +270,7 @@ module.exports = S({skipArgv: true})(async function (args, options = {}) {
         console.log("**** !ATTN! DEPLOYING NEW SUPERFLUID LOADER ****");
     }
 
-    await deployERC1820((err) => {
-        if (err) throw err;
-    }, options);
+    await deployERC1820(ethers.provider);
 
     const contracts = [
         "Ownable",
@@ -296,18 +341,15 @@ module.exports = S({skipArgv: true})(async function (args, options = {}) {
         SimpleForwarder,
         ERC2771Forwarder,
         SimpleACL,
-    } = await SuperfluidSDK.loadContracts({
-        ...extractWeb3Options(options),
+    } = await loadEthersContracts({
         additionalContracts: contracts.concat(useMocks ? mockContracts : []),
-        contractLoader: builtTruffleContractLoader,
-        networkId,
-        gasConfig: getGasConfig(networkId),
+        useMocks,
     });
 
     if (!newTestResolver && config.resolverAddress) {
         resolver = await Resolver.at(config.resolverAddress);
     } else {
-        resolver = await web3tx(Resolver.new, "Resolver.new")();
+        resolver = await loggedTx("Resolver.new", () => Resolver.new());
         // make it available for the sdk for testing purpose
         process.env.RESOLVER_ADDRESS = resolver.address;
     }
@@ -342,10 +384,9 @@ module.exports = S({skipArgv: true})(async function (args, options = {}) {
         async (contractAddress) =>
             newSuperfluidLoader === true || contractAddress === ZERO_ADDRESS,
         async () => {
-            const c = await web3tx(
-                SuperfluidLoader.new,
-                "SuperfluidLoader.new"
-            )(resolver.address);
+            const c = await loggedTx("SuperfluidLoader.new", () =>
+                SuperfluidLoader.new(resolver.address)
+            );
             output += `SUPERFLUID_LOADER=${c.address}\n`;
             return c;
         }
@@ -356,7 +397,7 @@ module.exports = S({skipArgv: true})(async function (args, options = {}) {
     let testGovernanceInitRequired = false;
     let governance;
     if (!config.disableTestGovernance && !process.env.NO_NEW_GOVERNANCE) {
-        const prevGovAddr = await resolver.get.call(
+        const prevGovAddr = await resolver.get(
             `TestGovernance.${protocolReleaseVersion}`
         );
         if (
@@ -364,7 +405,9 @@ module.exports = S({skipArgv: true})(async function (args, options = {}) {
             (await codeChanged(web3, TestGovernance, prevGovAddr))
         ) {
             console.log("TestGovernance needs new deployment.");
-            const c = await web3tx(TestGovernance.new, "TestGovernance.new")();
+            const c = await loggedTx("TestGovernance.new", () =>
+                TestGovernance.new()
+            );
             governance = await TestGovernance.at(c.address);
             testGovernanceInitRequired = true;
             output += `SUPERFLUID_GOVERNANCE=${c.address}\n`;
@@ -382,35 +425,35 @@ module.exports = S({skipArgv: true})(async function (args, options = {}) {
         `Superfluid.${protocolReleaseVersion}`,
         async (contractAddress) => !(await hasCode(web3, contractAddress)),
         async () => {
-            const simpleForwarder = await web3tx(
-                SimpleForwarder.new,
-                "SimpleForwarder.new"
-            )();
+            const simpleForwarder = await loggedTx("SimpleForwarder.new", () =>
+                SimpleForwarder.new()
+            );
             console.log("SimpleForwarder address:", simpleForwarder.address);
             output += `SIMPLE_FORWARDER=${simpleForwarder.address}\n`;
 
-            const erc2771Forwarder = await web3tx(
-                ERC2771Forwarder.new,
-                "ERC2771Forwarder.new"
-            )();
+            const erc2771Forwarder = await loggedTx(
+                "ERC2771Forwarder.new",
+                () => ERC2771Forwarder.new()
+            );
             console.log("ERC2771Forwarder address:", erc2771Forwarder.address);
             output += `ERC2771_FORWARDER=${erc2771Forwarder.address}\n`;
 
-            const simpleAcl = await web3tx(SimpleACL.new, "SimpleACL.new")();
+            const simpleAcl = await loggedTx("SimpleACL.new", () =>
+                SimpleACL.new()
+            );
             console.log("SimpleACL address:", simpleAcl.address);
             output += `SIMPLE_ACL=${simpleAcl.address}\n`;
 
             let superfluidAddress;
-            const superfluidLogic = await web3tx(
-                SuperfluidLogic.new,
-                "SuperfluidLogic.new"
-            )(
-                nonUpgradable,
-                appWhiteListing,
-                appCallbackGasLimit,
-                simpleForwarder.address,
-                erc2771Forwarder.address,
-                simpleAcl.address
+            const superfluidLogic = await loggedTx("SuperfluidLogic.new", () =>
+                SuperfluidLogic.new(
+                    nonUpgradable,
+                    appWhiteListing,
+                    appCallbackGasLimit,
+                    simpleForwarder.address,
+                    erc2771Forwarder.address,
+                    simpleAcl.address
+                )
             );
             console.log(
                 `Superfluid new code address ${superfluidLogic.address}`
@@ -424,33 +467,28 @@ module.exports = S({skipArgv: true})(async function (args, options = {}) {
                         "Superfluid Host: UUPSProxy.new, then initializeProxy, then Superfluid.initialize (3 txs)"
                     );
                 }
-                const proxy = await web3tx(
-                    UUPSProxy.new,
-                    "Create Superfluid proxy"
-                )();
+                const proxy = await loggedTx("Create Superfluid proxy", () =>
+                    UUPSProxy.new()
+                );
                 output += `SUPERFLUID_HOST_PROXY=${proxy.address}\n`;
-                await web3tx(
-                    proxy.initializeProxy,
-                    "proxy.initializeProxy"
-                )(superfluidLogic.address);
+                await loggedTx("proxy.initializeProxy", () =>
+                    proxy.initializeProxy(superfluidLogic.address)
+                );
                 superfluidAddress = proxy.address;
             } else {
                 superfluidAddress = superfluidLogic.address;
             }
             const superfluid = await Superfluid.at(superfluidAddress);
-            await web3tx(
-                simpleForwarder.transferOwnership,
-                "simpleForwarder.transferOwnership"
-            )(superfluid.address);
-            await web3tx(
-                erc2771Forwarder.transferOwnership,
-                "erc2771Forwarder.transferOwnership"
-            )(superfluid.address);
+            await loggedTx("simpleForwarder.transferOwnership", () =>
+                simpleForwarder.transferOwnership(superfluid.address)
+            );
+            await loggedTx("erc2771Forwarder.transferOwnership", () =>
+                erc2771Forwarder.transferOwnership(superfluid.address)
+            );
 
-            await web3tx(
-                superfluid.initialize,
-                "Superfluid.initialize"
-            )(governance.address);
+            await loggedTx("Superfluid.initialize", () =>
+                superfluid.initialize(governance.address)
+            );
             return superfluid;
         }
     );
@@ -466,7 +504,7 @@ module.exports = S({skipArgv: true})(async function (args, options = {}) {
     // load existing governance if needed
     if (!governance) {
         governance = await ISuperfluidGovernance.at(
-            await superfluid.getGovernance.call()
+            await superfluid.getGovernance()
         );
         console.log("Governance address", governance.address);
     }
@@ -499,16 +537,18 @@ module.exports = S({skipArgv: true})(async function (args, options = {}) {
             )}`
         );
 
-        await web3tx(governance.initialize, "governance.initialize")(
-            superfluid.address,
-            // let rewardAddress the first account
-            accounts[0],
-            // liquidationPeriod
-            config.liquidationPeriod,
-            // patricianPeriod
-            config.patricianPeriod,
-            // trustedForwarders
-            trustedForwarders
+        await loggedTx("governance.initialize", () =>
+            governance.initialize(
+                superfluid.address,
+                // let rewardAddress the first account
+                accounts[0],
+                // liquidationPeriod
+                config.liquidationPeriod,
+                // patricianPeriod
+                config.patricianPeriod,
+                // trustedForwarders
+                trustedForwarders
+            )
         );
 
         // update the resolver
@@ -520,34 +560,34 @@ module.exports = S({skipArgv: true})(async function (args, options = {}) {
     }
 
     // replace with new governance
-    if ((await superfluid.getGovernance.call()) !== governance.address) {
+    if ((await superfluid.getGovernance()) !== governance.address) {
         const currentGovernance = await ISuperfluidGovernance.at(
-            await superfluid.getGovernance.call()
+            await superfluid.getGovernance()
         );
-        await web3tx(
-            currentGovernance.replaceGovernance,
-            "governance.replaceGovernance"
-        )(superfluid.address, governance.address);
+        await loggedTx("governance.replaceGovernance", () =>
+            currentGovernance.replaceGovernance(
+                superfluid.address,
+                governance.address
+            )
+        );
     }
 
     // list CFA v1
     const deployCFAv1 = async () => {
-        const agreement = await web3tx(
-            ConstantFlowAgreementV1.new,
-            "ConstantFlowAgreementV1.new"
-        )(superfluid.address);
+        const agreement = await loggedTx("ConstantFlowAgreementV1.new", () =>
+            ConstantFlowAgreementV1.new(superfluid.address)
+        );
 
         console.log("New ConstantFlowAgreementV1 address", agreement.address);
         output += `CFA_LOGIC=${agreement.address}\n`;
         return agreement;
     };
 
-    if (!(await superfluid.isAgreementTypeListed.call(CFAv1_TYPE))) {
+    if (!(await superfluid.isAgreementTypeListed(CFAv1_TYPE))) {
         const cfa = await deployCFAv1();
-        await web3tx(
-            governance.registerAgreementClass,
-            "Governance registers CFA"
-        )(superfluid.address, cfa.address);
+        await loggedTx("Governance registers CFA", () =>
+            governance.registerAgreementClass(superfluid.address, cfa.address)
+        );
     }
 
     /**
@@ -569,10 +609,10 @@ module.exports = S({skipArgv: true})(async function (args, options = {}) {
         allowFailure = false
     ) => {
         try {
-            const externalLibrary = await web3tx(
-                externalLibraryArtifact.new,
-                `${externalLibraryName}.new`
-            )();
+            const externalLibrary = await loggedTx(
+                `${externalLibraryName}.new`,
+                () => externalLibraryArtifact.new()
+            );
             output += `${outputName}=${externalLibrary.address}\n`;
             if (process.env.IS_HARDHAT) {
                 contract.link(externalLibrary);
@@ -605,10 +645,10 @@ module.exports = S({skipArgv: true})(async function (args, options = {}) {
             InstantDistributionAgreementV1
         );
         slotsBitmapLibraryAddress = slotsBitmapLibrary.address;
-        const agreement = await web3tx(
-            InstantDistributionAgreementV1.new,
-            "InstantDistributionAgreementV1.new"
-        )(superfluid.address);
+        const agreement = await loggedTx(
+            "InstantDistributionAgreementV1.new",
+            () => InstantDistributionAgreementV1.new(superfluid.address)
+        );
         console.log(
             "New InstantDistributionAgreementV1 address",
             agreement.address
@@ -617,12 +657,11 @@ module.exports = S({skipArgv: true})(async function (args, options = {}) {
         return agreement;
     };
 
-    if (!(await superfluid.isAgreementTypeListed.call(IDAv1_TYPE))) {
+    if (!(await superfluid.isAgreementTypeListed(IDAv1_TYPE))) {
         const ida = await deployIDAv1();
-        await web3tx(
-            governance.registerAgreementClass,
-            "Governance registers IDA"
-        )(superfluid.address, ida.address);
+        await loggedTx("Governance registers IDA", () =>
+            governance.registerAgreementClass(superfluid.address, ida.address)
+        );
     } else {
         // NOTE that we are reusing the existing deployed external library
         // here as an optimization, this assumes that we do not change the
@@ -630,10 +669,10 @@ module.exports = S({skipArgv: true})(async function (args, options = {}) {
         // link library in order to avoid spurious code change detections
         try {
             const IDAv1 = await InstantDistributionAgreementV1.at(
-                await superfluid.getAgreementClass.call(IDAv1_TYPE)
+                await superfluid.getAgreementClass(IDAv1_TYPE)
             );
             slotsBitmapLibraryAddress =
-                await IDAv1.SLOTS_BITMAP_LIBRARY_ADDRESS.call();
+                await IDAv1.SLOTS_BITMAP_LIBRARY_ADDRESS();
             if (process.env.IS_HARDHAT) {
                 if (slotsBitmapLibraryAddress !== ZERO_ADDRESS) {
                     const lib = await SlotsBitmapLibrary.at(
@@ -664,10 +703,9 @@ module.exports = S({skipArgv: true})(async function (args, options = {}) {
             );
 
             // deploy a dummy BeaconProxy for verification
-            const beaconProxy = await web3tx(
-                BeaconProxy.new,
-                "BeaconProxy.new"
-            )(superfluidPoolBeaconAddr, "0x");
+            const beaconProxy = await loggedTx("BeaconProxy.new", () =>
+                BeaconProxy.new(superfluidPoolBeaconAddr, "0x")
+            );
             console.log("Dummy BeaconProxy address", beaconProxy.address);
             output += `DUMMY_BEACON_PROXY=${beaconProxy.address}\n`;
 
@@ -700,10 +738,14 @@ module.exports = S({skipArgv: true})(async function (args, options = {}) {
             gdaIsLinked = true;
         }
 
-        const agreement = await web3tx(
-            GeneralDistributionAgreementV1.new,
-            "GeneralDistributionAgreementV1.new"
-        )(superfluid.address, superfluidPoolBeaconAddr);
+        const agreement = await loggedTx(
+            "GeneralDistributionAgreementV1.new",
+            () =>
+                GeneralDistributionAgreementV1.new(
+                    superfluid.address,
+                    superfluidPoolBeaconAddr
+                )
+        );
 
         console.log(
             "New GeneralDistributionAgreementV1 address",
@@ -714,17 +756,20 @@ module.exports = S({skipArgv: true})(async function (args, options = {}) {
     };
 
     // initial GDA deployment (GDA bootstrapping)
-    if (!(await superfluid.isAgreementTypeListed.call(GDAv1_TYPE))) {
+    if (!(await superfluid.isAgreementTypeListed(GDAv1_TYPE))) {
         // first we deploy a SuperfluidPoolBeacon
         // ... with the placeholder logic (just enough to allow later update)
-        const superfluidPoolPlaceholderLogic = await web3tx(
-            SuperfluidPoolPlaceholder.new,
-            "SuperfluidPoolPlaceholder.new"
-        )();
-        const superfluidPoolBeaconContract = await web3tx(
-            SuperfluidUpgradeableBeacon.new,
-            "SuperfluidUpgradeableBeacon.new"
-        )(superfluidPoolPlaceholderLogic.address);
+        const superfluidPoolPlaceholderLogic = await loggedTx(
+            "SuperfluidPoolPlaceholder.new",
+            () => SuperfluidPoolPlaceholder.new()
+        );
+        const superfluidPoolBeaconContract = await loggedTx(
+            "SuperfluidUpgradeableBeacon.new",
+            () =>
+                SuperfluidUpgradeableBeacon.new(
+                    superfluidPoolPlaceholderLogic.address
+                )
+        );
         console.log(
             "New SuperfluidPoolBeacon address",
             superfluidPoolBeaconContract.address
@@ -736,10 +781,7 @@ module.exports = S({skipArgv: true})(async function (args, options = {}) {
         /*
         // now that we have a GDA, we can deploy the actual SuperfluidPool...
         // "narrator: no, we cannot, needs the proxy address"
-        const superfluidPoolLogic = await web3tx(
-            SuperfluidPool.new,
-            "SuperfluidPool.new"
-        )(gda.address);
+        const superfluidPoolLogic = await loggedTx("SuperfluidPool.new", () => SuperfluidPool.new(gda.address));
         await superfluidPoolLogic.castrate();
         console.log("New SuperfluidPoolLogic address", superfluidPoolLogic.address);
         output += `SUPERFLUID_POOL_LOGIC=${superfluidPoolLogic.address}\n`;
@@ -781,11 +823,11 @@ module.exports = S({skipArgv: true})(async function (args, options = {}) {
         // link library in order to avoid spurious code change detections
         try {
             const GDAv1 = await GeneralDistributionAgreementV1.at(
-                await superfluid.getAgreementClass.call(GDAv1_TYPE)
+                await superfluid.getAgreementClass(GDAv1_TYPE)
             );
             console.log("GDAv1 proxy address", GDAv1.address);
             slotsBitmapLibraryAddress =
-                await GDAv1.SLOTS_BITMAP_LIBRARY_ADDRESS.call();
+                await GDAv1.SLOTS_BITMAP_LIBRARY_ADDRESS();
             let superfluidPoolDeployerLibraryAddress =
                 await GDAv1.SUPERFLUID_POOL_DEPLOYER_ADDRESS.call();
             if (process.env.IS_HARDHAT) {
@@ -826,10 +868,13 @@ module.exports = S({skipArgv: true})(async function (args, options = {}) {
             async () => {
                 const forwarder = await CFAv1Forwarder.new(superfluid.address);
                 output += `CFA_V1_FORWARDER=${forwarder.address}\n`;
-                await web3tx(
-                    governance.enableTrustedForwarder,
-                    "Governance set CFAv1Forwarder"
-                )(superfluid.address, ZERO_ADDRESS, forwarder.address);
+                await loggedTx("Governance set CFAv1Forwarder", () =>
+                    governance.enableTrustedForwarder(
+                        superfluid.address,
+                        ZERO_ADDRESS,
+                        forwarder.address
+                    )
+                );
                 return forwarder;
             }
         );
@@ -843,10 +888,13 @@ module.exports = S({skipArgv: true})(async function (args, options = {}) {
             async () => {
                 const forwarder = await GDAv1Forwarder.new(superfluid.address);
                 output += `GDA_V1_FORWARDER=${forwarder.address}\n`;
-                await web3tx(
-                    governance.enableTrustedForwarder,
-                    "Governance set GDAv1Forwarder"
-                )(superfluid.address, ZERO_ADDRESS, forwarder.address);
+                await loggedTx("Governance set GDAv1Forwarder", () =>
+                    governance.enableTrustedForwarder(
+                        superfluid.address,
+                        ZERO_ADDRESS,
+                        forwarder.address
+                    )
+                );
                 return forwarder;
             }
         );
@@ -880,14 +928,13 @@ module.exports = S({skipArgv: true})(async function (args, options = {}) {
                 ForwarderContract,
                 prevAddr,
                 async () => {
-                    const forwarder = await web3tx(
-                        ForwarderContract.new,
-                        `${ForwarderContract.contractName}.new`
-                    )();
-                    await web3tx(
-                        forwarder.transferOwnership,
-                        "forwarder.transferOwnership"
-                    )(superfluid.address);
+                    const forwarder = await loggedTx(
+                        `${ForwarderContract.contractName}.new`,
+                        () => ForwarderContract.new()
+                    );
+                    await loggedTx("forwarder.transferOwnership", () =>
+                        forwarder.transferOwnership(superfluid.address)
+                    );
 
                     output += `${outputKey}=${forwarder.address}\n`;
                     return forwarder.address;
@@ -935,16 +982,17 @@ module.exports = S({skipArgv: true})(async function (args, options = {}) {
                 if (!(await isProxiable(UUPSProxiable, superfluid.address))) {
                     throw new Error("Superfluid is non-upgradable");
                 }
-                const superfluidLogic = await web3tx(
-                    SuperfluidLogic.new,
-                    "SuperfluidLogic.new"
-                )(
-                    nonUpgradable,
-                    appWhiteListing,
-                    appCallbackGasLimit,
-                    simpleForwarderAddress,
-                    erc2771ForwarderAddress,
-                    simpleAclAddress
+                const superfluidLogic = await loggedTx(
+                    "SuperfluidLogic.new",
+                    () =>
+                        SuperfluidLogic.new(
+                            nonUpgradable,
+                            appWhiteListing,
+                            appCallbackGasLimit,
+                            simpleForwarderAddress,
+                            erc2771ForwarderAddress,
+                            simpleAclAddress
+                        )
                 );
                 output += `SUPERFLUID_HOST_LOGIC=${superfluidLogic.address}\n`;
                 return superfluidLogic.address;
@@ -963,7 +1011,7 @@ module.exports = S({skipArgv: true})(async function (args, options = {}) {
             ConstantFlowAgreementV1,
             await (
                 await UUPSProxiable.at(
-                    await superfluid.getAgreementClass.call(CFAv1_TYPE)
+                    await superfluid.getAgreementClass(CFAv1_TYPE)
                 )
             ).getCodeAddress(),
             async () => (await deployCFAv1()).address,
@@ -978,7 +1026,7 @@ module.exports = S({skipArgv: true})(async function (args, options = {}) {
             InstantDistributionAgreementV1,
             await (
                 await UUPSProxiable.at(
-                    await superfluid.getAgreementClass.call(IDAv1_TYPE)
+                    await superfluid.getAgreementClass(IDAv1_TYPE)
                 )
             ).getCodeAddress(),
             async () => (await deployIDAv1()).address,
@@ -988,8 +1036,7 @@ module.exports = S({skipArgv: true})(async function (args, options = {}) {
             agreementsToUpdate.push(idaNewLogicAddress);
         }
         // deploy new GDA logic
-        const gdaProxyAddr =
-            await superfluid.getAgreementClass.call(GDAv1_TYPE);
+        const gdaProxyAddr = await superfluid.getAgreementClass(GDAv1_TYPE);
         const gdaLogicAddr = await (
             await UUPSProxiable.at(gdaProxyAddr)
         ).getCodeAddress();
@@ -1080,12 +1127,14 @@ module.exports = S({skipArgv: true})(async function (args, options = {}) {
 
     const SuperTokenLogic = useMocks ? SuperTokenMock : SuperToken;
 
-    const factoryAddress = await superfluid.getSuperTokenFactory.call();
+    const factoryAddress = await superfluid.getSuperTokenFactory();
 
     let poolAdminNFTLogicChanged = false;
 
     const deployNFTContract = async (artifact, nftType, nftTypeCaps, args) => {
-        const nftLogic = await web3tx(artifact.new, `${nftType}.new`)(...args);
+        const nftLogic = await loggedTx(`${nftType}.new`, () =>
+            artifact.new(...args)
+        );
         console.log(`${nftType} Logic address`, nftLogic.address);
         output += `${nftTypeCaps}=${nftLogic.address}\n`;
 
@@ -1112,8 +1161,7 @@ module.exports = S({skipArgv: true})(async function (args, options = {}) {
                 superTokenLogicAddress
             );
 
-            const gdaPAddr =
-                await superfluid.getAgreementClass.call(GDAv1_TYPE);
+            const gdaPAddr = await superfluid.getAgreementClass(GDAv1_TYPE);
 
             // TODO: remove from try block once all networks have a PoolNFT aware supertoken logic deployed
             try {
@@ -1236,7 +1284,7 @@ module.exports = S({skipArgv: true})(async function (args, options = {}) {
             // if the super token logic does not have the proxies, we must deploy
             // new nft logic and proxies.
 
-            const gdaAddr = await superfluid.getAgreementClass.call(GDAv1_TYPE);
+            const gdaAddr = await superfluid.getAgreementClass(GDAv1_TYPE);
 
             if (poolAdminNFTProxyAddress === ZERO_ADDRESS) {
                 // SECURITY: split-tx UUPS bootstrap — proxy deploy may precede logic by several txs.
@@ -1246,10 +1294,10 @@ module.exports = S({skipArgv: true})(async function (args, options = {}) {
                     );
                 }
                 console.log("BOOTSTRAPPING: Deploying PoolAdminNFT proxy...");
-                const poolAdminNFTProxy = await web3tx(
-                    UUPSProxy.new,
-                    "Create PoolAdminNFT proxy"
-                )();
+                const poolAdminNFTProxy = await loggedTx(
+                    "Create PoolAdminNFT proxy",
+                    () => UUPSProxy.new()
+                );
                 console.log(
                     "PoolAdminNFT Proxy address",
                     poolAdminNFTProxy.address
@@ -1306,14 +1354,18 @@ module.exports = S({skipArgv: true})(async function (args, options = {}) {
             // deploy super token logic contract
             // it now takes the nft logic contracts as parameters
             const superTokenLogic = useMocks
-                ? await web3tx(SuperTokenLogic.new, "SuperTokenLogic.new")(
-                      superfluid.address,
-                      0,
-                      poolAdminNFTProxyAddress
+                ? await loggedTx("SuperTokenLogic.new", () =>
+                      SuperTokenLogic.new(
+                          superfluid.address,
+                          0,
+                          poolAdminNFTProxyAddress
+                      )
                   )
-                : await web3tx(SuperTokenLogic.new, "SuperTokenLogic.new")(
-                      superfluid.address,
-                      poolAdminNFTProxyAddress
+                : await loggedTx("SuperTokenLogic.new", () =>
+                      SuperTokenLogic.new(
+                          superfluid.address,
+                          poolAdminNFTProxyAddress
+                      )
                   );
 
             console.log(
@@ -1321,14 +1373,15 @@ module.exports = S({skipArgv: true})(async function (args, options = {}) {
             );
             output += `SUPER_TOKEN_LOGIC=${superTokenLogic.address}\n`;
 
-            superTokenFactoryLogic = await web3tx(
-                SuperTokenFactoryLogic.new,
-                "SuperTokenFactoryLogic.new"
-            )(
-                superfluid.address,
-                superTokenLogic.address,
-                poolAdminNFTLogicAddress,
-                poolMemberNFTLogicAddress
+            superTokenFactoryLogic = await loggedTx(
+                "SuperTokenFactoryLogic.new",
+                () =>
+                    SuperTokenFactoryLogic.new(
+                        superfluid.address,
+                        superTokenLogic.address,
+                        poolAdminNFTLogicAddress,
+                        poolMemberNFTLogicAddress
+                    )
             );
             output += `SUPER_TOKEN_FACTORY_LOGIC=${superTokenFactoryLogic.address}\n`;
             return superTokenFactoryLogic.address;
@@ -1339,7 +1392,7 @@ module.exports = S({skipArgv: true})(async function (args, options = {}) {
 
     // SuperfluidPool upgrade
     const gdaV1Contract = await GeneralDistributionAgreementV1.at(
-        await superfluid.getAgreementClass.call(GDAv1_TYPE)
+        await superfluid.getAgreementClass(GDAv1_TYPE)
     );
     const superfluidPoolBeaconAddress =
         await gdaV1Contract.superfluidPoolBeacon();
@@ -1352,10 +1405,10 @@ module.exports = S({skipArgv: true})(async function (args, options = {}) {
         ).implementation(),
         async () => {
             // Deploy new SuperfluidPool logic contract
-            const superfluidPoolLogic = await web3tx(
-                SuperfluidPool.new,
-                "SuperfluidPool.new"
-            )(gdaV1Contract.address);
+            const superfluidPoolLogic = await loggedTx(
+                "SuperfluidPool.new",
+                () => SuperfluidPool.new(gdaV1Contract.address)
+            );
             await superfluidPoolLogic.castrate();
             console.log(
                 "New SuperfluidPoolLogic address",
@@ -1417,10 +1470,10 @@ module.exports = S({skipArgv: true})(async function (args, options = {}) {
     }
 
     const deployerFinalBalance = await web3.eth.getBalance(deployerAddr);
-    const consumed = web3.utils.fromWei(
-        new web3.utils.BN(deployerInitialBalance).sub(
-            new web3.utils.BN(deployerFinalBalance)
+    const consumed = ethers.utils.formatEther(
+        ethers.BigNumber.from(deployerInitialBalance).sub(
+            ethers.BigNumber.from(deployerFinalBalance)
         )
     );
     console.log(`consumed native coins: ${consumed}`);
-});
+};

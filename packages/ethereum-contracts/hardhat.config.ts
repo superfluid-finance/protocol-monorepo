@@ -2,7 +2,6 @@ import {HardhatUserConfig, subtask} from "hardhat/config";
 import "@typechain/hardhat";
 import "@nomicfoundation/hardhat-chai-matchers";
 import "@nomiclabs/hardhat-ethers";
-import "./test/lib/bootstrap-web3";
 import "./test/lib/hardhat-web3-shim";
 import "./test/lib/hardhat-expect-shim";
 import "@nomicfoundation/hardhat-verify";

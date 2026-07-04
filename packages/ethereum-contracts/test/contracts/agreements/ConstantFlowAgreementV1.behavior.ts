@@ -5,6 +5,7 @@ import {ethers} from "hardhat";
 
 import {SuperToken, SuperTokenMock} from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
+import {loggedTx} from "../../lib/logged-tx";
 import {web3} from "../../lib/web3-shim";
 import {expectCustomError} from "../../utils/expectRevert";
 import MFASupport, {MFAParams} from "../utils/MFASupport";
@@ -19,8 +20,6 @@ import {
     OperatorPermissionsBaseParams,
 } from "./Agreement.types";
 import CFADataModel from "./ConstantFlowAgreementV1.data";
-
-const {web3tx} = require("@decentral.ee/web3-helpers");
 
 const expectEvent = require("../../lib/expect-emit");
 
@@ -216,24 +215,22 @@ export async function _shouldChangeFlow({
     switch (fn) {
         case "createFlow":
         case "updateFlow":
-            tx = await web3tx(
-                testenv.sf.cfa[fn],
-                `${fn} from ${sender} to ${receiver}`
-            )({
-                ...cfaDataModel.flows.main.flowId,
-                flowRate: flowRate.toString(),
-                userData,
-            });
+            tx = await loggedTx(`${fn} from ${sender} to ${receiver}`, () =>
+                testenv.sf.cfa[fn]({
+                    ...cfaDataModel.flows.main.flowId,
+                    flowRate: flowRate.toString(),
+                    userData,
+                })
+            );
             break;
         case "deleteFlow":
-            tx = await web3tx(
-                testenv.sf.cfa[fn],
-                `${fn} from ${sender} to ${receiver}`
-            )({
-                ...cfaDataModel.flows.main.flowId,
-                by: cfaDataModel.roles.agent,
-                userData,
-            });
+            tx = await loggedTx(`${fn} from ${sender} to ${receiver}`, () =>
+                testenv.sf.cfa[fn]({
+                    ...cfaDataModel.flows.main.flowId,
+                    by: cfaDataModel.roles.agent,
+                    userData,
+                })
+            );
             break;
         case "createFlowByOperator":
         case "updateFlowByOperator":

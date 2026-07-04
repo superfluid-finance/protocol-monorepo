@@ -1,161 +1,180 @@
 const fs = require("fs");
 const util = require("util");
+
+const {ethers} = require("hardhat");
 const getConfig = require("../ops-libs/getConfig");
-const SuperfluidSDK = require("../../test/lib/superfluid-test-sdk");
 const {
-    getScriptRunnerFactory: S,
-    getCodeAddress,
-    extractWeb3Options,
+    builtTruffleContractLoader,
     ZERO_ADDRESS,
 } = require("../ops-libs/common");
 
-/**
- * @dev Inspect accounts and their agreements
- * @param {Array} argv Overriding command line arguments
- * @param {boolean} options.isTruffle Whether the script is used within native truffle framework
- * @param {Web3} options.web3  Injected web3 instance
- * @param {Address} options.from Address to deploy contracts from
- * @param {boolean} options.skipTokens Don't iterate through tokens
- *                  (overriding env: SKIP_TOKENS)
- *
- * Usage: npx truffle exec ops-scripts/info-print-contract-addresses : {OUTPUT_FILE}
- */
-module.exports = S()(async function (args, options = {}) {
-    let output = "";
+const SLOTS_BITMAP_LIBRARY_SELECTOR = "0x3fd4176a";
 
-    let {protocolReleaseVersion, skipTokens} = options;
-    skipTokens = skipTokens || process.env.SKIP_TOKENS;
+function parseColonArgs(argv) {
+    const argIndex = argv.indexOf(":");
+    return argIndex < 0 ? [] : argv.slice(argIndex + 1);
+}
 
+function contractAt(name, address, signerOrProvider) {
+    const {abi} = builtTruffleContractLoader(name);
+    return new ethers.Contract(address, abi, signerOrProvider);
+}
+
+async function getCodeAddress(provider, proxyAddress) {
+    const proxiable = contractAt("UUPSProxiable", proxyAddress, provider);
+    return proxiable.getCodeAddress();
+}
+
+async function callSlotsBitmapLibrary(provider, target) {
+    const data = await provider.call({
+        to: target,
+        data: SLOTS_BITMAP_LIBRARY_SELECTOR,
+    });
+    return ethers.utils.getAddress("0x" + data.slice(-40));
+}
+
+async function loadSuperTokenEntry(resolver, version, provider, tokenKey) {
+    const superTokenAddress = await resolver.get(
+        `supertokens.${version}.${tokenKey}`
+    );
+    if (superTokenAddress === ZERO_ADDRESS) {
+        return null;
+    }
+    const superToken = contractAt("SuperToken", superTokenAddress, provider);
+    const underlyingAddress = await superToken.getUnderlyingToken();
+    const underlying = contractAt(
+        "IERC20Metadata",
+        underlyingAddress,
+        provider
+    );
+    return {
+        superTokenAddress,
+        underlyingAddress,
+        underlyingSymbol: await underlying.symbol(),
+    };
+}
+
+async function main() {
+    const args = parseColonArgs(process.argv);
     if (args.length !== 1) {
         throw new Error("Wrong number of arguments");
     }
-    const outputFilename = args.shift();
+    const outputFilename = args[0];
+    const skipTokens =
+        process.env.SKIP_TOKENS === "1" || process.env.SKIP_TOKENS === "true";
+    const protocolReleaseVersion = process.env.RELEASE_VERSION || "test";
 
-    const networkType = await web3.eth.net.getNetworkType();
-    const networkId = await web3.eth.net.getId();
-    const chainId = await web3.eth.getChainId();
-    console.log("network Type: ", networkType);
-    console.log("network ID: ", networkId);
-    console.log("chain ID: ", chainId);
+    const provider = ethers.provider;
+    const network = await provider.getNetwork();
+    const chainId = network.chainId;
     const config = getConfig(chainId);
 
-    const sf = new SuperfluidSDK.Framework({
-        ...extractWeb3Options(options),
-        version: protocolReleaseVersion,
-        tokens: skipTokens ? [] : config.tokenList,
-        loadSuperNativeToken: !skipTokens, // defaults to true
-        additionalContracts: ["UUPSProxiable"],
-    });
-    await sf.initialize();
+    console.log("network ID:", network.chainId);
+    console.log("chain ID:", chainId);
+    console.log("protocol release version:", protocolReleaseVersion);
 
-    const truffleArtifacts = require("../../test/lib/truffleArtifacts");
-    const SuperToken = truffleArtifacts.require("SuperToken");
-    const UUPSProxiable = truffleArtifacts.require("UUPSProxiable");
-    const ISuperTokenFactory = truffleArtifacts.require("ISuperTokenFactory");
-    const GeneralDistributionAgreementV1 = truffleArtifacts.require(
-        "GeneralDistributionAgreementV1"
-    );
-    const SuperfluidUpgradeableBeacon = truffleArtifacts.require(
-        "SuperfluidUpgradeableBeacon"
-    );
-
+    let output = "";
     if (config.isTestnet) {
         output += "IS_TESTNET=1\n";
     }
 
-    output += `NETWORK_ID=${networkId}\n`;
-    output += `RESOLVER=${sf.resolver.address}\n`;
-    output += `SUPERFLUID_LOADER=${sf.loader.address}\n`;
-    output += `SUPERFLUID_HOST_PROXY=${sf.host.address}\n`;
-    output += `SUPERFLUID_HOST_LOGIC=${await getCodeAddress(
-        UUPSProxiable,
-        sf.host.address
-    )}\n`;
-    output += `SUPERFLUID_GOVERNANCE=${await sf.host.getGovernance()}\n`;
-
-    // If govenrnance is upgradable, also add the logic
-    try {
-        const gov = await sf.contracts.UUPSProxiable.at(
-            await sf.host.getGovernance.call()
+    const resolverAddress = config.resolverAddress;
+    if (!resolverAddress) {
+        throw new Error(
+            `No resolver address configured for chainId ${chainId}`
         );
-        output += `SUPERFLUID_GOVERNANCE_LOGIC=${await gov.getCodeAddress()}\n`;
-    } catch (e) {
-        // ignore
     }
 
-    output += `SUPER_TOKEN_FACTORY_PROXY=${await sf.host.getSuperTokenFactory()}\n`;
-    output += `SUPER_TOKEN_FACTORY_LOGIC=${await sf.host.getSuperTokenFactoryLogic()}\n`;
-    output += `CFA_PROXY=${sf.agreements.cfa.address}\n`;
-    output += `CFA_LOGIC=${await getCodeAddress(
-        UUPSProxiable,
-        sf.agreements.cfa.address
-    )}\n`;
-    output += `IDA_PROXY=${sf.agreements.ida.address}\n`;
-    output += `SLOTS_BITMAP_LIBRARY=${
-        "0x" +
-        (
-            await web3.eth.call({
-                to: sf.agreements.ida.address,
-                data: "0x3fd4176a", //SLOTS_BITMAP_LIBRARY()
-            })
-        ).slice(-40)
-    }\n`;
-    output += `IDA_LOGIC=${await getCodeAddress(
-        UUPSProxiable,
-        sf.agreements.ida.address
-    )}\n`;
-    const gdaProxy = await sf.host.getAgreementClass(
-        web3.utils.sha3(
-            "org.superfluid-finance.agreements.GeneralDistributionAgreement.v1"
-        )
-    );
-    output += `GDA_PROXY=${gdaProxy}\n`;
-    output += `GDA_SLOTS_BITMAP_LIBRARY=${
-        "0x" +
-        (
-            await web3.eth.call({
-                to: gdaProxy,
-                data: "0x3fd4176a", //SLOTS_BITMAP_LIBRARY()
-            })
-        ).slice(-40)
-    }\n`;
-    output += `GDA_LOGIC=${await getCodeAddress(UUPSProxiable, gdaProxy)}\n`;
+    const resolver = contractAt("IResolver", resolverAddress, provider);
+    const loaderAddress = await resolver.get("SuperfluidLoader-v1");
+    const loader = contractAt("SuperfluidLoader", loaderAddress, provider);
+    const framework = await loader.loadFramework(protocolReleaseVersion);
 
-    const gdaContract = await GeneralDistributionAgreementV1.at(gdaProxy);
-    const superfluidPoolBeaconContract = await SuperfluidUpgradeableBeacon.at(
-        await gdaContract.superfluidPoolBeacon()
-    );
-    output += `SUPERFLUID_POOL_DEPLOYER_LIBRARY=${await gdaContract.SUPERFLUID_POOL_DEPLOYER_ADDRESS()}\n`;
-    output += `SUPERFLUID_POOL_BEACON=${superfluidPoolBeaconContract.address}\n`;
-    output += `SUPERFLUID_POOL_LOGIC=${await superfluidPoolBeaconContract.implementation()}\n`;
+    const hostAddress = framework.superfluid;
+    const host = contractAt("ISuperfluid", hostAddress, provider);
+    const cfaAddress = framework.agreementCFAv1;
+    const idaAddress = framework.agreementIDAv1;
+    const gdaAddress = framework.agreementGDAv1;
 
-    const superTokenLogicAddress = await (
-        await ISuperTokenFactory.at(await sf.host.getSuperTokenFactory())
-    ).getSuperTokenLogic();
+    output += `NETWORK_ID=${chainId}\n`;
+    output += `RESOLVER=${resolverAddress}\n`;
+    output += `SUPERFLUID_LOADER=${loaderAddress}\n`;
+    output += `SUPERFLUID_HOST_PROXY=${hostAddress}\n`;
+    output += `SUPERFLUID_HOST_LOGIC=${await getCodeAddress(provider, hostAddress)}\n`;
+    output += `SUPERFLUID_GOVERNANCE=${await host.getGovernance()}\n`;
+
+    try {
+        const govAddress = await host.getGovernance();
+        output += `SUPERFLUID_GOVERNANCE_LOGIC=${await getCodeAddress(
+            provider,
+            govAddress
+        )}\n`;
+    } catch (e) {
+        // governance may not be a UUPS proxy on all networks
+    }
+
+    output += `SUPER_TOKEN_FACTORY_PROXY=${await host.getSuperTokenFactory()}\n`;
+    output += `SUPER_TOKEN_FACTORY_LOGIC=${await host.getSuperTokenFactoryLogic()}\n`;
+    output += `CFA_PROXY=${cfaAddress}\n`;
+    output += `CFA_LOGIC=${await getCodeAddress(provider, cfaAddress)}\n`;
+    output += `IDA_PROXY=${idaAddress}\n`;
+    output += `SLOTS_BITMAP_LIBRARY=${await callSlotsBitmapLibrary(
+        provider,
+        idaAddress
+    )}\n`;
+    output += `IDA_LOGIC=${await getCodeAddress(provider, idaAddress)}\n`;
+    output += `GDA_PROXY=${gdaAddress}\n`;
+    output += `GDA_SLOTS_BITMAP_LIBRARY=${await callSlotsBitmapLibrary(
+        provider,
+        gdaAddress
+    )}\n`;
+    output += `GDA_LOGIC=${await getCodeAddress(provider, gdaAddress)}\n`;
+
+    const gda = contractAt(
+        "GeneralDistributionAgreementV1",
+        gdaAddress,
+        provider
+    );
+    const poolBeaconAddress = await gda.superfluidPoolBeacon();
+    const poolBeacon = contractAt(
+        "SuperfluidUpgradeableBeacon",
+        poolBeaconAddress,
+        provider
+    );
+    output += `SUPERFLUID_POOL_DEPLOYER_LIBRARY=${await gda.SUPERFLUID_POOL_DEPLOYER_ADDRESS()}\n`;
+    output += `SUPERFLUID_POOL_BEACON=${poolBeaconAddress}\n`;
+    output += `SUPERFLUID_POOL_LOGIC=${await poolBeacon.implementation()}\n`;
+
+    const superTokenFactoryAddress = await host.getSuperTokenFactory();
+    const superTokenFactory = contractAt(
+        "ISuperTokenFactory",
+        superTokenFactoryAddress,
+        provider
+    );
+    const superTokenLogicAddress = await superTokenFactory.getSuperTokenLogic();
     output += `SUPER_TOKEN_LOGIC=${superTokenLogicAddress}\n`;
 
-    const superTokenLogicContract = await SuperToken.at(superTokenLogicAddress);
+    const superTokenLogic = contractAt(
+        "SuperToken",
+        superTokenLogicAddress,
+        provider
+    );
 
-    // not yet deployed on all networks
-    // TODO: remove try after rollout
     try {
-        const poolAdminNFTProxyAddress =
-            await superTokenLogicContract.POOL_ADMIN_NFT();
+        const poolAdminNFTProxyAddress = await superTokenLogic.POOL_ADMIN_NFT();
         output += `POOL_ADMIN_NFT_PROXY=${poolAdminNFTProxyAddress}\n`;
-
-        const poolAdminNFTLogicAddress = await (
-            await UUPSProxiable.at(poolAdminNFTProxyAddress)
-        ).getCodeAddress();
-        output += `POOL_ADMIN_NFT_LOGIC=${poolAdminNFTLogicAddress}\n`;
+        output += `POOL_ADMIN_NFT_LOGIC=${await getCodeAddress(
+            provider,
+            poolAdminNFTProxyAddress
+        )}\n`;
 
         const poolMemberNFTProxyAddress =
-            await superTokenLogicContract.POOL_MEMBER_NFT();
+            await superTokenLogic.POOL_MEMBER_NFT();
         output += `POOL_MEMBER_NFT_PROXY=${poolMemberNFTProxyAddress}\n`;
-
-        const poolMemberNFTLogicAddress = await (
-            await UUPSProxiable.at(poolMemberNFTProxyAddress)
-        ).getCodeAddress();
-        output += `POOL_MEMBER_NFT_LOGIC=${poolMemberNFTLogicAddress}\n`;
+        output += `POOL_MEMBER_NFT_LOGIC=${await getCodeAddress(
+            provider,
+            poolMemberNFTProxyAddress
+        )}\n`;
     } catch (e) {
         console.warn(
             "POOL_ADMIN_NFT or POOL_MEMBER_NFT probably not deployed yet"
@@ -163,45 +182,51 @@ module.exports = S()(async function (args, options = {}) {
     }
 
     try {
-        const erc2771ForwarderAddr = await sf.host.getERC2771Forwarder();
-        output += `ERC2771_FORWARDER=${erc2771ForwarderAddr}\n`;
-        // not working - apparently we only get the ISuperfluid in sf.host
-        const simpleForwarderAddr = await sf.host.SIMPLE_FORWARDER();
-        output += `SIMPLE_FORWARDER=${simpleForwarderAddr}\n`;
+        output += `ERC2771_FORWARDER=${await host.getERC2771Forwarder()}\n`;
+        output += `SIMPLE_FORWARDER=${await host.SIMPLE_FORWARDER()}\n`;
     } catch (e) {
         console.warn("[Simple|ERC2771]Forwarder probably not deployed yet");
     }
 
     if (!skipTokens) {
-        await Promise.all(
-            config.tokenList.map(async (tokenName) => {
-                output += `SUPER_TOKEN_${tokenName.toUpperCase()}=${
-                    sf.tokens[tokenName].address
-                }\n`;
-                const underlyingTokenSymbol =
-                    await sf.tokens[tokenName].underlyingToken.symbol.call();
-                output += `NON_SUPER_TOKEN_${underlyingTokenSymbol.toUpperCase()}=${
-                    sf.tokens[tokenName].underlyingToken.address
-                }\n`;
-            })
-        );
-        if (sf.config.nativeTokenSymbol) {
-            output += `SUPER_TOKEN_NATIVE_COIN=${
-                sf.tokens[sf.config.nativeTokenSymbol + "x"].address
+        for (const tokenName of config.tokenList) {
+            const entry = await loadSuperTokenEntry(
+                resolver,
+                protocolReleaseVersion,
+                provider,
+                tokenName
+            );
+            if (!entry) {
+                continue;
+            }
+            output += `SUPER_TOKEN_${tokenName.toUpperCase()}=${
+                entry.superTokenAddress
             }\n`;
+            output += `NON_SUPER_TOKEN_${entry.underlyingSymbol.toUpperCase()}=${
+                entry.underlyingAddress
+            }\n`;
+        }
+
+        if (config.nativeTokenSymbol) {
+            const nativeKey = `${config.nativeTokenSymbol}x`;
+            const entry = await loadSuperTokenEntry(
+                resolver,
+                protocolReleaseVersion,
+                provider,
+                nativeKey
+            );
+            if (entry) {
+                output += `SUPER_TOKEN_NATIVE_COIN=${entry.superTokenAddress}\n`;
+            }
         }
     }
 
-    // forwarders
     if (config.metadata?.contractsV1?.cfaV1Forwarder) {
         output += `CFAV1_FORWARDER=${config.metadata.contractsV1.cfaV1Forwarder}\n`;
     }
     if (config.metadata?.contractsV1?.gdaV1Forwarder) {
         output += `GDAV1_FORWARDER=${config.metadata.contractsV1.gdaV1Forwarder}\n`;
     }
-
-    // optional periphery contracts
-
     if (config.metadata?.contractsV1?.toga) {
         output += `TOGA=${config.metadata.contractsV1.toga}\n`;
     }
@@ -216,4 +241,6 @@ module.exports = S()(async function (args, options = {}) {
     }
 
     await util.promisify(fs.writeFile)(outputFilename, output);
-});
+}
+
+module.exports = main;

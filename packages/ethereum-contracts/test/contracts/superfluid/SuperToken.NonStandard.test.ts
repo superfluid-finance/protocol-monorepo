@@ -15,11 +15,10 @@ import {
     TestToken,
 } from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
+import {loggedTx} from "../../lib/logged-tx";
 import {web3} from "../../lib/web3-shim";
 import {expectCustomError, expectRevertedWith} from "../../utils/expectRevert";
-import {toBN, toWad} from "../utils/helpers";
-
-const {web3tx, toDecimals} = require("@decentral.ee/web3-helpers");
+import {toBN, toDecimals, toWad} from "../utils/helpers";
 
 const artifacts = require("../../lib/artifacts");
 
@@ -707,17 +706,17 @@ describe("SuperToken's Non Standard Functions", function () {
                 customToken,
                 reason
             );
-            await web3tx(customToken.initialize, "customToken.initialize")(
-                ZERO_ADDRESS,
-                0,
-                "Custom SuperTestToken",
-                "CSTT"
+            await loggedTx("customToken.initialize", () =>
+                customToken.initialize(
+                    ZERO_ADDRESS,
+                    0,
+                    "Custom SuperTestToken",
+                    "CSTT"
+                )
             );
 
-            await web3tx(customToken.selfMint, "customToken.selfMint")(
-                alice,
-                100,
-                "0x"
+            await loggedTx("customToken.selfMint", () =>
+                customToken.selfMint(alice, 100, "0x")
             );
             assert.equal(
                 (await customToken.balanceOf(alice)).toString(),
@@ -731,10 +730,8 @@ describe("SuperToken's Non Standard Functions", function () {
                 "SF_TOKEN_BURN_INSUFFICIENT_BALANCE"
             );
 
-            await web3tx(customToken.callSelfBurn, "customToken.callSelfBurn")(
-                alice,
-                100,
-                "0x"
+            await loggedTx("customToken.callSelfBurn", () =>
+                customToken.callSelfBurn(alice, 100, "0x")
             );
             assert.equal((await customToken.balanceOf(alice)).toString(), "0");
             assert.equal((await customToken.totalSupply()).toString(), "0");
@@ -821,17 +818,17 @@ describe("SuperToken's Non Standard Functions", function () {
         });
 
         it("#3.5 Custom token can use selfApproveFor", async () => {
-            await web3tx(customToken.initialize, "customToken.initialize")(
-                ZERO_ADDRESS,
-                0,
-                "Custom SuperTestToken",
-                "CSTT"
+            await loggedTx("customToken.initialize", () =>
+                customToken.initialize(
+                    ZERO_ADDRESS,
+                    0,
+                    "Custom SuperTestToken",
+                    "CSTT"
+                )
             );
 
-            await web3tx(customToken.selfMint, "customToken.selfMint")(
-                alice,
-                100,
-                "0x"
+            await loggedTx("customToken.selfMint", () =>
+                customToken.selfMint(alice, 100, "0x")
             );
             assert.equal(
                 (await customToken.balanceOf(alice)).toString(),

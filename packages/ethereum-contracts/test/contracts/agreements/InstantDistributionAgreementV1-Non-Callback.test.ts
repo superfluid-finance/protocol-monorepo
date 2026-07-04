@@ -11,7 +11,7 @@ import {
 import TestEnvironment from "../../TestEnvironment";
 import {web3} from "../../lib/web3-shim";
 import {expectCustomError} from "../../utils/expectRevert";
-import {toBN, toWad} from "../utils/helpers";
+import {toBN, toWad, wad4human} from "../utils/helpers";
 
 import {
     shouldApproveSubscription,
@@ -22,8 +22,6 @@ import {
     shouldRevokeSubscription,
     shouldUpdateSubscription,
 } from "./InstantDistributionAgreementV1.behaviour";
-
-const {wad4human} = require("@decentral.ee/web3-helpers");
 
 const ZERO_ADDRESS = ethers.constants.AddressZero;
 const DEFAULT_INDEX_ID = "42";

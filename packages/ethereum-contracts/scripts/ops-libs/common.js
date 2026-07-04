@@ -524,7 +524,7 @@ async function getPastEvents({config, contract, eventName, filter, topics}) {
  * Crazy stuff.
  */
 function getScriptRunnerFactory(runnerOpts = {}) {
-    const truffleArtifacts = require("../../test/lib/truffleArtifacts");
+    const truffleArtifacts = require("../../test/lib/artifacts");
     return (logicFn) => {
         return require("./truffleScriptRunnerFactory")(
             () => {

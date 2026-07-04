@@ -16,7 +16,7 @@ import {
 import {VerifyOptions} from "./contracts/agreements/Agreement.types";
 import AgreementHelper from "./contracts/agreements/AgreementHelper";
 import CFADataModel from "./contracts/agreements/ConstantFlowAgreementV1.data";
-import {max, min, toBN, toWad} from "./contracts/utils/helpers";
+import {max, min, toBN, toWad, wad4human} from "./contracts/utils/helpers";
 import {deployMockTestToken} from "./lib/deploy-mock-test-token";
 import {createEthersFramework} from "./lib/ethers-framework";
 import {loggedTx} from "./lib/logged-tx";
@@ -31,8 +31,6 @@ import {
     TestEnvironmentData,
     TestEnvironmentPlotData,
 } from "./types";
-
-const {wad4human} = require("@decentral.ee/web3-helpers");
 
 const deployVariantFramework = require("./lib/deploy-variant-framework");
 
@@ -206,19 +204,6 @@ export default class TestEnvironment {
         nAccounts,
         fromSnapshot = "baseline",
     }: BeforeTestSuiteOptions) {
-        if (
-            !(global as typeof globalThis & {web3?: {eth?: unknown}}).web3?.eth
-        ) {
-            const Web3 = require("web3");
-            const fullWeb3 = new Web3(
-                network.provider as Parameters<
-                    InstanceType<typeof Web3>["setProvider"]
-                >[0]
-            );
-            (global as typeof globalThis & {web3?: typeof fullWeb3}).web3 =
-                fullWeb3;
-        }
-
         const MAX_TEST_ACCOUNTS = 10;
         nAccounts = nAccounts || 0;
         assert(nAccounts <= MAX_TEST_ACCOUNTS);

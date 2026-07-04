@@ -6,6 +6,7 @@ import {IERC1820Registry, SuperTokenMock} from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
 import {web3} from "../../lib/web3-shim";
 import {expectCustomError, expectRevertedWith} from "../../utils/expectRevert";
+import {toWad} from "../utils/helpers";
 
 import {
     shouldBehaveLikeERC777DirectSendBurn,
@@ -14,8 +15,6 @@ import {
     shouldBehaveLikeERC777SendBurnWithSendHook,
     shouldBehaveLikeERC777UnauthorizedOperatorSendBurn,
 } from "./ERC777.behavior";
-
-const {toWad} = require("@decentral.ee/web3-helpers");
 
 const artifacts = require("../../lib/artifacts");
 const {callAsAccount} = require("../../lib/as-account");

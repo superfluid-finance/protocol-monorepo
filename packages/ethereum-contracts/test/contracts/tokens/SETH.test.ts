@@ -5,8 +5,7 @@ import {ISETH, SuperToken__factory} from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
 import {web3} from "../../lib/web3-shim";
 import {expectCustomError} from "../../utils/expectRevert";
-
-const {toWad} = require("@decentral.ee/web3-helpers");
+import {toWad} from "../utils/helpers";
 
 const artifacts = require("../../lib/artifacts");
 const {callAsAccount} = require("../../lib/as-account");

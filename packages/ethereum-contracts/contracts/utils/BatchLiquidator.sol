@@ -49,7 +49,7 @@ contract BatchLiquidator {
      */
     function deleteFlows(address superToken, FlowLiquidationData[] memory data) external {
         for (uint256 i; i < data.length;) {
-            // We tolerate any errors occured during liquidations.
+            // We tolerate any errors occurred during liquidations.
             // It could be due to flow had been liquidated by others.
             _deleteFlow(superToken, data[i]);
 

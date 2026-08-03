@@ -124,7 +124,7 @@ There should already be a draft release created in Github for each package. Add 
 
 ### Canary `@dev`
 
-Whenever anything is merged to `dev`, new packages are automatically published to our [Github packages](https://github.com/orgs/superfluid-finance/packages?repo_name=protocol-monorepo). A Github release should not be created.
+Whenever anything is merged to `dev`, new packages are automatically published to our [Github packages](https://github.com/orgs/superfluid-org/packages?repo_name=protocol-monorepo). A Github release should not be created.
 
 Canary packages can be install using the `@dev` tag
 
@@ -137,7 +137,7 @@ yarn install @superfluid-finance/ethereum-contracts@0.2.4-dev.265
 
 ### Pull Request `@PRxxx`
 
-Pull request packages are automatically published to our [Github packages](https://github.com/orgs/superfluid-finance/packages?repo_name=protocol-monorepo). A Github release should not be created.
+Pull request packages are automatically published to our [Github packages](https://github.com/orgs/superfluid-org/packages?repo_name=protocol-monorepo). A Github release should not be created.
 
 See the bot message in the PR for how to install these packages.
 

@@ -1,13 +1,13 @@
 <h1 align="center">Welcome to Superfluid EVM Contracts (v1) 👋
 </h1>
 <div align="center">
-<img  width="300" padding="0 0 10px" alt="Superfluid logo" src="https://github.com/superfluid-finance/protocol-monorepo/raw/dev/sf-logo.png" />
+<img  width="300" padding="0 0 10px" alt="Superfluid logo" src="https://github.com/superfluid-org/protocol-monorepo/raw/dev/sf-logo.png" />
 <p>
   <a href="https://www.npmjs.com/package/@superfluid-finance/ethereum-contracts" target="_blank">
     <img alt="Version" src="https://img.shields.io/npm/v/@superfluid-finance/ethereum-contracts.svg">
   </a>
-  <a href="https://codecov.io/gh/superfluid-finance/protocol-monorepo/tree/dev/packages/ethereum-contracts">
-    <img src="https://codecov.io/gh/superfluid-finance/protocol-monorepo/branch/dev/graph/badge.svg?token=LJW5NDGEJ9&flag=ethereum-contracts"/>
+  <a href="https://codecov.io/gh/superfluid-org/protocol-monorepo/tree/dev/packages/ethereum-contracts">
+    <img src="https://codecov.io/gh/superfluid-org/protocol-monorepo/branch/dev/graph/badge.svg?token=LJW5NDGEJ9&flag=ethereum-contracts"/>
   </a>
   <a href="#" target="_blank">
     <img alt="License: AGPLv3" src="https://img.shields.io/badge/License-AGPL%20v3-blue.svg" />

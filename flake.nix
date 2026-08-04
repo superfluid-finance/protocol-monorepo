@@ -82,7 +82,7 @@
           # Vendored Yarn Berry (.yarn/releases/yarn.cjs symlink + yarnPath). Uses
           # `node` from PATH so ci-node22/24/26 shells all resolve the same project pin.
           (pkgs.writeShellScriptBin "yarn" ''
-            exec '${nodejs}/bin/node' '${./.yarn/releases/yarn-4.18.0.cjs}' "$@"
+            exec '${nodejs}/bin/node' '${builtins.path { path = ./.yarn/releases/yarn.cjs; }}' "$@"
           '')
         ];
         node22DevInputs = nodeDevInputsWith pkgs.nodejs_22;

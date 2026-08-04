@@ -355,8 +355,8 @@ Run the test suite for core contracts:
 yarn run-hardhat test testsuites/superfluid-core.js
 ```
 
-Hardhat and Foundry tests manage their own networks; no separate pretest/posttest hooks are used (Yarn 4 does not run arbitrary `pre*`/`post*` scripts).
-If you need the standalone Hardhat node on port 47545 (e.g. for some deployment scripts), start and stop it explicitly with `yarn testenv:start` / `yarn testenv:stop`.
+Hardhat and Foundry tests manage their own networks.
+If you need the standalone Hardhat node on port 47545 (e.g. for some deployment scripts), start and stop it with `yarn testenv:start` / `yarn testenv:stop`.
 
 ### TDD Session
 

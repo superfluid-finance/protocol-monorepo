@@ -5,8 +5,6 @@ coverage:
   precision: 2
   round: down
   range: "90...100"
-  ignore:
-    - "packages/ethereum-contracts/contracts/mocks/**"
 
 parsers:
   gcov:

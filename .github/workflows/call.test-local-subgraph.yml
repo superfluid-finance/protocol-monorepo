@@ -105,5 +105,5 @@ jobs:
 
       - name: Run subgraph integration test suite
         if: steps.base.outputs.cache-hit != 'true'
-        run: yarn test --network localhost
+        run: yarn test:local --network localhost
         working-directory: ${{ env.subgraph-working-directory }}

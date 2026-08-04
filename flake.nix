@@ -53,21 +53,20 @@
         ghcPkgs = pkgs.haskell.packages.${ghcVer94};
 
         # common dev inputs
-        commonDevInputs =
-          (with pkgs; [
-            mk-cache-key-pkg
-            gnumake
-            nodemon
-            # for shell script linting
-            shellcheck
-            # used by some scripts
-            jq
-            yq
-            # test utilities
-            lcov
-            actionlint
-            git
-          ]);
+        commonDevInputs = with pkgs; [
+          mk-cache-key-pkg
+          gnumake
+          nodemon
+          # for shell script linting
+          shellcheck
+          # used by some scripts
+          jq
+          yq
+          # test utilities
+          lcov
+          actionlint
+          git
+        ];
 
         # solidity dev inputs
         ethDevInputs = with pkgs; [

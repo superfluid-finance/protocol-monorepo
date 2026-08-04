@@ -52,12 +52,6 @@
         ghc = pkgs.haskell.compiler.${ghcVer94};
         ghcPkgs = pkgs.haskell.packages.${ghcVer94};
 
-        # Vendored Yarn Berry (.yarn/releases/yarn.cjs symlink + yarnPath). Uses
-        # `node` from PATH so ci-node22/24/26 shells all resolve the same project pin.
-        yarn-repo = pkgs.writeShellScriptBin "yarn" ''
-          exec node ${./.yarn/releases/yarn.cjs} "$@"
-        '';
-
         # common dev inputs
         commonDevInputs =
           (with pkgs; [
@@ -73,8 +67,7 @@
             lcov
             actionlint
             git
-          ])
-          ++ [ yarn-repo ];
+          ]);
 
         # solidity dev inputs
         ethDevInputs = with pkgs; [
@@ -87,6 +80,11 @@
         # nodejs ecosystem
         nodeDevInputsWith = nodejs: [
           nodejs
+          # Vendored Yarn Berry (.yarn/releases/yarn.cjs symlink + yarnPath). Uses
+          # `node` from PATH so ci-node22/24/26 shells all resolve the same project pin.
+          (pkgs.writeShellScriptBin "yarn" ''
+            exec '${nodejs}/bin/node' '${./.yarn/releases/yarn-4.18.0.cjs}' "$@"
+          '')
         ];
         node22DevInputs = nodeDevInputsWith pkgs.nodejs_22;
         node24DevInputs = nodeDevInputsWith pkgs.nodejs_24;

@@ -27,7 +27,7 @@ jobs:
       - name: Install dependencies
         if: steps.base.outputs.cache-hit != 'true'
         run: |
-          yarn install
+          yarn install --immutable
           solc --version
           forge --version
           slither --version

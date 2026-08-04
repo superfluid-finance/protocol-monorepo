@@ -202,7 +202,7 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@v13
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
 
       - name: Build
         run: |
@@ -251,7 +251,7 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@v13
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
 
       - name: Build
         run: |
@@ -332,7 +332,7 @@ jobs:
           fi
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
 
       - name: Build ethereum-contracts package
         if: env.PUBLISH_ETHEREUM_CONTRACTS == 1

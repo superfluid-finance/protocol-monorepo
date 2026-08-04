@@ -44,7 +44,7 @@ jobs:
 
       - name: Install dependencies
         if: env.PUBLISH_PR_ARTIFACT == 1
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
 
       - name: Build
         if: env.PUBLISH_PR_ARTIFACT == 1

@@ -56,8 +56,6 @@
         commonDevInputs = with pkgs; [
           mk-cache-key-pkg
           gnumake
-          # nodejs
-          yarn
           nodemon
           # for shell script linting
           shellcheck
@@ -81,6 +79,11 @@
         # nodejs ecosystem
         nodeDevInputsWith = nodejs: [
           nodejs
+          # Vendored Yarn Berry (.yarn/releases/yarn.cjs symlink + yarnPath). Uses
+          # `node` from PATH so ci-node22/24/26 shells all resolve the same project pin.
+          (pkgs.writeShellScriptBin "yarn" ''
+            exec '${nodejs}/bin/node' '${builtins.path { path = ./.yarn/releases/yarn.cjs; }}' "$@"
+          '')
         ];
         node22DevInputs = nodeDevInputsWith pkgs.nodejs_22;
         node24DevInputs = nodeDevInputsWith pkgs.nodejs_24;
@@ -103,8 +106,6 @@
 
         # spec developing specification
         specInputs = with pkgs; [
-          # for nodejs ecosystem
-          yarn
           gnumake
           # for haskell spec
           cabal-install

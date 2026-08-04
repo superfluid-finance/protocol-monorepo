@@ -4,6 +4,6 @@
 set -xe
 
 # build and test
-yarn install --frozen-lockfile
+yarn install --immutable
 yarn build
 #yarn test

@@ -38,4 +38,6 @@ corpus
 
 .pnpm-store
 .corepack
+**/.yarn/install-state.gz
+**/.yarn/cache
 .tmp

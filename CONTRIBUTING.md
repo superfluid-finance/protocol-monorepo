@@ -10,8 +10,7 @@ Before interacting with the Superfluid community, please read and understand our
 
 At minimum, you will need to have these available in your development environment:
 
-- Yarn, sufficiently recent version, the actual yarn version is locked in `.yarnrc`.
-- Node.js 18.x.
+- Yarn 4 (vendored in `.yarn/releases/` via `yarnPath` in `.yarnrc.yml`; `nodeLinker: node-modules`). Node.js 22+. With Nix, `nix develop` puts the vendored Yarn on `PATH`; without Nix, bootstrap with Corepack (`packageManager` field), or `node .yarn/releases/yarn.cjs`.
 
 Additionally recommended:
 - jq
@@ -36,18 +35,18 @@ Development shells options are available as different devShells commands in ([ni
 
 To use them:
 
-- `nix develop .` or `npm run shell`
-- `nix develop .#whitehat` or `npm run shell:whitehat`
-- `nix develop .#spec` or `npm run shell:spec`
-- `nix develop .#full` or `npm run shell:full`
+- `nix develop .` or `yarn shell`
+- `nix develop .#whitehat` or `yarn shell:whitehat`
+- `nix develop .#spec` or `yarn shell:spec`
+- `nix develop .#full` or `yarn shell:full`
 
 ### Installing Dependencies
 
-Before you do anything, you should run `yarn install && yarn build` in the root directory of your local-copy of the protocol-monorepo to install and build the necessary dependencies.
+Before you do anything, install dependencies:
 
 ```bash
 cd protocol-monorepo
-yarn install && yarn build
+yarn install --immutable && yarn git-submodule:init && yarn build
 ```
 
 You'll also want to upgrade your Superfluid App to the canary, so you have the most recent changes.
@@ -111,7 +110,7 @@ We are using [eslint](https://eslint.org/) for Javascript, [solhint](https://pro
 To publish a new version of Superfluid to NPM run the following command:
 
 ```bash
-yarn lerna:version
+yarn manage-versions
 ```
 
 Packages are versioned independently, so you can choose which packages to release, and commit only those changes. Now its time to publish:

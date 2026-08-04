@@ -11,8 +11,8 @@
         "test": "forge test",
         "build": "forge build",
         "deploy": "npx hardhat deploy --network",
-        "lint": "run-s lint:*",
-        "lint:sol": "solhint -w 0 contracts/*.sol contracts/*/*.sol && echo '✔  Your .sol files look good.'",
+        "lint": "yarn run -T run-s \"lint:*\"",
+        "lint:sol": "yarn run -T solhint -w 0 contracts/*.sol contracts/*/*.sol && echo '✔  Your .sol files look good.'",
         "check-updates": "ncu --target minor"
     }
 }

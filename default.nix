@@ -9,6 +9,8 @@
       ./.yarnrc.yml
       ./.yarn/releases
       ./yarn.lock
+      # other local tools
+      ./tasks
     ];
   };
 }

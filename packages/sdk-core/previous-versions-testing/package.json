@@ -4,11 +4,13 @@
     "license": "MIT",
     "private": true,
     "scripts": {
-        "run-query-tests": "npx hardhat test ./queryTests.ts"
+        "run-query-tests": "hardhat test ./queryTests.ts"
     },
     "devDependencies": {
         "@superfluid-finance/sdk-core": "0.8.0",
         "chai": "^4.5.0",
+        "ethers": "^5.7.2",
+        "graphql": "^16.12.0",
         "hardhat": "^2.22.0"
     },
     "resolutions": {

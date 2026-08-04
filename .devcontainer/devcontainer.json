@@ -32,10 +32,8 @@
 	"postCreateCommand": [
 		"curl -L https://foundry.paradigm.xyz | bash",
 		"source /home/vscode/.bashrc && foundryup",
-		"yarn global add npm-run-all",
-		"yarn install && yarn build",
 		"sudo apt-get install libpq5", // for subgraph's matchstick
-		"./tasks/fix-devcontainer.sh && yarn shell . -c bash <(echo \"yarn install && yarn build\")"
+		"./tasks/fix-devcontainer.sh && yarn shell . -c bash <(echo \"yarn install --immutable && yarn build\")"
 	]
 	// Configure tool-specific properties.
 	// "customizations": {},

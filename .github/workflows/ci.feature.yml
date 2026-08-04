@@ -40,6 +40,13 @@ jobs:
 
       - uses: DeterminateSystems/nix-installer-action@v13
 
+      - name: Initialize nix dev shell
+        run: |
+          node --version
+          yarn --version
+          shellcheck --version
+          actionlint --version
+
       - name: Show contexts
         env:
           HEAD_REF: ${{ github.head_ref }}
@@ -54,8 +61,8 @@ jobs:
 
       - name: Run global lint
         run: |
-          tasks/shellcheck-all-tasks.sh
-          actionlint .github/workflows/*.yml
+          npm run lint:shellcheck
+          npm run lint:actionlint
 
       - name: Create build set
         run: tasks/create-build-set.sh ${{ github.sha }} dev origin

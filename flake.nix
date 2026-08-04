@@ -52,22 +52,29 @@
         ghc = pkgs.haskell.compiler.${ghcVer94};
         ghcPkgs = pkgs.haskell.packages.${ghcVer94};
 
+        # Vendored Yarn Berry (.yarn/releases + yarnPath). Uses `node` from PATH so
+        # ci-node22/24/26 shells all resolve the same project pin.
+        yarn-repo = pkgs.writeShellScriptBin "yarn" ''
+          exec node ${./.yarn/releases/yarn-4.18.0.cjs} "$@"
+        '';
+
         # common dev inputs
-        commonDevInputs = with pkgs; [
-          mk-cache-key-pkg
-          gnumake
-          # nodejs (corepack provides yarn via packageManager field)
-          nodemon
-          # for shell script linting
-          shellcheck
-          # used by some scripts
-          jq
-          yq
-          # test utilities
-          lcov
-          actionlint
-          git
-        ];
+        commonDevInputs =
+          (with pkgs; [
+            mk-cache-key-pkg
+            gnumake
+            nodemon
+            # for shell script linting
+            shellcheck
+            # used by some scripts
+            jq
+            yq
+            # test utilities
+            lcov
+            actionlint
+            git
+          ])
+          ++ [ yarn-repo ];
 
         # solidity dev inputs
         ethDevInputs = with pkgs; [
@@ -102,7 +109,6 @@
 
         # spec developing specification
         specInputs = with pkgs; [
-          # for nodejs ecosystem (corepack provides yarn via packageManager field)
           gnumake
           # for haskell spec
           cabal-install

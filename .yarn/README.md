@@ -1,2 +1,12 @@
-- To upgrade to a newer version see: https://classic.yarnpkg.com/en/docs/cli/policies
-- You might encounter this bug: https://github.com/yarnpkg/yarn/issues/7847
+# Yarn
+
+This project uses Yarn Berry, vendored under `.yarn/releases/` and selected via
+`yarnPath` in `.yarnrc.yml` (also reflected in the root `packageManager` field).
+
+To upgrade:
+
+```bash
+yarn set version stable
+```
+
+Then update the `yarn-repo` path in `flake.nix` to the new release file.

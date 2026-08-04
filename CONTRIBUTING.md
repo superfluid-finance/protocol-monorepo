@@ -10,7 +10,7 @@ Before interacting with the Superfluid community, please read and understand our
 
 At minimum, you will need to have these available in your development environment:
 
-- Yarn 4 (vendored in `.yarn/releases/` via `yarnPath` in `.yarnrc.yml`; `nodeLinker: node-modules`). Node.js 22+ only — no separate Yarn install needed.
+- Yarn 4 (vendored in `.yarn/releases/` via `yarnPath` in `.yarnrc.yml`; `nodeLinker: node-modules`). Node.js 22+. With Nix, `nix develop` puts the vendored Yarn on `PATH`; without Nix, any Yarn that honors `yarnPath` is enough to bootstrap.
 
 Additionally recommended:
 - jq
@@ -42,7 +42,7 @@ To use them:
 
 ### Installing Dependencies
 
-Before you do anything, install dependencies (Yarn is vendored in the repo — no Corepack step needed):
+Before you do anything, install dependencies:
 
 ```bash
 cd protocol-monorepo

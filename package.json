@@ -79,7 +79,7 @@
         "git-submodule:deinit": "git submodule deinit --all --force",
         "check-updates": "run-s -l \"check-updates:*\"",
         "check-updates:root": "ncu --target minor --dep dev",
-        "check-updates:workspaces": "yarn workspaces foreach -A run check-updates",
+        "check-updates:workspaces": "yarn workspaces foreach -A --exclude '@superfluid-org/protocol-monorepo' run check-updates",
         "shell": "nix develop",
         "shell:spec": "nix develop .#spec",
         "shell:whitehat": "nix develop .#whitehat",

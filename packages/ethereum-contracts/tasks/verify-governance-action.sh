@@ -22,24 +22,21 @@
 #   --help                   Show this help message
 #
 # Environment variables:
-#   PROVIDER_URL             RPC provider URL for the network [REQUIRED]
+#   PROVIDER_URL_TEMPLATE    RPC URL with {{NETWORK}} placeholder (optional; default:
+#                            https://rpc-endpoints.superfluid.dev/{{NETWORK}})
+#   PROVIDER_URL             Explicit RPC URL override (optional)
+#   RPC_URL / PROVIDER_URL_OVERRIDE
+#                            Same as PROVIDER_URL if set
 #   ETHERSCAN_API_KEY        API key for Etherscan verification
 #   RESOLVER_ADDRESS         Resolver address for auto-detecting Safe (optional)
 #   SAFE_ADDRESS             Safe address to query (optional, auto-detected if not set)
 #   (other *SCAN_API_KEY variables as needed)
 #
 # Examples:
-#   # Verify using addresses from URL (directory format)
-#   PROVIDER_URL=https://... tasks/verify-governance-action.sh eth-mainnet --addresses-url https://example.com/addrs/v1.14.1/
-#
-#   # Verify using addresses file
-#   PROVIDER_URL=https://... tasks/verify-governance-action.sh eth-mainnet --addresses-file addrs/v1.14.1/eth-mainnet
-#
-#   # Verify with Safe pending transaction
-#   PROVIDER_URL=https://... tasks/verify-governance-action.sh eth-mainnet --verify-safe
-#
-#   # Full verification
-#   PROVIDER_URL=https://... tasks/verify-governance-action.sh eth-mainnet --addresses-url https://example.com/addrs/v1.14.1/ --verify-safe --verify-etherscan
+#   tasks/verify-governance-action.sh eth-mainnet --verify-safe
+#   tasks/verify-governance-action.sh eth-mainnet --addresses-file addrs/v1.14.1/eth-mainnet
+#   PROVIDER_URL_TEMPLATE=https://{{NETWORK}}.rpc.x.superfluid.dev \
+#     tasks/verify-governance-action.sh xdai-mainnet --verify-safe
 
 set -e
 
@@ -132,20 +129,44 @@ done
 # Validate required arguments
 if [ -z "$NETWORK" ]; then
     print_error "Network is required"
-    echo "Usage: PROVIDER_URL=https://... tasks/verify-governance-action.sh <network> [options]"
+    echo "Usage: tasks/verify-governance-action.sh <network> [options]"
     exit 1
 fi
 
-if [ -z "$PROVIDER_URL" ]; then
-    print_error "PROVIDER_URL environment variable is required"
-    echo "Usage: PROVIDER_URL=https://... tasks/verify-governance-action.sh <network> [options]"
-    exit 1
-fi
+# Same priority as new-ops-scripts/lib/network-config.sh, plus PROVIDER_URL
+# as an explicit override. Template is optional; default matches other tasks.
+DEFAULT_PROVIDER_URL_TEMPLATE="https://rpc-endpoints.superfluid.dev/{{NETWORK}}"
+
+resolve_provider_url() {
+    local network=$1
+    if [ -n "${PROVIDER_URL:-}" ]; then
+        echo "$PROVIDER_URL"
+        return
+    fi
+    if [ -n "${RPC_URL:-}" ]; then
+        echo "$RPC_URL"
+        return
+    fi
+    if [ -n "${PROVIDER_URL_OVERRIDE:-}" ]; then
+        echo "$PROVIDER_URL_OVERRIDE"
+        return
+    fi
+    local tpl="${PROVIDER_URL_TEMPLATE:-$DEFAULT_PROVIDER_URL_TEMPLATE}"
+    if [[ "$tpl" != *"{{NETWORK}}"* ]]; then
+        print_error "PROVIDER_URL_TEMPLATE must contain {{NETWORK}}"
+        exit 1
+    fi
+    echo "$tpl" | sed "s/{{NETWORK}}/$network/"
+}
+
+PROVIDER_URL=$(resolve_provider_url "$NETWORK")
+export PROVIDER_URL NETWORK
 
 # Create output directory
 mkdir -p "$OUTPUT_DIR"
 
 print_info "Starting governance action verification for network: $NETWORK"
+print_info "RPC: $PROVIDER_URL"
 print_info "Output directory: $OUTPUT_DIR"
 
 cd "$CONTRACTS_DIR"
@@ -231,10 +252,24 @@ if [ "$VERIFY_SAFE" = true ]; then
 
     SAFE_TX_FILE="$OUTPUT_DIR/safe-pending-tx.json"
 
+    # fetch-safe-pending-tx.ts needs SAFE_ADDRESS or RESOLVER_ADDRESS
+    if [ -z "${RESOLVER_ADDRESS:-}" ]; then
+        RESOLVER_FROM_FILE=$(grep -E '^RESOLVER=' "$WORK_ADDRESSES_FILE" 2>/dev/null | tail -1 | cut -d= -f2- | tr -d '"' || true)
+        if [ -n "$RESOLVER_FROM_FILE" ]; then
+            export RESOLVER_ADDRESS="$RESOLVER_FROM_FILE"
+            print_info "Using RESOLVER_ADDRESS from addresses file: $RESOLVER_ADDRESS"
+        fi
+    fi
+    if [ -z "${SAFE_ADDRESS:-}" ] && [ -z "${RESOLVER_ADDRESS:-}" ]; then
+        # Canonical Superfluid gov owner Safe (same on all networks)
+        export SAFE_ADDRESS="0x06a858185b3B2ABB246128Bb9415D57e5C09aEB6"
+        print_info "Using default SAFE_ADDRESS: $SAFE_ADDRESS"
+    fi
+
     # Set up environment for Hardhat script
     export OUTPUT_FILE="$SAFE_TX_FILE"
 
-    if run_hardhat run --no-compile scripts/fetch-safe-pending-tx.ts 2>/dev/null; then
+    if run_hardhat run --no-compile scripts/fetch-safe-pending-tx.ts; then
         if [ -f "$SAFE_TX_FILE" ] && [ -s "$SAFE_TX_FILE" ]; then
             print_success "Safe pending transaction fetched"
 
@@ -256,8 +291,12 @@ if [ "$VERIFY_SAFE" = true ]; then
                 echo "# New contract addresses from pending Safe governance transaction" > "$SAFE_ADDRESSES_FILE"
                 echo "$SAFE_ADDRESSES" >> "$SAFE_ADDRESSES_FILE"
 
-                # Also include library addresses from the base addresses file (needed for linking)
-                grep -E "^(SLOTS_BITMAP_LIBRARY|SUPERFLUID_POOL_DEPLOYER_LIBRARY)=" "$WORK_ADDRESSES_FILE" >> "$SAFE_ADDRESSES_FILE" 2>/dev/null || true
+                # Fill libraries from the base file only if the Safe tx did not already provide them
+                for key in SLOTS_BITMAP_LIBRARY SUPERFLUID_POOL_DEPLOYER_LIBRARY; do
+                    if ! grep -q "^${key}=" "$SAFE_ADDRESSES_FILE"; then
+                        grep -E "^${key}=" "$WORK_ADDRESSES_FILE" >> "$SAFE_ADDRESSES_FILE" 2>/dev/null || true
+                    fi
+                done
 
                 print_info "New addresses from Safe transaction (these will be verified):"
                 echo "$SAFE_ADDRESSES" | sed 's/^/  /'

@@ -6,13 +6,16 @@
  * before executing governance actions.
  *
  * Usage:
- *   ADDRESSES_FILE=addresses.vars PROVIDER_URL=https://... npx hardhat run scripts/verify-bytecode.ts
+ *   ADDRESSES_FILE=addresses.vars NETWORK=xdai-mainnet npx hardhat run scripts/verify-bytecode.ts
  *
  * Environment variables:
- *   ADDRESSES_FILE - Path to addresses file (shell variable format) [REQUIRED]
- *   PROVIDER_URL   - RPC provider URL [REQUIRED if not using --network]
- *   DEBUG          - Set to "true" for verbose output
- *   JSON_OUTPUT    - Set to "true" for JSON-only output
+ *   ADDRESSES_FILE          - Path to addresses file (shell variable format) [REQUIRED]
+ *   NETWORK                 - Superfluid network name (used with PROVIDER_URL_TEMPLATE)
+ *   PROVIDER_URL_TEMPLATE   - RPC URL with {{NETWORK}} placeholder (optional; default:
+ *                             https://rpc-endpoints.superfluid.dev/{{NETWORK}})
+ *   PROVIDER_URL            - Explicit RPC URL override (optional)
+ *   DEBUG                   - Set to "true" for verbose output
+ *   JSON_OUTPUT             - Set to "true" for JSON-only output
  *
  * The addresses file should contain shell variable assignments like:
  *   SUPERFLUID_HOST_LOGIC=0x...
@@ -150,15 +153,34 @@ function parseAddressesFile(filePath: string): Record<string, string> {
     return addresses;
 }
 
+const DEFAULT_PROVIDER_URL_TEMPLATE =
+    "https://rpc-endpoints.superfluid.dev/{{NETWORK}}";
+
 /**
- * Get the provider - either from Hardhat network or from PROVIDER_URL env var
+ * Resolve RPC URL from PROVIDER_URL / RPC_URL / PROVIDER_URL_OVERRIDE /
+ * PROVIDER_URL_TEMPLATE (with NETWORK). Template is optional.
+ */
+function resolveRpcUrl(): string | undefined {
+    if (process.env.PROVIDER_URL) return process.env.PROVIDER_URL;
+    if (process.env.RPC_URL) return process.env.RPC_URL;
+    if (process.env.PROVIDER_URL_OVERRIDE) return process.env.PROVIDER_URL_OVERRIDE;
+    const network = process.env.NETWORK;
+    if (!network) return undefined;
+    const tpl = process.env.PROVIDER_URL_TEMPLATE || DEFAULT_PROVIDER_URL_TEMPLATE;
+    if (!tpl.includes("{{NETWORK}}")) {
+        throw new Error("PROVIDER_URL_TEMPLATE must contain {{NETWORK}}");
+    }
+    return tpl.replace(/\{\{NETWORK\}\}/g, network);
+}
+
+/**
+ * Get the provider from env RPC settings, or Hardhat's configured network.
  */
 function getProvider(): ethers.providers.Provider {
-    // If PROVIDER_URL is set, use it directly
-    if (process.env.PROVIDER_URL) {
-        return new ethers.providers.JsonRpcProvider(process.env.PROVIDER_URL);
+    const url = resolveRpcUrl();
+    if (url) {
+        return new ethers.providers.JsonRpcProvider(url);
     }
-    // Otherwise use Hardhat's configured provider
     return ethers.provider;
 }
 
@@ -464,20 +486,28 @@ function getLinkedBytecode(
     artifact: any,
     libraryAddresses: Record<string, string>
 ): string {
-    let bytecode = artifact.deployedBytecode || artifact.bytecode || "";
+    let bytecode = (artifact.deployedBytecode || artifact.bytecode || "").replace(/^0x/i, "");
 
-    // Replace library placeholders with actual addresses
-    // Hardhat uses __$<hash>$__ format for library placeholders
+    // Use Hardhat deployedLinkReferences so each library is patched at its own offsets.
+    // Replacing every __$hash$__ placeholder with the first library address is wrong when
+    // a contract links more than one library (GDA links SlotsBitmap + PoolDeployer).
+    const linkRefs = artifact.deployedLinkReferences || artifact.linkReferences || {};
+    for (const fileRefs of Object.values(linkRefs) as any[]) {
+        for (const [libName, positions] of Object.entries(fileRefs as Record<string, { start: number; length: number }[]>)) {
+            const libAddr = libraryAddresses[libName];
+            if (!libAddr || !Array.isArray(positions)) continue;
+            const addr = libAddr.toLowerCase().replace(/^0x/, "");
+            for (const pos of positions) {
+                const start = pos.start * 2;
+                const len = (pos.length || 20) * 2;
+                bytecode = bytecode.slice(0, start) + addr.slice(0, len).padStart(len, "0") + bytecode.slice(start + len);
+            }
+        }
+    }
+
     Object.entries(libraryAddresses).forEach(([libName, libAddr]) => {
         if (!libAddr) return;
-
-        const addrWithoutPrefix = libAddr.toLowerCase().replace("0x", "");
-
-        // Match Hardhat's library placeholder format: __$<34-char-hash>$__
-        const placeholderRegex = /__\$[a-f0-9]{34}\$__/gi;
-        bytecode = bytecode.replace(placeholderRegex, addrWithoutPrefix);
-
-        // Also try Truffle-style placeholder
+        const addrWithoutPrefix = libAddr.toLowerCase().replace(/^0x/, "");
         const trufflePlaceholder = `__${libName}${"_".repeat(Math.max(0, 38 - libName.length))}`;
         bytecode = bytecode.replace(new RegExp(trufflePlaceholder, "gi"), addrWithoutPrefix);
     });
@@ -525,6 +555,25 @@ function extractDiffContext(deployed: string, expected: string, firstDiffHexPos:
     };
 }
 
+
+/**
+ * Solidity deploys libraries with a call-protection preamble:
+ *   PUSH20 <library address>  ADDRESS  EQ
+ * followed by the runtime that Hardhat artifacts contain.
+ */
+function stripSolidityLibraryPreamble(deployedHex: string, address: string): string {
+    const addr = address.toLowerCase().replace(/^0x/, "");
+    const push20AddrEq = "73" + addr + "3014";
+    if (deployedHex.startsWith(push20AddrEq)) {
+        return deployedHex.slice(push20AddrEq.length);
+    }
+    const push20Self = "73" + addr;
+    if (deployedHex.startsWith(push20Self)) {
+        return deployedHex.slice(push20Self.length);
+    }
+    return deployedHex;
+}
+
 /**
  * Compare bytecode with full verification:
  *   1. Extract immutable values from deployed code and substitute into expected
@@ -550,6 +599,9 @@ async function compareBytecode(
     // Normalize both bytecodes
     let expected = expectedBytecode.toLowerCase().replace(/^0x/, "");
     let deployed = deployedCode.toLowerCase().replace(/^0x/, "");
+
+    // Solidity library deploy preamble: PUSH20 <self> ADDRESS EQ, then the artifact runtime.
+    deployed = stripSolidityLibraryPreamble(deployed, address);
 
     // Trim constructor code from expected bytecode
     const runtimeStart = expected.indexOf("6080604052");

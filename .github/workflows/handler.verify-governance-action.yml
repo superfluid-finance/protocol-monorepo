@@ -34,6 +34,8 @@ jobs:
     env:
       RELEASE_VERSION: ${{ github.event.inputs.release_version }}
       ADDRESSES_URL: ${{ github.event.inputs.addresses_url }}
+      NETWORK: ${{ matrix.network }}
+      PROVIDER_URL_TEMPLATE: ${{ secrets.PROVIDER_URL_TEMPLATE }}
 
     strategy:
       fail-fast: false
@@ -101,8 +103,6 @@ jobs:
           cd packages/ethereum-contracts
           npx truffle exec --network ${{ matrix.network }} ops-scripts/info-print-contract-addresses.js : addresses.vars
           echo "ADDRESSES_FILE=$(pwd)/addresses.vars" >> "$GITHUB_ENV"
-        env:
-          PROVIDER_URL: ${{ secrets.PROVIDER_URL_TEMPLATE }}
 
       - name: Fetch pending Safe transaction
         if: env.DO_SKIP != 1 && github.event.inputs.verify_safe_pending == 'true'
@@ -112,7 +112,6 @@ jobs:
 
           echo "Fetching pending Safe governance transaction..."
 
-          # Run the Hardhat script with PROVIDER_URL
           OUTPUT_FILE=safe-pending-tx.json \
             npx hardhat run scripts/fetch-safe-pending-tx.ts > safe-output.log 2>&1 || {
             echo "::warning::Failed to fetch Safe pending transaction"
@@ -138,8 +137,6 @@ jobs:
           else
             echo "SAFE_TX_FOUND=false" >> "$GITHUB_ENV"
           fi
-        env:
-          PROVIDER_URL: ${{ secrets.PROVIDER_URL_TEMPLATE }}
 
       - name: Verify bytecode
         if: env.DO_SKIP != 1
@@ -150,7 +147,6 @@ jobs:
           echo "=== Bytecode Verification ==="
           echo "Addresses file: ${{ env.ADDRESSES_FILE }}"
 
-          # Run the Hardhat verification script with PROVIDER_URL
           ADDRESSES_FILE="${{ env.ADDRESSES_FILE }}" JSON_OUTPUT=true \
             npx hardhat run scripts/verify-bytecode.ts > bytecode-report.json 2>&1 || true
 
@@ -180,8 +176,6 @@ jobs:
             echo "BYTECODE_MISMATCH=0" >> "$GITHUB_ENV"
             echo "BYTECODE_ERRORS=1" >> "$GITHUB_ENV"
           fi
-        env:
-          PROVIDER_URL: ${{ secrets.PROVIDER_URL_TEMPLATE }}
 
       - name: Verify on Etherscan
         if: env.DO_SKIP != 1 && github.event.inputs.verify_etherscan == 'true'

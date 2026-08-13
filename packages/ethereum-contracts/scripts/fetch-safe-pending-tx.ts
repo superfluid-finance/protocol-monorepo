@@ -5,11 +5,14 @@
  * This is used to verify what governance actions are pending before execution.
  *
  * Usage:
- *   PROVIDER_URL=https://... npx hardhat run scripts/fetch-safe-pending-tx.ts
+ *   NETWORK=xdai-mainnet npx hardhat run scripts/fetch-safe-pending-tx.ts
  *
  * Environment variables:
- *   PROVIDER_URL     - RPC provider URL [REQUIRED]
- *   SAFE_ADDRESS     - Safe address to query (auto-detected from governance if not specified)
+ *   NETWORK                 - Superfluid network name (used with PROVIDER_URL_TEMPLATE)
+ *   PROVIDER_URL_TEMPLATE   - RPC URL with {{NETWORK}} placeholder (optional; default:
+ *                             https://rpc-endpoints.superfluid.dev/{{NETWORK}})
+ *   PROVIDER_URL            - Explicit RPC URL override (optional)
+ *   SAFE_ADDRESS            - Safe address to query (auto-detected from governance if not specified)
  *   TX_INDEX         - Specific transaction nonce to fetch (defaults to latest pending)
  *   OUTPUT_FILE      - Output file path for JSON (defaults to stdout)
  *   RESOLVER_ADDRESS - Resolver address for auto-detecting governance Safe
@@ -20,21 +23,20 @@
 import { ethers } from "hardhat";
 import * as fs from "fs";
 
-// Safe Transaction Service URLs by chain ID
-const SAFE_TX_SERVICE_URLS: Record<number, string> = {
-    // Mainnets
-    1: "https://safe-transaction-mainnet.safe.global",
-    10: "https://safe-transaction-optimism.safe.global",
-    56: "https://safe-transaction-bsc.safe.global",
-    100: "https://safe-transaction-gnosis-chain.safe.global",
-    137: "https://safe-transaction-polygon.safe.global",
-    8453: "https://safe-transaction-base.safe.global",
-    42161: "https://safe-transaction-arbitrum.safe.global",
-    42220: "https://safe-transaction-celo.safe.global",
-    43114: "https://safe-transaction-avalanche.safe.global",
-    534352: "https://safe-transaction-scroll.safe.global",
-    // Testnets
-    11155111: "https://safe-transaction-sepolia.safe.global",
+// Safe Transaction Service network slugs by chain ID
+// https://api.safe.global/tx-service/{slug}/api/v2/...
+const SAFE_TX_SERVICE_SLUGS: Record<number, string> = {
+    1: "eth",
+    10: "oeth",
+    56: "bnb",
+    100: "gno",
+    137: "pol",
+    8453: "base",
+    42161: "arb1",
+    42220: "celo",
+    43114: "avax",
+    534352: "scr",
+    11155111: "sep",
 };
 
 // Known governance function selectors → human-readable name for reporting.
@@ -108,15 +110,34 @@ interface FetchResult {
     message?: string;
 }
 
+const DEFAULT_PROVIDER_URL_TEMPLATE =
+    "https://rpc-endpoints.superfluid.dev/{{NETWORK}}";
+
 /**
- * Get the provider - either from Hardhat network or from PROVIDER_URL env var
+ * Resolve RPC URL from PROVIDER_URL / RPC_URL / PROVIDER_URL_OVERRIDE /
+ * PROVIDER_URL_TEMPLATE (with NETWORK). Template is optional.
+ */
+function resolveRpcUrl(): string | undefined {
+    if (process.env.PROVIDER_URL) return process.env.PROVIDER_URL;
+    if (process.env.RPC_URL) return process.env.RPC_URL;
+    if (process.env.PROVIDER_URL_OVERRIDE) return process.env.PROVIDER_URL_OVERRIDE;
+    const network = process.env.NETWORK;
+    if (!network) return undefined;
+    const tpl = process.env.PROVIDER_URL_TEMPLATE || DEFAULT_PROVIDER_URL_TEMPLATE;
+    if (!tpl.includes("{{NETWORK}}")) {
+        throw new Error("PROVIDER_URL_TEMPLATE must contain {{NETWORK}}");
+    }
+    return tpl.replace(/\{\{NETWORK\}\}/g, network);
+}
+
+/**
+ * Get the provider from env RPC settings, or Hardhat's configured network.
  */
 function getProvider(): ethers.providers.Provider {
-    // If PROVIDER_URL is set, use it directly
-    if (process.env.PROVIDER_URL) {
-        return new ethers.providers.JsonRpcProvider(process.env.PROVIDER_URL);
+    const url = resolveRpcUrl();
+    if (url) {
+        return new ethers.providers.JsonRpcProvider(url);
     }
-    // Otherwise use Hardhat's configured provider
     return ethers.provider;
 }
 
@@ -124,16 +145,20 @@ function getProvider(): ethers.providers.Provider {
  * Fetch pending transactions from Safe Transaction Service
  */
 async function fetchPendingTransactions(safeAddress: string, chainId: number): Promise<SafeTransaction[]> {
-    const baseUrl = SAFE_TX_SERVICE_URLS[chainId];
-    if (!baseUrl) {
-        throw new Error(`No Safe Transaction Service URL for chain ${chainId}`);
+    const slug = SAFE_TX_SERVICE_SLUGS[chainId];
+    if (!slug) {
+        throw new Error(`No Safe Transaction Service slug for chain ${chainId}`);
     }
 
-    const url = `${baseUrl}/api/v1/safes/${safeAddress}/multisig-transactions/?executed=false&trusted=true`;
+    const url = `https://api.safe.global/tx-service/${slug}/api/v2/safes/${safeAddress}/multisig-transactions?executed=false&limit=100`;
+    const headers: Record<string, string> = {};
+    if (process.env.SAFE_API_KEY) {
+        headers.Authorization = `Bearer ${process.env.SAFE_API_KEY}`;
+    }
 
-    const response = await fetch(url);
+    const response = await fetch(url, { headers });
     if (!response.ok) {
-        throw new Error(`Failed to fetch pending transactions: ${response.statusText}`);
+        throw new Error(`Failed to fetch pending transactions: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();
@@ -216,10 +241,52 @@ function decodeGovernanceAction(data: string): DecodedAction {
     }
 }
 
+const AGREEMENT_TYPE_TO_KEY: Record<string, string> = {
+    [ethers.utils.id("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")]: "CFA_LOGIC",
+    [ethers.utils.id("org.superfluid-finance.agreements.InstantDistributionAgreement.v1")]: "IDA_LOGIC",
+    [ethers.utils.id("org.superfluid-finance.agreements.GeneralDistributionAgreement.v1")]: "GDA_LOGIC",
+};
+
+async function identifyAgreementLogicKey(
+    provider: ethers.providers.Provider,
+    addr: string
+): Promise<string | null> {
+    const iface = new ethers.utils.Interface(["function agreementType() view returns (bytes32)"]);
+    try {
+        const result = await provider.call({ to: addr, data: iface.encodeFunctionData("agreementType") });
+        const typeHash: string = iface.decodeFunctionResult("agreementType", result)[0];
+        return AGREEMENT_TYPE_TO_KEY[typeHash] || null;
+    } catch {
+        return null;
+    }
+}
+
+async function readAddressGetter(
+    provider: ethers.providers.Provider,
+    addr: string,
+    signature: string
+): Promise<string | null> {
+    const iface = new ethers.utils.Interface([`function ${signature}`]);
+    const name = signature.slice(0, signature.indexOf("("));
+    try {
+        const result = await provider.call({ to: addr, data: iface.encodeFunctionData(name) });
+        const value: string = iface.decodeFunctionResult(name, result)[0];
+        if (!value || value === ethers.constants.AddressZero) return null;
+        return value;
+    } catch {
+        return null;
+    }
+}
+
 /**
- * Extract contract addresses from decoded governance action
+ * Extract contract addresses from decoded governance action.
+ * Agreement class logics are identified via on-chain agreementType(), not array order
+ * (updateContracts often passes CFA+GDA without IDA).
  */
-function extractAddressesFromAction(decoded: DecodedAction): Record<string, string> {
+async function extractAddressesFromAction(
+    provider: ethers.providers.Provider,
+    decoded: DecodedAction
+): Promise<Record<string, string>> {
     const addresses: Record<string, string> = {};
     const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
@@ -240,14 +307,25 @@ function extractAddressesFromAction(decoded: DecodedAction): Record<string, stri
             if (params.poolBeaconNewLogic && params.poolBeaconNewLogic !== ZERO_ADDRESS) {
                 addresses.SUPERFLUID_POOL_LOGIC = params.poolBeaconNewLogic;
             }
-            // Agreement class logics (CFA, IDA, GDA)
             if (Array.isArray(params.agreementClassNewLogics)) {
-                const keys = ["CFA_LOGIC", "IDA_LOGIC", "GDA_LOGIC"];
-                params.agreementClassNewLogics.forEach((addr: string, i: number) => {
-                    if (addr !== ZERO_ADDRESS && keys[i]) {
-                        addresses[keys[i]] = addr;
+                for (const addr of params.agreementClassNewLogics as string[]) {
+                    if (!addr || addr === ZERO_ADDRESS) continue;
+                    const key = await identifyAgreementLogicKey(provider, addr);
+                    if (key) {
+                        addresses[key] = addr;
+                    } else {
+                        console.error(`  warning: could not identify agreementType for ${addr}`);
                     }
-                });
+                }
+                if (addresses.GDA_LOGIC) {
+                    const slots = await readAddressGetter(provider, addresses.GDA_LOGIC, "SLOTS_BITMAP_LIBRARY_ADDRESS() view returns (address)");
+                    const poolLib = await readAddressGetter(provider, addresses.GDA_LOGIC, "SUPERFLUID_POOL_DEPLOYER_ADDRESS() view returns (address)");
+                    if (slots) addresses.SLOTS_BITMAP_LIBRARY = slots;
+                    if (poolLib) addresses.SUPERFLUID_POOL_DEPLOYER_LIBRARY = poolLib;
+                } else if (addresses.IDA_LOGIC) {
+                    const slots = await readAddressGetter(provider, addresses.IDA_LOGIC, "SLOTS_BITMAP_LIBRARY_ADDRESS() view returns (address)");
+                    if (slots) addresses.SLOTS_BITMAP_LIBRARY = slots;
+                }
             }
             break;
 
@@ -410,7 +488,7 @@ async function main() {
 
     // Decode the governance action
     const decoded = decodeGovernanceAction(txToAnalyze.data);
-    const extractedAddresses = extractAddressesFromAction(decoded);
+    const extractedAddresses = await extractAddressesFromAction(provider, decoded);
 
     const result: FetchResult = {
         safe: safeAddress,

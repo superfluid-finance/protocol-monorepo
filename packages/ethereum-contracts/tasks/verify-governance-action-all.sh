@@ -19,8 +19,8 @@
 #   --help                   Show this help message
 #
 # Environment variables:
+#   PROVIDER_URL_TEMPLATE    RPC URL with {{NETWORK}} placeholder (passed through to per-network script)
 #   PROVIDER_URL_<NETWORK>   Override RPC URL for a specific network (e.g. PROVIDER_URL_ETH_MAINNET)
-#                            If not set, uses https://rpc-endpoints.superfluid.dev/<network>
 #
 # Examples:
 #   # Verify all networks
@@ -136,16 +136,10 @@ for NETWORK in "${NETWORK_ARRAY[@]}"; do
 
     NETWORK_OUTPUT_DIR="$OUTPUT_DIR/$NETWORK"
 
-    # Determine provider URL
-    # Check for network-specific override env var (e.g. PROVIDER_URL_ETH_MAINNET)
+    # Per-network RPC override (e.g. PROVIDER_URL_ETH_MAINNET); otherwise the
+    # child script resolves PROVIDER_URL_TEMPLATE / default.
     ENV_VAR_NAME="PROVIDER_URL_$(echo "$NETWORK" | tr '[:lower:]-' '[:upper:]_')"
     NETWORK_PROVIDER_URL="${!ENV_VAR_NAME:-}"
-
-    if [ -z "$NETWORK_PROVIDER_URL" ]; then
-        NETWORK_PROVIDER_URL="https://rpc-endpoints.superfluid.dev/$NETWORK"
-    fi
-
-    print_info "RPC: $NETWORK_PROVIDER_URL"
 
     # Build arguments for per-network script
     PER_NETWORK_ARGS=("$NETWORK" "--output-dir" "$NETWORK_OUTPUT_DIR")
@@ -166,7 +160,15 @@ for NETWORK in "${NETWORK_ARRAY[@]}"; do
     PER_NETWORK_ARGS+=("${EXTRA_ARGS[@]}")
 
     # Run the per-network script
-    if PROVIDER_URL="$NETWORK_PROVIDER_URL" "$SCRIPT_DIR/verify-governance-action.sh" "${PER_NETWORK_ARGS[@]}"; then
+    if [ -n "$NETWORK_PROVIDER_URL" ]; then
+        print_info "RPC override: $NETWORK_PROVIDER_URL"
+        run_ok=true
+        PROVIDER_URL="$NETWORK_PROVIDER_URL" "$SCRIPT_DIR/verify-governance-action.sh" "${PER_NETWORK_ARGS[@]}" || run_ok=false
+    else
+        run_ok=true
+        "$SCRIPT_DIR/verify-governance-action.sh" "${PER_NETWORK_ARGS[@]}" || run_ok=false
+    fi
+    if [ "$run_ok" = true ]; then
         PASSED+=("$NETWORK")
         print_success "$NETWORK: PASSED"
     else

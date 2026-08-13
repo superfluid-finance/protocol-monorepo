@@ -25,10 +25,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Use Node.js 24.x
+      - name: Use Node.js 26.x
         uses: actions/setup-node@v4
         with:
-          node-version: 24.x
+          node-version: 26.x
           registry-url: https://registry.npmjs.org/
 
       - name: Check package versions
@@ -57,10 +57,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Use Node.js 24.x
+      - name: Use Node.js 26.x
         uses: actions/setup-node@v4
         with:
-          node-version: 24.x
+          node-version: 26.x
           registry-url: https://registry.npmjs.org/
 
       - name: Check package versions
@@ -87,23 +87,22 @@ jobs:
           body_path: .github/RELEASE_TEMPLATE/release-notes.md
           draft: true
 
-  create-and-publish-metadata-package:
-    name: Create Metadata Release Draft and Publish to NPM
+  create-metadata-release-draft:
+    name: Create Metadata Release Draft
 
     runs-on: ubuntu-22.04
 
     permissions:
       contents: write
-      id-token: write
 
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Use Node.js 24.x
+      - name: Use Node.js 26.x
         uses: actions/setup-node@v4
         with:
-          node-version: 24.x
+          node-version: 26.x
           registry-url: https://registry.npmjs.org/
 
       - name: Check package versions
@@ -119,14 +118,7 @@ jobs:
           name: metadata@v${{ env.METADATA_NEW_VERSION }}
           body: |
             Please refer to the CHANGELOG.md file in metadata package for more details on the changeset.
-          draft: false
-      - name: Publish metadata package
-        if: env.SHOULD_PUBLISH_METADATA == 1
-        run: |
-          yarn --cwd packages/metadata build
-          tasks/npm-publish.sh packages/metadata/ latest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          draft: true
 
   check-sdk-core-version:
     name: Checking if SDK-Core should be published
@@ -181,10 +173,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Use Node.js 24.x
+      - name: Use Node.js 26.x
         uses: actions/setup-node@v4
         with:
-          node-version: 24.x
+          node-version: 26.x
           registry-url: https://registry.npmjs.org/
 
       - name: Create sdk-core stable release draft
@@ -209,10 +201,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Use Node.js 24.x
+      - name: Use Node.js 26.x
         uses: actions/setup-node@v4
         with:
-          node-version: 24.x
+          node-version: 26.x
           registry-url: https://registry.npmjs.org/
 
       - name: Check package versions

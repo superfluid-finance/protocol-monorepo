@@ -6,8 +6,13 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
-- Fix AccountTokenSnapshotLog capturing intermediate state instead of final state after ATS updates
+## [2.3.0]
+
+- Stop indexing new `AccountTokenSnapshotLog` entries (schema retained; existing rows remain queryable)
 - Skip deprecated TokenStatisticLog validation in integration tests
+- Add `TransferEvent.spender`, populated from the paired ERC-777 `Sent` event only when `Sent.operator` differs from `Sent.from` (i.e. `transferFrom` / `operatorSend`), matching ERC-20 allowance terminology. Self-transfers and mint/burn/upgrade/downgrade paths leave it null.
+- Add `Stream.owedDeposit` and `FlowUpdatedEvent.owedDeposit`, sourced from the CFA's `getFlow` return tuple — exposes how much of the sender's deposit is credited to the receiving SuperApp. The `Stream` field reflects the most recent `FlowUpdatedEvent` and may lag the on-chain `getFlow` value if a downstream SuperApp flow changes without re-emitting `FlowUpdated` on the upstream slot.
+- Fix `AccountTokenSnapshot` and `TokenStatistic` GDA deposit totals when pool buffer changes via `BufferAdjusted` (#2155)
 
 ## [2.2.0]
 

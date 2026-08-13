@@ -20,6 +20,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Setup workflow base
         id: base
@@ -32,7 +34,7 @@ jobs:
       - name: Install dependencies
         if: steps.base.outputs.cache-hit != 'true'
         run: |
-          yarn install --frozen-lockfile
+          yarn install --immutable
           npx tsc --version
           npx graph --version
 
@@ -59,6 +61,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Setup workflow base
         id: base
@@ -70,7 +74,7 @@ jobs:
 
       - name: Install dependencies
         if: steps.base.outputs.cache-hit != 'true'
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
 
       - name: Build contracts
         if: steps.base.outputs.cache-hit != 'true'
@@ -101,5 +105,5 @@ jobs:
 
       - name: Run subgraph integration test suite
         if: steps.base.outputs.cache-hit != 'true'
-        run: yarn test --network localhost
+        run: yarn test:local --network localhost
         working-directory: ${{ env.subgraph-working-directory }}

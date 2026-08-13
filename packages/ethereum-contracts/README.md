@@ -1,13 +1,13 @@
 <h1 align="center">Welcome to Superfluid EVM Contracts (v1) 👋
 </h1>
 <div align="center">
-<img  width="300" padding="0 0 10px" alt="Superfluid logo" src="https://github.com/superfluid-finance/protocol-monorepo/raw/dev/sf-logo.png" />
+<img  width="300" padding="0 0 10px" alt="Superfluid logo" src="https://github.com/superfluid-org/protocol-monorepo/raw/dev/sf-logo.png" />
 <p>
   <a href="https://www.npmjs.com/package/@superfluid-finance/ethereum-contracts" target="_blank">
     <img alt="Version" src="https://img.shields.io/npm/v/@superfluid-finance/ethereum-contracts.svg">
   </a>
-  <a href="https://codecov.io/gh/superfluid-finance/protocol-monorepo/tree/dev/packages/ethereum-contracts">
-    <img src="https://codecov.io/gh/superfluid-finance/protocol-monorepo/branch/dev/graph/badge.svg?token=LJW5NDGEJ9&flag=ethereum-contracts"/>
+  <a href="https://codecov.io/gh/superfluid-org/protocol-monorepo/tree/dev/packages/ethereum-contracts">
+    <img src="https://codecov.io/gh/superfluid-org/protocol-monorepo/branch/dev/graph/badge.svg?token=LJW5NDGEJ9&flag=ethereum-contracts"/>
   </a>
   <a href="#" target="_blank">
     <img alt="License: AGPLv3" src="https://img.shields.io/badge/License-AGPL%20v3-blue.svg" />
@@ -264,7 +264,7 @@ contract SomeTest is Test {
     SuperfluidFrameworkDeployer internal deployer;
 
     function setUp() {
-        vm.etch(ERC1820RegistryCompiled.at, ERC1820RegistryCompiled.bin);
+        vm.etch(ERC1820RegistryCompiled.ADDRESS, ERC1820RegistryCompiled.BYTECODE);
 
         deployer = new SuperfluidFrameworkDeployer();
         deployer.deployTestFramework();
@@ -288,7 +288,7 @@ import { SuperToken } from "@superfluid-finance/ethereum-contracts/contracts/sup
 
 contract DeployScript is Script, Test {
     function run() external {
-        vm.etch(ERC1820RegistryCompiled.at, ERC1820RegistryCompiled.bin);
+        vm.etch(ERC1820RegistryCompiled.ADDRESS, ERC1820RegistryCompiled.BYTECODE);
         SuperfluidFrameworkDeployer deployer = new SuperfluidFrameworkDeployer();
         deployer.deployTestFramework();
         SuperfluidFrameworkDeployer.Framework memory framework = deployer.getFramework();
@@ -297,7 +297,7 @@ contract DeployScript is Script, Test {
 }
 ```
 
-The command to run the script: `forge script script/Deploy.s.sol:DeployScript --rpc-url http://localhost:8545`.
+The command to run the script: `forge script foundry-scripts/Deploy.s.sol:DeployScript --rpc-url http://localhost:8545`.
 
 ## Contributing
 
@@ -355,9 +355,8 @@ Run the test suite for core contracts:
 yarn run-hardhat test testsuites/superfluid-core.js
 ```
 
-The `pretest` script starts a local dev chain with deterministic accounts in the background, the `posttest` script stops it.
-When running tests with `yarn test`, those get executed automatically (see [npm docs](https://docs.npmjs.com/cli/v7/using-npm/scripts#pre--post-scripts)).
-> NOTE: You don't need to run the `pretest` and `posttest` scripts when running hardhat tests, but you do when running tests with truffle.
+Hardhat and Foundry tests manage their own networks.
+If you need the standalone Hardhat node on port 47545 (e.g. for some deployment scripts), start and stop it with `yarn testenv:start` / `yarn testenv:stop`.
 
 ### TDD Session
 

@@ -26,7 +26,7 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@v13
 
       - name: "Install dependencies"
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
 
       - name: "Build contracts"
         run: yarn build

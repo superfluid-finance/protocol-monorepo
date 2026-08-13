@@ -304,6 +304,7 @@ export function getOrInitStream(event: FlowUpdated): Stream {
         stream.receiver = event.params.receiver.toHex();
         stream.currentFlowRate = BigInt.fromI32(0);
         stream.deposit = BigInt.fromI32(0);
+        stream.owedDeposit = BigInt.fromI32(0);
         stream.streamedUntilUpdatedAt = BigInt.fromI32(0);
         stream.updatedAtTimestamp = currentTimestamp;
         stream.updatedAtBlockNumber = event.block.number;
@@ -692,6 +693,7 @@ export function _createAccountTokenSnapshotLogEntity(
     tokenAddress: Address,
     eventName: string
 ): void {
+    return;
     if (accountAddress.equals(ZERO_ADDRESS)) {
         return;
     }
@@ -1296,6 +1298,10 @@ export function updateTokenStatisticStreamData(
         tokenStatistic.totalNumberOfClosedStreams +
         totalNumberOfClosedStreamsDelta;
 
+    // `depositDelta` only reflects deposit changes coming from stream / flow
+    // updates. GDA buffer-only deposit changes are handled separately in
+    // `handleBufferAdjusted()`, because `BufferAdjusted` events do not flow
+    // through this helper.
     tokenStatistic.totalDeposit =
         tokenStatistic.totalDeposit.plus(depositDelta);
 

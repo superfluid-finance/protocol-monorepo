@@ -10,15 +10,15 @@
     },
     "dependencies": {
         "graphql-request": "6.1.0",
-        "promise-retry": "2.0.1",
         "lodash.memoize": "4.1.2",
-        "lodash.uniqby": "4.7.0"
+        "lodash.uniqby": "4.7.0",
+        "promise-retry": "2.0.1"
     },
     "devDependencies": {
         "@reduxjs/toolkit": "^2",
-        "@types/promise-retry": "^1.1.6",
         "@types/lodash.memoize": "^4.1.9",
         "@types/lodash.uniqby": "^4.7.9",
+        "@types/promise-retry": "^1.1.6",
         "@types/react": "^19",
         "@types/react-dom": "^19",
         "react": "^19",
@@ -48,15 +48,15 @@
         "directory": "packages/sdk-redux"
     },
     "scripts": {
-        "build": "rm -rf dist && run-p -l build:*",
+        "build": "rm -rf dist && yarn run -T run-p -l \"build:*\"",
         "build:module": "tsc -p tsconfig.json",
-        "lint": "run-s lint:*",
+        "lint": "yarn run -T run-s \"lint:*\"",
         "lint:eslint": "eslint src --ext .ts",
-        "fix": "run-s fix:*",
+        "fix": "yarn run -T run-s \"fix:*\"",
         "fix:eslint": "yarn lint:eslint --fix",
         "test": "echo 'TODO: Tests'",
         "watch:build": "tsc -p tsconfig.json -w",
-        "doc": "run-s doc:html",
+        "doc": "yarn run -T run-s doc:html",
         "doc:html": "typedoc src/ --out dist/docs && copyfiles -f ./sf-logo.png ./dist/docs/",
         "doc:json": "typedoc src/ --json dist/docs/typedoc.json",
         "check-updates": "ncu --target minor --dep prod,dev",

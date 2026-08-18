@@ -219,6 +219,39 @@ module.exports =
         ]
     },
     {
+        "name": "arc-testnet",
+        "isTestnet": true,
+        "networkId": 5042002,
+        "chainId": 5042002,
+        "sfId": 112,
+        "shortName": "arc",
+        "uppercaseName": "ARC_TESTNET",
+        "humanReadableName": "Arc Testnet",
+        "nativeTokenSymbol": "USDC",
+        "nativeTokenWrapper": "0x233a5Bfd65Da07AeB08F2082d2B5B270bc4eA804",
+        "contractsV1": {
+            "resolver": "0x777Be25F9fdcA87e8a0E06Ad4be93d65429FCb9f",
+            "host": "0xd0DE1486F69495D49c02D8f541B7dADf9Cf5CD91",
+            "cfaV1": "0xa38Eb8Cd48178EbeaEe98aB2d2019969d3eC6CBF",
+            "cfaV1Forwarder": "0x44cAbCFD0f44EAB67C2f8be29DcFAA334c841C63",
+            "idaV1": "0x73a4A5B5CBa803D90f9cEE00F60523d48ddd53e2",
+            "gdaV1": "0xC5428C0377A17d2Ec35f55B87632e5bb49dBA51A",
+            "gdaV1Forwarder": "0x30a6933Ca9230361972E413a15dC8114c952414e",
+            "superTokenFactory": "0x8d1a3F66275F33209F3E823dE31537E4DdeE44Ce",
+            "superfluidLoader": "0x554c06487bEc8c890A0345eb05a5292C1b1017Bd"
+        },
+        "startBlockV1": 57597000,
+        "logsQueryRange": 10000,
+        "explorer": "https://testnet.arcscan.app",
+        "subgraphV1": {
+            "cliName": "arc-testnet"
+        },
+        "publicRPCs": [
+            "https://rpc.testnet.arc.io",
+            "https://rpc.drpc.testnet.arc.io"
+        ]
+    },
+    {
         "name": "xdai-mainnet",
         "isTestnet": false,
         "networkId": 100,

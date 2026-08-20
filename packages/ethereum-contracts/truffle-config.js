@@ -76,7 +76,7 @@ const ALIASES = {
     "base-mainnet": ["base"],
     "base-sepolia": ["bsepolia"],
 
-    "arc-testnet": ["arc"],
+    "arc-testnet": ["arctest"],
 
     "scroll-sepolia": ["scrsepolia"],
     "scroll-mainnet": ["scroll"],

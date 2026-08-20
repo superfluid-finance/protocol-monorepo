@@ -189,7 +189,7 @@ module.exports =
         "networkId": 5042002,
         "chainId": 5042002,
         "sfId": 112,
-        "shortName": "arc",
+        "shortName": "arctest",
         "uppercaseName": "ARC_TESTNET",
         "humanReadableName": "Arc Testnet",
         "nativeTokenSymbol": "USDC",

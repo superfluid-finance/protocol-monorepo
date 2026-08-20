@@ -245,7 +245,9 @@
         "logsQueryRange": 10000,
         "explorer": "https://testnet.arcscan.app",
         "subgraphV1": {
-            "cliName": "arc-testnet"
+            "cliName": "arc-testnet",
+            "name": "protocol-v1-arc-testnet",
+            "hostedEndpoint": "https://subgraph-endpoints.superfluid.dev/arc-testnet/protocol-v1"
         },
         "publicRPCs": [
             "https://rpc.testnet.arc.io",

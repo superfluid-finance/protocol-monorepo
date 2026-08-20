@@ -7,6 +7,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Added
 - Arc Testnet deployment
 
+### Changed
+- Removed discontinued networks: scroll-sepolia, degenchain
+
 ## [v1.6.3]
 ### Added
 - Added `clearMacroForwarderV1WithPermit2` to the list of contracts

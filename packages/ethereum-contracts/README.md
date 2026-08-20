@@ -355,9 +355,8 @@ Run the test suite for core contracts:
 yarn run-hardhat test testsuites/superfluid-core.js
 ```
 
-The `pretest` script starts a local dev chain with deterministic accounts in the background, the `posttest` script stops it.
-When running tests with `yarn test`, those get executed automatically (see [npm docs](https://docs.npmjs.com/cli/v7/using-npm/scripts#pre--post-scripts)).
-> NOTE: You don't need to run the `pretest` and `posttest` scripts when running hardhat tests, but you do when running tests with truffle.
+Hardhat and Foundry tests manage their own networks.
+If you need the standalone Hardhat node on port 47545 (e.g. for some deployment scripts), start and stop it with `yarn testenv:start` / `yarn testenv:stop`.
 
 ### TDD Session
 

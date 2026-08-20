@@ -233,12 +233,15 @@ export default
             "resolver": "0x777Be25F9fdcA87e8a0E06Ad4be93d65429FCb9f",
             "host": "0xd0DE1486F69495D49c02D8f541B7dADf9Cf5CD91",
             "cfaV1": "0xa38Eb8Cd48178EbeaEe98aB2d2019969d3eC6CBF",
-            "cfaV1Forwarder": "0x44cAbCFD0f44EAB67C2f8be29DcFAA334c841C63",
+            "cfaV1Forwarder": "0xcfA132E353cB4E398080B9700609bb008eceB125",
             "idaV1": "0x73a4A5B5CBa803D90f9cEE00F60523d48ddd53e2",
             "gdaV1": "0xC5428C0377A17d2Ec35f55B87632e5bb49dBA51A",
-            "gdaV1Forwarder": "0x30a6933Ca9230361972E413a15dC8114c952414e",
+            "gdaV1Forwarder": "0x6DA13Bde224A05a288748d857b9e7DDEffd1dE08",
             "superTokenFactory": "0x8d1a3F66275F33209F3E823dE31537E4DdeE44Ce",
-            "superfluidLoader": "0x554c06487bEc8c890A0345eb05a5292C1b1017Bd"
+            "superfluidLoader": "0x554c06487bEc8c890A0345eb05a5292C1b1017Bd",
+            "batchLiquidator": "0x992805ED822C786BCdBA4Cb1F07b5CadA3bC3CBa",
+            "macroForwarder": "0xFD0268E33111565dE546af2675351A4b1587F89F",
+            "clearMacroForwarderV1WithPermit2": "0xC1EaB73855155D4e021f7EB4f866996Bac2fe25e"
         },
         "startBlockV1": 57597000,
         "logsQueryRange": 10000,

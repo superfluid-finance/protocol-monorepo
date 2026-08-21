@@ -76,6 +76,8 @@ const ALIASES = {
     "base-mainnet": ["base"],
     "base-sepolia": ["bsepolia"],
 
+    "arc-testnet": ["arctest"],
+
     "scroll-sepolia": ["scrsepolia"],
     "scroll-mainnet": ["scroll"],
 
@@ -276,6 +278,20 @@ const E = (module.exports = {
             network_id: 84532,
             maxPriorityFeePerGas: 1e6, // 0.001 gwei - even 0 may do
             maxFeePerGas: 1e8, // 0.1 gwei
+        },
+
+        //
+        // Arc: https://docs.arc.io/
+        // Native gas token is USDC. Minimum fee is 20 gwei; blocks are ~0.5s.
+        //
+        "arc-testnet": {
+            ...createNetworkDefaultConfiguration("arc-testnet"),
+            network_id: 5042002,
+            maxPriorityFeePerGas: 1e9, // 1 gwei
+            maxFeePerGas: 30e9, // 30 gwei
+            timeoutBlocks: 2000,
+            skipDryRun: true,
+            networkCheckTimeout: 180000,
         },
 
         //

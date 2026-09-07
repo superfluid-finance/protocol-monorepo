@@ -10,14 +10,30 @@ module.exports = function getConfig(chainId) {
             // for local testing (hardhat node default chainId)
             // this is a fake forwarder address, it is to test the deployment script
             trustedForwarders: ["0x3075b4dc7085C48A14A5A39BBa68F58B19545971"],
+            // Keep IDA fully usable in unit tests.
+            idaNewActivityFrozen: false,
+            idaMaxNumSubscriptions: 256,
         },
         6777: {
             // for coverage testing
             // this is a fake forwarder address, it is to test the deployment script
             trustedForwarders: ["0x3075b4dc7085C48A14A5A39BBa68F58B19545971"],
+            idaNewActivityFrozen: false,
+            idaMaxNumSubscriptions: 256,
         },
 
         // persistent chains
+
+        // optimism-mainnet — IDA remains enabled; cap approved slots at 32
+        10: {
+            idaNewActivityFrozen: false,
+            idaMaxNumSubscriptions: 32,
+        },
+        // optimism-sepolia
+        11155420: {
+            idaNewActivityFrozen: false,
+            idaMaxNumSubscriptions: 32,
+        },
 
         // eth-mainnet
         1: {
@@ -80,6 +96,11 @@ module.exports = function getConfig(chainId) {
         resolverAddress: global?.process.env.RESOLVER_ADDRESS || sfNw?.contractsV1?.resolver,
         trustedForwarders: sfNw?.trustedForwarders,
         appCallbackGasLimit: 15000000,
+        // Freeze IDA new activity by default. Optimism (+ op sepolia) override in EXTRA_CONFIG.
+        // Frozen networks keep max=256 so existing subscribers with >32 approved slots can
+        // still unwind (approve remaining pending) without hitting a tighter cap.
+        idaNewActivityFrozen: true,
+        idaMaxNumSubscriptions: 256,
         ...EXTRA_CONFIG[chainId]
     };
 };

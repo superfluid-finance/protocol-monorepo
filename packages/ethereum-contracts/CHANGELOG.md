@@ -12,6 +12,14 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   These were added in v1.4.3, but the necessary steps to make this feature available and useful were never taken.
   In order to not confuse devs (human or non), this part of the API is therefore removed.
   The reserved storage mapping is renamed to `_canonicalWrapperSuperTokensDeprecated` (slot preserved for UUPS upgrade safety).
+- `InstantDistributionAgreementV1` constructor is now `(host, newActivityFrozen, maxNumSubscriptions)`.
+  `MAX_NUM_SUBSCRIPTIONS` is an immutable (was a constant).
+
+### Changed
+
+- IDA soft-freeze: `deploy-framework.js` freezes new activity (`createIndex` / `updateIndex` / `distribute` / `updateSubscription`) on all networks except Optimism mainnet and Optimism Sepolia.
+  Unwind ops (`claim`, `approveSubscription`, `revokeSubscription`, `deleteSubscription`) stay available.
+  On remaining IDA-enabled networks the approved-subscription cap is 32 (was 256). Frozen networks keep the 256 cap so existing high-slot accounts can still unwind.
 
 ## [v1.15.2]
 

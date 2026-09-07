@@ -158,6 +158,10 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     console.log("chain ID: ", chainId);
     console.log("deployer: ", deployerAddr);
     const config = getConfig(chainId);
+    const idaNewActivityFrozen = !!config.idaNewActivityFrozen;
+    const idaMaxNumSubscriptions = Number(config.idaMaxNumSubscriptions);
+    console.log("IDA new activity frozen: ", idaNewActivityFrozen);
+    console.log("IDA max num subscriptions: ", idaMaxNumSubscriptions);
 
     if (config.isTestnet) {
         output += "IS_TESTNET=1\n";
@@ -567,7 +571,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         const agreement = await web3tx(
             InstantDistributionAgreementV1.new,
             "InstantDistributionAgreementV1.new"
-        )(superfluid.address);
+        )(superfluid.address, idaNewActivityFrozen, idaMaxNumSubscriptions);
         console.log(
             "New InstantDistributionAgreementV1 address",
             agreement.address
@@ -910,6 +914,16 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             agreementsToUpdate.push(cfaNewLogicAddress);
         }
         // deploy new IDA logic
+        // Constructor immutables are baked into bytecode. Include them in replacements so
+        // consecutive upgrades with the same chain config do not look like a code change,
+        // and a different chain's freeze/max settings cannot accidentally match.
+        const idaCodeReplacements = [ superfluidConstructorParam ];
+        if (idaNewActivityFrozen) {
+            idaCodeReplacements.push("1".padStart(64, "0"));
+        }
+        idaCodeReplacements.push(
+            BigInt(idaMaxNumSubscriptions).toString(16).padStart(64, "0")
+        );
         const idaNewLogicAddress = await deployContractIfCodeChanged(
             web3,
             InstantDistributionAgreementV1,
@@ -919,7 +933,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 )
             ).getCodeAddress(),
             async () => (await deployIDAv1()).address,
-            [ superfluidConstructorParam ]
+            idaCodeReplacements
         );
         if (idaNewLogicAddress !== ZERO_ADDRESS) {
             agreementsToUpdate.push(idaNewLogicAddress);

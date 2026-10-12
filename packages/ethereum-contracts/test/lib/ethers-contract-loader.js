@@ -1,8 +1,7 @@
 /**
- * Ethers-backed contract loader with Truffle-shaped `.new()` / `.at()` for legacy deploy scripts.
+ * Ethers-backed `artifacts.require` with Truffle-shaped `.new()` / `.at()`.
  */
 const {ethers} = require("hardhat");
-const {loggedTx} = require("./logged-tx-compat");
 
 const _linkedLibraries = new Map();
 const _abiCache = new Map();
@@ -97,10 +96,12 @@ function withFromSupport(contract) {
         contract[name] = (...rawArgs) => {
             const {args, opts} = extractTxOptions(rawArgs);
             const run = async () => {
-                const contractName =
-                    contract.contractName ??
-                    contract.constructor?.name ??
-                    "SuperTokenMock";
+                const contractName = contract.contractName;
+                if (!contractName) {
+                    throw new Error(
+                        `Missing contractName on ${contract.address} calling ${name}`
+                    );
+                }
                 const base = await ethers.getContractAt(
                     contractName,
                     contract.address
@@ -201,80 +202,9 @@ function makeArtifactWrapper(contractName) {
     return wrapped;
 }
 
-function wrapFactorySync(contractName) {
-    return makeArtifactWrapper(contractName);
-}
-
-async function loadEthersContracts({
-    additionalContracts = [],
-    useMocks = false,
-}) {
-    _linkedLibraries.clear();
-    const base = [
-        "Ownable",
-        "CFAv1Forwarder",
-        "GDAv1Forwarder",
-        "IMultiSigWallet",
-        "ISafe",
-        "SuperfluidGovernanceBase",
-        "Resolver",
-        "SuperfluidLoader",
-        "Superfluid",
-        "SuperTokenFactory",
-        "SuperToken",
-        "TestGovernance",
-        "ISuperfluidGovernance",
-        "UUPSProxy",
-        "UUPSProxiable",
-        "SlotsBitmapLibrary",
-        "ConstantFlowAgreementV1",
-        "InstantDistributionAgreementV1",
-        "GeneralDistributionAgreementV1",
-        "SuperfluidUpgradeableBeacon",
-        "SuperfluidPool",
-        "SuperfluidPoolPlaceholder",
-        "SuperfluidPoolDeployerLibrary",
-        "BeaconProxy",
-        "PoolAdminNFT",
-        "IAccessControlEnumerable",
-        "SimpleForwarder",
-        "ERC2771Forwarder",
-        "SimpleACL",
-    ];
-    const mocks = ["SuperfluidMock", "SuperTokenFactoryMock", "SuperTokenMock"];
-    const names = [...base, ...additionalContracts, ...(useMocks ? mocks : [])];
-    const unique = [...new Set(names)];
-    const [deployer] = await ethers.getSigners();
-    const contracts = {};
-    await Promise.all(
-        unique.map(async (name) => {
-            const wrapped = wrapFactorySync(name);
-            wrapped.defaults = () => ({from: deployer.address});
-            try {
-                const lib = _linkedLibraries.get(name);
-                const factory = lib
-                    ? await ethers.getContractFactory(name, {libraries: lib})
-                    : await ethers.getContractFactory(name);
-                wrapped.bytecode = factory.bytecode;
-                wrapped.binary = factory.bytecode;
-                _abiCache.set(
-                    name,
-                    JSON.parse(
-                        factory.interface.format(ethers.utils.FormatTypes.json)
-                    )
-                );
-            } catch {
-                // abstract / interface / unlinked — deploy script links before .new()
-            }
-            contracts[name] = wrapped;
-        })
-    );
-    return contracts;
-}
-
 /** Truffle-shaped `artifacts.require(name)` for legacy tests. */
 function artifactsRequire(contractName) {
-    const wrapped = wrapFactorySync(contractName);
+    const wrapped = makeArtifactWrapper(contractName);
     void loadArtifactAbi(contractName);
     const originalNew = wrapped.new;
     wrapped.new = (...args) =>
@@ -284,8 +214,6 @@ function artifactsRequire(contractName) {
 }
 
 module.exports = {
-    loadEthersContracts,
-    loggedTx,
     artifactsRequire,
     toTruffleTxResponse,
 };

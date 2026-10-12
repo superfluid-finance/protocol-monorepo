@@ -58,9 +58,12 @@ export async function callAsAccount<T extends Contract>(
     const result = await (
         connected as Record<string, (...a: unknown[]) => unknown>
     )[method](...normalizeCallArgs(args));
-    const contractName =
-        (contract as T & {contractName?: string}).contractName ??
-        "SuperTokenMock";
+    const contractName = (contract as T & {contractName?: string}).contractName;
+    if (!contractName) {
+        throw new Error(
+            `callAsAccount: ${method} contract is missing contractName`
+        );
+    }
     const base = await ethers.getContractAt(contractName, contract.address);
     return toTruffleTxResponse(result, base);
 }

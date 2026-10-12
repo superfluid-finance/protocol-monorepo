@@ -171,7 +171,8 @@ module.exports = async function deployVariantFramework(options = {}) {
         idaMaxNumSubscriptions > 256
     ) {
         throw new Error(
-            `Invalid IDA config for chain ${chainId}: frozen=${idaNewActivityFrozen} maxSlots=${config.idaMaxNumSubscriptions}`
+            `Invalid IDA config for chain ${chainId}: ` +
+                `frozen=${idaNewActivityFrozen} maxSlots=${config.idaMaxNumSubscriptions}`
         );
     }
 

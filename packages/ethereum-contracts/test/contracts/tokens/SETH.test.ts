@@ -14,8 +14,7 @@ const ISETH = artifacts.require("ISETH");
 const SETHProxy = artifacts.require("SETHProxy");
 
 function ethValue(amount: string | number) {
-    const raw = toWad(amount).toString();
-    return ethers.BigNumber.from(raw.startsWith("0x") ? raw : `0x${raw}`);
+    return ethers.BigNumber.from(toWad(amount).toString());
 }
 
 describe("Super ETH (SETH) Contract", function () {

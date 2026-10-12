@@ -11,12 +11,8 @@ function normalizeEtherValue(value) {
     if (value === undefined || value === null) {
         return value;
     }
-    if (
-        typeof value === "string" &&
-        !value.startsWith("0x") &&
-        /^[0-9a-fA-F]+$/.test(value)
-    ) {
-        return ethers.BigNumber.from(`0x${value}`);
+    if (typeof value === "string") {
+        return ethers.BigNumber.from(value);
     }
     return ethers.utils.hexValue(value);
 }

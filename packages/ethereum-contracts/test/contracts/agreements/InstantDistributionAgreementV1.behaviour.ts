@@ -975,6 +975,8 @@ export async function shouldDeleteSubscription({
                 userData,
             })
     );
+    const deleteReceipt = (tx as {receipt: {from: string}}).receipt;
+    expect(deleteReceipt.from.toLowerCase()).to.equal(sender.toLowerCase());
 
     // update subscribers list
     delete getSubscribers({
@@ -1108,7 +1110,7 @@ export async function shouldClaimPendingDistribution({
     });
 
     const tx = await loggedTx(
-        `${subscriberName} claims pending distributions from ${publisherName}@${indexId}`,
+        `${senderName} claims pending distributions from ${publisherName}@${indexId}`,
         () =>
             testenv.sf.ida.claim({
                 superToken: superToken.address,
@@ -1119,6 +1121,8 @@ export async function shouldClaimPendingDistribution({
                 userData,
             })
     );
+    const claimReceipt = (tx as {receipt: {from: string}}).receipt;
+    expect(claimReceipt.from.toLowerCase()).to.equal(sender.toLowerCase());
 
     _updateSubscriptionData({
         testenv,

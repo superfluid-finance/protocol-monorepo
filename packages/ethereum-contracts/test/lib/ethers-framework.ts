@@ -371,18 +371,20 @@ export async function createEthersFramework(
                 publisher,
                 indexId,
                 subscriber,
+                sender,
                 userData = "0x",
             }: {
                 superToken: string;
                 publisher: string;
                 indexId: BigNumberish;
                 subscriber: string;
+                sender: string;
                 userData?: string;
             }) =>
                 idaAgreementCall(
                     host,
                     ida,
-                    publisher,
+                    sender,
                     "deleteSubscription",
                     [superToken, publisher, indexId, subscriber, "0x"],
                     userData
@@ -392,18 +394,20 @@ export async function createEthersFramework(
                 publisher,
                 indexId,
                 subscriber,
+                sender,
                 userData = "0x",
             }: {
                 superToken: string;
                 publisher: string;
                 indexId: BigNumberish;
                 subscriber: string;
+                sender: string;
                 userData?: string;
             }) =>
                 idaAgreementCall(
                     host,
                     ida,
-                    subscriber,
+                    sender,
                     "claim",
                     [superToken, publisher, indexId, subscriber, "0x"],
                     userData

@@ -7,7 +7,7 @@ import {
 } from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
 import {expectRevertedWith} from "../../utils/expectRevert";
-import {sha3} from "../utils/helpers";
+import {keccak256} from "../utils/helpers";
 
 describe("Miscellaneous for test coverages", () => {
     const t = TestEnvironment.getSingleton();
@@ -43,7 +43,7 @@ describe("Miscellaneous for test coverages", () => {
                 "UUPSProxiableMock",
                 proxy.address
             );
-            const uuid1 = sha3("UUPSProxiableMock1")!;
+            const uuid1 = keccak256("UUPSProxiableMock1");
             const mock = await UUPSProxiableMock.deploy(uuid1, 1);
             await expectRevertedWith(
                 proxy.initializeProxy(ZERO_ADDRESS),
@@ -63,8 +63,8 @@ describe("Miscellaneous for test coverages", () => {
                 "UUPSProxiableMock",
                 proxy.address
             );
-            const uuid1 = sha3("UUPSProxiableMock1")!;
-            const uuid2 = sha3("UUPSProxiableMock2")!;
+            const uuid1 = keccak256("UUPSProxiableMock1");
+            const uuid2 = keccak256("UUPSProxiableMock2");
             const UUPSProxiableMockFactory =
                 await ethers.getContractFactory("UUPSProxiableMock");
             const mock1a = await UUPSProxiableMockFactory.deploy(uuid1, 1);
@@ -98,10 +98,10 @@ describe("Miscellaneous for test coverages", () => {
         });
 
         it("Can't initialize castrated UUPSProxiable", async () => {
-            const uuid1 = sha3("UUPSProxiableMock1")!;
+            const uuid1 = keccak256("UUPSProxiableMock1");
             const mock1 = await UUPSProxiableMock.deploy(uuid1, 1);
 
-            const uuid2 = sha3("UUPSProxiableMock2")!;
+            const uuid2 = keccak256("UUPSProxiableMock2");
             const mock2 = await UUPSProxiableMock.deploy(uuid2, 1);
 
             // can initialize if not castrated

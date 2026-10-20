@@ -12,8 +12,7 @@ import {
     SuperTokenMock,
 } from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
-import {deploySuperTokenAndNFTContractsAndInitialize} from "../../lib/deploy-super-token-mock";
-import {encodeAbiParameters, toBN} from "../utils/helpers";
+import {toBN} from "../utils/helpers";
 
 const mintAmount = "1000000000000000000000000000"; // a small loan of a billion dollars
 const flowRate = "1000000000000";
@@ -36,7 +35,7 @@ const userData = (
     requestedAmount = 0,
     requestedFlowRate = 0
 ) =>
-    encodeAbiParameters(
+    ethers.utils.defaultAbiCoder.encode(
         [
             "uint8",
             "address",
@@ -262,8 +261,7 @@ describe("SuperTokenV1Library.GDA", function () {
             let appSuperToken: SuperTokenMock;
 
             beforeEach(async () => {
-                appSuperToken =
-                    await deploySuperTokenAndNFTContractsAndInitialize(t);
+                appSuperToken = await t.deploySuperTokenMock();
 
                 await appSuperToken.mintInternal(alice, mintAmount, "0x", "0x");
 

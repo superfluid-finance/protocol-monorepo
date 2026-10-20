@@ -1,6 +1,5 @@
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
-import {expect} from "chai";
-import {assert} from "chai";
+import {assert, expect} from "chai";
 import {BigNumberish} from "ethers";
 import {ethers} from "hardhat";
 
@@ -17,11 +16,7 @@ import {
 import TestEnvironment from "../../TestEnvironment";
 import {loggedTx} from "../../lib/logged-tx";
 import {expectCustomError, expectRevertedWith} from "../../utils/expectRevert";
-import {sha3, toBN, toDecimals, toWad} from "../utils/helpers";
-
-const artifacts = require("../../lib/artifacts");
-
-const TestToken = artifacts.require("TestToken");
+import {keccak256, toBN, toDecimals, toWad} from "../utils/helpers";
 
 describe("SuperToken's Non Standard Functions", function () {
     this.timeout(300e3);
@@ -82,7 +77,7 @@ describe("SuperToken's Non Standard Functions", function () {
         it("#1.2 proxiable info", async () => {
             assert.equal(
                 await superToken.proxiableUUID(),
-                sha3(
+                keccak256(
                     "org.superfluid-finance.contracts.SuperToken.implementation"
                 )
             );
@@ -318,7 +313,8 @@ describe("SuperToken's Non Standard Functions", function () {
                 toDecimals("100", 6)
             );
 
-            const superToken6D = await t.sf.createERC20Wrapper(token6D);
+            const {superToken: superToken6D} =
+                await t.createERC20Wrapper(token6D);
             assert.equal((await superToken6D.balanceOf(bob)).toString(), "0");
 
             await token6D
@@ -398,7 +394,8 @@ describe("SuperToken's Non Standard Functions", function () {
                 toDecimals("100", 20)
             );
 
-            const superToken20D = await t.sf.createERC20Wrapper(token20D);
+            const {superToken: superToken20D} =
+                await t.createERC20Wrapper(token20D);
             assert.equal((await superToken20D.balanceOf(bob)).toString(), "0");
 
             await token20D
@@ -704,7 +701,8 @@ describe("SuperToken's Non Standard Functions", function () {
                 customToken,
                 reason
             );
-            await loggedTx("customToken.initialize", () =>
+            await loggedTx(
+                "customToken.initialize",
                 customToken.initialize(
                     ZERO_ADDRESS,
                     0,
@@ -713,7 +711,8 @@ describe("SuperToken's Non Standard Functions", function () {
                 )
             );
 
-            await loggedTx("customToken.selfMint", () =>
+            await loggedTx(
+                "customToken.selfMint",
                 customToken.selfMint(alice, 100, "0x")
             );
             assert.equal(
@@ -728,7 +727,8 @@ describe("SuperToken's Non Standard Functions", function () {
                 "SF_TOKEN_BURN_INSUFFICIENT_BALANCE"
             );
 
-            await loggedTx("customToken.callSelfBurn", () =>
+            await loggedTx(
+                "customToken.callSelfBurn",
                 customToken.callSelfBurn(alice, 100, "0x")
             );
             assert.equal((await customToken.balanceOf(alice)).toString(), "0");
@@ -816,7 +816,8 @@ describe("SuperToken's Non Standard Functions", function () {
         });
 
         it("#3.5 Custom token can use selfApproveFor", async () => {
-            await loggedTx("customToken.initialize", () =>
+            await loggedTx(
+                "customToken.initialize",
                 customToken.initialize(
                     ZERO_ADDRESS,
                     0,
@@ -825,7 +826,8 @@ describe("SuperToken's Non Standard Functions", function () {
                 )
             );
 
-            await loggedTx("customToken.selfMint", () =>
+            await loggedTx(
+                "customToken.selfMint",
                 customToken.selfMint(alice, 100, "0x")
             );
             assert.equal(

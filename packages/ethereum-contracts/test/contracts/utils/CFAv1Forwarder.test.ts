@@ -1,7 +1,6 @@
 import fs from "fs";
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
-import {expect} from "chai";
-import {assert} from "chai";
+import {assert, expect} from "chai";
 import {ethers} from "hardhat";
 
 import {
@@ -12,7 +11,6 @@ import {
     TestGovernance,
 } from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
-import {loggedTx} from "../../lib/logged-tx";
 import {expectCustomError} from "../../utils/expectRevert";
 import {toBN} from "./helpers";
 
@@ -55,16 +53,11 @@ describe("Agreement Forwarder", function () {
             cfaV1ForwarderAddress
         );
 
-        await loggedTx("enable CFAv1Forwarder", async () => {
-            const owner = await governance.owner();
-            return governance
-                .connect(await ethers.getSigner(owner))
-                .enableTrustedForwarder(
-                    host.address,
-                    ZERO_ADDRESS,
-                    cfaFwd.address
-                );
-        });
+        await governance.enableTrustedForwarder(
+            host.address,
+            ZERO_ADDRESS,
+            cfaFwd.address
+        );
 
         ({alice, bob, carol} = t.aliases);
         aliceSigner = await ethers.getSigner(alice);
@@ -73,11 +66,9 @@ describe("Agreement Forwarder", function () {
     });
 
     beforeEach(async function () {
-        await t.beforeEachTestCase();
-        superToken = t.tokens.SuperToken;
-        await t.upgradeBalance("alice", t.configs.INIT_BALANCE);
-        await t.upgradeBalance("bob", t.configs.INIT_BALANCE);
-        await t.upgradeBalance("carol", t.configs.INIT_BALANCE);
+        superToken = await t.deploySuperTokenMock();
+        await superToken.mintInternal(alice, mintAmount, "0x", "0x");
+        await superToken.mintInternal(bob, mintAmount, "0x", "0x");
         t.beforeEachTestCaseBenchmark(this);
     });
 

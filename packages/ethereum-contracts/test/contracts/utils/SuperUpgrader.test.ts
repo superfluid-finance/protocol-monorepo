@@ -9,11 +9,11 @@ import {
 import TestEnvironment from "../../TestEnvironment";
 import {loggedTx} from "../../lib/logged-tx";
 import {expectCustomError, expectRevertedWith} from "../../utils/expectRevert";
-import {soliditySha3, toWad} from "./helpers";
+import {keccak256, toWad} from "./helpers";
 
 const DEFAULT_ADMIN_ROLE =
     "0x0000000000000000000000000000000000000000000000000000000000000000";
-const BACKEND_ROLE = soliditySha3("BACKEND_ROLE")!;
+const BACKEND_ROLE = keccak256("BACKEND_ROLE");
 
 describe("Superfluid Super Upgrader Contract", function () {
     this.timeout(300e3);
@@ -147,7 +147,7 @@ describe("Superfluid Super Upgrader Contract", function () {
                 .approve(upgrader.address, toWad("3"));
 
             const signer = await ethers.getSigner(backend[1]);
-            await loggedTx("upgrader.upgrade", () => upgrader.connect(signer).upgrade(superToken.address,
+            await loggedTx("upgrader.upgrade", upgrader.connect(signer).upgrade(superToken.address,
                 alice,
                 1));
 
@@ -172,7 +172,7 @@ describe("Superfluid Super Upgrader Contract", function () {
                 .connect(aliceSigner)
                 .approve(upgrader.address, toWad("100000000000"));
             const signer = await ethers.getSigner(backend[2]);
-            await loggedTx("upgrader.upgrade", () => upgrader.connect(signer).upgrade(superToken.address,
+            await loggedTx("upgrader.upgrade", upgrader.connect(signer).upgrade(superToken.address,
                 alice,
                 toWad("100000000000")));
 
@@ -324,7 +324,7 @@ describe("Superfluid Super Upgrader Contract", function () {
         it("#3.2 Admin should add/remove admin accounts", async () => {
             const upgrader = await SuperUpgraderFactory.deploy(admin, backend);
             const adminSigner = await ethers.getSigner(admin);
-            await loggedTx("admin add bob to admin", () => upgrader.connect(adminSigner).grantRole(DEFAULT_ADMIN_ROLE, bob));
+            await loggedTx("admin add bob to admin", upgrader.connect(adminSigner).grantRole(DEFAULT_ADMIN_ROLE, bob));
             assert.isOk(
                 await upgrader.hasRole(DEFAULT_ADMIN_ROLE, bob),
                 "bob should be in admin role"

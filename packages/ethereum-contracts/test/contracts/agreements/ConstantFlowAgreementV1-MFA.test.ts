@@ -11,7 +11,7 @@ import {
 import TestEnvironment from "../../TestEnvironment";
 import {expectCustomError} from "../../utils/expectRevert";
 import MFASupport from "../utils/MFASupport";
-import {encodeAbiParameters, toBN, toWad} from "../utils/helpers";
+import {toBN, toWad} from "../utils/helpers";
 
 import {VerifyOptions} from "./Agreement.types";
 import AgreementHelper, {
@@ -1014,7 +1014,7 @@ describe("CFAv1 | Multi Flow Super App Tests", function () {
             superToken: superToken.address,
             sender: t.getAddress(sender),
             receiver: app.address,
-            userData: encodeAbiParameters(
+            userData: ethers.utils.defaultAbiCoder.encode(
                 ["address", "uint256", "address[]", "uint256[]"],
                 [
                     t.getAddress(sender),
@@ -1498,7 +1498,7 @@ describe("CFAv1 | Multi Flow Super App Tests", function () {
             superToken: superToken.address,
             sender: t.getAddress(sender),
             receiver: app.address,
-            userData: encodeAbiParameters(
+            userData: ethers.utils.defaultAbiCoder.encode(
                 ["address", "uint256", "address[]", "uint256[]"],
                 [
                     t.getAddress(sender),

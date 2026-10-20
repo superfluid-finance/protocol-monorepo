@@ -10,7 +10,7 @@ import {
 import TestEnvironment from "../../TestEnvironment";
 import {loggedTx} from "../../lib/logged-tx";
 import {expectCustomError} from "../../utils/expectRevert";
-import {sha3} from "../utils/helpers";
+import {keccak256} from "../utils/helpers";
 
 describe("SuperfluidToken implementation", function () {
     this.timeout(300e3);
@@ -51,27 +51,29 @@ describe("SuperfluidToken implementation", function () {
             superToken.address
         );
 
-        const acALogic = await createAgreementMock(sha3("typeA")!, 1);
-        await loggedTx("register agreement class typeA", async () => {
-            const owner = await governance.owner();
-            return governance
-                .connect(await ethers.getSigner(owner))
-                .registerAgreementClass(superfluid.address, acALogic.address);
-        });
+        const acALogic = await createAgreementMock(keccak256("typeA"), 1);
+        await loggedTx(
+            "register agreement class typeA",
+            governance.registerAgreementClass(
+                superfluid.address,
+                acALogic.address
+            )
+        );
         acA = await ethers.getContractAt(
             "AgreementMock",
-            await superfluid.getAgreementClass(sha3("typeA")!)
+            await superfluid.getAgreementClass(keccak256("typeA"))
         );
-        const acBLogic = await createAgreementMock(sha3("typeB")!, 1);
-        await loggedTx("register agreement class typeB", async () => {
-            const owner = await governance.owner();
-            return governance
-                .connect(await ethers.getSigner(owner))
-                .registerAgreementClass(superfluid.address, acBLogic.address);
-        });
+        const acBLogic = await createAgreementMock(keccak256("typeB"), 1);
+        await loggedTx(
+            "register agreement class typeB",
+            governance.registerAgreementClass(
+                superfluid.address,
+                acBLogic.address
+            )
+        );
         acB = await ethers.getContractAt(
             "AgreementMock",
-            await superfluid.getAgreementClass(sha3("typeB")!)
+            await superfluid.getAgreementClass(keccak256("typeB"))
         );
 
         await t.pushEvmSnapshot();
@@ -125,7 +127,8 @@ describe("SuperfluidToken implementation", function () {
 
         context("#2.a single agreement real-time balance", () => {
             it("#2.a.1 without deposit", async () => {
-                await loggedTx("setRealtimeBalanceFor", () =>
+                await loggedTx(
+                    "setRealtimeBalanceFor",
                     acA.setRealtimeBalanceFor(
                         superToken.address,
                         bob,
@@ -138,7 +141,8 @@ describe("SuperfluidToken implementation", function () {
             });
 
             it("#2.a.2 with deposit", async () => {
-                await loggedTx("setRealtimeBalanceFor", () =>
+                await loggedTx(
+                    "setRealtimeBalanceFor",
                     acA.setRealtimeBalanceFor(
                         superToken.address,
                         bob,
@@ -151,7 +155,8 @@ describe("SuperfluidToken implementation", function () {
             });
 
             it("#2.a.3 with deposit and small owedDeposit", async () => {
-                await loggedTx("setRealtimeBalanceFor", () =>
+                await loggedTx(
+                    "setRealtimeBalanceFor",
                     acA.setRealtimeBalanceFor(
                         superToken.address,
                         bob,
@@ -164,7 +169,8 @@ describe("SuperfluidToken implementation", function () {
             });
 
             it("#2.a.4 with deposit and equal owedDeposit", async () => {
-                await loggedTx("setRealtimeBalanceFor", () =>
+                await loggedTx(
+                    "setRealtimeBalanceFor",
                     acA.setRealtimeBalanceFor(
                         superToken.address,
                         bob,
@@ -177,7 +183,8 @@ describe("SuperfluidToken implementation", function () {
             });
 
             it("#2.a.5 with deposit and large owedDeposit", async () => {
-                await loggedTx("setRealtimeBalanceFor", () =>
+                await loggedTx(
+                    "setRealtimeBalanceFor",
                     acA.setRealtimeBalanceFor(
                         superToken.address,
                         bob,
@@ -281,7 +288,8 @@ describe("SuperfluidToken implementation", function () {
 
         context("#3.a agreement data", () => {
             it("#3.a.1 should create new agreement", async function () {
-                await loggedTx("createAgreementFor", () =>
+                await loggedTx(
+                    "createAgreementFor",
                     acA.createAgreementFor(
                         superToken.address,
                         formattedData,
@@ -315,7 +323,8 @@ describe("SuperfluidToken implementation", function () {
             });
 
             it("#3.a.2 should not create the same agreement twice", async () => {
-                await loggedTx("createAgreementFor", () =>
+                await loggedTx(
+                    "createAgreementFor",
                     acA.createAgreementFor(
                         superToken.address,
                         formattedData,
@@ -350,7 +359,8 @@ describe("SuperfluidToken implementation", function () {
             });
 
             it("#3.a.3 should not overlap data", async () => {
-                await loggedTx("createAgreementFor", () =>
+                await loggedTx(
+                    "createAgreementFor",
                     acA.createAgreementFor(
                         superToken.address,
                         formattedData,
@@ -368,14 +378,16 @@ describe("SuperfluidToken implementation", function () {
             });
 
             it("#3.a.4 should update data", async () => {
-                await loggedTx("createAgreementFor", () =>
+                await loggedTx(
+                    "createAgreementFor",
                     acA.createAgreementFor(
                         superToken.address,
                         formattedData,
                         testData
                     )
                 );
-                await loggedTx("updateAgreementDataFor", () =>
+                await loggedTx(
+                    "updateAgreementDataFor",
                     acA.updateAgreementDataFor(
                         superToken.address,
                         formattedData,
@@ -393,14 +405,16 @@ describe("SuperfluidToken implementation", function () {
             });
 
             it("#3.a.5 should terminate agreement", async () => {
-                await loggedTx("createAgreementFor", () =>
+                await loggedTx(
+                    "createAgreementFor",
                     acA.createAgreementFor(
                         superToken.address,
                         formattedData,
                         testData
                     )
                 );
-                await loggedTx("terminateAgreementFor", () =>
+                await loggedTx(
+                    "terminateAgreementFor",
                     acA.terminateAgreementFor(
                         superToken.address,
                         formattedData,
@@ -418,14 +432,16 @@ describe("SuperfluidToken implementation", function () {
             });
 
             it("#3.a.6 should not terminate agreement twice", async () => {
-                await loggedTx("createAgreementFor", () =>
+                await loggedTx(
+                    "createAgreementFor",
                     acA.createAgreementFor(
                         superToken.address,
                         formattedData,
                         testData
                     )
                 );
-                await loggedTx("terminateAgreementFor", () =>
+                await loggedTx(
+                    "terminateAgreementFor",
                     acA.terminateAgreementFor(
                         superToken.address,
                         formattedData,
@@ -532,7 +548,10 @@ describe("SuperfluidToken implementation", function () {
 
         context("#3.c static balance", () => {
             it("#3.c.1 should only be called by listed agreement", async () => {
-                const acBad = await createAgreementMock(sha3("typeBad")!, 1);
+                const acBad = await createAgreementMock(
+                    keccak256("typeBad"),
+                    1
+                );
                 await expectCustomError(
                     acBad.settleBalanceFor(superToken.address, bob, "1"),
                     superToken,
@@ -542,17 +561,20 @@ describe("SuperfluidToken implementation", function () {
 
             it("#3.c.1 should adjust static balance", async () => {
                 assert.equal(await availableBalanceOf(bob), "0");
-                await loggedTx("settleBalanceFor", () =>
+                await loggedTx(
+                    "settleBalanceFor",
                     acA.settleBalanceFor(superToken.address, bob, "5")
                 );
                 assert.equal(await availableBalanceOf(bob), "5");
-                await loggedTx("settleBalanceFor", () =>
+                await loggedTx(
+                    "settleBalanceFor",
                     acA.settleBalanceFor(superToken.address, bob, "-10")
                 );
                 assert.equal(await availableBalanceOf(bob), "-5");
 
                 assert.equal(await availableBalanceOf(alice), "0");
-                await loggedTx("settleBalanceFor", () =>
+                await loggedTx(
+                    "settleBalanceFor",
                     acA.settleBalanceFor(superToken.address, alice, "42")
                 );
                 assert.equal(await availableBalanceOf(bob), "-5");
@@ -563,7 +585,7 @@ describe("SuperfluidToken implementation", function () {
 
     describe("#4 liquidation rules", () => {
         it("#4.1 should only be called by listed agreement", async () => {
-            const acBad = await createAgreementMock(sha3("typeBad")!, 1);
+            const acBad = await createAgreementMock(keccak256("typeBad"), 1);
             await expectCustomError(
                 acBad.makeLiquidationPayoutsFor(
                     superToken.address,

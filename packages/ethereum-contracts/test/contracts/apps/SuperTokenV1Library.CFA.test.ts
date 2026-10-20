@@ -1,6 +1,5 @@
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
-import {expect} from "chai";
-import {assert} from "chai";
+import {assert, expect} from "chai";
 import {ethers} from "hardhat";
 
 import {
@@ -12,8 +11,7 @@ import {
     SuperTokenMock,
 } from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
-import {deployRawSuperTokenMock} from "../../lib/deploy-super-token-mock";
-import {encodeAbiParameter, toBN} from "../utils/helpers";
+import {toBN} from "../utils/helpers";
 
 const abiCoder = ethers.utils.defaultAbiCoder;
 const defaultUserData = abiCoder.encode(["uint256"], [690420]);
@@ -68,7 +66,7 @@ describe("SuperTokenV1 Library CFA testing", function () {
     });
 
     beforeEach(async function () {
-        superToken = await deployRawSuperTokenMock(t);
+        superToken = await t.deploySuperTokenMock();
 
         await superToken.mintInternal(alice, mintAmount, "0x", "0x");
         await superToken.mintInternal(bob, mintAmount, "0x", "0x");
@@ -362,9 +360,9 @@ describe("SuperTokenV1 Library CFA testing", function () {
                             "0x",
                         ]
                     ),
-                    encodeAbiParameter(
-                        "uint8",
-                        callbackFunctionIndex.CREATE_FLOW
+                    ethers.utils.defaultAbiCoder.encode(
+                        ["uint8"],
+                        [callbackFunctionIndex.CREATE_FLOW]
                     )
                 );
 
@@ -388,9 +386,9 @@ describe("SuperTokenV1 Library CFA testing", function () {
                 .callAgreement(
                     cfa.address,
                     createFlowCalldata,
-                    encodeAbiParameter(
-                        "uint8",
-                        callbackFunctionIndex.UPDATE_FLOW
+                    ethers.utils.defaultAbiCoder.encode(
+                        ["uint8"],
+                        [callbackFunctionIndex.UPDATE_FLOW]
                     )
                 );
 
@@ -414,9 +412,9 @@ describe("SuperTokenV1 Library CFA testing", function () {
                 .callAgreement(
                     cfa.address,
                     createFlowCalldata,
-                    encodeAbiParameter(
-                        "uint8",
-                        callbackFunctionIndex.DELETE_FLOW
+                    ethers.utils.defaultAbiCoder.encode(
+                        ["uint8"],
+                        [callbackFunctionIndex.DELETE_FLOW]
                     )
                 );
 
@@ -765,9 +763,9 @@ describe("SuperTokenV1 Library CFA testing", function () {
                 .callAgreement(
                     cfa.address,
                     createFlowCalldata,
-                    encodeAbiParameter(
-                        "uint8",
-                        callbackFunctionIndex.CREATE_FLOW_BY_OPERATOR
+                    ethers.utils.defaultAbiCoder.encode(
+                        ["uint8"],
+                        [callbackFunctionIndex.CREATE_FLOW_BY_OPERATOR]
                     )
                 );
 
@@ -811,9 +809,9 @@ describe("SuperTokenV1 Library CFA testing", function () {
                 .callAgreement(
                     cfa.address,
                     createFlowCalldata,
-                    encodeAbiParameter(
-                        "uint8",
-                        callbackFunctionIndex.UPDATE_FLOW_BY_OPERATOR
+                    ethers.utils.defaultAbiCoder.encode(
+                        ["uint8"],
+                        [callbackFunctionIndex.UPDATE_FLOW_BY_OPERATOR]
                     )
                 );
 
@@ -857,9 +855,9 @@ describe("SuperTokenV1 Library CFA testing", function () {
                 .callAgreement(
                     cfa.address,
                     createFlowCalldata,
-                    encodeAbiParameter(
-                        "uint8",
-                        callbackFunctionIndex.DELETE_FLOW_BY_OPERATOR
+                    ethers.utils.defaultAbiCoder.encode(
+                        ["uint8"],
+                        [callbackFunctionIndex.DELETE_FLOW_BY_OPERATOR]
                     )
                 );
 
@@ -878,9 +876,9 @@ describe("SuperTokenV1 Library CFA testing", function () {
                 .callAgreement(
                     cfa.address,
                     createFlowCalldata,
-                    encodeAbiParameter(
-                        "uint8",
-                        callbackFunctionIndex.UPDATE_FLOW_OPERATOR_PERMISSIONS
+                    ethers.utils.defaultAbiCoder.encode(
+                        ["uint8"],
+                        [callbackFunctionIndex.UPDATE_FLOW_OPERATOR_PERMISSIONS]
                     )
                 );
 
@@ -903,9 +901,11 @@ describe("SuperTokenV1 Library CFA testing", function () {
                 .callAgreement(
                     cfa.address,
                     createFlowCalldata,
-                    encodeAbiParameter(
-                        "uint8",
-                        callbackFunctionIndex.AUTHORIZE_FLOW_OPERATOR_WITH_FULL_CONTROL
+                    ethers.utils.defaultAbiCoder.encode(
+                        ["uint8"],
+                        [
+                            callbackFunctionIndex.AUTHORIZE_FLOW_OPERATOR_WITH_FULL_CONTROL,
+                        ]
                     )
                 );
 
@@ -933,9 +933,11 @@ describe("SuperTokenV1 Library CFA testing", function () {
                 .callAgreement(
                     cfa.address,
                     createFlowCalldata,
-                    encodeAbiParameter(
-                        "uint8",
-                        callbackFunctionIndex.REVOKE_FLOW_OPERATOR_WITH_FULL_CONTROL
+                    ethers.utils.defaultAbiCoder.encode(
+                        ["uint8"],
+                        [
+                            callbackFunctionIndex.REVOKE_FLOW_OPERATOR_WITH_FULL_CONTROL,
+                        ]
                     )
                 );
 

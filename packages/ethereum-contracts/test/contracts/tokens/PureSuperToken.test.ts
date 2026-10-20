@@ -7,9 +7,6 @@ import {loggedTx} from "../../lib/logged-tx";
 import {expectRevertedWith} from "../../utils/expectRevert";
 import {toWad} from "../utils/helpers";
 
-const artifacts = require("../../lib/artifacts");
-const ISuperTokenFactoryTruffle = artifacts.require("ISuperTokenFactory");
-
 describe("PureSuperToken Contract", function () {
     this.timeout(300e3);
     const t = TestEnvironment.getSingleton();
@@ -23,7 +20,8 @@ describe("PureSuperToken Contract", function () {
         });
 
         ({admin} = t.aliases);
-        superTokenFactory = await ISuperTokenFactoryTruffle.at(
+        superTokenFactory = await ethers.getContractAt(
+            "ISuperTokenFactory",
             await t.contracts.superfluid.getSuperTokenFactory()
         );
     });
@@ -41,10 +39,12 @@ describe("PureSuperToken Contract", function () {
         const PureSuperTokenFactory =
             await ethers.getContractFactory("PureSuperToken");
         const PureSuperToken = await PureSuperTokenFactory.deploy();
-        await loggedTx("superTokenFactory.initializeCustomSuperToken", () =>
+        await loggedTx(
+            "superTokenFactory.initializeCustomSuperToken",
             superTokenFactory.initializeCustomSuperToken(PureSuperToken.address)
         );
-        await loggedTx("PureSuperToken.initialize", () =>
+        await loggedTx(
+            "PureSuperToken.initialize",
             PureSuperToken.initialize("Didi Token", "DD", toWad(42).toString())
         );
         const token = await ethers.getContractAt(

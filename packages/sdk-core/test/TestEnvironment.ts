@@ -1,5 +1,4 @@
 import hre, { ethers } from "hardhat";
-import Web3 from "web3";
 import {
     IConstantFlowAgreementV1,
     IGeneralDistributionAgreementV1,
@@ -75,11 +74,6 @@ const testEnv: TestEnvironment = {
 };
 
 export const initializeTestEnvironment = async () => {
-    // sdk-core still supports web3.js providers; tests use global.web3 without hardhat-web3.
-    (global as typeof globalThis & { web3?: Web3 }).web3 = new Web3(
-        hre.network.provider as unknown as Web3["currentProvider"]
-    );
-
     const signers = await ethers.getSigners();
 
     console.log("Deploy Superfluid Test Framework...");

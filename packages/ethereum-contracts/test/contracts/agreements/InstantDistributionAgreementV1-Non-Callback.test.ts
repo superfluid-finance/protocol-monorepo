@@ -1,6 +1,5 @@
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
-import {expect} from "chai";
-import {assert} from "chai";
+import {assert, expect} from "chai";
 import {BigNumber} from "ethers";
 import {ethers} from "hardhat";
 
@@ -10,7 +9,7 @@ import {
 } from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
 import {expectCustomError} from "../../utils/expectRevert";
-import {encodeAbiParameters, toBN, toWad, wad4human} from "../utils/helpers";
+import {toBN, toWad, wad4human} from "../utils/helpers";
 
 import {
     shouldApproveSubscription,
@@ -1542,7 +1541,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
                             [
                                 superToken.address,
                                 DEFAULT_INDEX_ID,
-                                encodeAbiParameters(
+                                ethers.utils.defaultAbiCoder.encode(
                                     ["bytes", "bytes"],
                                     ["0xdeadbeef", "0x"]
                                 ),

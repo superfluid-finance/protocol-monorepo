@@ -1,5 +1,4 @@
-import {expect} from "chai";
-import {assert} from "chai";
+import {assert, expect} from "chai";
 import {BigNumber} from "ethers";
 import {ethers} from "hardhat";
 
@@ -507,7 +506,7 @@ describe("Superfluid scenarios", function () {
             assert.equal(subs.indexIds.length, 1);
             assert.equal(subs.publishers[0], alice);
             assert.equal(subs.indexIds[0], Number(DEFAULT_INDEX_ID));
-            assert.equal(wad4human(subs.unitsList[0]), "0.0001");
+            assert.equal(wad4human(subs.unitsList[0]), "0.00010");
 
             // Alice distributes tokens (100 * 0.0001 = 0.01)
             await shouldDistribute({

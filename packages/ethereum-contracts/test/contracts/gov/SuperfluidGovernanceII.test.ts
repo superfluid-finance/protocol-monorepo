@@ -5,7 +5,7 @@ import {ethers} from "hardhat";
 import {SuperfluidGovernanceII, SuperfluidMock} from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
 import {expectCustomError, expectRevertedWith} from "../../utils/expectRevert";
-import {sha3} from "../utils/helpers";
+import {keccak256} from "../utils/helpers";
 
 describe("Superfluid Ownable Governance Contract", function () {
     this.timeout(300e3);
@@ -116,7 +116,7 @@ describe("Superfluid Ownable Governance Contract", function () {
         it("#1.2 proxiable info", async () => {
             assert.equal(
                 await governance.proxiableUUID(),
-                sha3(
+                keccak256(
                     "org.superfluid-finance.contracts.SuperfluidGovernanceII.implementation"
                 )
             );
@@ -687,12 +687,12 @@ describe("Superfluid Ownable Governance Contract", function () {
         });
 
         it("#2.7 external set/clear config", async () => {
-            const SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY = sha3(
+            const SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY = keccak256(
                 "org.superfluid-finance.superfluid.rewardAddress"
-            )!;
-            const SUPERTOKEN_MINIMUM_DEPOSIT_KEY = sha3(
+            );
+            const SUPERTOKEN_MINIMUM_DEPOSIT_KEY = keccak256(
                 "org.superfluid-finance.superfluid.superTokenMinimumDeposit"
-            )!;
+            );
 
             // only owner can set config
             await expectCustomError(
